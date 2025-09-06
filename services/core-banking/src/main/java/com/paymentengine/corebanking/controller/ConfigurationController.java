@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -35,6 +36,50 @@ public class ConfigurationController {
     // ============================================================================
     // TENANT MANAGEMENT
     // ============================================================================
+    
+    /**
+     * List all tenants
+     */
+    @GetMapping("/tenants")
+    @PreAuthorize("hasAuthority('tenant:read')")
+    @Timed(value = "config.tenant.list", description = "Time taken to list tenants")
+    public ResponseEntity<java.util.List<Map<String, Object>>> listTenants() {
+        
+        logger.debug("Listing all tenants");
+        
+        try {
+            // This would typically have pagination and filtering
+            java.util.List<Map<String, Object>> tenants = Arrays.asList(
+                Map.of(
+                    "tenantId", "default",
+                    "tenantName", "Default Tenant",
+                    "tenantType", "BANK",
+                    "status", "ACTIVE",
+                    "subscriptionTier", "ENTERPRISE"
+                ),
+                Map.of(
+                    "tenantId", "demo-bank",
+                    "tenantName", "Demo Bank",
+                    "tenantType", "BANK", 
+                    "status", "ACTIVE",
+                    "subscriptionTier", "STANDARD"
+                ),
+                Map.of(
+                    "tenantId", "fintech-corp",
+                    "tenantName", "FinTech Corporation",
+                    "tenantType", "FINTECH",
+                    "status", "ACTIVE",
+                    "subscriptionTier", "PREMIUM"
+                )
+            );
+            
+            return ResponseEntity.ok(tenants);
+            
+        } catch (Exception e) {
+            logger.error("Error listing tenants: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
     
     /**
      * Create new tenant

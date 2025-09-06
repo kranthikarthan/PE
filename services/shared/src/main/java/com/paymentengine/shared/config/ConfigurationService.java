@@ -9,10 +9,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Dynamic Configuration Service
@@ -667,5 +669,5 @@ public class ConfigurationService {
     }
     
     @Autowired
-    private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 }

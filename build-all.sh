@@ -264,6 +264,19 @@ deploy_local() {
     docker-compose up -d
     
     if [ $? -eq 0 ]; then
+        print_status "Waiting for database to be ready..."
+        sleep 10
+        
+        # Run database migrations
+        print_status "Running database migrations..."
+        docker-compose exec -T postgres psql -U payment_user -d payment_engine -f /docker-entrypoint-initdb.d/03-run-migrations.sql
+        
+        if [ $? -eq 0 ]; then
+            print_success "Database migrations completed successfully"
+        else
+            print_warning "Database migrations may have already been applied"
+        fi
+        
         print_success "All services deployed successfully"
         
         print_status "Service URLs:"

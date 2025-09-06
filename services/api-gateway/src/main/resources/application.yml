@@ -89,6 +89,20 @@ spring:
                 excluded-paths: []
         
         # Configuration Management routes
+        - id: config-tenants-list
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/config/tenants
+            - Method=GET
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: RateLimit
+              args:
+                requests-per-window: 200
+                window-size-in-seconds: 60
+        
         - id: config-tenants
           uri: lb://core-banking-service
           predicates:

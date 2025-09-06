@@ -15,6 +15,29 @@ spring:
   
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
+
+# Multi-tenancy configuration
+tenancy:
+  enabled: ${TENANCY_ENABLED:true}
+  default-tenant: ${TENANCY_DEFAULT_TENANT:default}
+  isolation-level: ROW_LEVEL_SECURITY
+
+# Configuration service settings
+config:
+  service:
+    enabled: ${CONFIG_SERVICE_ENABLED:true}
+    cache:
+      enabled: true
+      ttl: 3600
+  validation:
+    enabled: true
+
+# Feature flags
+feature-flags:
+  enabled: ${FEATURE_FLAGS_ENABLED:true}
+  cache:
+    enabled: true
+    ttl: 300
   
   # Database Configuration
   datasource:
