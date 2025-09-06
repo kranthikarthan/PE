@@ -1,0 +1,218 @@
+# Payment Engine Alert Rules
+
+groups:
+  - name: payment-engine-sli
+    rules:
+      # Transaction Success Rate SLI
+      - record: payment_engine:transaction_success_rate
+        expr: |
+          (
+            sum(rate(transaction_completed_total[5m])) /
+            sum(rate(transaction_created_total[5m]))
+          ) * 100
+
+      # Transaction Processing Time SLI (95th percentile)
+      - record: payment_engine:transaction_processing_time_p95
+        expr: histogram_quantile(0.95, sum(rate(transaction_processing_duration_seconds_bucket[5m])) by (le))
+
+      # API Response Time SLI (95th percentile)
+      - record: payment_engine:api_response_time_p95
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))
+
+      # System Availability SLI
+      - record: payment_engine:system_availability
+        expr: |
+          (
+            sum(up{job=~"api-gateway|core-banking|middleware"}) /
+            count(up{job=~"api-gateway|core-banking|middleware"})
+          ) * 100
+
+  - name: payment-engine-alerts
+    rules:
+      # Critical Alerts
+      - alert: ServiceDown
+        expr: up{job=~"api-gateway|core-banking|middleware"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Payment Engine service is down"
+          description: "{{ $labels.job }} service has been down for more than 1 minute."
+
+      - alert: HighTransactionFailureRate
+        expr: payment_engine:transaction_success_rate < 95
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High transaction failure rate"
+          description: "Transaction success rate is {{ $value }}%, below the 95% SLO threshold."
+
+      - alert: DatabaseConnectionFailure
+        expr: up{job="postgres"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection failure"
+          description: "PostgreSQL database is unreachable."
+
+      - alert: KafkaDown
+        expr: up{job="kafka"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kafka cluster is down"
+          description: "Kafka messaging system is unavailable."
+
+      # High Severity Alerts
+      - alert: HighAPIResponseTime
+        expr: payment_engine:api_response_time_p95 > 2
+        for: 5m
+        labels:
+          severity: high
+        annotations:
+          summary: "High API response time"
+          description: "95th percentile API response time is {{ $value }}s, above the 2s SLO threshold."
+
+      - alert: HighTransactionProcessingTime
+        expr: payment_engine:transaction_processing_time_p95 > 30
+        for: 5m
+        labels:
+          severity: high
+        annotations:
+          summary: "High transaction processing time"
+          description: "95th percentile transaction processing time is {{ $value }}s, above the 30s SLO threshold."
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: high
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}%, above 85% threshold."
+
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: high
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}%, above 80% threshold."
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
+        for: 5m
+        labels:
+          severity: high
+        annotations:
+          summary: "Low disk space"
+          description: "Available disk space is {{ $value }}%, below 15% threshold."
+
+      # Medium Severity Alerts
+      - alert: HighErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) * 100 > 5
+        for: 10m
+        labels:
+          severity: medium
+        annotations:
+          summary: "High HTTP error rate"
+          description: "HTTP 5xx error rate is {{ $value }}%, above 5% threshold."
+
+      - alert: KafkaConsumerLag
+        expr: kafka_consumer_lag_sum > 1000
+        for: 5m
+        labels:
+          severity: medium
+        annotations:
+          summary: "High Kafka consumer lag"
+          description: "Kafka consumer lag is {{ $value }} messages."
+
+      - alert: DatabaseConnectionsHigh
+        expr: pg_stat_database_numbackends / pg_settings_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: medium
+        annotations:
+          summary: "High database connection usage"
+          description: "Database connection usage is {{ $value }}%, above 80% threshold."
+
+      # Business Logic Alerts
+      - alert: SuspiciousTransactionVolume
+        expr: sum(rate(transaction_created_total[1h])) > 1000
+        for: 5m
+        labels:
+          severity: medium
+        annotations:
+          summary: "Unusual transaction volume"
+          description: "Transaction volume is {{ $value }} transactions/hour, above normal threshold."
+
+      - alert: HighValueTransactionSpike
+        expr: sum(rate(transaction_amount_total{amount_range="high"}[10m])) > 100
+        for: 2m
+        labels:
+          severity: medium
+        annotations:
+          summary: "High value transaction spike"
+          description: "High value transactions spiked to {{ $value }} transactions in 10 minutes."
+
+      - alert: UnusualFailurePattern
+        expr: sum(rate(transaction_failed_total[5m])) by (failure_reason) > 10
+        for: 5m
+        labels:
+          severity: medium
+        annotations:
+          summary: "Unusual transaction failure pattern"
+          description: "{{ $labels.failure_reason }} failures at {{ $value }} failures/5min."
+
+  - name: payment-engine-slo
+    rules:
+      # SLO Burn Rate Alerts (Error Budget)
+      - alert: SLOTransactionSuccessRateBurnRateCritical
+        expr: |
+          (
+            payment_engine:transaction_success_rate < 99.5
+          ) and (
+            (1 - payment_engine:transaction_success_rate / 100) > (1 - 99.9 / 100) * 14.4
+          )
+        for: 2m
+        labels:
+          severity: critical
+          slo: transaction_success_rate
+        annotations:
+          summary: "SLO burn rate too high for transaction success rate"
+          description: "High burn rate for transaction success rate SLO. Current success rate: {{ $value }}%"
+
+      - alert: SLOAPIResponseTimeBurnRateCritical
+        expr: |
+          (
+            payment_engine:api_response_time_p95 > 1
+          ) and (
+            payment_engine:api_response_time_p95 > 2 * 14.4
+          )
+        for: 2m
+        labels:
+          severity: critical
+          slo: api_response_time
+        annotations:
+          summary: "SLO burn rate too high for API response time"
+          description: "High burn rate for API response time SLO. Current p95: {{ $value }}s"
+
+      - alert: SLOSystemAvailabilityBurnRateCritical
+        expr: |
+          (
+            payment_engine:system_availability < 99.9
+          ) and (
+            (1 - payment_engine:system_availability / 100) > (1 - 99.95 / 100) * 14.4
+          )
+        for: 2m
+        labels:
+          severity: critical
+          slo: system_availability
+        annotations:
+          summary: "SLO burn rate too high for system availability"
+          description: "High burn rate for system availability SLO. Current availability: {{ $value }}%"
