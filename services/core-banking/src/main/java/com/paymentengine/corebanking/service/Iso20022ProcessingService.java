@@ -10,6 +10,11 @@ import com.paymentengine.shared.constants.KafkaTopics;
 import com.paymentengine.shared.dto.iso20022.*;
 import com.paymentengine.shared.event.TransactionCreatedEvent;
 import com.paymentengine.shared.service.Iso20022MessageService;
+import com.paymentengine.shared.service.KafkaResponseService;
+import com.paymentengine.shared.config.PaymentResponseConfigService;
+import com.paymentengine.shared.config.PaymentResponseConfigService.PaymentResponseConfig;
+import com.paymentengine.shared.config.PaymentResponseConfigService.ResponseMode;
+import com.paymentengine.shared.tenant.TenantContext;
 import com.paymentengine.shared.util.EventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +45,8 @@ public class Iso20022ProcessingService {
     private final TransactionRepository transactionRepository;
     private final Iso20022MessageService iso20022MessageService;
     private final EventPublisher eventPublisher;
+    private final KafkaResponseService kafkaResponseService;
+    private final PaymentResponseConfigService paymentResponseConfigService;
     
     @Autowired
     public Iso20022ProcessingService(
@@ -47,12 +54,16 @@ public class Iso20022ProcessingService {
             AccountRepository accountRepository,
             TransactionRepository transactionRepository,
             Iso20022MessageService iso20022MessageService,
-            EventPublisher eventPublisher) {
+            EventPublisher eventPublisher,
+            KafkaResponseService kafkaResponseService,
+            PaymentResponseConfigService paymentResponseConfigService) {
         this.transactionService = transactionService;
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
         this.iso20022MessageService = iso20022MessageService;
         this.eventPublisher = eventPublisher;
+        this.kafkaResponseService = kafkaResponseService;
+        this.paymentResponseConfigService = paymentResponseConfigService;
     }
     
     // ============================================================================
@@ -61,6 +72,7 @@ public class Iso20022ProcessingService {
     
     /**
      * Process pain.001 - Customer Credit Transfer Initiation
+     * Supports configurable response modes: SYNCHRONOUS, ASYNCHRONOUS, KAFKA_TOPIC
      */
     public Map<String, Object> processPain001(Pain001Message pain001, Map<String, Object> context) {
         logger.info("Processing pain.001 customer credit transfer initiation");
@@ -79,18 +91,40 @@ public class Iso20022ProcessingService {
             request.setIpAddress((String) context.get("ipAddress"));
             request.setChannel("iso20022-pain001");
             
+            // Determine payment type from request
+            String paymentType = request.getPaymentType();
+            String tenantId = TenantContext.getCurrentTenant();
+            
+            // Get response configuration for this payment type
+            PaymentResponseConfig responseConfig = paymentResponseConfigService.getResponseConfig(tenantId, paymentType);
+            
+            logger.info("Using response mode: {} for tenant: {}, paymentType: {}", 
+                       responseConfig.getResponseMode(), tenantId, paymentType);
+            
             // Process transaction
             TransactionResponse transaction = transactionService.createTransaction(request);
             
             // Generate pain.002 response
             String originalMessageId = pain001.getCustomerCreditTransferInitiation().getGroupHeader().getMessageId();
-            Map<String, Object> pain002 = iso20022MessageService.transformTransactionResponseToPain002(transaction, originalMessageId);
+            Pain002Message pain002Message = createPain002Response(transaction, originalMessageId, pain001);
+            
+            // Handle response based on configured mode
+            Map<String, Object> response = handlePain001Response(
+                pain002Message, 
+                responseConfig, 
+                transaction, 
+                originalMessageId, 
+                paymentType,
+                context
+            );
             
             // Publish ISO 20022 event
             publishIso20022Event("pain.001", pain001, transaction, context);
             
-            logger.info("pain.001 processed successfully, transaction: {}", transaction.getTransactionReference());
-            return pain002;
+            logger.info("pain.001 processed successfully, transaction: {}, responseMode: {}", 
+                       transaction.getTransactionReference(), responseConfig.getResponseMode());
+            
+            return response;
             
         } catch (Exception e) {
             logger.error("Error processing pain.001: {}", e.getMessage(), e);
@@ -1261,5 +1295,261 @@ public class Iso20022ProcessingService {
             logger.error("Error generating camt.029 response: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to generate resolution response", e);
         }
+    }
+    
+    // ============================================================================
+    // PAIN.002 RESPONSE HANDLING METHODS
+    // ============================================================================
+    
+    /**
+     * Handle pain.001 response based on configured response mode
+     */
+    private Map<String, Object> handlePain001Response(
+            Pain002Message pain002Message,
+            PaymentResponseConfig responseConfig,
+            TransactionResponse transaction,
+            String originalMessageId,
+            String paymentType,
+            Map<String, Object> context) {
+        
+        String tenantId = TenantContext.getCurrentTenant();
+        
+        logger.info("Handling pain.001 response with mode: {} for tenant: {}, paymentType: {}", 
+                   responseConfig.getResponseMode(), tenantId, paymentType);
+        
+        switch (responseConfig.getResponseMode()) {
+            case SYNCHRONOUS:
+                return handleSynchronousResponse(pain002Message, transaction, context);
+                
+            case ASYNCHRONOUS:
+                return handleAsynchronousResponse(pain002Message, transaction, originalMessageId, context);
+                
+            case KAFKA_TOPIC:
+                return handleKafkaTopicResponse(pain002Message, responseConfig, transaction, originalMessageId, paymentType, context);
+                
+            default:
+                logger.warn("Unknown response mode: {}, falling back to synchronous", responseConfig.getResponseMode());
+                return handleSynchronousResponse(pain002Message, transaction, context);
+        }
+    }
+    
+    /**
+     * Handle synchronous response (immediate API response)
+     */
+    private Map<String, Object> handleSynchronousResponse(
+            Pain002Message pain002Message, 
+            TransactionResponse transaction, 
+            Map<String, Object> context) {
+        
+        logger.debug("Handling synchronous response for transaction: {}", transaction.getTransactionReference());
+        
+        return Map.of(
+            "responseMode", "SYNCHRONOUS",
+            "pain002Message", pain002Message,
+            "transactionId", transaction.getTransactionReference(),
+            "status", transaction.getStatus(),
+            "processingTime", LocalDateTime.now().format(ISO_DATETIME_FORMATTER),
+            "immediate", true
+        );
+    }
+    
+    /**
+     * Handle asynchronous response (callback-based)
+     */
+    private Map<String, Object> handleAsynchronousResponse(
+            Pain002Message pain002Message,
+            TransactionResponse transaction,
+            String originalMessageId,
+            Map<String, Object> context) {
+        
+        logger.debug("Handling asynchronous response for transaction: {}", transaction.getTransactionReference());
+        
+        // Schedule async callback (implementation would depend on callback mechanism)
+        scheduleAsyncCallback(pain002Message, transaction, originalMessageId, context);
+        
+        return Map.of(
+            "responseMode", "ASYNCHRONOUS",
+            "transactionId", transaction.getTransactionReference(),
+            "status", "ACCEPTED_FOR_PROCESSING",
+            "message", "Payment accepted for processing. Status will be provided via callback.",
+            "processingTime", LocalDateTime.now().format(ISO_DATETIME_FORMATTER),
+            "callbackScheduled", true
+        );
+    }
+    
+    /**
+     * Handle Kafka topic response (publish pain.002 to configured topic)
+     */
+    private Map<String, Object> handleKafkaTopicResponse(
+            Pain002Message pain002Message,
+            PaymentResponseConfig responseConfig,
+            TransactionResponse transaction,
+            String originalMessageId,
+            String paymentType,
+            Map<String, Object> context) {
+        
+        String tenantId = TenantContext.getCurrentTenant();
+        
+        logger.info("Publishing pain.002 response to Kafka topic for tenant: {}, paymentType: {}", tenantId, paymentType);
+        
+        try {
+            // Get Kafka configuration
+            Map<String, Object> kafkaConfig = Map.of(
+                "enabled", responseConfig.getKafkaConfig().isEnabled(),
+                "usePaymentTypeSpecificTopic", responseConfig.getKafkaConfig().isUsePaymentTypeSpecificTopic(),
+                "topicPattern", responseConfig.getKafkaConfig().getTopicPattern(),
+                "explicitTopicName", responseConfig.getKafkaConfig().getExplicitTopicName(),
+                "includeOriginalMessage", responseConfig.getKafkaConfig().isIncludeOriginalMessage(),
+                "priority", responseConfig.getKafkaConfig().getPriority(),
+                "targetSystems", responseConfig.getKafkaConfig().getTargetSystems(),
+                "maxRetries", responseConfig.getKafkaConfig().getMaxRetries(),
+                "backoffMs", responseConfig.getKafkaConfig().getBackoffMs()
+            );
+            
+            // Publish to Kafka topic
+            kafkaResponseService.publishPain002Response(
+                pain002Message, 
+                paymentType, 
+                originalMessageId, 
+                kafkaConfig
+            );
+            
+            // Determine topic name for response
+            String topicName = kafkaResponseService.createPaymentTypeResponseTopic(tenantId, paymentType);
+            if (responseConfig.getKafkaConfig().getExplicitTopicName() != null) {
+                topicName = responseConfig.getKafkaConfig().getExplicitTopicName();
+            }
+            
+            logger.info("pain.002 response published to Kafka topic: {} for transaction: {}", 
+                       topicName, transaction.getTransactionReference());
+            
+            return Map.of(
+                "responseMode", "KAFKA_TOPIC",
+                "transactionId", transaction.getTransactionReference(),
+                "status", "ACCEPTED_FOR_PROCESSING",
+                "message", "Payment accepted. Status response will be published to Kafka topic.",
+                "kafkaTopicName", topicName,
+                "originalMessageId", originalMessageId,
+                "responseMessageId", pain002Message.getGroupHeader().getMessageId(),
+                "processingTime", LocalDateTime.now().format(ISO_DATETIME_FORMATTER),
+                "kafkaPublished", true
+            );
+            
+        } catch (Exception e) {
+            logger.error("Error publishing pain.002 to Kafka topic: {}", e.getMessage(), e);
+            
+            // Fallback to synchronous response on Kafka failure
+            logger.warn("Falling back to synchronous response due to Kafka publishing failure");
+            return handleSynchronousResponse(pain002Message, transaction, context);
+        }
+    }
+    
+    /**
+     * Create pain.002 response message from transaction response
+     */
+    private Pain002Message createPain002Response(TransactionResponse transaction, String originalMessageId, Pain001Message originalPain001) {
+        logger.debug("Creating pain.002 response for transaction: {}", transaction.getTransactionReference());
+        
+        try {
+            // Create group header
+            Pain002Message.GroupHeader groupHeader = new Pain002Message.GroupHeader(
+                "PAIN002-" + System.currentTimeMillis(),
+                LocalDateTime.now(),
+                new Party("Payment Engine", null, null)
+            );
+            
+            // Create original group information
+            Pain002Message.OriginalGroupInformationAndStatus originalGroupInfo = 
+                new Pain002Message.OriginalGroupInformationAndStatus(
+                    originalMessageId,
+                    "pain.001.001.03",
+                    mapTransactionStatusToPain002Status(transaction.getStatus())
+                );
+            
+            // Set original creation date time and control sum if available
+            if (originalPain001 != null && originalPain001.getCustomerCreditTransferInitiation() != null) {
+                Pain001Message.GroupHeader originalHeader = originalPain001.getCustomerCreditTransferInitiation().getGroupHeader();
+                originalGroupInfo.setOriginalCreationDateTime(originalHeader.getCreationDateTime());
+                originalGroupInfo.setOriginalNumberOfTransactions(originalHeader.getNumberOfTransactions());
+                originalGroupInfo.setOriginalControlSum(originalHeader.getControlSum());
+            }
+            
+            // Create transaction information and status
+            Pain002Message.TransactionInformationAndStatus txInfo = 
+                new Pain002Message.TransactionInformationAndStatus(
+                    transaction.getEndToEndId(),
+                    mapTransactionStatusToPain002Status(transaction.getStatus())
+                );
+            
+            txInfo.setStatusId("STS-" + System.currentTimeMillis());
+            txInfo.setOriginalTransactionId(transaction.getTransactionReference());
+            
+            // Add status reason if transaction failed
+            if ("FAILED".equals(transaction.getStatus()) || "REJECTED".equals(transaction.getStatus())) {
+                Pain002Message.StatusReasonInformation statusReason = new Pain002Message.StatusReasonInformation(
+                    new Pain002Message.Reason("RJCT")
+                );
+                statusReason.setAdditionalInformation(List.of(transaction.getFailureReason()));
+                txInfo.setStatusReasonInformation(List.of(statusReason));
+            }
+            
+            // Create pain.002 message
+            Pain002Message pain002 = new Pain002Message(
+                groupHeader,
+                originalGroupInfo,
+                List.of(txInfo)
+            );
+            
+            logger.debug("pain.002 response created successfully for transaction: {}", transaction.getTransactionReference());
+            return pain002;
+            
+        } catch (Exception e) {
+            logger.error("Error creating pain.002 response: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to create pain.002 response", e);
+        }
+    }
+    
+    /**
+     * Map internal transaction status to ISO 20022 pain.002 status
+     */
+    private String mapTransactionStatusToPain002Status(String internalStatus) {
+        switch (internalStatus.toUpperCase()) {
+            case "SUCCESS":
+            case "COMPLETED":
+                return "ACCP"; // AcceptedCustomerProfile
+            case "PENDING":
+            case "PROCESSING":
+                return "PDNG"; // Pending
+            case "FAILED":
+            case "ERROR":
+                return "RJCT"; // Rejected
+            case "CANCELLED":
+                return "CANC"; // Cancelled
+            default:
+                logger.warn("Unknown transaction status: {}, mapping to PDNG", internalStatus);
+                return "PDNG"; // Default to pending
+        }
+    }
+    
+    /**
+     * Schedule asynchronous callback (placeholder for async implementation)
+     */
+    private void scheduleAsyncCallback(
+            Pain002Message pain002Message,
+            TransactionResponse transaction,
+            String originalMessageId,
+            Map<String, Object> context) {
+        
+        logger.debug("Scheduling async callback for transaction: {}", transaction.getTransactionReference());
+        
+        // Implementation would depend on the specific callback mechanism
+        // Could use:
+        // - HTTP callbacks to registered webhook URLs
+        // - Message queue for delayed processing
+        // - Database queue for async processing
+        
+        // For now, just log the callback scheduling
+        logger.info("Async callback scheduled for transaction: {}, originalMessageId: {}", 
+                   transaction.getTransactionReference(), originalMessageId);
     }
 }

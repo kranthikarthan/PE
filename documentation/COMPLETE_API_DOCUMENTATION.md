@@ -529,7 +529,13 @@ X-Tenant-ID: {tenantId}
 
 ## 📋 **ISO 20022 MESSAGE APIs**
 
-### Process pain.001 (Payment Initiation)
+### Process pain.001 (Payment Initiation) - **Enhanced with Configurable Response Modes**
+
+The pain.001 endpoint now supports **three configurable response modes**:
+- **SYNCHRONOUS**: Immediate pain.002 response in API call
+- **ASYNCHRONOUS**: Callback-based response delivery
+- **🆕 KAFKA_TOPIC**: pain.002 published to payment-type-specific Kafka topics
+
 ```bash
 POST /api/v1/iso20022/pain001
 Authorization: Bearer <token>
@@ -563,13 +569,31 @@ Content-Type: application/json
   }
 }
 
-# Response
+# Response (varies based on payment type configuration):
+
+# SYNCHRONOUS Mode Response:
 {
-  "messageId": "MSG-20240115-001",
-  "status": "ACCEPTED",
-  "tenantId": "regional-bank",
+  "responseMode": "SYNCHRONOUS",
+  "pain002Message": {
+    "GrpHdr": {"MsgId": "PAIN002-1705312200123", "CreDtTm": "2024-01-15T10:30:00.123Z"},
+    "OrgnlGrpInfAndSts": {"OrgnlMsgId": "MSG-20240115-001", "GrpSts": "ACCP"},
+    "TxInfAndSts": [{"OrgnlEndToEndId": "E2E-20240115-001", "TxSts": "ACCP"}]
+  },
   "transactionId": "TXN-20240115-002",
-  "processingTime": "1.8s"
+  "status": "SUCCESS",
+  "immediate": true
+}
+
+# KAFKA_TOPIC Mode Response:
+{
+  "responseMode": "KAFKA_TOPIC",
+  "transactionId": "TXN-20240115-002",
+  "status": "ACCEPTED_FOR_PROCESSING",
+  "message": "Payment accepted. Status response will be published to Kafka topic.",
+  "kafkaTopicName": "payment-engine.regional-bank.responses.ach_credit.pain002",
+  "originalMessageId": "MSG-20240115-001",
+  "responseMessageId": "PAIN002-1705312200123",
+  "kafkaPublished": true
 }
 ```
 

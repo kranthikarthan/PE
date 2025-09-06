@@ -38,7 +38,9 @@ import {
   Security as SecurityIcon,
   Speed as SpeedIcon,
   Flag as FlagIcon,
+  Topic as TopicIcon,
 } from '@mui/icons-material';
+import PaymentResponseConfigManager from '../components/configuration/PaymentResponseConfigManager';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -341,6 +343,11 @@ const ConfigurationPage: React.FC = () => {
               iconPosition="start"
             />
             <Tab
+              label="Response Configuration"
+              icon={<TopicIcon />}
+              iconPosition="start"
+            />
+            <Tab
               label="Security Settings"
               icon={<SecurityIcon />}
               iconPosition="start"
@@ -546,6 +553,21 @@ const ConfigurationPage: React.FC = () => {
         </TabPanel>
 
         <TabPanel value={tabValue} index={3}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Payment Response Configuration - {currentTenant}
+            </Typography>
+            
+            <PaymentResponseConfigManager
+              tenantId={currentTenant}
+              onConfigChange={(config) => {
+                console.log('Response configuration changed:', config);
+              }}
+            />
+          </CardContent>
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={4}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Security Settings - {currentTenant}

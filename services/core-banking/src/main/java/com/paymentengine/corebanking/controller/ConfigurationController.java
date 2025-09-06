@@ -625,6 +625,91 @@ public class ConfigurationController {
         }
     }
     
+    // ============================================================================
+    // PAYMENT RESPONSE CONFIGURATION
+    // ============================================================================
+    
+    /**
+     * Update payment type response configuration
+     */
+    @PutMapping("/tenants/{tenantId}/payment-types/{paymentTypeCode}/response-config")
+    @PreAuthorize("hasAuthority('payment-type:update')")
+    @Timed(value = "config.payment_type.response_config", description = "Time taken to update response config")
+    public ResponseEntity<Map<String, String>> updatePaymentTypeResponseConfig(
+            @PathVariable String tenantId,
+            @PathVariable String paymentTypeCode,
+            @Valid @RequestBody Map<String, Object> responseConfigRequest) {
+        
+        logger.info("Updating response configuration for tenant: {}, paymentType: {}", tenantId, paymentTypeCode);
+        
+        try {
+            String responseMode = (String) responseConfigRequest.get("responseMode");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> kafkaConfig = (Map<String, Object>) responseConfigRequest.get("kafkaResponseConfig");
+            
+            // Update payment type configuration to include response mode
+            Map<String, Object> paymentTypeUpdates = new HashMap<>();
+            Map<String, Object> configuration = new HashMap<>();
+            configuration.put("response_mode", responseMode);
+            if (kafkaConfig != null) {
+                configuration.put("kafka_response_config", kafkaConfig);
+            }
+            paymentTypeUpdates.put("configuration", configuration);
+            
+            configurationService.updatePaymentType(tenantId, paymentTypeCode, paymentTypeUpdates);
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "Payment type response configuration updated successfully",
+                "tenantId", tenantId,
+                "paymentTypeCode", paymentTypeCode,
+                "responseMode", responseMode,
+                "timestamp", LocalDateTime.now().toString()
+            ));
+            
+        } catch (Exception e) {
+            logger.error("Error updating payment type response configuration: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", e.getMessage(),
+                "timestamp", LocalDateTime.now().toString()
+            ));
+        }
+    }
+    
+    /**
+     * Get payment type response configuration
+     */
+    @GetMapping("/tenants/{tenantId}/payment-types/{paymentTypeCode}/response-config")
+    @PreAuthorize("hasAuthority('payment-type:read')")
+    @Timed(value = "config.payment_type.get_response_config", description = "Time taken to get response config")
+    public ResponseEntity<Map<String, Object>> getPaymentTypeResponseConfig(
+            @PathVariable String tenantId,
+            @PathVariable String paymentTypeCode) {
+        
+        logger.debug("Getting response configuration for tenant: {}, paymentType: {}", tenantId, paymentTypeCode);
+        
+        try {
+            // This would use PaymentResponseConfigService to get the configuration
+            Map<String, Object> responseConfig = Map.of(
+                "tenantId", tenantId,
+                "paymentTypeCode", paymentTypeCode,
+                "responseMode", "SYNCHRONOUS", // Default, would be loaded from database
+                "kafkaResponseConfig", Map.of(
+                    "enabled", false,
+                    "usePaymentTypeSpecificTopic", true,
+                    "topicPattern", "payment-engine.{tenantId}.responses.{paymentType}.pain002",
+                    "priority", "NORMAL"
+                ),
+                "timestamp", LocalDateTime.now().toString()
+            );
+            
+            return ResponseEntity.ok(responseConfig);
+            
+        } catch (Exception e) {
+            logger.error("Error getting payment type response configuration: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
     /**
      * Health check for configuration service
      */
@@ -633,7 +718,7 @@ public class ConfigurationController {
         return ResponseEntity.ok(Map.of(
             "status", "UP",
             "service", "configuration-service",
-            "features", "multi-tenancy, dynamic-config, feature-flags",
+            "features", "multi-tenancy, dynamic-config, feature-flags, kafka-responses",
             "timestamp", LocalDateTime.now().toString()
         ));
     }

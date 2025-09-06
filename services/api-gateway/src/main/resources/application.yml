@@ -136,6 +136,24 @@ spring:
               args:
                 requests-per-window: 200
                 window-size-in-seconds: 60
+        
+        # Payment response configuration routes
+        - id: payment-response-config
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/config/tenants/*/payment-types/*/response-config
+            - Method=GET,PUT
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: TenantHeader
+              args:
+                enabled: true
+            - name: RateLimit
+              args:
+                requests-per-window: 100
+                window-size-in-seconds: 60
 
         # ISO 20022 pain.001 routes
         - id: iso20022-pain001

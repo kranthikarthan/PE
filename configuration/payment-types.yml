@@ -17,6 +17,17 @@ payment_types:
       requires_compliance_check: false
       supported_currencies: ["USD", "CAD"]
       business_days_only: false
+      # Response configuration options
+      response_mode: "SYNCHRONOUS" # SYNCHRONOUS, ASYNCHRONOUS, KAFKA_TOPIC
+      kafka_response_config:
+        enabled: false
+        use_payment_type_specific_topic: true
+        topic_pattern: "payment-engine.{tenantId}.responses.{paymentType}.pain002"
+        include_original_message: true
+        priority: "HIGH"
+        retry_policy:
+          max_retries: 3
+          backoff_ms: 1000
     
   # ACH Credit Transfer
   - code: "ACH_CREDIT"
@@ -34,6 +45,18 @@ payment_types:
       supported_currencies: ["USD"]
       business_days_only: true
       batch_processing: true
+      # Response configuration options
+      response_mode: "KAFKA_TOPIC" # Use Kafka for ACH responses
+      kafka_response_config:
+        enabled: true
+        use_payment_type_specific_topic: true
+        topic_pattern: "payment-engine.{tenantId}.responses.{paymentType}.pain002"
+        include_original_message: false # ACH doesn't need original message
+        priority: "NORMAL"
+        target_systems: ["ach-processor", "notification-service"]
+        retry_policy:
+          max_retries: 5
+          backoff_ms: 2000
     
   # ACH Debit Transfer
   - code: "ACH_DEBIT"
