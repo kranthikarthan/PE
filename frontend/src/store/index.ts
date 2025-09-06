@@ -5,6 +5,7 @@ import transactionSlice from './slices/transactionSlice';
 import accountSlice from './slices/accountSlice';
 import paymentTypeSlice from './slices/paymentTypeSlice';
 import dashboardSlice from './slices/dashboardSlice';
+import tenantSlice from './slices/tenantSlice';
 import uiSlice from './slices/uiSlice';
 
 export const store = configureStore({
@@ -14,6 +15,7 @@ export const store = configureStore({
     accounts: accountSlice,
     paymentTypes: paymentTypeSlice,
     dashboard: dashboardSlice,
+    tenant: tenantSlice,
     ui: uiSlice,
   },
   middleware: (getDefaultMiddleware) =>

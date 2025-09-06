@@ -88,6 +88,41 @@ spring:
               args:
                 excluded-paths: []
         
+        # Configuration Management routes
+        - id: config-tenants
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/config/tenants/**
+            - Method=GET,POST,PUT,DELETE
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: TenantHeader
+              args:
+                enabled: true
+            - name: RateLimit
+              args:
+                requests-per-window: 100
+                window-size-in-seconds: 60
+        
+        - id: config-management
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/config/**
+            - Method=GET,POST,PUT,DELETE
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: TenantHeader
+              args:
+                enabled: true
+            - name: RateLimit
+              args:
+                requests-per-window: 200
+                window-size-in-seconds: 60
+
         # ISO 20022 pain.001 routes
         - id: iso20022-pain001
           uri: lb://core-banking-service
@@ -98,6 +133,9 @@ spring:
             - name: Authentication
               args:
                 excluded-paths: []
+            - name: TenantHeader
+              args:
+                enabled: true
             - name: RateLimit
               args:
                 requests-per-window: 100

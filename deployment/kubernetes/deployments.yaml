@@ -41,10 +41,7 @@ spec:
               protocol: TCP
           env:
             - name: SPRING_PROFILES_ACTIVE
-              valueFrom:
-                configMapKeyRef:
-                  name: payment-engine-config
-                  key: SPRING_PROFILES_ACTIVE
+              value: "production,multi-tenant"
             - name: DATABASE_HOST
               valueFrom:
                 configMapKeyRef:
@@ -149,10 +146,7 @@ spec:
               protocol: TCP
           env:
             - name: SPRING_PROFILES_ACTIVE
-              valueFrom:
-                configMapKeyRef:
-                  name: payment-engine-config
-                  key: SPRING_PROFILES_ACTIVE
+              value: "production,multi-tenant"
             - name: DATABASE_URL
               value: "jdbc:postgresql://$(DATABASE_HOST):$(DATABASE_PORT)/$(DATABASE_NAME)"
             - name: DATABASE_HOST
@@ -274,10 +268,7 @@ spec:
               protocol: TCP
           env:
             - name: SPRING_PROFILES_ACTIVE
-              valueFrom:
-                configMapKeyRef:
-                  name: payment-engine-config
-                  key: SPRING_PROFILES_ACTIVE
+              value: "production,multi-tenant"
             - name: KAFKA_BOOTSTRAP_SERVERS
               valueFrom:
                 configMapKeyRef:
