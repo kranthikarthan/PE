@@ -2,6 +2,7 @@ package com.paymentengine.gateway.filter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -25,10 +26,14 @@ public class RateLimitGatewayFilterFactory
     
     private static final Logger logger = LoggerFactory.getLogger(RateLimitGatewayFilterFactory.class);
     
-    private final ReactiveRedisTemplate<String, String> redisTemplate;
+    private ReactiveRedisTemplate<String, String> redisTemplate;
     
-    public RateLimitGatewayFilterFactory(ReactiveRedisTemplate<String, String> redisTemplate) {
+    public RateLimitGatewayFilterFactory() {
         super(Config.class);
+    }
+    
+    @Autowired
+    public void setRedisTemplate(ReactiveRedisTemplate<String, String> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
     

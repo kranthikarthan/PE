@@ -22,6 +22,8 @@ import java.util.UUID;
     @JsonSubTypes.Type(value = TransactionCompletedEvent.class, name = "TRANSACTION_COMPLETED"),
     @JsonSubTypes.Type(value = TransactionFailedEvent.class, name = "TRANSACTION_FAILED"),
     @JsonSubTypes.Type(value = AccountBalanceUpdatedEvent.class, name = "ACCOUNT_BALANCE_UPDATED"),
+    @JsonSubTypes.Type(value = AccountCreatedEvent.class, name = "ACCOUNT_CREATED"),
+    @JsonSubTypes.Type(value = CustomerCreatedEvent.class, name = "CUSTOMER_CREATED"),
     @JsonSubTypes.Type(value = PaymentNotificationEvent.class, name = "PAYMENT_NOTIFICATION"),
     @JsonSubTypes.Type(value = AuditEvent.class, name = "AUDIT_EVENT"),
     @JsonSubTypes.Type(value = ErrorEvent.class, name = "ERROR_EVENT")

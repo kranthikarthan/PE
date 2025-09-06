@@ -273,6 +273,41 @@ public class NotificationService {
         });
     }
     
+    /**
+     * Generate webhook signature for security
+     */
+    public String generateWebhookSignature(Map<String, Object> payload, String secret) {
+        try {
+            // Convert payload to JSON string
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            String jsonPayload = mapper.writeValueAsString(payload);
+            
+            // Generate HMAC-SHA256 signature
+            javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
+            javax.crypto.spec.SecretKeySpec secretKeySpec = new javax.crypto.spec.SecretKeySpec(
+                secret.getBytes(java.nio.charset.StandardCharsets.UTF_8), "HmacSHA256");
+            mac.init(secretKeySpec);
+            
+            byte[] hash = mac.doFinal(jsonPayload.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            
+            // Convert to hex string
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            
+            return "sha256=" + hexString.toString();
+            
+        } catch (Exception e) {
+            logger.error("Error generating webhook signature: {}", e.getMessage(), e);
+            return "";
+        }
+    }
+    
     // Helper methods
     
     private String buildEmailContent(PaymentNotificationEvent event) {

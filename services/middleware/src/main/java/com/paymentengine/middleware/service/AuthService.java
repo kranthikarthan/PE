@@ -261,6 +261,11 @@ public class AuthService {
         }
     }
     
+    private boolean validateCredentials(String username, String password, boolean returnBoolean) {
+        Map<String, Object> user = validateCredentials(username, password);
+        return user != null;
+    }
+    
     private boolean isUserActive(Map<String, Object> user) {
         return Boolean.TRUE.equals(user.get("isActive"));
     }
