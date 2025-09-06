@@ -1,0 +1,850 @@
+{
+  "iso20022MessageExamples": {
+    "pain001_creditTransfer": {
+      "description": "pain.001 - Customer Credit Transfer Initiation",
+      "messageType": "pain.001.001.03",
+      "direction": "inbound",
+      "use": "Customer initiates payment",
+      "endpoint": "POST /api/v1/iso20022/pain001",
+      "message": {
+        "CstmrCdtTrfInitn": {
+          "GrpHdr": {
+            "MsgId": "MSG-20240115-001",
+            "CreDtTm": "2024-01-15T10:30:00.000Z",
+            "NbOfTxs": "1",
+            "CtrlSum": "1000.00",
+            "InitgPty": {
+              "Nm": "ABC Corporation",
+              "Id": {
+                "OrgId": {
+                  "AnyBIC": "ABCBUS33XXX"
+                }
+              }
+            }
+          },
+          "PmtInf": {
+            "PmtInfId": "PMT-20240115-001",
+            "PmtMtd": "TRF",
+            "PmtTpInf": {
+              "LclInstrm": {
+                "Cd": "RTP"
+              }
+            },
+            "ReqdExctnDt": "2024-01-15",
+            "Dbtr": {
+              "Nm": "John Doe"
+            },
+            "DbtrAcct": {
+              "Id": {
+                "Othr": {
+                  "Id": "ACC001001"
+                }
+              },
+              "Ccy": "USD"
+            },
+            "CdtTrfTxInf": {
+              "PmtId": {
+                "EndToEndId": "E2E-20240115-001"
+              },
+              "Amt": {
+                "InstdAmt": {
+                  "Ccy": "USD",
+                  "value": 1000.00
+                }
+              },
+              "Cdtr": {
+                "Nm": "Jane Smith"
+              },
+              "CdtrAcct": {
+                "Id": {
+                  "Othr": {
+                    "Id": "ACC002001"
+                  }
+                }
+              },
+              "RmtInf": {
+                "Ustrd": ["Payment for services"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "pain002_statusReport": {
+      "description": "pain.002 - Customer Payment Status Report",
+      "messageType": "pain.002.001.03", 
+      "direction": "outbound",
+      "use": "Report payment status to customer",
+      "endpoint": "GET /api/v1/iso20022/pain002/{transactionId}",
+      "message": {
+        "CstmrPmtStsRpt": {
+          "GrpHdr": {
+            "MsgId": "PAIN002-1705312200000-A1B2C3D4",
+            "CreDtTm": "2024-01-15T10:30:15.000Z",
+            "InitgPty": {
+              "Nm": "Payment Engine"
+            }
+          },
+          "OrgnlGrpInfAndSts": {
+            "OrgnlMsgId": "MSG-20240115-001",
+            "OrgnlMsgNmId": "pain.001.001.03",
+            "GrpSts": "ACSC"
+          },
+          "PmtInfSts": {
+            "PmtInfId": "TXN-1705312200000-A1B2C3D4",
+            "PmtInfSts": "ACSC",
+            "TxInfAndSts": {
+              "StsId": "bb0e8400-e29b-41d4-a716-446655440001",
+              "OrgnlEndToEndId": "E2E-20240115-001",
+              "TxSts": "ACSC",
+              "AccptncDtTm": "2024-01-15T10:30:15.000Z"
+            }
+          }
+        }
+      }
+    },
+    "pain007_reversal": {
+      "description": "pain.007 - Customer Payment Reversal",
+      "messageType": "pain.007.001.03",
+      "direction": "inbound", 
+      "use": "Customer requests payment reversal",
+      "endpoint": "POST /api/v1/iso20022/pain007",
+      "message": {
+        "CstmrPmtRvsl": {
+          "GrpHdr": {
+            "MsgId": "REV-20240115-001",
+            "CreDtTm": "2024-01-15T15:30:00.000Z",
+            "NbOfTxs": "1",
+            "InitgPty": {
+              "Nm": "ABC Corporation"
+            }
+          },
+          "OrgnlGrpInf": {
+            "OrgnlMsgId": "MSG-20240115-001",
+            "OrgnlMsgNmId": "pain.001.001.03",
+            "OrgnlCreDtTm": "2024-01-15T10:30:00.000Z",
+            "RvslRsnInf": [{
+              "Rsn": {
+                "Cd": "CUST"
+              },
+              "AddtlInf": ["Customer requested reversal due to duplicate payment"]
+            }]
+          },
+          "OrgnlPmtInfAndRvsl": [{
+            "OrgnlPmtInfId": "PMT-20240115-001",
+            "TxInf": [{
+              "RvslId": "REV-001",
+              "OrgnlEndToEndId": "E2E-20240115-001",
+              "OrgnlInstdAmt": {
+                "Ccy": "USD",
+                "value": 1000.00
+              },
+              "RvsdInstdAmt": {
+                "Ccy": "USD", 
+                "value": 1000.00
+              },
+              "RvslRsnInf": [{
+                "Rsn": {
+                  "Cd": "DUPL"
+                },
+                "AddtlInf": ["Duplicate payment detected"]
+              }]
+            }]
+          }]
+        }
+      }
+    },
+    "pacs008_schemeTransfer": {
+      "description": "pacs.008 - FI to FI Customer Credit Transfer (from scheme)",
+      "messageType": "pacs.008.001.03",
+      "direction": "inbound",
+      "use": "Payment scheme sends payment to bank",
+      "endpoint": "POST /api/v1/iso20022/pacs008",
+      "message": {
+        "FIToFICstmrCdtTrf": {
+          "GrpHdr": {
+            "MsgId": "SCHEME-20240115-001",
+            "CreDtTm": "2024-01-15T10:30:00.000Z",
+            "NbOfTxs": "1",
+            "CtrlSum": 1000.00,
+            "IntrBkSttlmDt": "2024-01-15",
+            "SttlmInf": {
+              "SttlmMtd": "CLRG",
+              "ClrSys": {
+                "Cd": "USABA"
+              }
+            },
+            "InstgAgt": {
+              "FinInstnId": {
+                "BICFI": "FEDWUS33XXX",
+                "Nm": "Federal Reserve Bank"
+              }
+            },
+            "InstdAgt": {
+              "FinInstnId": {
+                "BICFI": "PAYMENTUS33XXX",
+                "Nm": "Payment Engine Bank"
+              }
+            }
+          },
+          "CdtTrfTxInf": [{
+            "PmtId": {
+              "InstrId": "FED-INSTR-001",
+              "EndToEndId": "E2E-SCHEME-001",
+              "TxId": "FED-TXN-001",
+              "UETR": "550e8400-e29b-41d4-a716-446655440000"
+            },
+            "IntrBkSttlmAmt": {
+              "Ccy": "USD",
+              "value": 1000.00
+            },
+            "AccptncDtTm": "2024-01-15T10:30:00.000Z",
+            "InstgAgt": {
+              "FinInstnId": {
+                "BICFI": "FEDWUS33XXX"
+              }
+            },
+            "InstdAgt": {
+              "FinInstnId": {
+                "BICFI": "PAYMENTUS33XXX"
+              }
+            },
+            "Dbtr": {
+              "Nm": "External Bank Customer",
+              "PstlAdr": {
+                "Ctry": "US"
+              }
+            },
+            "DbtrAcct": {
+              "Id": {
+                "IBAN": "US64EXTBANK3300958879"
+              }
+            },
+            "DbtrAgt": {
+              "FinInstnId": {
+                "BICFI": "EXTBANKUS33XXX",
+                "Nm": "External Bank"
+              }
+            },
+            "CdtrAgt": {
+              "FinInstnId": {
+                "BICFI": "PAYMENTUS33XXX",
+                "Nm": "Payment Engine Bank"
+              }
+            },
+            "Cdtr": {
+              "Nm": "Our Customer",
+              "PstlAdr": {
+                "Ctry": "US"
+              }
+            },
+            "CdtrAcct": {
+              "Id": {
+                "Othr": {
+                  "Id": "ACC002001"
+                }
+              }
+            },
+            "RmtInf": {
+              "Ustrd": ["ACH transfer from external bank"]
+            }
+          }]
+        }
+      }
+    },
+    "pacs002_statusAck": {
+      "description": "pacs.002 - FI to FI Payment Status Report (to scheme)",
+      "messageType": "pacs.002.001.03",
+      "direction": "outbound",
+      "use": "Acknowledge scheme payment processing",
+      "endpoint": "GET /api/v1/iso20022/pacs002/{transactionId}",
+      "message": {
+        "FIToFIPmtStsRpt": {
+          "GrpHdr": {
+            "MsgId": "PACS002-1705312200000",
+            "CreDtTm": "2024-01-15T10:30:15.000Z",
+            "InstgAgt": {
+              "FinInstnId": {
+                "BICFI": "PAYMENTUS33XXX",
+                "Nm": "Payment Engine Bank"
+              }
+            },
+            "InstdAgt": {
+              "FinInstnId": {
+                "BICFI": "FEDWUS33XXX",
+                "Nm": "Federal Reserve Bank"
+              }
+            }
+          },
+          "OrgnlGrpInfAndSts": {
+            "OrgnlMsgId": "SCHEME-20240115-001",
+            "OrgnlMsgNmId": "pacs.008.001.03",
+            "GrpSts": "ACSC"
+          },
+          "TxInfAndSts": {
+            "StsId": "bb0e8400-e29b-41d4-a716-446655440001",
+            "OrgnlEndToEndId": "E2E-SCHEME-001",
+            "TxSts": "ACSC",
+            "AccptncDtTm": "2024-01-15T10:30:15.000Z"
+          }
+        }
+      }
+    },
+    "pacs004_return": {
+      "description": "pacs.004 - Payment Return (to scheme)",
+      "messageType": "pacs.004.001.03",
+      "direction": "outbound",
+      "use": "Return payment to scheme",
+      "endpoint": "POST /api/v1/iso20022/pacs004/{transactionId}",
+      "message": {
+        "PmtRtr": {
+          "GrpHdr": {
+            "MsgId": "RETURN-20240115-001",
+            "CreDtTm": "2024-01-15T11:30:00.000Z",
+            "NbOfTxs": "1",
+            "InstgAgt": {
+              "FinInstnId": {
+                "BICFI": "PAYMENTUS33XXX",
+                "Nm": "Payment Engine Bank"
+              }
+            },
+            "InstdAgt": {
+              "FinInstnId": {
+                "BICFI": "FEDWUS33XXX",
+                "Nm": "Federal Reserve Bank"
+              }
+            }
+          },
+          "TxInf": [{
+            "RtrId": "RTR-20240115-001",
+            "OrgnlGrpInf": {
+              "OrgnlMsgId": "SCHEME-20240115-001",
+              "OrgnlMsgNmId": "pacs.008.001.03",
+              "OrgnlCreDtTm": "2024-01-15T10:30:00.000Z"
+            },
+            "OrgnlTxRef": {
+              "IntrBkSttlmAmt": {
+                "Ccy": "USD",
+                "value": 1000.00
+              },
+              "ReqdExctnDt": "2024-01-15"
+            },
+            "RtrRsnInf": {
+              "Rsn": {
+                "Cd": "AC01"
+              },
+              "AddtlInf": ["Incorrect account number"]
+            }
+          }]
+        }
+      }
+    },
+    "camt053_statement": {
+      "description": "camt.053 - Bank to Customer Statement",
+      "messageType": "camt.053.001.03",
+      "direction": "outbound",
+      "use": "Provide account statement to customer",
+      "endpoint": "GET /api/v1/iso20022/camt053/account/{accountId}",
+      "message": {
+        "BkToCstmrStmt": {
+          "GrpHdr": {
+            "MsgId": "STMT-20240115-001",
+            "CreDtTm": "2024-01-15T23:59:59.000Z"
+          },
+          "Stmt": [{
+            "Id": "STMT-ACC001001-20240115",
+            "CreDtTm": "2024-01-15T23:59:59.000Z",
+            "FrToDt": {
+              "FrDtTm": "2024-01-15T00:00:00.000Z",
+              "ToDtTm": "2024-01-15T23:59:59.000Z"
+            },
+            "Acct": {
+              "Id": {
+                "Othr": {
+                  "Id": "ACC001001"
+                }
+              },
+              "Ccy": "USD"
+            },
+            "Bal": [
+              {
+                "Tp": {
+                  "CdOrPrtry": {
+                    "Cd": "OPBD"
+                  }
+                },
+                "Amt": {
+                  "Ccy": "USD",
+                  "value": 15000.00
+                },
+                "CdtDbtInd": "CRDT",
+                "Dt": {
+                  "Dt": "2024-01-15"
+                }
+              },
+              {
+                "Tp": {
+                  "CdOrPrtry": {
+                    "Cd": "CLBD"
+                  }
+                },
+                "Amt": {
+                  "Ccy": "USD",
+                  "value": 14000.00
+                },
+                "CdtDbtInd": "CRDT",
+                "Dt": {
+                  "Dt": "2024-01-15"
+                }
+              }
+            ],
+            "TxsSummry": {
+              "TtlNtries": {
+                "NbOfNtries": "2",
+                "Sum": 1000.00
+              },
+              "TtlDbtNtries": {
+                "NbOfNtries": "1",
+                "Sum": 1000.00
+              },
+              "TtlCdtNtries": {
+                "NbOfNtries": "1",
+                "Sum": 0.00
+              }
+            },
+            "Ntry": [{
+              "NtryRef": "TXN-1705312200000-A1B2C3D4",
+              "Amt": {
+                "Ccy": "USD",
+                "value": 1000.00
+              },
+              "CdtDbtInd": "DBIT",
+              "Sts": "BOOK",
+              "BookgDt": {
+                "DtTm": "2024-01-15T10:30:15.000Z"
+              },
+              "ValDt": {
+                "Dt": "2024-01-15"
+              },
+              "BkTxCd": {
+                "Domn": {
+                  "Cd": "PMNT",
+                  "Fmly": {
+                    "Cd": "ICDT",
+                    "SubFmlyCd": "ESCT"
+                  }
+                }
+              }
+            }]
+          }]
+        }
+      }
+    },
+    "camt054_notification": {
+      "description": "camt.054 - Bank to Customer Debit Credit Notification",
+      "messageType": "camt.054.001.03",
+      "direction": "outbound",
+      "use": "Notify customer of account movements",
+      "endpoint": "GET /api/v1/iso20022/camt054/account/{accountId}",
+      "message": {
+        "BkToCstmrDbtCdtNtfctn": {
+          "GrpHdr": {
+            "MsgId": "NTFCN-20240115-001",
+            "CreDtTm": "2024-01-15T10:30:15.000Z"
+          },
+          "Ntfctn": [{
+            "Id": "NTFCN-ACC001001-001",
+            "CreDtTm": "2024-01-15T10:30:15.000Z",
+            "Acct": {
+              "Id": {
+                "Othr": {
+                  "Id": "ACC001001"
+                }
+              },
+              "Ccy": "USD"
+            },
+            "Ntry": [{
+              "NtryRef": "TXN-1705312200000-A1B2C3D4",
+              "Amt": {
+                "Ccy": "USD",
+                "value": 1000.00
+              },
+              "CdtDbtInd": "DBIT",
+              "Sts": "BOOK",
+              "BookgDt": {
+                "DtTm": "2024-01-15T10:30:15.000Z"
+              },
+              "BkTxCd": {
+                "Domn": {
+                  "Cd": "PMNT",
+                  "Fmly": {
+                    "Cd": "ICDT",
+                    "SubFmlyCd": "ESCT"
+                  }
+                }
+              },
+              "NtryDtls": [{
+                "TxDtls": [{
+                  "Refs": {
+                    "EndToEndId": "E2E-20240115-001",
+                    "TxId": "TXN-20240115-001"
+                  },
+                  "RltdPties": {
+                    "Cdtr": {
+                      "Nm": "Jane Smith"
+                    },
+                    "CdtrAcct": {
+                      "Id": {
+                        "Othr": {
+                          "Id": "ACC002001"
+                        }
+                      }
+                    }
+                  },
+                  "RmtInf": {
+                    "Ustrd": ["Payment for services"]
+                  }
+                }]
+              }]
+            }]
+          }]
+        }
+      }
+    },
+    "camt056_cancellation": {
+      "description": "camt.056 - FI to FI Payment Cancellation Request",
+      "messageType": "camt.056.001.03",
+      "direction": "inbound",
+      "use": "Request payment cancellation from scheme",
+      "endpoint": "POST /api/v1/iso20022/camt056",
+      "message": {
+        "FIToFIPmtCxlReq": {
+          "GrpHdr": {
+            "MsgId": "CANCEL-20240115-001",
+            "CreDtTm": "2024-01-15T11:00:00.000Z",
+            "InstgAgt": {
+              "FinInstnId": {
+                "BICFI": "PAYMENTUS33XXX"
+              }
+            },
+            "InstdAgt": {
+              "FinInstnId": {
+                "BICFI": "FEDWUS33XXX"
+              }
+            }
+          },
+          "Undrlyg": {
+            "OrgnlGrpInfAndCxl": {
+              "OrgnlMsgId": "MSG-20240115-001",
+              "OrgnlMsgNmId": "pain.001.001.03",
+              "CxlRsnInf": {
+                "Rsn": {
+                  "Cd": "CUST"
+                },
+                "AddtlInf": ["Customer requested cancellation"]
+              }
+            },
+            "TxInf": [{
+              "CxlId": "CANCEL-001",
+              "OrgnlGrpInf": {
+                "OrgnlMsgId": "MSG-20240115-001",
+                "OrgnlMsgNmId": "pain.001.001.03"
+              },
+              "OrgnlInstrId": "INSTR-001",
+              "OrgnlEndToEndId": "E2E-20240115-001",
+              "OrgnlTxId": "TXN-20240115-001",
+              "OrgnlInstdAmt": {
+                "Ccy": "USD",
+                "value": 1000.00
+              },
+              "CxlRsnInf": {
+                "Rsn": {
+                  "Cd": "CUST"
+                },
+                "AddtlInf": ["Customer cancellation request"]
+              }
+            }]
+          }
+        }
+      }
+    },
+    "bulkPain001_example": {
+      "description": "Bulk pain.001 processing",
+      "messageType": "bulk.pain.001.001.03",
+      "direction": "inbound",
+      "use": "Process multiple payments in single request",
+      "endpoint": "POST /api/v1/iso20022/bulk/pain001",
+      "message": {
+        "messages": [
+          {
+            "CstmrCdtTrfInitn": {
+              "GrpHdr": {
+                "MsgId": "BULK-MSG-001",
+                "CreDtTm": "2024-01-15T10:30:00.000Z",
+                "NbOfTxs": "1",
+                "CtrlSum": "500.00",
+                "InitgPty": {
+                  "Nm": "Payroll Corp"
+                }
+              },
+              "PmtInf": {
+                "PmtInfId": "PAYROLL-001",
+                "PmtMtd": "TRF",
+                "PmtTpInf": {
+                  "LclInstrm": {
+                    "Cd": "ACH"
+                  }
+                },
+                "ReqdExctnDt": "2024-01-16",
+                "Dbtr": {
+                  "Nm": "Payroll Corp"
+                },
+                "DbtrAcct": {
+                  "Id": {
+                    "Othr": {
+                      "Id": "ACC003001"
+                    }
+                  }
+                },
+                "CdtTrfTxInf": {
+                  "PmtId": {
+                    "EndToEndId": "E2E-PAYROLL-001"
+                  },
+                  "Amt": {
+                    "InstdAmt": {
+                      "Ccy": "USD",
+                      "value": 500.00
+                    }
+                  },
+                  "Cdtr": {
+                    "Nm": "Employee One"
+                  },
+                  "CdtrAcct": {
+                    "Id": {
+                      "Othr": {
+                        "Id": "ACC004001"
+                      }
+                    }
+                  },
+                  "RmtInf": {
+                    "Ustrd": ["Salary payment"]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "CstmrCdtTrfInitn": {
+              "GrpHdr": {
+                "MsgId": "BULK-MSG-002",
+                "CreDtTm": "2024-01-15T10:30:01.000Z",
+                "NbOfTxs": "1",
+                "CtrlSum": "750.00",
+                "InitgPty": {
+                  "Nm": "Payroll Corp"
+                }
+              },
+              "PmtInf": {
+                "PmtInfId": "PAYROLL-002",
+                "PmtMtd": "TRF",
+                "ReqdExctnDt": "2024-01-16",
+                "Dbtr": {
+                  "Nm": "Payroll Corp"
+                },
+                "DbtrAcct": {
+                  "Id": {
+                    "Othr": {
+                      "Id": "ACC003001"
+                    }
+                  }
+                },
+                "CdtTrfTxInf": {
+                  "PmtId": {
+                    "EndToEndId": "E2E-PAYROLL-002"
+                  },
+                  "Amt": {
+                    "InstdAmt": {
+                      "Ccy": "USD",
+                      "value": 750.00
+                    }
+                  },
+                  "Cdtr": {
+                    "Nm": "Employee Two"
+                  },
+                  "CdtrAcct": {
+                    "Id": {
+                      "Othr": {
+                        "Id": "ACC005001"
+                      }
+                    }
+                  },
+                  "RmtInf": {
+                    "Ustrd": ["Salary payment"]
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "messageFlows": {
+    "customerInitiatedPayment": {
+      "description": "Complete flow for customer-initiated payment",
+      "steps": [
+        {
+          "step": 1,
+          "message": "pain.001",
+          "direction": "Customer → Bank",
+          "description": "Customer initiates payment"
+        },
+        {
+          "step": 2,
+          "message": "pain.002",
+          "direction": "Bank → Customer", 
+          "description": "Bank acknowledges receipt"
+        },
+        {
+          "step": 3,
+          "message": "pacs.008",
+          "direction": "Bank → Scheme",
+          "description": "Bank sends to payment scheme"
+        },
+        {
+          "step": 4,
+          "message": "pacs.002",
+          "direction": "Scheme → Bank",
+          "description": "Scheme acknowledges"
+        },
+        {
+          "step": 5,
+          "message": "camt.054",
+          "direction": "Bank → Customer",
+          "description": "Bank notifies completion"
+        }
+      ]
+    },
+    "schemeInitiatedPayment": {
+      "description": "Complete flow for scheme-initiated payment",
+      "steps": [
+        {
+          "step": 1,
+          "message": "pacs.008",
+          "direction": "Scheme → Bank",
+          "description": "Scheme sends payment to bank"
+        },
+        {
+          "step": 2,
+          "message": "pacs.002",
+          "direction": "Bank → Scheme",
+          "description": "Bank acknowledges receipt"
+        },
+        {
+          "step": 3,
+          "message": "camt.054",
+          "direction": "Bank → Customer",
+          "description": "Bank notifies customer of credit"
+        }
+      ]
+    },
+    "paymentReversal": {
+      "description": "Complete flow for payment reversal",
+      "steps": [
+        {
+          "step": 1,
+          "message": "pain.007",
+          "direction": "Customer → Bank",
+          "description": "Customer requests reversal"
+        },
+        {
+          "step": 2,
+          "message": "pain.008",
+          "direction": "Bank → Customer",
+          "description": "Bank responds to reversal request"
+        },
+        {
+          "step": 3,
+          "message": "pacs.004",
+          "direction": "Bank → Scheme",
+          "description": "Bank returns payment to scheme"
+        },
+        {
+          "step": 4,
+          "message": "camt.054",
+          "direction": "Bank → Customer",
+          "description": "Bank notifies reversal completion"
+        }
+      ]
+    },
+    "statementGeneration": {
+      "description": "Account statement and notification flow",
+      "steps": [
+        {
+          "step": 1,
+          "message": "camt.053",
+          "direction": "Bank → Customer",
+          "description": "Daily account statement"
+        },
+        {
+          "step": 2,
+          "message": "camt.054",
+          "direction": "Bank → Customer",
+          "description": "Real-time transaction notifications"
+        }
+      ]
+    }
+  },
+  "returnReasonCodes": {
+    "AC01": "Incorrect Account Number",
+    "AC04": "Closed Account Number",
+    "AC06": "Blocked Account",
+    "AG01": "Transaction Forbidden",
+    "AG02": "Invalid Bank Operation Code",
+    "AM04": "Insufficient Funds",
+    "AM05": "Duplication",
+    "BE01": "Inconsistent With End Customer",
+    "DT01": "Invalid Date",
+    "RF01": "Not Unique Transaction Reference",
+    "RR01": "Missing Debtor Address",
+    "RR02": "Missing Debtor Name",
+    "RR03": "Missing Creditor Name",
+    "RR04": "Regulatory Reason",
+    "CUST": "Requested By Customer",
+    "DUPL": "Duplicate Payment",
+    "TECH": "Technical Problem",
+    "FRAD": "Fraudulent Origin"
+  },
+  "bankTransactionCodes": {
+    "PMNT": {
+      "description": "Payments",
+      "families": {
+        "RCDT": {
+          "description": "Received Credit Transfers",
+          "subFamilies": {
+            "BOOK": "Booking",
+            "ESCT": "European Credit Transfer"
+          }
+        },
+        "ICDT": {
+          "description": "Issued Credit Transfers", 
+          "subFamilies": {
+            "BOOK": "Booking",
+            "ESCT": "European Credit Transfer"
+          }
+        }
+      }
+    },
+    "ACMT": {
+      "description": "Account Management",
+      "families": {
+        "ACOP": {
+          "description": "Account Opening",
+          "subFamilies": {
+            "NEWM": "New Mandate"
+          }
+        }
+      }
+    }
+  }
+}

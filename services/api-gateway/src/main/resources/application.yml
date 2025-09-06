@@ -139,6 +139,149 @@ spring:
                 requests-per-window: 200
                 window-size-in-seconds: 60
 
+        # ISO 20022 pain.007 (Reversals)
+        - id: iso20022-pain007
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/iso20022/pain007
+            - Method=POST
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: RateLimit
+              args:
+                requests-per-window: 50
+                window-size-in-seconds: 60
+            - name: Logging
+              args:
+                enabled: true
+                message: "ISO 20022 pain.007 payment reversal"
+
+        # ISO 20022 pacs.008 (Scheme messages)
+        - id: iso20022-pacs008
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/iso20022/pacs008
+            - Method=POST
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: RateLimit
+              args:
+                requests-per-window: 500
+                window-size-in-seconds: 60
+            - name: Logging
+              args:
+                enabled: true
+                message: "ISO 20022 pacs.008 scheme processing"
+
+        # ISO 20022 pacs.002 (Scheme status)
+        - id: iso20022-pacs002
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/iso20022/pacs002/**
+            - Method=GET
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: RateLimit
+              args:
+                requests-per-window: 1000
+                window-size-in-seconds: 60
+
+        # ISO 20022 pacs.004 (Returns)
+        - id: iso20022-pacs004
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/iso20022/pacs004/**
+            - Method=POST
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: RateLimit
+              args:
+                requests-per-window: 100
+                window-size-in-seconds: 60
+
+        # ISO 20022 camt.053 (Statements)
+        - id: iso20022-camt053
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/iso20022/camt053/**
+            - Method=GET
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: RateLimit
+              args:
+                requests-per-window: 200
+                window-size-in-seconds: 60
+
+        # ISO 20022 camt.054 (Notifications)
+        - id: iso20022-camt054
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/iso20022/camt054/**
+            - Method=GET
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: RateLimit
+              args:
+                requests-per-window: 500
+                window-size-in-seconds: 60
+
+        # ISO 20022 camt.056 (Cancellations)
+        - id: iso20022-camt056
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/iso20022/camt056
+            - Method=POST
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: RateLimit
+              args:
+                requests-per-window: 100
+                window-size-in-seconds: 60
+
+        # ISO 20022 bulk processing
+        - id: iso20022-bulk
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/iso20022/bulk/**
+            - Method=POST
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: RateLimit
+              args:
+                requests-per-window: 10
+                window-size-in-seconds: 60
+
+        # ISO 20022 utilities
+        - id: iso20022-utilities
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/iso20022/validate/**, /api/v1/iso20022/transform/**, /api/v1/iso20022/supported-messages, /api/v1/iso20022/statistics
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: 
+                  - /api/v1/iso20022/supported-messages
+            - name: RateLimit
+              args:
+                requests-per-window: 300
+                window-size-in-seconds: 60
+
         # Transaction routes (legacy support)
         - id: transactions-create
           uri: lb://core-banking-service
