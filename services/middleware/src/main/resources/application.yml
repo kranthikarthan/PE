@@ -1,0 +1,326 @@
+# Middleware Service Configuration
+
+server:
+  port: 8082
+  servlet:
+    context-path: /middleware
+  compression:
+    enabled: true
+  http2:
+    enabled: true
+
+spring:
+  application:
+    name: middleware-service
+  
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  
+  # Redis Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+        shutdown-timeout: 100ms
+  
+  # Cache Configuration
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000 # 5 minutes
+      cache-null-values: false
+  
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      batch-size: 16384
+      linger-ms: 5
+      buffer-memory: 33554432
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+        compression.type: snappy
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:middleware-service}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: "com.paymentengine.shared.event"
+        spring.json.use.type.headers: true
+        max.poll.records: 500
+        fetch.min.bytes: 1024
+        fetch.max.wait.ms: 500
+      enable-auto-commit: false
+    listener:
+      ack-mode: manual_immediate
+      concurrency: 3
+  
+  # Mail Configuration (for notifications)
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connection-timeout: 5000
+          timeout: 5000
+          write-timeout: 5000
+  
+  # Security Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWT_JWK_SET_URI:}
+          issuer-uri: ${JWT_ISSUER_URI:}
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:your-secret-key-here-change-in-production}
+  access-token-expiration: 3600 # 1 hour
+  refresh-token-expiration: 86400 # 24 hours
+
+# Service URLs
+services:
+  core-banking:
+    url: ${CORE_BANKING_SERVICE_URL:http://localhost:8081}
+  notification:
+    url: ${NOTIFICATION_SERVICE_URL:http://localhost:8083}
+
+# Feign Configuration
+feign:
+  hystrix:
+    enabled: false
+  circuitbreaker:
+    enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: basic
+      core-banking-service:
+        connectTimeout: 10000
+        readTimeout: 30000
+        loggerLevel: full
+
+# Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      dashboard-stats:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+        event-consumer-buffer-size: 10
+      
+      transaction-volume:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 5s
+      
+      transaction-status:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 5s
+      
+      payment-types:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 5s
+
+  retry:
+    instances:
+      dashboard-stats:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+      
+      transaction-volume:
+        max-attempts: 3
+        wait-duration: 500ms
+      
+      transaction-status:
+        max-attempts: 3
+        wait-duration: 500ms
+      
+      payment-types:
+        max-attempts: 3
+        wait-duration: 500ms
+
+# Management and Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env,beans,circuitbreakers
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+      environment: ${ENVIRONMENT:local}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 10ms,50ms,100ms,200ms,500ms,1s,2s,5s
+  health:
+    redis:
+      enabled: true
+    circuitbreakers:
+      enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    com.paymentengine.middleware: ${LOG_LEVEL:INFO}
+    org.springframework.kafka: WARN
+    org.springframework.security: WARN
+    feign: ${FEIGN_LOG_LEVEL:INFO}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"
+  file:
+    name: ${LOG_FILE:logs/middleware.log}
+
+# gRPC Configuration
+grpc:
+  server:
+    port: ${GRPC_PORT:9092}
+    enable-reflection: true
+  client:
+    GLOBAL:
+      negotiation-type: plaintext
+
+# Application Specific Configuration
+payment-engine:
+  auth:
+    max-login-attempts: 5
+    lockout-duration-minutes: 15
+    session-timeout-hours: 24
+  
+  dashboard:
+    cache-duration-minutes: 5
+    real-time-update-interval-seconds: 30
+  
+  notification:
+    email-enabled: ${EMAIL_NOTIFICATIONS_ENABLED:true}
+    sms-enabled: ${SMS_NOTIFICATIONS_ENABLED:false}
+    webhook-enabled: ${WEBHOOK_NOTIFICATIONS_ENABLED:true}
+  
+  integration:
+    external-timeout-seconds: 30
+    retry-attempts: 3
+    circuit-breaker-enabled: true
+
+# Environment Specific Configurations
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+logging:
+  level:
+    com.paymentengine.middleware: DEBUG
+    feign: DEBUG
+
+services:
+  core-banking:
+    url: http://localhost:8081
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  
+  data:
+    redis:
+      host: redis
+
+  kafka:
+    bootstrap-servers: kafka:29092
+
+services:
+  core-banking:
+    url: http://core-banking:8081
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+  
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      acks: all
+      retries: 5
+    consumer:
+      properties:
+        max.poll.records: 100
+
+logging:
+  level:
+    com.paymentengine.middleware: INFO
+    feign: WARN
+
+services:
+  core-banking:
+    url: ${CORE_BANKING_SERVICE_URL}
+
+payment-engine:
+  dashboard:
+    cache-duration-minutes: 10
