@@ -88,7 +88,58 @@ spring:
               args:
                 excluded-paths: []
         
-        # Transaction routes
+        # ISO 20022 pain.001 routes
+        - id: iso20022-pain001
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/iso20022/pain001
+            - Method=POST
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: RateLimit
+              args:
+                requests-per-window: 100
+                window-size-in-seconds: 60
+            - name: CircuitBreaker
+              args:
+                name: transaction-circuit-breaker
+                fallbackUri: forward:/fallback/transaction
+            - name: Logging
+              args:
+                enabled: true
+                message: "ISO 20022 pain.001 payment initiation"
+        
+        - id: iso20022-pain002
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/iso20022/pain002/**
+            - Method=GET
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: RateLimit
+              args:
+                requests-per-window: 500
+                window-size-in-seconds: 60
+        
+        - id: iso20022-validate
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/iso20022/pain001/validate
+            - Method=POST
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: RateLimit
+              args:
+                requests-per-window: 200
+                window-size-in-seconds: 60
+
+        # Transaction routes (legacy support)
         - id: transactions-create
           uri: lb://core-banking-service
           predicates:
@@ -109,7 +160,7 @@ spring:
             - name: Logging
               args:
                 enabled: true
-                message: "Transaction creation request"
+                message: "Legacy transaction creation request"
         
         - id: transactions-get
           uri: lb://core-banking-service

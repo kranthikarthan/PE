@@ -2,7 +2,14 @@
 
 ## Overview
 
-The Payment Engine provides a comprehensive set of REST APIs for managing payment transactions, accounts, and related banking operations. This document covers all available endpoints, request/response formats, authentication, and integration guidelines.
+The Payment Engine provides a comprehensive set of REST APIs for managing payment transactions, accounts, and related banking operations. **The system fully supports ISO 20022 pain.001 (Customer Credit Transfer Initiation) messages** for standards-compliant payment initiation, alongside legacy REST APIs for backward compatibility.
+
+## Banking Standards Compliance
+
+- **ISO 20022 pain.001.001.03**: Customer Credit Transfer Initiation
+- **ISO 20022 pain.002.001.03**: Customer Payment Status Report  
+- **SWIFT MT compatibility**: Transformation support for MT103 messages
+- **Regional Standards**: Support for ACH, Wire, RTP, SEPA payment methods
 
 ## Base URL
 
@@ -50,7 +57,134 @@ curl -X GET https://api.payment-engine.com/api/v1/transactions \
 
 ## API Endpoints
 
-### Transactions
+### ISO 20022 Payment Initiation (Recommended)
+
+#### Process pain.001 Message
+
+Process ISO 20022 Customer Credit Transfer Initiation message.
+
+**Endpoint**: `POST /api/v1/iso20022/pain001`
+
+**Required Permissions**: `payment:create`
+
+**Request Body** (ISO 20022 pain.001 JSON format):
+```json
+{
+  "CstmrCdtTrfInitn": {
+    "GrpHdr": {
+      "MsgId": "MSG-20240115-001",
+      "CreDtTm": "2024-01-15T10:30:00.000Z",
+      "NbOfTxs": "1",
+      "CtrlSum": "1000.00",
+      "InitgPty": {
+        "Nm": "ABC Corporation"
+      }
+    },
+    "PmtInf": {
+      "PmtInfId": "PMT-20240115-001",
+      "PmtMtd": "TRF",
+      "ReqdExctnDt": "2024-01-15",
+      "Dbtr": {
+        "Nm": "John Doe"
+      },
+      "DbtrAcct": {
+        "Id": {
+          "Othr": {
+            "Id": "ACC001001"
+          }
+        },
+        "Ccy": "USD"
+      },
+      "CdtTrfTxInf": {
+        "PmtId": {
+          "EndToEndId": "E2E-20240115-001"
+        },
+        "Amt": {
+          "InstdAmt": {
+            "Ccy": "USD",
+            "value": 1000.00
+          }
+        },
+        "Cdtr": {
+          "Nm": "Jane Smith"
+        },
+        "CdtrAcct": {
+          "Id": {
+            "Othr": {
+              "Id": "ACC002001"
+            }
+          }
+        },
+        "RmtInf": {
+          "Ustrd": ["Payment for services"]
+        }
+      }
+    }
+  }
+}
+```
+
+**Response** (ISO 20022 pain.002 JSON format):
+```json
+{
+  "CstmrPmtStsRpt": {
+    "GrpHdr": {
+      "MsgId": "PAIN002-1705312200000-A1B2C3D4",
+      "CreDtTm": "2024-01-15T10:30:00.000Z",
+      "InitgPty": {
+        "Nm": "Payment Engine"
+      }
+    },
+    "OrgnlGrpInfAndSts": {
+      "OrgnlMsgId": "MSG-20240115-001",
+      "OrgnlMsgNmId": "pain.001.001.03",
+      "GrpSts": "ACSC"
+    },
+    "PmtInfSts": {
+      "PmtInfId": "TXN-1705312200000-A1B2C3D4",
+      "PmtInfSts": "ACSC",
+      "TxInfAndSts": {
+        "StsId": "bb0e8400-e29b-41d4-a716-446655440001",
+        "OrgnlEndToEndId": "E2E-20240115-001",
+        "TxSts": "ACSC",
+        "AccptncDtTm": "2024-01-15T10:30:15.000Z"
+      }
+    }
+  }
+}
+```
+
+#### Get Payment Status (pain.002)
+
+Get payment status in ISO 20022 pain.002 format.
+
+**Endpoint**: `GET /api/v1/iso20022/pain002/{transactionId}`
+
+**Required Permissions**: `transaction:read`
+
+**Query Parameters**:
+- `originalMessageId` (optional): Original pain.001 message ID
+
+#### Validate pain.001 Message
+
+Validate ISO 20022 message without processing.
+
+**Endpoint**: `POST /api/v1/iso20022/pain001/validate`
+
+**Required Permissions**: `payment:create`
+
+**Response**:
+```json
+{
+  "valid": true,
+  "messageId": "MSG-20240115-001", 
+  "errors": [],
+  "warnings": [],
+  "timestamp": "2024-01-15T10:30:00.000Z"
+}
+```
+
+### Transactions (Legacy Support)
 
 #### Create Transaction
 
