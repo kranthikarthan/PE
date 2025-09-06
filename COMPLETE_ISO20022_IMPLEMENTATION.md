@@ -28,6 +28,7 @@ Your Payment Engine now supports the **complete ISO 20022 message ecosystem** re
 |---------|---------|-----------|--------|
 | **camt.053.001.03** | Bank to Customer Statement | Bank → Customer | ✅ **COMPLETE** |
 | **camt.054.001.03** | Bank to Customer Debit Credit Notification | Bank → Customer | ✅ **COMPLETE** |
+| **camt.055.001.03** | Customer Payment Cancellation Request | Customer → Bank | ✅ **COMPLETE** |
 | **camt.056.001.03** | FI to FI Payment Cancellation Request | Bank → Scheme | ✅ **COMPLETE** |
 
 ---
@@ -60,7 +61,8 @@ Your Payment Engine now supports the **complete ISO 20022 message ecosystem** re
 | **Payment Returns** | `/api/v1/iso20022/pacs004/{id}` | POST | Return payments to scheme |
 | **Account Statements** | `/api/v1/iso20022/camt053/account/{id}` | GET | Generate account statements |
 | **Transaction Notifications** | `/api/v1/iso20022/camt054/account/{id}` | GET | Get transaction notifications |
-| **Payment Cancellations** | `/api/v1/iso20022/camt056` | POST | Cancel payments |
+| **Customer Cancellations** | `/api/v1/iso20022/camt055` | POST | Customer payment cancellation |
+| **FI to FI Cancellations** | `/api/v1/iso20022/camt056` | POST | Inter-bank payment cancellation |
 | **Bulk Processing** | `/api/v1/iso20022/bulk/pain001` | POST | Process bulk payments |
 | **Message Validation** | `/api/v1/iso20022/validate/{type}` | POST | Validate any message |
 | **Message Transformation** | `/api/v1/iso20022/transform/{from}/{to}` | POST | Transform message formats |

@@ -237,7 +237,26 @@ spring:
                 requests-per-window: 500
                 window-size-in-seconds: 60
 
-        # ISO 20022 camt.056 (Cancellations)
+        # ISO 20022 camt.055 (Customer Cancellations)
+        - id: iso20022-camt055
+          uri: lb://core-banking-service
+          predicates:
+            - Path=/api/v1/iso20022/camt055
+            - Method=POST
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+            - name: RateLimit
+              args:
+                requests-per-window: 100
+                window-size-in-seconds: 60
+            - name: Logging
+              args:
+                enabled: true
+                message: "ISO 20022 camt.055 customer payment cancellation"
+
+        # ISO 20022 camt.056 (FI to FI Cancellations)
         - id: iso20022-camt056
           uri: lb://core-banking-service
           predicates:
@@ -251,6 +270,10 @@ spring:
               args:
                 requests-per-window: 100
                 window-size-in-seconds: 60
+            - name: Logging
+              args:
+                enabled: true
+                message: "ISO 20022 camt.056 FI to FI payment cancellation"
 
         # ISO 20022 bulk processing
         - id: iso20022-bulk

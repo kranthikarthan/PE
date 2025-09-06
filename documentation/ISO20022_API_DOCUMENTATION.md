@@ -270,7 +270,77 @@ Authorization: Bearer <token>
 }
 ```
 
-### 4. Get Supported Messages
+### 4. Process camt.055 Message (Customer Payment Cancellation)
+
+**Endpoint**: `POST /api/v1/iso20022/camt055`
+
+**Description**: Process ISO 20022 camt.055 Customer Payment Cancellation Request
+
+**Required Permissions**: `payment:cancel`
+
+**Request Body** (ISO 20022 camt.055 JSON format):
+```json
+{
+  "CstmrPmtCxlReq": {
+    "GrpHdr": {
+      "MsgId": "CANCEL-20240115-001",
+      "CreDtTm": "2024-01-15T11:00:00.000Z",
+      "NbOfTxs": "1",
+      "InitgPty": {
+        "Nm": "ABC Corporation"
+      }
+    },
+    "Undrlyg": [{
+      "TxInf": [{
+        "CxlId": "CXL-001",
+        "OrgnlEndToEndId": "E2E-20240115-001",
+        "OrgnlTxId": "TXN-20240115-001",
+        "OrgnlInstdAmt": {
+          "Ccy": "USD",
+          "value": 1000.00
+        },
+        "CxlRsnInf": [{
+          "Rsn": {
+            "Cd": "CUST"
+          },
+          "AddtlInf": ["Customer requested cancellation due to error"]
+        }]
+      }]
+    }]
+  }
+}
+```
+
+**Response** (camt.029 Resolution of Investigation):
+```json
+{
+  "cancellationResults": [{
+    "originalEndToEndId": "E2E-20240115-001",
+    "cancellationId": "CXL-001",
+    "status": "ACCEPTED",
+    "cancellationReason": "Customer requested cancellation due to error",
+    "reasonCode": "CUST",
+    "cancelledAt": "2024-01-15T11:00:15.000Z",
+    "newTransactionStatus": "CANCELLED"
+  }],
+  "camt029Response": {
+    "RsltnOfInvstgtn": {
+      "GrpHdr": {
+        "MsgId": "CAMT029-1705315215000",
+        "CreDtTm": "2024-01-15T11:00:15.000Z"
+      },
+      "InvstgtnId": "CANCEL-20240115-001",
+      "OrgnlGrpInfAndSts": {
+        "OrgnlMsgId": "CANCEL-20240115-001",
+        "OrgnlMsgNmId": "camt.055.001.03",
+        "GrpSts": "ACCP"
+      }
+    }
+  }
+}
+```
+
+### 5. Get Supported Messages
 
 **Endpoint**: `GET /api/v1/iso20022/supported-messages`
 

@@ -511,11 +511,182 @@
         }
       }
     },
+    "camt055_customerCancellation": {
+      "description": "camt.055 - Customer Payment Cancellation Request",
+      "messageType": "camt.055.001.03",
+      "direction": "inbound",
+      "use": "Customer requests payment cancellation",
+      "endpoint": "POST /api/v1/iso20022/camt055",
+      "message": {
+        "CstmrPmtCxlReq": {
+          "GrpHdr": {
+            "MsgId": "CANCEL-20240115-001",
+            "CreDtTm": "2024-01-15T11:00:00.000Z",
+            "NbOfTxs": "2",
+            "CtrlSum": 1500.00,
+            "InitgPty": {
+              "Nm": "ABC Corporation",
+              "Id": {
+                "OrgId": {
+                  "AnyBIC": "ABCBUS33XXX"
+                }
+              },
+              "CtryOfRes": "US"
+            }
+          },
+          "Undrlyg": [{
+            "OrgnlGrpInfAndCxl": {
+              "OrgnlMsgId": "MSG-20240115-001",
+              "OrgnlMsgNmId": "pain.001.001.03",
+              "OrgnlCreDtTm": "2024-01-15T10:30:00.000Z",
+              "OrgnlNbOfTxs": "2",
+              "OrgnlCtrlSum": 1500.00,
+              "GrpCxlInd": false,
+              "CxlRsnInf": [{
+                "Rsn": {
+                  "Cd": "CUST"
+                },
+                "AddtlInf": ["Customer requested cancellation of duplicate payments"]
+              }]
+            },
+            "TxInf": [
+              {
+                "CxlId": "CXL-001",
+                "OrgnlGrpInf": {
+                  "OrgnlMsgId": "MSG-20240115-001",
+                  "OrgnlMsgNmId": "pain.001.001.03",
+                  "OrgnlCreDtTm": "2024-01-15T10:30:00.000Z"
+                },
+                "OrgnlInstrId": "INSTR-001",
+                "OrgnlEndToEndId": "E2E-20240115-001",
+                "OrgnlTxId": "TXN-20240115-001",
+                "OrgnlUETR": "550e8400-e29b-41d4-a716-446655440000",
+                "OrgnlInstdAmt": {
+                  "Ccy": "USD",
+                  "value": 1000.00
+                },
+                "OrgnlReqdExctnDt": "2024-01-15",
+                "CxlRsnInf": [{
+                  "Orgtr": {
+                    "Nm": "John Doe",
+                    "Id": {
+                      "PrvtId": {
+                        "Othr": [{
+                          "Id": "123456789",
+                          "SchmeNm": {
+                            "Prtry": "SSN"
+                          }
+                        }]
+                      }
+                    }
+                  },
+                  "Rsn": {
+                    "Cd": "DUPL"
+                  },
+                  "AddtlInf": ["Duplicate payment detected by customer"]
+                }],
+                "OrgnlTxRef": {
+                  "Amt": {
+                    "InstdAmt": {
+                      "Ccy": "USD",
+                      "value": 1000.00
+                    }
+                  },
+                  "ReqdExctnDt": "2024-01-15",
+                  "Dbtr": {
+                    "Nm": "John Doe",
+                    "PstlAdr": {
+                      "Ctry": "US",
+                      "AdrLine": ["123 Main Street", "New York, NY 10001"]
+                    }
+                  },
+                  "DbtrAcct": {
+                    "Id": {
+                      "Othr": {
+                        "Id": "ACC001001"
+                      }
+                    },
+                    "Ccy": "USD"
+                  },
+                  "Cdtr": {
+                    "Nm": "Jane Smith",
+                    "PstlAdr": {
+                      "Ctry": "US",
+                      "AdrLine": ["456 Oak Avenue", "Los Angeles, CA 90001"]
+                    }
+                  },
+                  "CdtrAcct": {
+                    "Id": {
+                      "Othr": {
+                        "Id": "ACC002001"
+                      }
+                    },
+                    "Ccy": "USD"
+                  },
+                  "RmtInf": {
+                    "Ustrd": ["Payment for services - CANCELLED"]
+                  }
+                }
+              },
+              {
+                "CxlId": "CXL-002",
+                "OrgnlGrpInf": {
+                  "OrgnlMsgId": "MSG-20240115-001",
+                  "OrgnlMsgNmId": "pain.001.001.03",
+                  "OrgnlCreDtTm": "2024-01-15T10:30:00.000Z"
+                },
+                "OrgnlInstrId": "INSTR-002",
+                "OrgnlEndToEndId": "E2E-20240115-002",
+                "OrgnlTxId": "TXN-20240115-002",
+                "OrgnlInstdAmt": {
+                  "Ccy": "USD",
+                  "value": 500.00
+                },
+                "CxlRsnInf": [{
+                  "Rsn": {
+                    "Cd": "CUST"
+                  },
+                  "AddtlInf": ["Customer changed mind about payment"]
+                }],
+                "OrgnlTxRef": {
+                  "Amt": {
+                    "InstdAmt": {
+                      "Ccy": "USD",
+                      "value": 500.00
+                    }
+                  },
+                  "Dbtr": {
+                    "Nm": "John Doe"
+                  },
+                  "DbtrAcct": {
+                    "Id": {
+                      "Othr": {
+                        "Id": "ACC001001"
+                      }
+                    }
+                  },
+                  "Cdtr": {
+                    "Nm": "Bob Wilson"
+                  },
+                  "CdtrAcct": {
+                    "Id": {
+                      "Othr": {
+                        "Id": "ACC003001"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }]
+        }
+      }
+    },
     "camt056_cancellation": {
       "description": "camt.056 - FI to FI Payment Cancellation Request",
       "messageType": "camt.056.001.03",
       "direction": "inbound",
-      "use": "Request payment cancellation from scheme",
+      "use": "Request payment cancellation between financial institutions",
       "endpoint": "POST /api/v1/iso20022/camt056",
       "message": {
         "FIToFIPmtCxlReq": {
@@ -814,6 +985,28 @@
     "DUPL": "Duplicate Payment",
     "TECH": "Technical Problem",
     "FRAD": "Fraudulent Origin"
+  },
+  "cancellationReasonCodes": {
+    "CUST": "Requested by Customer",
+    "DUPL": "Duplicate Payment",
+    "FRAD": "Fraudulent Payment",
+    "TECH": "Technical Problem",
+    "UPAY": "Undue Payment",
+    "CUTA": "Cut-off Time",
+    "AGNT": "Incorrect Agent",
+    "CURR": "Incorrect Currency",
+    "NARR": "Narrative Reason",
+    "RQDA": "Requested by Debtor Agent",
+    "RQCA": "Requested by Creditor Agent"
+  },
+  "cancellationStatusCodes": {
+    "ACCP": "Accepted",
+    "ACSC": "Accepted Settlement Completed", 
+    "ACWC": "Accepted With Change",
+    "PDNG": "Pending",
+    "RJCT": "Rejected",
+    "CANC": "Cancelled",
+    "PART": "Partially Accepted"
   },
   "bankTransactionCodes": {
     "PMNT": {

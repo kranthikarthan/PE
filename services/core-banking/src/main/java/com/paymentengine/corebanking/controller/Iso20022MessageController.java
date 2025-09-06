@@ -208,6 +208,32 @@ public class Iso20022MessageController {
     }
     
     /**
+     * Process camt.055 - Customer Payment Cancellation Request
+     */
+    @PostMapping("/camt055")
+    @PreAuthorize("hasAuthority('payment:cancel')")
+    @Timed(value = "iso20022.camt055", description = "Time taken to process camt.055 customer cancellation")
+    public ResponseEntity<Map<String, Object>> processCamt055(
+            @Valid @RequestBody Camt055Message camt055Message,
+            HttpServletRequest httpRequest) {
+        
+        logger.info("Processing camt.055 customer payment cancellation request: {}", 
+                   camt055Message.getCustomerPaymentCancellationRequest().getGroupHeader().getMessageId());
+        
+        try {
+            Map<String, Object> response = iso20022ProcessingService.processCamt055(camt055Message, getRequestContext(httpRequest));
+            return ResponseEntity.ok(response);
+            
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid camt.055 cancellation request: {}", e.getMessage());
+            return createErrorResponse("INVALID_CANCELLATION_REQUEST", e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error processing camt.055: {}", e.getMessage(), e);
+            return createErrorResponse("CAMT055_PROCESSING_ERROR", e.getMessage());
+        }
+    }
+
+    /**
      * Process camt.056 - FI to FI Payment Cancellation Request
      */
     @PostMapping("/camt056")
@@ -217,7 +243,7 @@ public class Iso20022MessageController {
             @Valid @RequestBody Map<String, Object> camt056Message,
             HttpServletRequest httpRequest) {
         
-        logger.info("Processing camt.056 cancellation request");
+        logger.info("Processing camt.056 FI to FI cancellation request");
         
         try {
             Map<String, Object> response = iso20022ProcessingService.processCamt056(camt056Message, getRequestContext(httpRequest));
@@ -323,9 +349,15 @@ public class Iso20022MessageController {
                     "direction", "outbound",
                     "supported", true
                 ),
+                "camt.055.001.03", Map.of(
+                    "name", "Customer Payment Cancellation Request",
+                    "description", "Customer requests payment cancellation",
+                    "direction", "inbound",
+                    "supported", true
+                ),
                 "camt.056.001.03", Map.of(
                     "name", "FI to FI Payment Cancellation Request",
-                    "description", "Cancel payments",
+                    "description", "Cancel payments between FIs",
                     "direction", "inbound",
                     "supported", true
                 )

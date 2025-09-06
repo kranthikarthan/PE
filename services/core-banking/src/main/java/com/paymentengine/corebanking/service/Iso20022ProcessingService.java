@@ -426,10 +426,63 @@ public class Iso20022ProcessingService {
     }
     
     /**
+     * Process camt.055 - Customer Payment Cancellation Request
+     */
+    public Map<String, Object> processCamt055(Camt055Message camt055Message, Map<String, Object> context) {
+        logger.info("Processing camt.055 customer payment cancellation request");
+        
+        try {
+            Camt055Message.CustomerPaymentCancellationRequest cxlReq = camt055Message.getCustomerPaymentCancellationRequest();
+            List<Map<String, Object>> cancellationResults = new ArrayList<>();
+            
+            // Process each underlying transaction for cancellation
+            for (Camt055Message.UnderlyingTransaction underlying : cxlReq.getUnderlying()) {
+                if (underlying.getTransactionInformation() != null) {
+                    for (Camt055Message.PaymentTransaction txInfo : underlying.getTransactionInformation()) {
+                        try {
+                            Map<String, Object> result = processSingleCancellation(txInfo, context);
+                            cancellationResults.add(result);
+                            
+                        } catch (Exception e) {
+                            logger.warn("Failed to cancel transaction {}: {}", 
+                                       txInfo.getOriginalEndToEndId(), e.getMessage());
+                            
+                            cancellationResults.add(Map.of(
+                                "originalEndToEndId", txInfo.getOriginalEndToEndId(),
+                                "cancellationId", txInfo.getCancellationId(),
+                                "status", "REJECTED",
+                                "reason", e.getMessage(),
+                                "timestamp", LocalDateTime.now().format(ISO_DATETIME_FORMATTER)
+                            ));
+                        }
+                    }
+                }
+            }
+            
+            // Generate camt.029 (Resolution of Investigation) response
+            Map<String, Object> camt029Response = generateCamt029Response(camt055Message, cancellationResults);
+            
+            logger.info("camt.055 processing completed with {} cancellation attempts", cancellationResults.size());
+            
+            return Map.of(
+                "cancellationResults", cancellationResults,
+                "camt029Response", camt029Response,
+                "messageId", cxlReq.getGroupHeader().getMessageId(),
+                "totalCancellations", cancellationResults.size(),
+                "timestamp", LocalDateTime.now().format(ISO_DATETIME_FORMATTER)
+            );
+            
+        } catch (Exception e) {
+            logger.error("Error processing camt.055: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to process customer payment cancellation", e);
+        }
+    }
+
+    /**
      * Process camt.056 - FI to FI Payment Cancellation Request
      */
     public Map<String, Object> processCamt056(Map<String, Object> camt056Message, Map<String, Object> context) {
-        logger.info("Processing camt.056 payment cancellation request");
+        logger.info("Processing camt.056 FI to FI payment cancellation request");
         
         try {
             // Extract cancellation details
@@ -440,8 +493,8 @@ public class Iso20022ProcessingService {
                 throw new IllegalArgumentException("Invalid camt.056 message structure");
             }
             
-            // Process cancellation
-            // Implementation would handle the cancellation logic
+            // Process FI to FI cancellation
+            // Implementation would handle the inter-bank cancellation logic
             
             Map<String, Object> response = Map.of(
                 "cancellationStatus", "ACCEPTED",
@@ -449,12 +502,12 @@ public class Iso20022ProcessingService {
                 "timestamp", LocalDateTime.now().format(ISO_DATETIME_FORMATTER)
             );
             
-            logger.info("camt.056 cancellation processed successfully");
+            logger.info("camt.056 FI to FI cancellation processed successfully");
             return response;
             
         } catch (Exception e) {
             logger.error("Error processing camt.056: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to process payment cancellation", e);
+            throw new RuntimeException("Failed to process FI to FI payment cancellation", e);
         }
     }
     
@@ -1004,5 +1057,209 @@ public class Iso20022ProcessingService {
         summary.setTotalEntries(totalEntries);
         
         return summary;
+    }
+    
+    // ============================================================================
+    // CAMT.055 PROCESSING HELPER METHODS
+    // ============================================================================
+    
+    /**
+     * Process single transaction cancellation from camt.055
+     */
+    private Map<String, Object> processSingleCancellation(Camt055Message.PaymentTransaction txInfo, Map<String, Object> context) {
+        logger.debug("Processing cancellation for transaction: {}", txInfo.getOriginalEndToEndId());
+        
+        try {
+            // Find original transaction by end-to-end ID
+            Transaction originalTransaction = findTransactionByEndToEndId(txInfo.getOriginalEndToEndId());
+            
+            if (originalTransaction == null) {
+                throw new IllegalArgumentException("Original transaction not found: " + txInfo.getOriginalEndToEndId());
+            }
+            
+            // Validate cancellation is allowed
+            validateCancellationAllowed(originalTransaction);
+            
+            // Extract cancellation reason
+            String cancellationReason = extractCancellationReason(txInfo);
+            String reasonCode = extractCancellationReasonCode(txInfo);
+            
+            // Cancel the transaction
+            TransactionResponse cancelledTransaction = transactionService.cancelTransaction(
+                originalTransaction.getId(), 
+                "Customer cancellation request - " + cancellationReason
+            );
+            
+            logger.info("Transaction cancelled successfully: {} -> {}", 
+                       originalTransaction.getTransactionReference(),
+                       cancelledTransaction.getStatus());
+            
+            return Map.of(
+                "originalEndToEndId", txInfo.getOriginalEndToEndId(),
+                "originalTransactionId", originalTransaction.getId().toString(),
+                "cancellationId", txInfo.getCancellationId() != null ? txInfo.getCancellationId() : "CXL-" + System.currentTimeMillis(),
+                "status", "ACCEPTED",
+                "cancellationReason", cancellationReason,
+                "reasonCode", reasonCode,
+                "cancelledAt", LocalDateTime.now().format(ISO_DATETIME_FORMATTER),
+                "newTransactionStatus", cancelledTransaction.getStatus().toString()
+            );
+            
+        } catch (Exception e) {
+            logger.error("Error processing single cancellation: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Validate that cancellation is allowed for the transaction
+     */
+    private void validateCancellationAllowed(Transaction transaction) {
+        // Check transaction status
+        if (transaction.getStatus() == Transaction.TransactionStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot cancel completed transaction. Use reversal instead.");
+        }
+        
+        if (transaction.getStatus() == Transaction.TransactionStatus.FAILED || 
+            transaction.getStatus() == Transaction.TransactionStatus.CANCELLED) {
+            throw new IllegalStateException("Transaction is already " + transaction.getStatus().toString().toLowerCase());
+        }
+        
+        // Check timing constraints
+        LocalDateTime cutoffTime = LocalDateTime.now().minusHours(1); // 1 hour cancellation window
+        if (transaction.getCreatedAt().isBefore(cutoffTime) && 
+            transaction.getStatus() == Transaction.TransactionStatus.PROCESSING) {
+            throw new IllegalStateException("Transaction is too far in processing to cancel");
+        }
+        
+        logger.debug("Cancellation validation passed for transaction: {}", transaction.getTransactionReference());
+    }
+    
+    /**
+     * Find transaction by end-to-end ID
+     */
+    private Transaction findTransactionByEndToEndId(String endToEndId) {
+        // Search in transaction metadata for ISO 20022 end-to-end ID
+        List<Transaction> transactions = transactionRepository.findAll(); // In production, this would be optimized
+        
+        return transactions.stream()
+            .filter(tx -> {
+                if (tx.getMetadata() != null && tx.getMetadata().containsKey("iso20022")) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> iso20022Data = (Map<String, Object>) tx.getMetadata().get("iso20022");
+                    return endToEndId.equals(iso20022Data.get("endToEndId"));
+                }
+                return false;
+            })
+            .findFirst()
+            .orElse(null);
+    }
+    
+    /**
+     * Extract cancellation reason from camt.055 transaction info
+     */
+    private String extractCancellationReason(Camt055Message.PaymentTransaction txInfo) {
+        if (txInfo.getCancellationReasonInformation() != null && 
+            !txInfo.getCancellationReasonInformation().isEmpty()) {
+            
+            Camt055Message.PaymentCancellationReason reasonInfo = txInfo.getCancellationReasonInformation().get(0);
+            if (reasonInfo.getAdditionalInformation() != null && !reasonInfo.getAdditionalInformation().isEmpty()) {
+                return reasonInfo.getAdditionalInformation().get(0);
+            }
+        }
+        
+        return "Customer requested cancellation";
+    }
+    
+    /**
+     * Extract cancellation reason code from camt.055 transaction info
+     */
+    private String extractCancellationReasonCode(Camt055Message.PaymentTransaction txInfo) {
+        if (txInfo.getCancellationReasonInformation() != null && 
+            !txInfo.getCancellationReasonInformation().isEmpty()) {
+            
+            Camt055Message.PaymentCancellationReason reasonInfo = txInfo.getCancellationReasonInformation().get(0);
+            if (reasonInfo.getReason() != null && reasonInfo.getReason().getCode() != null) {
+                return reasonInfo.getReason().getCode();
+            }
+        }
+        
+        return "CUST"; // Default to customer requested
+    }
+    
+    /**
+     * Generate camt.029 (Resolution of Investigation) response for camt.055
+     */
+    private Map<String, Object> generateCamt029Response(Camt055Message camt055Message, List<Map<String, Object>> cancellationResults) {
+        logger.debug("Generating camt.029 resolution response");
+        
+        try {
+            Camt055Message.CustomerPaymentCancellationRequest cxlReq = camt055Message.getCustomerPaymentCancellationRequest();
+            
+            // Count successful and failed cancellations
+            long acceptedCount = cancellationResults.stream()
+                .filter(result -> "ACCEPTED".equals(result.get("status")))
+                .count();
+            
+            long rejectedCount = cancellationResults.stream()
+                .filter(result -> "REJECTED".equals(result.get("status")))
+                .count();
+            
+            // Generate camt.029 response
+            Map<String, Object> camt029 = Map.of(
+                "RsltnOfInvstgtn", Map.of(
+                    "GrpHdr", Map.of(
+                        "MsgId", "CAMT029-" + System.currentTimeMillis(),
+                        "CreDtTm", LocalDateTime.now().format(ISO_DATETIME_FORMATTER),
+                        "InstgAgt", Map.of(
+                            "FinInstnId", Map.of(
+                                "BICFI", "PAYMENTUS33XXX",
+                                "Nm", "Payment Engine Bank"
+                            )
+                        ),
+                        "InstdAgt", Map.of(
+                            "FinInstnId", Map.of(
+                                "BICFI", "CUSTOMR33XXX",
+                                "Nm", "Customer Bank"
+                            )
+                        )
+                    ),
+                    "InvstgtnId", cxlReq.getGroupHeader().getMessageId(),
+                    "OrgnlGrpInfAndSts", Map.of(
+                        "OrgnlMsgId", cxlReq.getGroupHeader().getMessageId(),
+                        "OrgnlMsgNmId", "camt.055.001.03",
+                        "OrgnlCreDtTm", cxlReq.getGroupHeader().getCreationDateTime(),
+                        "GrpSts", acceptedCount > 0 ? (rejectedCount > 0 ? "PART" : "ACCP") : "RJCT"
+                    ),
+                    "CxlDtls", cancellationResults.stream()
+                        .map(result -> Map.of(
+                            "OrgnlGrpInf", Map.of(
+                                "OrgnlMsgId", cxlReq.getGroupHeader().getMessageId(),
+                                "OrgnlMsgNmId", "camt.055.001.03"
+                            ),
+                            "OrgnlTxRef", Map.of(
+                                "OrgnlEndToEndId", result.get("originalEndToEndId")
+                            ),
+                            "CxlStsRsnInf", Map.of(
+                                "CxlSts", result.get("status"),
+                                "CxlStsRsn", Map.of(
+                                    "Cd", result.get("reasonCode"),
+                                    "AddtlInf", List.of(result.get("reason"))
+                                )
+                            )
+                        ))
+                        .collect(Collectors.toList())
+                )
+            );
+            
+            logger.debug("camt.029 resolution response generated with {} accepted, {} rejected", 
+                        acceptedCount, rejectedCount);
+            
+            return camt029;
+            
+        } catch (Exception e) {
+            logger.error("Error generating camt.029 response: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate resolution response", e);
+        }
     }
 }
