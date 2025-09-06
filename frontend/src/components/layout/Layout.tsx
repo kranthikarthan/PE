@@ -23,6 +23,7 @@ import {
   Dashboard as DashboardIcon,
   AccountBalance as AccountBalanceIcon,
   Payment as PaymentIcon,
+  SwapHoriz as Iso20022Icon,
   Settings as SettingsIcon,
   Notifications as NotificationsIcon,
   AccountCircle as AccountCircleIcon,
@@ -63,6 +64,13 @@ const navigationItems: NavItem[] = [
     path: '/accounts',
     icon: <AccountBalanceIcon />,
     permissions: ['account:read'],
+  },
+  {
+    id: 'iso20022',
+    label: 'ISO 20022 Messages',
+    path: '/iso20022',
+    icon: <Iso20022Icon />,
+    permissions: ['payment:create', 'message:read'],
   },
   {
     id: 'payment-types',
