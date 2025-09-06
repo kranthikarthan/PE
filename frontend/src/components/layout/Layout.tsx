@@ -24,6 +24,7 @@ import {
   AccountBalance as AccountBalanceIcon,
   Payment as PaymentIcon,
   SwapHoriz as Iso20022Icon,
+  Tune as ConfigIcon,
   Settings as SettingsIcon,
   Notifications as NotificationsIcon,
   AccountCircle as AccountCircleIcon,
@@ -78,6 +79,13 @@ const navigationItems: NavItem[] = [
     path: '/payment-types',
     icon: <SettingsIcon />,
     permissions: ['payment-type:read'],
+  },
+  {
+    id: 'configuration',
+    label: 'Configuration',
+    path: '/configuration',
+    icon: <ConfigIcon />,
+    permissions: ['tenant:config:read'],
   },
   {
     id: 'settings',

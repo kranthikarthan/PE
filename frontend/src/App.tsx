@@ -16,6 +16,7 @@ import TransactionsPage from './pages/TransactionsPage';
 import AccountsPage from './pages/AccountsPage';
 import PaymentTypesPage from './pages/PaymentTypesPage';
 import Iso20022Page from './pages/Iso20022Page';
+import ConfigurationPage from './pages/ConfigurationPage';
 import SettingsPage from './pages/SettingsPage';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import ErrorBoundary from './components/common/ErrorBoundary';
@@ -130,6 +131,7 @@ const AppContent: React.FC = () => {
                   <Route path="/accounts/*" element={<AccountsPage />} />
                   <Route path="/payment-types" element={<PaymentTypesPage />} />
                   <Route path="/iso20022" element={<Iso20022Page />} />
+                  <Route path="/configuration" element={<ConfigurationPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
