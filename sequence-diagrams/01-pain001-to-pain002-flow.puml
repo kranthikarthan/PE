@@ -5,6 +5,8 @@ title ISO 20022 Payment Processing Flow: PAIN.001 to PAIN.002
 actor Client as C
 participant "API Gateway" as AG
 participant "Middleware Service" as MS
+participant "Fraud Risk Monitoring" as FRM
+participant "Fraud API Toggle" as FAT
 participant "Core Banking" as CB
 participant "Clearing System" as CS
 participant "Kafka" as K
@@ -36,6 +38,33 @@ alt Circuit Breaker CLOSED
     
     MS -> MS: Determine Clearing System
     note right: Based on:\n- Tenant ID\n- Payment Type\n- Local Instrument Code
+    
+    MS -> FAT: Check Fraud API Toggle Status
+    note right: Check if fraud API is enabled for:\n- Tenant ID\n- Payment Type\n- Local Instrument Code\n- Clearing System
+    FAT --> MS: Return Toggle Status
+    
+    alt Fraud API Enabled
+        MS -> FRM: Assess Payment Risk
+        note right: Real-time fraud risk assessment\n- Payment amount\n- Account details\n- Transaction patterns\n- Risk scoring
+        FRM -> FRM: Call Bank's Fraud API
+        FRM --> MS: Return Risk Assessment
+        note right: Decision: APPROVE/REJECT/MANUAL_REVIEW\nRisk Level: LOW/MEDIUM/HIGH/CRITICAL\nRisk Score: 0-100
+        
+        alt Risk Decision: REJECT
+            MS -> AS: Log Fraud Rejection Event
+            MS --> AG: Return Fraud Rejection Response
+            AG --> C: Return 400 Bad Request
+            note right: Status: 400\nMessage: "Payment rejected due to fraud risk"\nRisk Level: <level>
+        else Risk Decision: MANUAL_REVIEW
+            MS -> AS: Log Manual Review Event
+            MS --> AG: Return Manual Review Response
+            AG --> C: Return 202 Accepted
+            note right: Status: 202\nMessage: "Payment under manual review"\nCorrelation ID: <id>
+        end
+    else Fraud API Disabled
+        MS -> AS: Log Fraud API Disabled Event
+        note right: Fraud API disabled - automatic approval
+    end
     
     MS -> RC: Get Clearing System Config
     RC --> MS: Return Endpoint Configuration

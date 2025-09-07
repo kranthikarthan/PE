@@ -33,6 +33,12 @@ package "Application Services Layer" {
         [Routing Service] as RS
     }
     
+    package "Fraud & Risk Services" {
+        [Fraud Risk Monitoring Service] as FRMS
+        [Fraud API Toggle Service] as FATS
+        [External Fraud API Service] as EFAS
+    }
+    
     package "Configuration Services" {
         [Scheme Config Service] as SCS
         [Clearing System Config] as CSC
@@ -99,6 +105,8 @@ MS --> RS : Message Routing
 MS --> SCS : Scheme Configuration
 MS --> CSC : Clearing System Config
 MS --> TCS : Tenant Configuration
+MS --> FRMS : Fraud Risk Assessment
+MS --> FATS : Fraud API Toggle Check
 
 ' Infrastructure connections
 MS --> K : Message Production
@@ -140,6 +148,11 @@ MS --> AS : Audit Logging
 MS --> ES : Message Encryption
 MS --> DSS : Digital Signatures
 
+' Fraud Service connections
+FRMS --> FATS : Toggle Status Check
+FRMS --> EFAS : Bank's Fraud API Call
+EFAS --> CS : Bank's Fraud Engine
+
 ' External system connections
 MS --> CS : ISO 20022 Messages
 CBS --> CS : Account Operations
@@ -162,6 +175,8 @@ Middleware Service Features:
 - External System Integration
 - Configuration Management
 - Audit Logging
+- Fraud Risk Assessment
+- Dynamic Fraud API Control
 end note
 
 note right of K
@@ -182,6 +197,16 @@ Redis Features:
 - Pub/Sub Messaging
 - High Availability
 - Performance Optimization
+end note
+
+note right of FRMS
+Fraud Risk Monitoring Features:
+- Real-time Risk Assessment
+- Bank's Fraud Engine Integration
+- Multi-level Configuration
+- Dynamic API Toggle Control
+- Risk Decision Management
+- Audit Trail & Compliance
 end note
 
 note right of P

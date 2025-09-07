@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-The Payment Engine is a **multi-tenant, highly configurable, enterprise-grade banking platform** designed for Banking-as-a-Service operations. It supports unlimited bank clients with complete data isolation, runtime configuration management, and comprehensive ISO 20022 compliance.
+The Payment Engine is a **multi-tenant, highly configurable, enterprise-grade banking platform** designed for Banking-as-a-Service operations. It supports unlimited bank clients with complete data isolation, runtime configuration management, comprehensive ISO 20022 compliance, and real-time fraud detection and risk management.
 
 ## 🏗️ **Multi-Tenant Architecture**
 
@@ -514,7 +514,17 @@ public class TenantAwareEventPublisher {
 │  │ • PII Data Masking                                                 │ │
 │  └─────────────────────────────────────────────────────────────────────┘ │
 │                                                                         │
-│  5. Monitoring & Audit                                                  │
+│  5. Fraud & Risk Management                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐ │
+│  │ • Real-time Fraud Risk Assessment                                  │ │
+│  │ • Bank's Fraud Engine Integration                                  │ │
+│  │ • Dynamic Fraud API Toggle Control                                │ │
+│  │ • Multi-level Risk Configuration                                  │ │
+│  │ • Risk Scoring and Decision Making                                │ │
+│  │ • Fraud Event Logging and Audit                                   │ │
+│  └─────────────────────────────────────────────────────────────────────┘ │
+│                                                                         │
+│  6. Monitoring & Audit                                                  │
 │  ┌─────────────────────────────────────────────────────────────────────┐ │
 │  │ • Security Event Logging                                           │ │
 │  │ • Audit Trail (Per Tenant)                                         │ │

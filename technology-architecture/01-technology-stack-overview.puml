@@ -91,6 +91,7 @@ package "External Integrations" {
     [Webhook Endpoints] as WE
     [SMTP Server] as SMTP
     [SMS Gateway] as SMS
+    [Bank's Fraud/Risk Monitoring Engine] as BFRE
 }
 
 ' Frontend connections
@@ -164,6 +165,7 @@ SB --> TPA : "Third Party APIs"
 SB --> WE : "Webhook Delivery"
 SB --> SMTP : "Email Notifications"
 SB --> SMS : "SMS Notifications"
+SB --> BFRE : "Bank's Fraud/Risk API"
 
 note right of React
 Frontend Technology Stack:
@@ -244,6 +246,16 @@ CI/CD Technology:
 - Local development environment
 - Manual deployment process
 - Unit and integration testing
+end note
+
+note right of BFRE
+Bank's Fraud/Risk Monitoring Engine:
+- Real-time fraud risk assessment
+- Dynamic API configuration
+- Multi-level fraud control
+- Risk scoring and decision making
+- Integration with payment processing
+- Audit trail and compliance
 end note
 
 @enduml

@@ -451,6 +451,70 @@ entity "feature_flags" {
   * updated_by : VARCHAR(100)
 }
 
+' Fraud Risk Monitoring Entities
+entity "fraud_risk_configurations" {
+  * id : UUID <<PK>>
+  --
+  * tenant_id : UUID <<FK>>
+  * payment_type : VARCHAR(50)
+  * local_instrument_code : VARCHAR(50)
+  * clearing_system_code : VARCHAR(50)
+  * payment_source : VARCHAR(30)
+  * risk_assessment_type : VARCHAR(30)
+  * bank_fraud_api_config : JSONB
+  * risk_rules : JSONB
+  * decision_criteria : JSONB
+  * is_active : BOOLEAN
+  * priority : INTEGER
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "fraud_risk_assessments" {
+  * id : UUID <<PK>>
+  --
+  * assessment_id : VARCHAR(100) <<UK>>
+  * transaction_reference : VARCHAR(100)
+  * tenant_id : UUID <<FK>>
+  * payment_source : VARCHAR(30)
+  * risk_assessment_type : VARCHAR(30)
+  * payment_type : VARCHAR(50)
+  * local_instrument_code : VARCHAR(50)
+  * clearing_system_code : VARCHAR(50)
+  * status : VARCHAR(20)
+  * decision : VARCHAR(20)
+  * decision_reason : TEXT
+  * risk_level : VARCHAR(20)
+  * risk_score : DECIMAL(5,2)
+  * assessed_at : TIMESTAMP
+  * processing_time_ms : BIGINT
+  * error_message : TEXT
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "fraud_api_toggle_configurations" {
+  * id : UUID <<PK>>
+  --
+  * tenant_id : UUID <<FK>>
+  * payment_type : VARCHAR(50)
+  * local_instrument_code : VARCHAR(50)
+  * clearing_system_code : VARCHAR(50)
+  * is_enabled : BOOLEAN
+  * enabled_reason : TEXT
+  * disabled_reason : TEXT
+  * effective_from : TIMESTAMP
+  * effective_until : TIMESTAMP
+  * priority : INTEGER
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
 ' Core Relationships
 tenants ||--o{ scheme_configs : "has"
 tenants ||--o{ tenant_clearing_system_mappings : "maps to"
@@ -460,6 +524,9 @@ tenants ||--o{ audit_events : "contains"
 tenants ||--o{ business_metrics : "generates"
 tenants ||--o{ tenant_configurations : "configures"
 tenants ||--o{ feature_flags : "enables"
+tenants ||--o{ fraud_risk_configurations : "configures"
+tenants ||--o{ fraud_risk_assessments : "assesses"
+tenants ||--o{ fraud_api_toggle_configurations : "toggles"
 
 clearing_systems ||--o{ clearing_system_endpoints : "has"
 clearing_systems ||--o{ tenant_clearing_system_mappings : "mapped by"
@@ -497,6 +564,33 @@ Message Processing Core:
 - Status tracking
 - Correlation management
 - Performance monitoring
+end note
+
+note right of fraud_risk_configurations
+Fraud Risk Configuration:
+- Multi-level configuration
+- Bank's fraud API integration
+- Risk rules and criteria
+- Priority-based resolution
+- Dynamic configuration
+end note
+
+note right of fraud_risk_assessments
+Fraud Risk Assessment:
+- Real-time risk assessment
+- Decision tracking
+- Risk scoring
+- Performance monitoring
+- Audit trail
+end note
+
+note right of fraud_api_toggle_configurations
+Fraud API Toggle:
+- Dynamic enable/disable
+- Multi-level control
+- Priority resolution
+- Effective date management
+- Audit trail
 end note
 
 note right of users
