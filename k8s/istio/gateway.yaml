@@ -60,7 +60,7 @@ spec:
         prefix: /api/v1/iso20022
     route:
     - destination:
-        host: middleware-service
+        host: payment-processing-service
         port:
           number: 8080
   - match:

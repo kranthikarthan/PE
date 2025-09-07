@@ -38,7 +38,7 @@ ingress:
         - path: "/api"
           pathType: "Prefix"
           service:
-            name: "middleware-service"
+            name: "payment-processing-service"
             port: 8080
         - path: "/payment-engine"
           pathType: "Prefix"

@@ -13,7 +13,7 @@ This matrix provides **complete traceability** from every original requirement t
 | REQ-ID | Original Requirement | Implementation File(s) | Status | Enhancement Level |
 |--------|---------------------|----------------------|--------|------------------|
 | **ARCH-01** | Independent React Frontend | `/workspace/frontend/` (Complete React app) | ✅ **EXCEEDED** | Professional banking UI + Multi-tenant |
-| **ARCH-02** | Middleware Layer (Spring Boot) | `/workspace/services/middleware/` | ✅ **EXCEEDED** | Auth + Webhooks + Notifications |
+| **ARCH-02** | Payment Processing Layer (Spring Boot) | `/workspace/services/payment-processing/` | ✅ **EXCEEDED** | Auth + Webhooks + Notifications |
 | **ARCH-03** | Core Banking Services | `/workspace/services/core-banking/` | ✅ **EXCEEDED** | Multi-tenant + ISO 20022 + Config mgmt |
 | **ARCH-04** | API Gateway (Spring Boot) | `/workspace/services/api-gateway/` | ✅ **EXCEEDED** | Multi-tenant routing + Advanced security |
 | **ARCH-05** | Apache Kafka Messaging | `docker-compose.yml` + Kafka configs | ✅ **EXCEEDED** | Multi-tenant topics + Event sourcing |
@@ -33,7 +33,7 @@ This matrix provides **complete traceability** from every original requirement t
 
 | REQ-ID | Original Requirement | Implementation File(s) | Status | Enhancement Level |
 |--------|---------------------|----------------------|--------|------------------|
-| **SEC-01** | OAuth2 and JWT authentication | `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/security/JwtTokenProvider.java` | ✅ **EXCEEDED** | Multi-tenant JWT + Advanced token mgmt |
+| **SEC-01** | OAuth2 and JWT authentication | `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/security/JwtTokenProvider.java` | ✅ **EXCEEDED** | Multi-tenant JWT + Advanced token mgmt |
 | **SEC-02** | Azure Key Vault integration | `/workspace/services/shared/src/main/java/com/paymentengine/shared/service/AzureKeyVaultService.java` | ✅ **COMPLETE** | Full secret management integration |
 | **SEC-03** | TLS/SSL encryption | Kubernetes TLS configuration + nginx.conf | ✅ **COMPLETE** | End-to-end encryption |
 | **SEC-04** | Role-Based Access Control | `/workspace/services/shared/src/main/java/com/paymentengine/shared/security/PermissionConstants.java` | ✅ **EXCEEDED** | 40+ permissions + Multi-tenant RBAC |

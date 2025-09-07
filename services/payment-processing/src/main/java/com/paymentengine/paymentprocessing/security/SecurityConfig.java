@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Security configuration for Middleware Service
+ * Security configuration for Payment Processing Service
  */
 @Configuration
 @EnableWebSecurity

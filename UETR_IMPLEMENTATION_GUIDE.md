@@ -93,7 +93,7 @@ UetrTrackingRecord record = uetrTrackingService.trackUetr(
 
 // Update status
 uetrTrackingService.updateUetrStatus(uetr, "PROCESSING", 
-    "Message being processed", "Middleware Service");
+    "Message being processed", "Payment Processing Service");
 
 // Get journey
 UetrJourney journey = uetrTrackingService.getUetrJourney(uetr);
@@ -103,7 +103,7 @@ UetrJourney journey = uetrTrackingService.getUetrJourney(uetr);
 
 ### Scheme Processing Service
 
-**Location**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/service/impl/SchemeProcessingServiceImpl.java`
+**Location**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/impl/SchemeProcessingServiceImpl.java`
 
 **UETR Integration Points**:
 
@@ -122,17 +122,17 @@ paymentInfo.setUetr(uetr);
 
 // Track UETR in the system
 uetrTrackingService.trackUetr(uetr, "PAIN001", tenantId, messageId, "INBOUND");
-uetrTrackingService.updateUetrStatus(uetr, "RECEIVED", "PAIN.001 message received", "Middleware Service");
+uetrTrackingService.updateUetrStatus(uetr, "RECEIVED", "PAIN.001 message received", "Payment Processing Service");
 
 // Update status throughout processing
 uetrTrackingService.updateUetrStatus(uetr, "APPROVED", "Fraud/risk assessment passed", "Fraud Risk Monitoring Service");
-uetrTrackingService.updateUetrStatus(uetr, "PROCESSING", "Routing to clearing system: " + clearingSystemCode, "Middleware Service");
-uetrTrackingService.updateUetrStatus(uetr, "COMPLETED", "Payment processing completed successfully", "Middleware Service");
+uetrTrackingService.updateUetrStatus(uetr, "PROCESSING", "Routing to clearing system: " + clearingSystemCode, "Payment Processing Service");
+uetrTrackingService.updateUetrStatus(uetr, "COMPLETED", "Payment processing completed successfully", "Payment Processing Service");
 ```
 
 ### Payment Info Integration
 
-**Location**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/service/Pain001ToPacs008TransformationService.java`
+**Location**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/Pain001ToPacs008TransformationService.java`
 
 **UETR Field Addition**:
 ```java
@@ -146,7 +146,7 @@ class PaymentInfo {
 
 ### PACS.008 Message Integration
 
-**Location**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/service/impl/Pain001ToPacs008TransformationServiceImpl.java`
+**Location**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/impl/Pain001ToPacs008TransformationServiceImpl.java`
 
 **UETR in Payment Identification**:
 ```java
@@ -166,7 +166,7 @@ cdtTrfTxInf.put("PmtId", pmtId);
 
 ### Fraud Risk Monitoring Service
 
-**Location**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/service/impl/FraudRiskMonitoringServiceImpl.java`
+**Location**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/impl/FraudRiskMonitoringServiceImpl.java`
 
 **UETR Integration**:
 ```java
@@ -197,7 +197,7 @@ public CompletableFuture<FraudRiskAssessment> assessPaymentRisk(
 
 ### Audit Logging Service
 
-**Location**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/audit/AuditLoggingService.java`
+**Location**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/audit/AuditLoggingService.java`
 
 **UETR Support**:
 ```java
@@ -267,7 +267,7 @@ const handleViewJourney = async (uetr: string) => {
 
 ### UETR Controller
 
-**Location**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/controller/UetrController.java`
+**Location**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/controller/UetrController.java`
 
 **Endpoints**:
 

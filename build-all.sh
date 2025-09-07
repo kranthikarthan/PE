@@ -100,15 +100,15 @@ build_backend() {
     fi
     cd ../..
     
-    # Build Middleware Service
-    print_status "Building Middleware Service..."
-    cd services/middleware
+    # Build Payment Processing Service
+    print_status "Building Payment Processing Service..."
+    cd services/payment-processing
     mvn clean package -DskipTests
     
     if [ $? -eq 0 ]; then
-        print_success "Middleware Service built successfully"
+        print_success "Payment Processing Service built successfully"
     else
-        print_error "Failed to build Middleware Service"
+        print_error "Failed to build Payment Processing Service"
         exit 1
     fi
     cd ../..
@@ -177,14 +177,14 @@ build_docker_images() {
         exit 1
     fi
     
-    # Build Middleware Service image
-    print_status "Building Middleware Service Docker image..."
-    docker build -t payment-engine/middleware:latest -f services/middleware/Dockerfile services/
+    # Build Payment Processing Service image
+    print_status "Building Payment Processing Service Docker image..."
+    docker build -t payment-engine/payment-processing:latest -f services/payment-processing/Dockerfile services/
     
     if [ $? -eq 0 ]; then
-        print_success "Middleware Service Docker image built successfully"
+        print_success "Payment Processing Service Docker image built successfully"
     else
-        print_error "Failed to build Middleware Service Docker image"
+        print_error "Failed to build Payment Processing Service Docker image"
         exit 1
     fi
     
@@ -283,7 +283,7 @@ deploy_local() {
         echo "  Frontend:        http://localhost:3000"
         echo "  API Gateway:     http://localhost:8080"
         echo "  Core Banking:    http://localhost:8081"
-        echo "  Middleware:      http://localhost:8082"
+        echo "  Payment Processing:      http://localhost:8082"
         echo "  Prometheus:      http://localhost:9090"
         echo "  Grafana:         http://localhost:3000 (admin/admin)"
         echo "  Kafka UI:        http://localhost:8080"

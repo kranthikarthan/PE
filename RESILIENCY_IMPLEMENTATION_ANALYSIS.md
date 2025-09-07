@@ -38,10 +38,10 @@ resilience4j:
         wait-duration-in-open-state: 30s
 ```
 
-### 3. **Middleware Resilience4j** (Application Level)
+### 3. **Payment Processing Resilience4j** (Application Level)
 - **Existing Services**: Clearing systems, webhooks, Kafka, auth, config
 - **Patterns**: Circuit breaker, retry, timeout, bulkhead, rate limiter
-- **Configuration**: `services/middleware/src/main/java/com/paymentengine/middleware/resilience/ResilienceConfiguration.java`
+- **Configuration**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/resilience/ResilienceConfiguration.java`
 
 **Existing Resilient Services**:
 - `ResilientClearingSystemService`

@@ -18,8 +18,8 @@ export const store = configureStore({
     tenant: tenantSlice,
     ui: uiSlice,
   },
-  payment-processing: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
+  payment-processing: (getDefaultPayment Processing) =>
+    getDefaultPayment Processing({
       serializableCheck: {
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },

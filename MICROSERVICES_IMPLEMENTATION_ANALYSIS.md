@@ -11,10 +11,10 @@
 - ✅ **Routing Service**: Request routing implemented
 
 #### **2. Core Business Services**
-- ✅ **Payment Processing Service**: Implemented in `middleware` service
+- ✅ **Payment Processing Service**: Implemented in `payment-processing` service
 - ✅ **Account Management Service**: Implemented in `core-banking` service
 - ✅ **Transaction Service**: Implemented in `core-banking` service
-- ✅ **Notification Service**: Implemented in `middleware` service
+- ✅ **Notification Service**: Implemented in `payment-processing` service
 
 #### **3. ISO 20022 Services**
 - ✅ **Message Flow Service**: `Iso20022MessageFlowServiceImpl` implemented
@@ -29,7 +29,7 @@
 - ✅ **Routing Config Service**: Routing configuration implemented
 
 #### **5. Integration Services**
-- ✅ **Clearing System Adapter**: Implemented in middleware
+- ✅ **Clearing System Adapter**: Implemented in payment-processing
 - ✅ **Webhook Service**: `WebhookService` and `WebhookDeliveryServiceImpl` implemented
 - ✅ **Kafka Producer Service**: `KafkaMessageProducerImpl` implemented
 - ✅ **Kafka Consumer Service**: Kafka listeners implemented
@@ -63,11 +63,11 @@
 - ❌ **Retry Logic**: Limited retry implementation
 
 #### **2. Dedicated Microservices**
-- ❌ **Separate Authentication Service**: Currently embedded in middleware
+- ❌ **Separate Authentication Service**: Currently embedded in payment-processing
 - ❌ **Separate Configuration Service**: Currently embedded in core-banking
-- ❌ **Separate Notification Service**: Currently embedded in middleware
-- ❌ **Separate Audit Service**: Currently embedded in middleware
-- ❌ **Separate Monitoring Service**: Currently embedded in middleware
+- ❌ **Separate Notification Service**: Currently embedded in payment-processing
+- ❌ **Separate Audit Service**: Currently embedded in payment-processing
+- ❌ **Separate Monitoring Service**: Currently embedded in payment-processing
 
 #### **3. Advanced Integration Services**
 - ❌ **Dedicated File Transfer Service**: Basic implementation only
@@ -86,7 +86,7 @@
 #### **Implemented Services (4 Services)**
 1. **api-gateway**: API Gateway with routing, authentication, rate limiting
 2. **gateway**: Alternative API Gateway implementation
-3. **middleware**: Main business logic service with ISO 20022 processing
+3. **payment-processing**: Main business logic service with ISO 20022 processing
 4. **core-banking**: Core banking operations and configuration
 5. **shared**: Shared libraries and utilities
 
@@ -99,7 +99,7 @@
 - ✅ Request/response transformation
 - ✅ Circuit breaker protection
 
-**Middleware Service**:
+**Payment Processing Service**:
 - ✅ ISO 20022 message processing
 - ✅ Message transformation and validation
 - ✅ Clearing system integration
@@ -156,7 +156,7 @@
 - **Priority**: Critical
 
 #### **2. Dedicated Authentication Service**
-- **Gap**: Authentication embedded in middleware
+- **Gap**: Authentication embedded in payment-processing
 - **Impact**: High - Security concerns, tight coupling
 - **Effort**: Medium
 - **Priority**: High
@@ -176,13 +176,13 @@
 ### **Medium Priority Gaps**
 
 #### **1. Dedicated Notification Service**
-- **Gap**: Notification embedded in middleware
+- **Gap**: Notification embedded in payment-processing
 - **Impact**: Medium - Scaling issues
 - **Effort**: Low
 - **Priority**: Medium
 
 #### **2. Dedicated Audit Service**
-- **Gap**: Audit embedded in middleware
+- **Gap**: Audit embedded in payment-processing
 - **Impact**: Medium - Compliance concerns
 - **Effort**: Low
 - **Priority**: Medium

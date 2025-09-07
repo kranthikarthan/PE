@@ -61,11 +61,11 @@ kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f 
 
 # Step 2: Load application images
 log_step "Loading application images..."
-if [ -f "middleware-*.tar" ]; then
-    log_info "Loading middleware image..."
-    docker load < middleware-*.tar
-    docker tag $REGISTRY_HOST:$REGISTRY_PORT/$APP_NAME-middleware:* $LOCAL_REGISTRY/$APP_NAME-middleware:$VERSION
-    docker push $LOCAL_REGISTRY/$APP_NAME-middleware:$VERSION
+if [ -f "payment-processing-*.tar" ]; then
+    log_info "Loading payment-processing image..."
+    docker load < payment-processing-*.tar
+    docker tag $REGISTRY_HOST:$REGISTRY_PORT/$APP_NAME-payment-processing:* $LOCAL_REGISTRY/$APP_NAME-payment-processing:$VERSION
+    docker push $LOCAL_REGISTRY/$APP_NAME-payment-processing:$VERSION
 fi
 
 if [ -f "payment-engine-*.tar" ]; then
@@ -242,27 +242,27 @@ EOF
 
 kubectl apply -f redis-deployment.yaml
 
-# Step 6: Deploy Middleware Service
-log_step "Deploying Middleware Service..."
-cat > middleware-deployment.yaml << EOF
+# Step 6: Deploy Payment Processing Service
+log_step "Deploying Payment Processing Service..."
+cat > payment-processing-deployment.yaml << EOF
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: middleware
+  name: payment-processing
   namespace: $NAMESPACE
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: middleware
+      app: payment-processing
   template:
     metadata:
       labels:
-        app: middleware
+        app: payment-processing
     spec:
       containers:
-      - name: middleware
-        image: $LOCAL_REGISTRY/$APP_NAME-middleware:$VERSION
+      - name: payment-processing
+        image: $LOCAL_REGISTRY/$APP_NAME-payment-processing:$VERSION
         ports:
         - containerPort: 8080
         env:
@@ -334,17 +334,17 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: middleware-service
+  name: payment-processing-service
   namespace: $NAMESPACE
 spec:
   selector:
-    app: middleware
+    app: payment-processing
   ports:
   - port: 8080
     targetPort: 8080
 EOF
 
-kubectl apply -f middleware-deployment.yaml
+kubectl apply -f payment-processing-deployment.yaml
 
 # Step 7: Deploy Payment Engine Service
 log_step "Deploying Payment Engine Service..."
@@ -535,7 +535,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: middleware-service
+            name: payment-processing-service
             port:
               number: 8080
       - path: /payment-engine
@@ -553,13 +553,13 @@ kubectl apply -f ingress.yaml
 log_step "Waiting for deployments to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/postgres -n $NAMESPACE
 kubectl wait --for=condition=available --timeout=300s deployment/redis -n $NAMESPACE
-kubectl wait --for=condition=available --timeout=300s deployment/middleware -n $NAMESPACE
+kubectl wait --for=condition=available --timeout=300s deployment/payment-processing -n $NAMESPACE
 kubectl wait --for=condition=available --timeout=300s deployment/payment-engine -n $NAMESPACE
 kubectl wait --for=condition=available --timeout=300s deployment/frontend -n $NAMESPACE
 
 # Step 11: Run database migrations
 log_step "Running database migrations..."
-kubectl run migration-job --image=$LOCAL_REGISTRY/$APP_NAME-middleware:$VERSION \
+kubectl run migration-job --image=$LOCAL_REGISTRY/$APP_NAME-payment-processing:$VERSION \
     --restart=Never \
     --namespace=$NAMESPACE \
     --env="SPRING_PROFILES_ACTIVE=airgap" \
@@ -590,12 +590,12 @@ kubectl get ingress -n $NAMESPACE
 echo ""
 
 # Clean up temporary files
-rm -f postgres-deployment.yaml redis-deployment.yaml middleware-deployment.yaml
+rm -f postgres-deployment.yaml redis-deployment.yaml payment-processing-deployment.yaml
 rm -f payment-engine-deployment.yaml frontend-deployment.yaml ingress.yaml
 
 log_info "Air-gapped deployment completed successfully!"
 log_info "Application is accessible at: http://payment-engine.local"
 log_info "API endpoints:"
 log_info "  - Frontend: http://payment-engine.local/"
-log_info "  - Middleware API: http://payment-engine.local/api"
+log_info "  - Payment Processing API: http://payment-engine.local/api"
 log_info "  - Payment Engine API: http://payment-engine.local/payment-engine"

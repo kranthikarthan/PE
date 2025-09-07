@@ -44,7 +44,7 @@ Other Bank → Clearing System → ISO 20022 Message → Payment Engine
 
 ### 1. Core Banking Adapter Interface
 
-**File**: `services/middleware/src/main/java/com/paymentengine/middleware/service/CoreBankingAdapter.java`
+**File**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/CoreBankingAdapter.java`
 
 The adapter interface provides:
 - Account management and validation
@@ -57,7 +57,7 @@ The adapter interface provides:
 
 ### 2. REST API Adapter
 
-**File**: `services/middleware/src/main/java/com/paymentengine/middleware/service/impl/RestCoreBankingAdapter.java`
+**File**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/impl/RestCoreBankingAdapter.java`
 
 Features:
 - HTTP-based communication with external core banking systems
@@ -69,7 +69,7 @@ Features:
 
 ### 3. gRPC Adapter
 
-**File**: `services/middleware/src/main/java/com/paymentengine/middleware/service/impl/GrpcCoreBankingAdapter.java`
+**File**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/impl/GrpcCoreBankingAdapter.java`
 
 Features:
 - gRPC-based communication with external core banking systems
@@ -81,7 +81,7 @@ Features:
 
 ### 4. Payment Routing Service
 
-**File**: `services/middleware/src/main/java/com/paymentengine/middleware/service/PaymentRoutingService.java`
+**File**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/PaymentRoutingService.java`
 
 Responsibilities:
 - Determines payment routing based on account analysis
@@ -94,7 +94,7 @@ Responsibilities:
 ### 5. Configuration Entities
 
 #### Core Banking Configuration
-**File**: `services/middleware/src/main/java/com/paymentengine/middleware/entity/CoreBankingConfiguration.java`
+**File**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/entity/CoreBankingConfiguration.java`
 
 Stores per-tenant configuration:
 - Adapter type (REST/gRPC/INTERNAL)
@@ -106,7 +106,7 @@ Stores per-tenant configuration:
 - Bank identification
 
 #### Clearing System Configuration
-**File**: `services/middleware/src/main/java/com/paymentengine/middleware/entity/ClearingSystemConfiguration.java`
+**File**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/entity/ClearingSystemConfiguration.java`
 
 Stores clearing system configuration:
 - Clearing system identification

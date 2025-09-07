@@ -60,10 +60,10 @@ const MicroservicesDashboard: React.FC<MicroservicesDashboardProps> = () => {
       url: process.env.REACT_APP_CONFIG_SERVICE_URL || 'http://localhost:8080/api/v1/config',
     },
     {
-      name: 'Middleware Service',
+      name: 'Payment Processing Service',
       icon: <StorageIcon />,
       color: 'success',
-      url: process.env.REACT_APP_MIDDLEWARE_SERVICE_URL || 'http://localhost:8080/api/v1/iso20022',
+      url: process.env.REACT_APP_PAYMENT_PROCESSING_SERVICE_URL || 'http://localhost:8080/api/v1/iso20022',
     },
     {
       name: 'Core Banking Service',

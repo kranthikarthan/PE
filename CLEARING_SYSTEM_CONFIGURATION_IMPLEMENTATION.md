@@ -119,7 +119,7 @@ CREATE TABLE tenant_clearing_system_mappings (
 ### **Backend Services**
 
 #### **ClearingSystemController**
-- **Location**: `/services/middleware/src/main/java/com/paymentengine/middleware/controller/ClearingSystemController.java`
+- **Location**: `/services/payment-processing/src/main/java/com/paymentengine/payment-processing/controller/ClearingSystemController.java`
 - **Endpoints**:
   ```http
   GET    /api/v1/clearing-systems                    # List all clearing systems

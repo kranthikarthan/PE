@@ -78,17 +78,17 @@ else
     print_warning "Maven not found, skipping Maven tests"
 fi
 
-# Run Middleware Service Tests
-print_status "Running Middleware Service Integration Tests..."
-cd ../middleware
+# Run Payment Processing Service Tests
+print_status "Running Payment Processing Service Integration Tests..."
+cd ../payment-processing
 
 if command -v mvn &> /dev/null; then
     print_status "Running Maven tests..."
     mvn clean test -Dspring.profiles.active=test -Dtest=*IntegrationTest
     if [ $? -eq 0 ]; then
-        print_success "Middleware integration tests passed!"
+        print_success "Payment Processing integration tests passed!"
     else
-        print_error "Middleware integration tests failed!"
+        print_error "Payment Processing integration tests failed!"
         exit 1
     fi
 else
@@ -116,13 +116,13 @@ else
     print_error "Core Banking API health check failed (HTTP $CORE_BANKING_HEALTH)"
 fi
 
-# Test Middleware API
-print_status "Testing Middleware API..."
-MIDDLEWARE_HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8083/actuator/health)
-if [ "$MIDDLEWARE_HEALTH" = "200" ]; then
-    print_success "Middleware API is healthy"
+# Test Payment Processing API
+print_status "Testing Payment Processing API..."
+PAYMENT_PROCESSING_HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8083/actuator/health)
+if [ "$PAYMENT_PROCESSING_HEALTH" = "200" ]; then
+    print_success "Payment Processing API is healthy"
 else
-    print_error "Middleware API health check failed (HTTP $MIDDLEWARE_HEALTH)"
+    print_error "Payment Processing API health check failed (HTTP $PAYMENT_PROCESSING_HEALTH)"
 fi
 
 # Test API Gateway
@@ -197,7 +197,7 @@ cat > "$REPORT_DIR/test-summary.md" << EOF
 
 ### Service Health Checks
 - Core Banking API: $([ "$CORE_BANKING_HEALTH" = "200" ] && echo "✅ PASS" || echo "❌ FAIL")
-- Middleware API: $([ "$MIDDLEWARE_HEALTH" = "200" ] && echo "✅ PASS" || echo "❌ FAIL")
+- Payment Processing API: $([ "$PAYMENT_PROCESSING_HEALTH" = "200" ] && echo "✅ PASS" || echo "❌ FAIL")
 - API Gateway: $([ "$GATEWAY_HEALTH" = "200" ] && echo "✅ PASS" || echo "❌ FAIL")
 
 ### API Tests
@@ -205,7 +205,7 @@ cat > "$REPORT_DIR/test-summary.md" << EOF
 
 ### Integration Tests
 - Core Banking Integration Tests: ✅ PASS
-- Middleware Integration Tests: ✅ PASS
+- Payment Processing Integration Tests: ✅ PASS
 
 ## Refactoring Validation
 
@@ -217,7 +217,7 @@ cat > "$REPORT_DIR/test-summary.md" << EOF
 
 ### System Alignment
 - ✅ Frontend Alignment (TypeScript types, error handling)
-- ✅ Middleware Alignment (Exception handling)
+- ✅ Payment Processing Alignment (Exception handling)
 - ✅ Documentation Updates
 - ✅ Build Configuration Updates
 
@@ -241,7 +241,7 @@ echo ""
 echo "📊 Test Summary:"
 echo "================"
 echo "✅ Core Banking Integration Tests: PASSED"
-echo "✅ Middleware Integration Tests: PASSED"
+echo "✅ Payment Processing Integration Tests: PASSED"
 echo "✅ API Health Checks: PASSED"
 echo "✅ Transaction API Tests: PASSED"
 echo "✅ Refactoring Validation: PASSED"

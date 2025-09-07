@@ -96,7 +96,7 @@ CREATE TABLE payment_engine.payload_schema_mappings (
 ### 2. Backend Services
 
 #### Dynamic Endpoint Resolution Service
-**File**: `services/middleware/src/main/java/com/paymentengine/middleware/service/DynamicEndpointResolutionService.java`
+**File**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/DynamicEndpointResolutionService.java`
 
 **Features**:
 - Runtime endpoint resolution based on tenant and operation type
@@ -116,7 +116,7 @@ public Map<String, String> getRequestHeaders(String tenantId, EndpointType endpo
 ```
 
 #### Payload Transformation Service
-**File**: `services/middleware/src/main/java/com/paymentengine/middleware/service/PayloadTransformationService.java`
+**File**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/PayloadTransformationService.java`
 
 **Features**:
 - Dynamic payload transformation based on configurable mappings

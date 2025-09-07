@@ -202,7 +202,7 @@ public class DashboardService {
             
             health.put("coreBanking", coreBankingResult);
             health.put("redis", Map.of("status", redisResult));
-            health.put("middleware", Map.of("status", "UP"));
+            health.put("payment-processing", Map.of("status", "UP"));
             
             // Overall health status
             boolean allHealthy = "UP".equals(coreBankingResult.get("status")) && 

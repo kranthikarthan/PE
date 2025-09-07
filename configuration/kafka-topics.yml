@@ -242,8 +242,8 @@ consumer_groups:
       - "payment.transaction.updated"
       - "payment.account.balance.updated"
     
-  - name: "middleware-service"
-    description: "Middleware service consumer group"
+  - name: "payment-processing-service"
+    description: "Payment Processing service consumer group"
     topics:
       - "payment.transaction.completed"
       - "payment.transaction.failed"

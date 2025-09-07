@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 BASE_URL="http://localhost:8080"
-MIDDLEWARE_URL="http://localhost:8082"
+PAYMENT_PROCESSING_URL="http://localhost:8082"
 FRONTEND_URL="http://localhost:3000"
 
 echo -e "${BLUE}========================================${NC}"
@@ -54,7 +54,7 @@ check_service() {
 get_jwt_token() {
     echo -e "${YELLOW}Getting JWT token for testing...${NC}"
     
-    local token_response=$(curl -s -X POST "$MIDDLEWARE_URL/api/auth/admin-token" \
+    local token_response=$(curl -s -X POST "$PAYMENT_PROCESSING_URL/api/auth/admin-token" \
         -H "Content-Type: application/json")
     
     if echo "$token_response" | grep -q "token"; then
@@ -103,7 +103,7 @@ echo -e "${YELLOW}Starting end-to-end tests...${NC}"
 # 1. Check if services are running
 echo -e "\n${BLUE}1. Service Health Checks${NC}"
 check_service "API Gateway" "$BASE_URL/actuator/health"
-check_service "Middleware Service" "$MIDDLEWARE_URL/actuator/health"
+check_service "Payment Processing Service" "$PAYMENT_PROCESSING_URL/actuator/health"
 check_service "Frontend" "$FRONTEND_URL"
 
 # 2. Get JWT token

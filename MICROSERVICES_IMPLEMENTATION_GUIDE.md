@@ -13,7 +13,7 @@ The system now consists of the following microservices:
 1. **API Gateway Service** - Centralized routing and security
 2. **Authentication Service** - Dedicated user authentication and authorization
 3. **Configuration Service** - Centralized configuration management
-4. **Middleware Service** - ISO 20022 message processing and business logic
+4. **Payment Processing Service** - ISO 20022 message processing and business logic
 5. **Core Banking Service** - Core banking operations and account management
 6. **Shared Service** - Common utilities and libraries
 
@@ -107,7 +107,7 @@ GET    /api/v1/config/history/{type} - History by type
 - `feature_flags` - Feature flag definitions
 - `configuration_history` - Configuration change history
 
-### **3. Middleware Service**
+### **3. Payment Processing Service**
 
 **Purpose**: ISO 20022 message processing and business logic
 
@@ -391,9 +391,9 @@ jobs:
         cd services/config-service
         ./mvnw test
     
-    - name: Run tests for middleware-service
+    - name: Run tests for payment-processing-service
       run: |
-        cd services/middleware
+        cd services/payment-processing
         ./mvnw test
     
     - name: Run tests for core-banking-service
@@ -411,14 +411,14 @@ jobs:
       run: |
         docker build -t payment-engine/auth-service:latest services/auth-service/
         docker build -t payment-engine/config-service:latest services/config-service/
-        docker build -t payment-engine/middleware-service:latest services/middleware/
+        docker build -t payment-engine/payment-processing-service:latest services/payment-processing/
         docker build -t payment-engine/core-banking-service:latest services/core-banking/
     
     - name: Push to registry
       run: |
         docker push payment-engine/auth-service:latest
         docker push payment-engine/config-service:latest
-        docker push payment-engine/middleware-service:latest
+        docker push payment-engine/payment-processing-service:latest
         docker push payment-engine/core-banking-service:latest
 
   deploy:
@@ -590,7 +590,7 @@ Each service exposes OpenAPI documentation:
 
 - **Auth Service**: `http://auth-service:8080/swagger-ui.html`
 - **Config Service**: `http://config-service:8080/swagger-ui.html`
-- **Middleware Service**: `http://middleware-service:8080/swagger-ui.html`
+- **Payment Processing Service**: `http://payment-processing-service:8080/swagger-ui.html`
 - **Core Banking Service**: `http://core-banking-service:8080/swagger-ui.html`
 
 ### **API Versioning**

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the critical refactoring and improvements made to the Payment Engine based on the comprehensive code review findings. The refactoring addresses critical issues while ensuring all components (React frontend, middleware, documentation, and build/deployment) remain properly aligned.
+This document summarizes the critical refactoring and improvements made to the Payment Engine based on the comprehensive code review findings. The refactoring addresses critical issues while ensuring all components (React frontend, payment-processing, documentation, and build/deployment) remain properly aligned.
 
 ## 🔧 **Critical Issues Fixed**
 
@@ -96,7 +96,7 @@ if (fromAccountId.compareTo(toAccountId) < 0) {
 - **Error Display**: Proper error message display with specific error types
 - **Status Indicators**: Real-time status updates and validation feedback
 
-## 🔗 **Middleware Alignment**
+## 🔗 **Payment Processing Alignment**
 
 ### 1. **Exception Handling** ✅
 - **CoreBankingException**: Base exception for core banking operations
@@ -105,7 +105,7 @@ if (fromAccountId.compareTo(toAccountId) < 0) {
 
 ### 2. **Service Integration** ✅
 - **ResilientCoreBankingService**: Updated to use new exception types
-- **Error Propagation**: Proper error propagation from core banking to middleware
+- **Error Propagation**: Proper error propagation from core banking to payment-processing
 - **Transaction Reference**: Consistent transaction reference handling
 
 ## 📚 **Documentation Updates**
@@ -205,7 +205,7 @@ The Payment Engine refactoring successfully addresses all critical issues identi
 4. **Error Handling Enhancement** - Specific exception types with error codes
 5. **Integration Test Coverage** - Comprehensive test coverage
 6. **Frontend Alignment** - TypeScript types and error handling
-7. **Middleware Alignment** - Exception handling consistency
+7. **Payment Processing Alignment** - Exception handling consistency
 8. **Documentation Updates** - Complete documentation refresh
 
 ### **🚀 System Benefits**

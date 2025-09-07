@@ -263,7 +263,7 @@ curl http://payment-engine.local/api/health
 ```bash
 # Check application health
 kubectl get pods -n payment-engine
-kubectl logs -f deployment/middleware -n payment-engine
+kubectl logs -f deployment/payment-processing -n payment-engine
 kubectl logs -f deployment/payment-engine -n payment-engine
 ```
 
@@ -379,7 +379,7 @@ ufw status
 
 ```bash
 # Check pod logs
-kubectl logs -f deployment/middleware -n payment-engine
+kubectl logs -f deployment/payment-processing -n payment-engine
 kubectl logs -f deployment/payment-engine -n payment-engine
 
 # Check pod description

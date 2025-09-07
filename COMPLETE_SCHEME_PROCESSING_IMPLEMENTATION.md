@@ -365,7 +365,7 @@ local_instrument_mappings:
 
 ```
 ┌─────────────┐    PAIN.001     ┌─────────────────┐
-│   Client    │ ──────────────→ │  Middleware     │
+│   Client    │ ──────────────→ │  Payment Processing     │
 │             │                 │  Service        │
 └─────────────┘                 └─────────────────┘
                                          │
@@ -383,7 +383,7 @@ local_instrument_mappings:
                                          │ PACS.008
                                          ▼
                                 ┌─────────────────┐
-                                │  Middleware     │
+                                │  Payment Processing     │
                                 │  Service        │
                                 └─────────────────┘
                                          │
@@ -443,7 +443,7 @@ local_instrument_mappings:
 ## 📁 **File Structure**
 
 ```
-services/middleware/src/main/java/com/paymentengine/middleware/
+services/payment-processing/src/main/java/com/paymentengine/payment-processing/
 ├── controller/
 │   └── EnhancedSchemeInteractionController.java
 ├── service/

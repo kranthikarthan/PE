@@ -1,7 +1,7 @@
 package com.paymentengine.paymentprocessing.exception;
 
 /**
- * Exception for account-related errors in middleware
+ * Exception for account-related errors in payment-processing
  */
 public class AccountException extends CoreBankingException {
     

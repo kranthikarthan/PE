@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Security configuration for the middleware service
+ * Security configuration for the payment-processing service
  */
 @Configuration
 @EnableWebSecurity

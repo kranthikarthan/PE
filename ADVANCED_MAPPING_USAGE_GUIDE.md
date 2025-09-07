@@ -38,7 +38,7 @@ The advanced mapping system is integrated into:
 
 ### Enhanced Fraud API Service
 
-**Location**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/service/impl/ExternalFraudApiServiceImpl.java`
+**Location**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/impl/ExternalFraudApiServiceImpl.java`
 
 **Key Changes**:
 
@@ -150,7 +150,7 @@ if (transformedPayload.isPresent()) {
 
 ### Enhanced Core Banking Adapter
 
-**Location**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/service/impl/RestCoreBankingAdapter.java`
+**Location**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/impl/RestCoreBankingAdapter.java`
 
 **Key Changes**:
 
@@ -298,7 +298,7 @@ if (transformedRequest.isPresent()) {
 
 ### Enhanced Scheme Processing Service
 
-**Location**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/service/impl/SchemeProcessingServiceImpl.java`
+**Location**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/impl/SchemeProcessingServiceImpl.java`
 
 **Key Changes**:
 

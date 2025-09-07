@@ -145,10 +145,10 @@ This guide provides step-by-step instructions for deploying the ISO 20022 Paymen
    docker tag payment-engine/config-service:latest your-registry/payment-engine/config-service:latest
    docker push your-registry/payment-engine/config-service:latest
    
-   # Build middleware-service
-   docker build -t payment-engine/middleware-service:latest services/middleware/
-   docker tag payment-engine/middleware-service:latest your-registry/payment-engine/middleware-service:latest
-   docker push your-registry/payment-engine/middleware-service:latest
+   # Build payment-processing-service
+   docker build -t payment-engine/payment-processing-service:latest services/payment-processing/
+   docker tag payment-engine/payment-processing-service:latest your-registry/payment-engine/payment-processing-service:latest
+   docker push your-registry/payment-engine/payment-processing-service:latest
    
    # Build core-banking-service
    docker build -t payment-engine/core-banking-service:latest services/core-banking/
@@ -176,10 +176,10 @@ This guide provides step-by-step instructions for deploying the ISO 20022 Paymen
    kubectl apply -f k8s/services/config-service/
    ```
 
-3. **Deploy Middleware Service**
+3. **Deploy Payment Processing Service**
    ```bash
-   # Deploy middleware-service
-   kubectl apply -f k8s/services/middleware-service/
+   # Deploy payment-processing-service
+   kubectl apply -f k8s/services/payment-processing-service/
    ```
 
 4. **Deploy Core Banking Service**
@@ -287,7 +287,7 @@ This guide provides step-by-step instructions for deploying the ISO 20022 Paymen
      --namespace payment-engine \
      --command -- /bin/sh -c "java -jar app.jar --spring.profiles.active=migration"
    
-   kubectl run migration-middleware --image=payment-engine/middleware-service:latest \
+   kubectl run migration-payment-processing --image=payment-engine/payment-processing-service:latest \
      --namespace payment-engine \
      --command -- /bin/sh -c "java -jar app.jar --spring.profiles.active=migration"
    
@@ -320,8 +320,8 @@ This guide provides step-by-step instructions for deploying the ISO 20022 Paymen
    kubectl port-forward svc/config-service 8081:8080 -n payment-engine
    curl http://localhost:8081/api/v1/config/health
    
-   # Test middleware-service
-   kubectl port-forward svc/middleware-service 8082:8080 -n payment-engine
+   # Test payment-processing-service
+   kubectl port-forward svc/payment-processing-service 8082:8080 -n payment-engine
    curl http://localhost:8082/api/v1/iso20022/comprehensive/health
    
    # Test core-banking-service
@@ -365,7 +365,7 @@ data:
   # Service URLs
   AUTH_SERVICE_URL: "http://auth-service:8080"
   CONFIG_SERVICE_URL: "http://config-service:8080"
-  MIDDLEWARE_SERVICE_URL: "http://middleware-service:8080"
+  PAYMENT_PROCESSING_SERVICE_URL: "http://payment-processing-service:8080"
   CORE_BANKING_SERVICE_URL: "http://core-banking-service:8080"
   
   # External service URLs

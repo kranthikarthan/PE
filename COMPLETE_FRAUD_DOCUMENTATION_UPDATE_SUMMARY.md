@@ -22,7 +22,7 @@ This document provides a comprehensive summary of ALL documentation updates made
     - Fraud Risk Monitoring Service (FRMS)
     - Fraud API Toggle Service (FATS)
     - External Fraud API Service (EFAS)
-  - Added fraud service connections to Middleware Service
+  - Added fraud service connections to Payment Processing Service
   - Added fraud service interconnections
   - Added fraud service notes and features
 
@@ -253,7 +253,7 @@ SB --> BFRE : "Bank's Fraud/Risk API"
 
 ### **3. Integration Points**
 - Payment processing integration
-- Middleware service integration
+- Payment Processing service integration
 - Database schema integration
 - API endpoint integration
 - React frontend integration

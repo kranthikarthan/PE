@@ -115,7 +115,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 
                 // 4. Track UETR in the system
                 uetrTrackingService.trackUetr(uetr, "PAIN001", tenantId, messageId, "INBOUND");
-                uetrTrackingService.updateUetrStatus(uetr, "RECEIVED", "PAIN.001 message received", "Middleware Service");
+                uetrTrackingService.updateUetrStatus(uetr, "RECEIVED", "PAIN.001 message received", "Payment Processing Service");
                 
                 // 5. Perform fraud/risk assessment before processing
                 FraudRiskAssessment fraudAssessment = performFraudRiskAssessment(
@@ -182,7 +182,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 
                 // Update UETR status to processing
                 uetrTrackingService.updateUetrStatus(uetr, "PROCESSING", 
-                    "Routing to clearing system: " + clearingSystemCode, "Middleware Service");
+                    "Routing to clearing system: " + clearingSystemCode, "Payment Processing Service");
                 
                 // 6. Transform PAIN.001 to PACS.008 using advanced payload mapping
                 Map<String, Object> pacs008Message = transformPain001ToPacs008WithAdvancedMapping(
@@ -194,7 +194,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 
                 // Update UETR status to sent to clearing system
                 uetrTrackingService.updateUetrStatus(uetr, "SENT_TO_CLEARING", 
-                    "PACS.008 sent to clearing system: " + clearingSystemCode, "Middleware Service");
+                    "PACS.008 sent to clearing system: " + clearingSystemCode, "Payment Processing Service");
                 
                 // 8. Process clearing system response
                 Map<String, Object> response = clearingSystemResponse.get();
@@ -216,7 +216,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 
                 // Update UETR status to completed
                 uetrTrackingService.updateUetrStatus(uetr, "COMPLETED", 
-                    "Payment processing completed successfully", "Middleware Service");
+                    "Payment processing completed successfully", "Payment Processing Service");
                 
                 long processingTime = System.currentTimeMillis() - startTime;
                 
@@ -235,7 +235,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 // Update UETR status to failed
                 if (uetr != null) {
                     uetrTrackingService.updateUetrStatus(uetr, "FAILED", 
-                        "Payment processing failed: " + e.getMessage(), "Middleware Service");
+                        "Payment processing failed: " + e.getMessage(), "Payment Processing Service");
                 }
                 
                 // Generate error responses
@@ -1100,13 +1100,13 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 
                 // 3. Track UETR in the system
                 uetrTrackingService.trackUetr(uetr, "PACS008", tenantId, messageId, "INBOUND");
-                uetrTrackingService.updateUetrStatus(uetr, "RECEIVED", "PACS.008 message received from clearing system", "Middleware Service");
+                uetrTrackingService.updateUetrStatus(uetr, "RECEIVED", "PACS.008 message received from clearing system", "Payment Processing Service");
                 
                 // 4. Process the PACS.008 message (transform to PACS.002 response)
                 Map<String, Object> pacs002Response = generatePacs002Response(messageId, null, "ACSC", "G000");
                 
                 // 5. Update UETR status
-                uetrTrackingService.updateUetrStatus(uetr, "PROCESSED", "PACS.008 processed successfully", "Middleware Service");
+                uetrTrackingService.updateUetrStatus(uetr, "PROCESSED", "PACS.008 processed successfully", "Payment Processing Service");
                 
                 long processingTime = System.currentTimeMillis() - startTime;
                 
@@ -1129,7 +1129,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 // Update UETR status to failed
                 if (uetr != null) {
                     uetrTrackingService.updateUetrStatus(uetr, "FAILED", 
-                        "PACS.008 processing failed: " + e.getMessage(), "Middleware Service");
+                        "PACS.008 processing failed: " + e.getMessage(), "Payment Processing Service");
                 }
                 
                 Map<String, Object> result = new HashMap<>();

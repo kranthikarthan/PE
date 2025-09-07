@@ -24,7 +24,7 @@ public class MetricsConfiguration {
     @Bean
     public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags() {
         return registry -> registry.config().commonTags(
-                "application", "payment-engine-middleware",
+                "application", "payment-engine-payment-processing",
                 "version", "1.0.0",
                 "environment", "production"
         );

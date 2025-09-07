@@ -89,7 +89,7 @@ CREATE TABLE payment_engine.transaction_repairs (
 ### 2. Backend Services
 
 #### Debit-Credit Orchestration Service
-**File**: `services/middleware/src/main/java/com/paymentengine/middleware/service/DebitCreditOrchestrationService.java`
+**File**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/DebitCreditOrchestrationService.java`
 
 **Features**:
 - Orchestrates debit and credit operations sequentially
@@ -108,7 +108,7 @@ private void handleCreditFailure(DebitCreditTransactionRequest request, DebitRes
 ```
 
 #### Transaction Repair Service
-**File**: `services/middleware/src/main/java/com/paymentengine/middleware/service/TransactionRepairService.java`
+**File**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/TransactionRepairService.java`
 
 **Features**:
 - Manages transaction repair lifecycle

@@ -86,7 +86,7 @@ services:
       timeout: 10s
       retries: 5
 
-  # Test Middleware Service
+  # Test Payment Processing Service
   payment-processing-test:
     build:
       context: ./services/payment-processing
@@ -124,7 +124,7 @@ services:
       dockerfile: Dockerfile
     environment:
       SPRING_PROFILES_ACTIVE: test
-      MIDDLEWARE_SERVICE_URL: http://payment-processing-test:8080
+      PAYMENT_PROCESSING_SERVICE_URL: http://payment-processing-test:8080
       CORE_BANKING_SERVICE_URL: http://core-banking-test:8081
     depends_on:
       payment-processing-test:

@@ -225,10 +225,10 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: middleware
+  name: payment-processing
   namespace: payment-engine
   labels:
-    app: middleware
+    app: payment-processing
     component: backend
     version: v1.0.0
 spec:
@@ -240,11 +240,11 @@ spec:
       maxSurge: 1
   selector:
     matchLabels:
-      app: middleware
+      app: payment-processing
   template:
     metadata:
       labels:
-        app: middleware
+        app: payment-processing
         component: backend
         version: v1.0.0
       annotations:
@@ -256,8 +256,8 @@ spec:
       imagePullSecrets:
         - name: registry-secret
       containers:
-        - name: middleware
-          image: paymentengine.azurecr.io/middleware:latest
+        - name: payment-processing
+          image: paymentengine.azurecr.io/payment-processing:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8082

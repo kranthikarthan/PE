@@ -200,11 +200,11 @@ stages:
     - script: |
         echo "Building application images..."
         
-        # Build middleware service
-        docker build -t $(DOCKER_REGISTRY)/$(APP_NAME)-middleware:$(IMAGE_TAG) \
-          -f services/middleware/Dockerfile.airgap \
-          --build-arg JAR_FILE=target/middleware-*.jar \
-          services/middleware/
+        # Build payment-processing service
+        docker build -t $(DOCKER_REGISTRY)/$(APP_NAME)-payment-processing:$(IMAGE_TAG) \
+          -f services/payment-processing/Dockerfile.airgap \
+          --build-arg JAR_FILE=target/payment-processing-*.jar \
+          services/payment-processing/
         
         # Build payment engine service
         docker build -t $(DOCKER_REGISTRY)/$(APP_NAME)-payment-engine:$(IMAGE_TAG) \
@@ -222,8 +222,8 @@ stages:
         echo "Saving images for offline transfer..."
         mkdir -p $(Pipeline.Workspace)/application-images
         
-        docker save $(DOCKER_REGISTRY)/$(APP_NAME)-middleware:$(IMAGE_TAG) > \
-          $(Pipeline.Workspace)/application-images/middleware-$(IMAGE_TAG).tar
+        docker save $(DOCKER_REGISTRY)/$(APP_NAME)-payment-processing:$(IMAGE_TAG) > \
+          $(Pipeline.Workspace)/application-images/payment-processing-$(IMAGE_TAG).tar
         
         docker save $(DOCKER_REGISTRY)/$(APP_NAME)-payment-engine:$(IMAGE_TAG) > \
           $(Pipeline.Workspace)/application-images/payment-engine-$(IMAGE_TAG).tar
@@ -274,17 +274,17 @@ stages:
         
         # Load application images
         echo "Loading application images..."
-        docker load < middleware-*.tar
+        docker load < payment-processing-*.tar
         docker load < payment-engine-*.tar
         docker load < frontend-*.tar
         
         # Tag images for local registry
-        docker tag airgap-registry.company.com/payment-engine-middleware:* local-registry:5000/payment-engine-middleware:latest
+        docker tag airgap-registry.company.com/payment-engine-payment-processing:* local-registry:5000/payment-engine-payment-processing:latest
         docker tag airgap-registry.company.com/payment-engine-payment-engine:* local-registry:5000/payment-engine-payment-engine:latest
         docker tag airgap-registry.company.com/payment-engine-frontend:* local-registry:5000/payment-engine-frontend:latest
         
         # Push to local registry
-        docker push local-registry:5000/payment-engine-middleware:latest
+        docker push local-registry:5000/payment-engine-payment-processing:latest
         docker push local-registry:5000/payment-engine-payment-engine:latest
         docker push local-registry:5000/payment-engine-frontend:latest
         

@@ -42,10 +42,10 @@ scrape_configs:
     scrape_timeout: 10s
     honor_labels: true
 
-  # Middleware Service
-  - job_name: 'middleware'
+  # Payment Processing Service
+  - job_name: 'payment-processing'
     static_configs:
-      - targets: ['middleware:8082']
+      - targets: ['payment-processing:8082']
     scrape_interval: 15s
     metrics_path: /actuator/prometheus
     scrape_timeout: 10s

@@ -17,7 +17,7 @@ spring:
     gateway:
       routes:
         - id: iso20022-comprehensive
-          uri: lb://middleware-service
+          uri: lb://payment-processing-service
           predicates:
             - Path=/api/v1/iso20022/comprehensive/**
           filters:

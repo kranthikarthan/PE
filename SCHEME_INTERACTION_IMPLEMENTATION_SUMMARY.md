@@ -134,7 +134,7 @@ interface SchemeMessageResponse {
 - Real-time updates and error handling
 
 #### Backend Integration
-- Integrated with existing middleware service
+- Integrated with existing payment-processing service
 - Uses Spring Boot with proper security annotations
 - Micrometer metrics for monitoring
 - Comprehensive logging and error handling
@@ -250,7 +250,7 @@ frontend/src/
 
 ### Backend
 ```
-services/middleware/src/main/java/com/paymentengine/middleware/
+services/payment-processing/src/main/java/com/paymentengine/payment-processing/
 ├── controller/
 │   ├── SchemeConfigController.java
 │   └── SchemeInteractionController.java

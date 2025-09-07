@@ -36,7 +36,7 @@ This guide provides comprehensive instructions for deploying the Payment Engine 
 │  ┌─────────────────────────────────────────────────────────┤
 │  │                 AKS Cluster                             │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │  │API Gateway  │  │Core Banking │  │ Middleware  │    │
+│  │  │API Gateway  │  │Core Banking │  │ Payment Processing  │    │
 │  │  │             │  │   Service   │  │   Service   │    │
 │  │  └─────────────┘  └─────────────┘  └─────────────┘    │
 │  │           │               │               │            │

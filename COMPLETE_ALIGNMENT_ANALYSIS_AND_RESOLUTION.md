@@ -380,7 +380,7 @@ tenant_resource_usage_percentage{tenant_id="bank-abc",resource_type="TRANSACTION
 | **Frontend** | ✅ **ALIGNED** | Multi-tenant UI, Configuration management, Tenant-aware API calls |
 | **API Gateway** | ✅ **ALIGNED** | Tenant header propagation, Configuration routing, Rate limiting |
 | **Core Banking** | ✅ **ALIGNED** | Tenant interceptors, Configuration service, Multi-tenant processing |
-| **Middleware** | ✅ **ALIGNED** | Tenant-aware authentication, JWT tenant claims |
+| **Payment Processing** | ✅ **ALIGNED** | Tenant-aware authentication, JWT tenant claims |
 | **Database** | ✅ **ALIGNED** | Multi-tenant schema, Row-level security, Configuration tables |
 | **Kubernetes** | ✅ **ALIGNED** | Multi-tenant deployments, Tenant configuration, RBAC |
 | **Monitoring** | ✅ **ALIGNED** | Tenant-specific metrics, Dashboards, Alerting |

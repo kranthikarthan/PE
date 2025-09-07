@@ -125,7 +125,7 @@ plantuml -tsvg *.puml
 - Service Mesh Policies
 
 ### Core Business Services
-- Middleware Service
+- Payment Processing Service
 - ISO 20022 Service
 - Message Processing Service
 - Routing Service

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides a comprehensive analysis of the integration between the **Advanced Payload Mapping System** (configured via React frontend) and the **Payment Engine and Middleware services**. The analysis reveals the current state of integration and provides recommendations for complete implementation.
+This document provides a comprehensive analysis of the integration between the **Advanced Payload Mapping System** (configured via React frontend) and the **Payment Engine and Payment Processing services**. The analysis reveals the current state of integration and provides recommendations for complete implementation.
 
 ## Current Integration Status
 
@@ -37,7 +37,7 @@ This document provides a comprehensive analysis of the integration between the *
 ### ✅ **NEWLY INTEGRATED COMPONENTS**
 
 #### 1. **SchemeProcessingServiceImpl Integration**
-**File**: `services/middleware/src/main/java/com/paymentengine/middleware/service/impl/SchemeProcessingServiceImpl.java`
+**File**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/impl/SchemeProcessingServiceImpl.java`
 
 **Changes Made**:
 - ✅ Added `AdvancedPayloadTransformationService` dependency injection
@@ -61,7 +61,7 @@ Map<String, Object> pain002Response = generatePain002ResponseWithAdvancedMapping
 ```
 
 #### 2. **EnhancedSchemeInteractionController Integration**
-**File**: `services/middleware/src/main/java/com/paymentengine/middleware/controller/EnhancedSchemeInteractionController.java`
+**File**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/controller/EnhancedSchemeInteractionController.java`
 
 **Changes Made**:
 - ✅ Added `AdvancedPayloadTransformationService` dependency injection
@@ -389,7 +389,7 @@ Query Parameters:
 - Update all transformation methods to use advanced payload mapping
 
 #### B. **Add REST API Integration**
-- Create REST client in core banking service to call middleware advanced payload transformation
+- Create REST client in core banking service to call payment-processing advanced payload transformation
 - Add error handling and retry logic
 - Implement circuit breaker pattern for resilience
 
@@ -434,7 +434,7 @@ Query Parameters:
 
 ## Conclusion
 
-The **Advanced Payload Mapping System** is now **FULLY INTEGRATED** with the Payment Engine and Middleware services. The integration provides:
+The **Advanced Payload Mapping System** is now **FULLY INTEGRATED** with the Payment Engine and Payment Processing services. The integration provides:
 
 1. ✅ **Complete Integration**: All major services now use advanced payload mapping
 2. ✅ **Real-Time Configuration**: Changes from React frontend are immediately available
@@ -445,4 +445,4 @@ The **Advanced Payload Mapping System** is now **FULLY INTEGRATED** with the Pay
 
 The system now provides **complete flexibility** for payload transformation with static values, derived values, conditional logic, and auto-generated IDs, all configurable per tenant, payment type, local instrumentation code, and clearing system through the React frontend interface.
 
-**The payment engine and middleware are now fully using the mapping configurations captured by the React frontend.**
+**The payment engine and payment-processing are now fully using the mapping configurations captured by the React frontend.**

@@ -3,7 +3,7 @@
 
 ### Executive Summary
 
-This comprehensive guide provides a systematic approach to scale the Payment Engine from current baseline to **2000 TPS** (Transactions Per Second) for payment processing. The guide covers all three applications (React Frontend, Middleware, Payment Engine) with detailed optimization strategies, infrastructure tuning, and third-party component optimization.
+This comprehensive guide provides a systematic approach to scale the Payment Engine from current baseline to **2000 TPS** (Transactions Per Second) for payment processing. The guide covers all three applications (React Frontend, Payment Processing, Payment Engine) with detailed optimization strategies, infrastructure tuning, and third-party component optimization.
 
 **Current Architecture Analysis:**
 - **Baseline TPS**: ~50-100 TPS (estimated)

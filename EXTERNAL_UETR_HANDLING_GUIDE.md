@@ -36,7 +36,7 @@ Incoming Message → Extract UETR → Validate Format → Use External or Genera
 
 ### Enhanced PAIN.001 Processing
 
-**Location**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/service/impl/SchemeProcessingServiceImpl.java`
+**Location**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/impl/SchemeProcessingServiceImpl.java`
 
 **Key Changes**:
 
@@ -101,7 +101,7 @@ private String extractUetrFromPain001(Map<String, Object> message) {
 
 ### Incoming PACS.008 Processing
 
-**Location**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/service/impl/SchemeProcessingServiceImpl.java`
+**Location**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/impl/SchemeProcessingServiceImpl.java`
 
 **New Method**: `processIncomingPacs008`
 
@@ -139,7 +139,7 @@ public CompletableFuture<Map<String, Object>> processIncomingPacs008(
         
         // Track UETR and process message
         uetrTrackingService.trackUetr(uetr, "PACS008", tenantId, messageId, "INBOUND");
-        uetrTrackingService.updateUetrStatus(uetr, "RECEIVED", "PACS.008 message received from clearing system", "Middleware Service");
+        uetrTrackingService.updateUetrStatus(uetr, "RECEIVED", "PACS.008 message received from clearing system", "Payment Processing Service");
         
         // Process and return result
         return result;
@@ -223,7 +223,7 @@ The system supports UETR extraction from:
 
 ### Incoming Message Controller
 
-**Location**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/controller/IncomingMessageController.java`
+**Location**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/controller/IncomingMessageController.java`
 
 **Endpoints**:
 
@@ -250,7 +250,7 @@ The system supports UETR extraction from:
 
 ### Enhanced UETR Controller
 
-**Location**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/controller/UetrController.java`
+**Location**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/controller/UetrController.java`
 
 **New Endpoints**:
 

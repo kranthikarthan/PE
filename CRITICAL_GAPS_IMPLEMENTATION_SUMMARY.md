@@ -153,7 +153,7 @@ We have successfully implemented all the critical architectural gaps identified 
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Application Services Layer                   │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │   Middleware    │  │  Core Banking   │  │   Gateway       │ │
+│  │   Payment Processing    │  │  Core Banking   │  │   Gateway       │ │
 │  │    Service      │  │    Service      │  │    Service      │ │
 │  │                 │  │                 │  │                 │ │
 │  │ • ISO 20022     │  │ • Account Mgmt  │  │ • Routing       │ │
@@ -234,7 +234,7 @@ We have successfully implemented all the critical architectural gaps identified 
 
 ### **Infrastructure Requirements**
 - **API Gateway**: 2 instances (load balanced)
-- **Middleware Service**: 3 instances (auto-scaling)
+- **Payment Processing Service**: 3 instances (auto-scaling)
 - **Redis Cluster**: 3 nodes (high availability)
 - **Kafka Cluster**: 3 brokers (fault tolerance)
 - **PostgreSQL**: Primary + 2 replicas

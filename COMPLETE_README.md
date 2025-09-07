@@ -66,7 +66,7 @@ The Payment Engine is a **complete, enterprise-grade, multi-tenant banking platf
 │  ┌─────────────────────────────────────────────────────────────────────┤
 │  │                     APPLICATION LAYER                              │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │
-│  │  │   React     │  │ API Gateway │  │ Middleware  │  │    Core    │ │
+│  │  │   React     │  │ API Gateway │  │ Payment Processing  │  │    Core    │ │
 │  │  │  Frontend   │  │             │  │   Service   │  │  Banking   │ │
 │  │  │             │  │ • Routing   │  │             │  │            │ │
 │  │  │ • Multi-    │  │ • Auth      │  │ • Auth      │  │ • Payments │ │

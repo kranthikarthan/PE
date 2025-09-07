@@ -2,7 +2,7 @@
 
 ## Summary
 
-I have successfully fixed the major alignment issues between the React frontend, middleware, payment engine, and documentation. The tenant cloning and migration system is now properly integrated and accessible.
+I have successfully fixed the major alignment issues between the React frontend, payment-processing, payment engine, and documentation. The tenant cloning and migration system is now properly integrated and accessible.
 
 ## ✅ **Fixes Applied**
 
@@ -31,7 +31,7 @@ I have successfully fixed the major alignment issues between the React frontend,
 
 #### ✅ Added Tenant Management Route
 - Added route configuration in `api-gateway/src/main/resources/application.yml`
-- Routes `/api/tenant-management/**` to `middleware-service`
+- Routes `/api/tenant-management/**` to `payment-processing-service`
 - Includes authentication filter for security
 
 ### **3. Documentation Updates - COMPLETED**
@@ -61,8 +61,8 @@ I have successfully fixed the major alignment issues between the React frontend,
 ```
 
 #### **2. Service Discovery**
-- Ensure `middleware-service` is properly registered with service discovery
-- Verify load balancer configuration for `lb://middleware-service`
+- Ensure `payment-processing-service` is properly registered with service discovery
+- Verify load balancer configuration for `lb://payment-processing-service`
 
 #### **3. Authentication/Authorization**
 - Verify that the `tenant:manage` permission is properly configured
@@ -76,7 +76,7 @@ I have successfully fixed the major alignment issues between the React frontend,
 docker-compose up -d
 
 # Or start individually
-cd services/middleware && mvn spring-boot:run
+cd services/payment-processing && mvn spring-boot:run
 cd services/api-gateway && mvn spring-boot:run
 cd frontend && npm start
 ```

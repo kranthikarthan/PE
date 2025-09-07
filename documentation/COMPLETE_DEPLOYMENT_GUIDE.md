@@ -247,8 +247,8 @@ docker tag payment-engine/api-gateway:latest \
 docker tag payment-engine/core-banking:latest \
   paymentengineacr.azurecr.io/core-banking:v1.0.0
 
-docker tag payment-engine/middleware:latest \
-  paymentengineacr.azurecr.io/middleware:v1.0.0
+docker tag payment-engine/payment-processing:latest \
+  paymentengineacr.azurecr.io/payment-processing:v1.0.0
 
 docker tag payment-engine/frontend:latest \
   paymentengineacr.azurecr.io/frontend:v1.0.0
@@ -256,7 +256,7 @@ docker tag payment-engine/frontend:latest \
 # Push all images
 docker push paymentengineacr.azurecr.io/api-gateway:v1.0.0
 docker push paymentengineacr.azurecr.io/core-banking:v1.0.0
-docker push paymentengineacr.azurecr.io/middleware:v1.0.0
+docker push paymentengineacr.azurecr.io/payment-processing:v1.0.0
 docker push paymentengineacr.azurecr.io/frontend:v1.0.0
 ```
 

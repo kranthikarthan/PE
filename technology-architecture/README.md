@@ -134,7 +134,7 @@ This directory contains comprehensive PlantUML technology architecture diagrams 
 **Coverage**:
 - 🔌 **Client Integration**: Web Applications, Mobile Applications, Third Party Systems, Legacy Systems
 - 🌐 **API Gateway Layer**: Spring Cloud Gateway, Rate Limiting, Authentication, Authorization
-- 🔧 **Service Layer**: Middleware Service, Core Banking Service, Notification Service, Configuration
+- 🔧 **Service Layer**: Payment Processing Service, Core Banking Service, Notification Service, Configuration
 - 📨 **Message Processing**: Kafka Producer, Consumer, Message Router, Transformer, Validator
 - 🌍 **External System Integration**: Clearing System Adapter, Third Party Adapter, Webhook Adapter, Bank's Fraud Engine Adapter
 - 🔄 **Protocol Adapters**: REST API, SOAP API, FTP/SFTP, Message Queue, Database, File Adapters

@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS clearing_system_endpoints (
 ```
 
 ### **2. Enhanced Entity**
-**File**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/entity/ClearingSystemEndpointEntity.java`
+**File**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/entity/ClearingSystemEndpointEntity.java`
 
 ```java
 @Column(name = "message_type", nullable = false, length = 50)
@@ -134,7 +134,7 @@ private String flowDirection; // CLIENT_TO_CLEARING, CLEARING_TO_CLIENT, BIDIREC
 ```
 
 ### **3. Comprehensive Message Flow Service**
-**File**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/service/Iso20022MessageFlowService.java`
+**File**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/Iso20022MessageFlowService.java`
 
 **Complete API Coverage**:
 - ✅ **Client to Clearing System**: PAIN.001, CAMT.055, CAMT.056, PACS.028
@@ -145,7 +145,7 @@ private String flowDirection; // CLIENT_TO_CLEARING, CLEARING_TO_CLIENT, BIDIREC
 - ✅ **Message Correlation**: End-to-end correlation tracking
 
 ### **4. Comprehensive Controller**
-**File**: `/workspace/services/middleware/src/main/java/com/paymentengine/middleware/controller/ComprehensiveIso20022Controller.java`
+**File**: `/workspace/services/payment-processing/src/main/java/com/paymentengine/payment-processing/controller/ComprehensiveIso20022Controller.java`
 
 **Complete REST API Endpoints**:
 ```http

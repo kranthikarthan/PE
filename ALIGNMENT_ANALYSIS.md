@@ -1,8 +1,8 @@
-# Alignment Analysis: React Frontend, Middleware, Payment Engine, and Documentation
+# Alignment Analysis: React Frontend, Payment Processing, Payment Engine, and Documentation
 
 ## Executive Summary
 
-After analyzing the codebase, I found several **alignment issues** between the React frontend, middleware, payment engine, and documentation. The tenant cloning and migration system was implemented in the middleware but is **not properly integrated** with the frontend and other components.
+After analyzing the codebase, I found several **alignment issues** between the React frontend, payment-processing, payment engine, and documentation. The tenant cloning and migration system was implemented in the payment-processing but is **not properly integrated** with the frontend and other components.
 
 ## Issues Found
 
@@ -34,7 +34,7 @@ After analyzing the codebase, I found several **alignment issues** between the R
 
 **Evidence**:
 - Frontend calls `/api/tenant-management/tenants`
-- Middleware controller is at `/api/tenant-management`
+- Payment Processing controller is at `/api/tenant-management`
 - No API gateway configuration for tenant management endpoints
 
 **Impact**: API calls will fail due to routing issues.
@@ -106,7 +106,7 @@ const TenantManagementPage: React.FC = () => {
 ```yaml
 # Add to api-gateway configuration
 - id: tenant-management
-  uri: lb://middleware-service
+  uri: lb://payment-processing-service
   predicates:
     - Path=/api/tenant-management/**
   filters:

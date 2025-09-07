@@ -28,7 +28,7 @@ Congratulations! You now have a **complete, production-ready payment engine** wi
 - **JPA/Hibernate** with performance tuning
 - **REST APIs** with comprehensive validation
 
-#### **3. Middleware Service**
+#### **3. Payment Processing Service**
 - **Authentication Server** with JWT token management
 - **Business Orchestration** & workflow management
 - **Dashboard APIs** with caching & circuit breakers

@@ -12,7 +12,7 @@ This guide provides comprehensive testing procedures for the tenant cloning and 
 - Kafka (port 9092)
 - Eureka Service Discovery (port 8761)
 - API Gateway (port 8080)
-- Middleware Service (port 8082)
+- Payment Processing Service (port 8082)
 - Frontend Application (port 3000)
 
 ### Required Tools
@@ -291,8 +291,8 @@ ab -n 50 -c 5 -p clone_data.json -T application/json \
 
 ### Memory and CPU Monitoring
 ```bash
-# Monitor middleware service
-docker stats middleware-service
+# Monitor payment-processing service
+docker stats payment-processing-service
 
 # Monitor database
 docker stats postgres
@@ -305,7 +305,7 @@ docker stats postgres
 #### 1. Service Not Starting
 ```bash
 # Check service logs
-docker-compose logs middleware-service
+docker-compose logs payment-processing-service
 docker-compose logs api-gateway
 
 # Check service health
@@ -327,8 +327,8 @@ docker-compose logs postgres
 # Verify JWT secret configuration
 curl -X POST http://localhost:8082/api/auth/admin-token
 
-# Check middleware logs for authentication errors
-docker-compose logs middleware-service | grep -i auth
+# Check payment-processing logs for authentication errors
+docker-compose logs payment-processing-service | grep -i auth
 ```
 
 #### 4. Frontend Issues
@@ -344,17 +344,17 @@ cd frontend && npm run build
 
 #### Enable Debug Logging
 ```yaml
-# Add to middleware application.yml
+# Add to payment-processing application.yml
 logging:
   level:
-    com.paymentengine.middleware: DEBUG
+    com.paymentengine.payment-processing: DEBUG
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
 ```
 
 #### Database Query Logging
 ```yaml
-# Add to middleware application.yml
+# Add to payment-processing application.yml
 spring:
   jpa:
     show-sql: true

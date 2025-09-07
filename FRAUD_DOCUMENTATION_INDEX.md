@@ -48,7 +48,7 @@ This document serves as a comprehensive index for all fraud-related documentatio
 ### Component Relationships
 ```
 ┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
-│   React Frontend    │    │   Middleware API    │    │   Database Layer    │
+│   React Frontend    │    │   Payment Processing API    │    │   Database Layer    │
 ├─────────────────────┤    ├─────────────────────┤    ├─────────────────────┤
 │ • FraudRiskConfig   │◄──►│ • FraudRiskMonitor  │◄──►│ • fraud_risk_*      │
 │ • FraudApiToggle    │    │ • FraudApiToggle    │    │ • fraud_api_toggle_ │

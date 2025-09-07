@@ -81,7 +81,7 @@ CREATE TABLE payment_engine.advanced_payload_mappings (
 ### 2. Backend Services
 
 #### Advanced Payload Transformation Service
-**File**: `services/middleware/src/main/java/com/paymentengine/middleware/service/AdvancedPayloadTransformationService.java`
+**File**: `services/payment-processing/src/main/java/com/paymentengine/payment-processing/service/AdvancedPayloadTransformationService.java`
 
 **Features**:
 - Flexible payload transformation with multiple mapping types

@@ -149,7 +149,7 @@
         "type": "table",
         "targets": [
           {
-            "expr": "up{job=~\"api-gateway|core-banking|middleware\"}",
+            "expr": "up{job=~\"api-gateway|core-banking|payment-processing\"}",
             "format": "table",
             "instant": true
           }

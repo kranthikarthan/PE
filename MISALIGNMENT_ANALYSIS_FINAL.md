@@ -1,4 +1,4 @@
-# Final Misalignment Analysis: React Frontend, Middleware, and Payment Engine
+# Final Misalignment Analysis: React Frontend, Payment Processing, and Payment Engine
 
 ## Executive Summary
 
@@ -11,10 +11,10 @@ After a comprehensive analysis, I found and **resolved one critical misalignment
 **Problem**: Two different services were using the same database table name `tenant_configurations`:
 
 1. **Config Service**: `com.paymentengine.config.entity.TenantConfiguration` - Simple key-value configuration storage
-2. **Middleware Service**: `com.paymentengine.middleware.entity.TenantConfiguration` - Complex versioning and migration system
+2. **Payment Processing Service**: `com.paymentengine.payment-processing.entity.TenantConfiguration` - Complex versioning and migration system
 
 **Resolution**: 
-- Renamed middleware table from `tenant_configurations` to `tenant_configuration_versions`
+- Renamed payment-processing table from `tenant_configurations` to `tenant_configuration_versions`
 - Updated all related foreign key references
 - Updated migration file and entity annotations
 - Updated database views and comments
@@ -24,7 +24,7 @@ After a comprehensive analysis, I found and **resolved one critical misalignment
 ## ✅ **Verified Alignments**
 
 ### **1. API Endpoint Routing - ALIGNED**
-- **Middleware Service**: `/api/tenant-management/*` (tenant cloning/migration)
+- **Payment Processing Service**: `/api/tenant-management/*` (tenant cloning/migration)
 - **Core Banking Service**: `/api/v1/config/tenants/*` (tenant configuration)
 - **API Gateway**: Properly routes each endpoint to the correct service
 - **No Conflicts**: Different path patterns prevent routing conflicts
@@ -36,18 +36,18 @@ After a comprehensive analysis, I found and **resolved one critical misalignment
 - **Proper Separation**: Each system serves different purposes
 
 ### **3. Authentication & Authorization - ALIGNED**
-- **Middleware Service**: JWT-based authentication with role-based permissions
+- **Payment Processing Service**: JWT-based authentication with role-based permissions
 - **Core Banking Service**: Separate authentication system
 - **API Gateway**: Routes authentication requests to appropriate services
 - **No Conflicts**: Each service manages its own authentication
 
 ### **4. Database Schema - ALIGNED**
 - **Config Service**: Uses `tenant_configurations` table for simple configurations
-- **Middleware Service**: Uses `tenant_configuration_versions` table for versioning
+- **Payment Processing Service**: Uses `tenant_configuration_versions` table for versioning
 - **No Conflicts**: Different table names prevent schema conflicts
 
 ### **5. Service Discovery - ALIGNED**
-- **Middleware Service**: Registers with Eureka as `middleware-service`
+- **Payment Processing Service**: Registers with Eureka as `payment-processing-service`
 - **Core Banking Service**: Registers with Eureka as `core-banking-service`
 - **API Gateway**: Uses service discovery to route requests
 - **No Conflicts**: Each service has unique service names
@@ -60,7 +60,7 @@ After a comprehensive analysis, I found and **resolved one critical misalignment
 |---------|------------------|------------------------|
 | **Frontend** | User interface | Provides UI for both tenant cloning and configuration |
 | **API Gateway** | Request routing | Routes tenant requests to appropriate services |
-| **Middleware** | Business orchestration | Handles tenant cloning, migration, and versioning |
+| **Payment Processing** | Business orchestration | Handles tenant cloning, migration, and versioning |
 | **Core Banking** | Payment processing | Manages tenant configurations for payment processing |
 | **Config Service** | Configuration management | Stores tenant configuration key-value pairs |
 
@@ -68,7 +68,7 @@ After a comprehensive analysis, I found and **resolved one critical misalignment
 
 | Endpoint Pattern | Service | Purpose |
 |------------------|---------|---------|
-| `/api/tenant-management/*` | Middleware | Tenant cloning, migration, versioning |
+| `/api/tenant-management/*` | Payment Processing | Tenant cloning, migration, versioning |
 | `/api/v1/config/tenants/*` | Core Banking | Tenant configuration management |
 | `/api/v1/config/*` | Config Service | General configuration management |
 
@@ -77,9 +77,9 @@ After a comprehensive analysis, I found and **resolved one critical misalignment
 | Table Name | Service | Purpose |
 |------------|---------|---------|
 | `tenant_configurations` | Config Service | Simple key-value tenant configurations |
-| `tenant_configuration_versions` | Middleware | Versioned tenant configurations for cloning |
-| `tenant_configuration_data` | Middleware | Configuration data for versioned configs |
-| `tenant_cloning_history` | Middleware | Audit trail for cloning operations |
+| `tenant_configuration_versions` | Payment Processing | Versioned tenant configurations for cloning |
+| `tenant_configuration_data` | Payment Processing | Configuration data for versioned configs |
+| `tenant_cloning_history` | Payment Processing | Audit trail for cloning operations |
 
 ## ✅ **Verification Results**
 
@@ -141,6 +141,6 @@ After a comprehensive analysis, I found and **resolved one critical misalignment
 
 ## 📋 **Conclusion**
 
-**All misalignments between the React frontend, middleware service, and payment engine (core-banking) have been resolved.** The system is now fully aligned and ready for production deployment.
+**All misalignments between the React frontend, payment-processing service, and payment engine (core-banking) have been resolved.** The system is now fully aligned and ready for production deployment.
 
 The critical database table name conflict has been fixed, and all other components are properly aligned with clear separation of concerns. Each service operates independently while working together seamlessly through the API Gateway.

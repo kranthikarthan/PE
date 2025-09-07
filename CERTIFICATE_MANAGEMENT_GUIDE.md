@@ -5,7 +5,7 @@
 
 The Certificate Management System provides comprehensive automated certificate and key management capabilities across all Payment Engine services, including:
 
-- **Multi-Service Implementation**: Certificate management implemented across API Gateway, Core Banking, and Middleware services
+- **Multi-Service Implementation**: Certificate management implemented across API Gateway, Core Banking, and Payment Processing services
 - **Automated Certificate Generation**: Generate X.509 certificates with custom key usage and extended key usage
 - **PFX Certificate Import**: Import and consume bank-generated trusted CA certificates in .pfx format
 - **Certificate Validation**: Validate certificates against trusted CA certificates
@@ -77,7 +77,7 @@ The Certificate Management System provides comprehensive automated certificate a
 1. **Multi-Service Certificate Management**
    - **API Gateway Service**: SSL/TLS certificates for secure communication and client certificate validation
    - **Core Banking Service**: Banking-specific certificates for external system communication
-   - **Middleware Service**: Centralized certificate management and coordination
+   - **Payment Processing Service**: Centralized certificate management and coordination
 
 2. **Certificate Generation**
    - Self-signed X.509 certificates
@@ -1111,8 +1111,8 @@ components:
 # Logging Configuration
 logging:
   level:
-    com.paymentengine.middleware.service.CertificateManagementService: DEBUG
-    com.paymentengine.middleware.controller.CertificateManagementController: DEBUG
+    com.paymentengine.payment-processing.service.CertificateManagementService: DEBUG
+    com.paymentengine.payment-processing.controller.CertificateManagementController: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
@@ -1136,7 +1136,7 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir -p /app/certificates
 
 # Copy application
-COPY target/middleware-service.jar /app/app.jar
+COPY target/payment-processing-service.jar /app/app.jar
 
 # Set environment variables
 ENV CERTIFICATE_STORAGE_PATH=/app/certificates

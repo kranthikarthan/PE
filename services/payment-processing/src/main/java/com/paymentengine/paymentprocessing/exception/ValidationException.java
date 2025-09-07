@@ -3,7 +3,7 @@ package com.paymentengine.paymentprocessing.exception;
 import java.util.List;
 
 /**
- * Exception for validation-related errors in middleware
+ * Exception for validation-related errors in payment-processing
  */
 public class ValidationException extends CoreBankingException {
     

@@ -116,7 +116,7 @@ main() {
                 echo "Services:"
                 echo "  shared            Shared library tests"
                 echo "  core-banking      Core banking service tests"
-                echo "  middleware        Middleware service tests"
+                echo "  payment-processing        Payment Processing service tests"
                 echo "  api-gateway       API Gateway tests"
                 echo "  frontend          Frontend tests"
                 exit 0
@@ -152,8 +152,8 @@ main() {
             core-banking)
                 run_service_tests "Core Banking" "services/core-banking" || FAILED_SERVICES+=("core-banking")
                 ;;
-            middleware)
-                run_service_tests "Middleware" "services/middleware" || FAILED_SERVICES+=("middleware")
+            payment-processing)
+                run_service_tests "Payment Processing" "services/payment-processing" || FAILED_SERVICES+=("payment-processing")
                 ;;
             api-gateway)
                 run_service_tests "API Gateway" "services/api-gateway" || FAILED_SERVICES+=("api-gateway")
@@ -176,7 +176,7 @@ main() {
             
             # Test backend services
             run_service_tests "Core Banking" "services/core-banking" || FAILED_SERVICES+=("core-banking")
-            run_service_tests "Middleware" "services/middleware" || FAILED_SERVICES+=("middleware")
+            run_service_tests "Payment Processing" "services/payment-processing" || FAILED_SERVICES+=("payment-processing")
             run_service_tests "API Gateway" "services/api-gateway" || FAILED_SERVICES+=("api-gateway")
         fi
         
@@ -211,7 +211,7 @@ main() {
         print_status "Generating coverage reports..."
         
         # Java services coverage
-        for service in shared core-banking middleware api-gateway; do
+        for service in shared core-banking payment-processing api-gateway; do
             if [ -d "services/$service" ]; then
                 cd "services/$service"
                 mvn jacoco:report
@@ -242,7 +242,7 @@ main() {
         if [ "$RUN_UNIT_TESTS" = true ]; then
             echo "  ✅ Shared Library"
             echo "  ✅ Core Banking Service"
-            echo "  ✅ Middleware Service"
+            echo "  ✅ Payment Processing Service"
             echo "  ✅ API Gateway"
         fi
         if [ "$RUN_FRONTEND_TESTS" = true ]; then
