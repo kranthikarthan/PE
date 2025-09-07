@@ -5,8 +5,10 @@ import com.paymentengine.gateway.dto.tenant.EnhancedTenantSetupResponse;
 import com.paymentengine.gateway.dto.tenant.ConfigurationDeploymentResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,9 +25,8 @@ public class MultiLevelAuthConfigurationService {
     
     private static final Logger logger = LoggerFactory.getLogger(MultiLevelAuthConfigurationService.class);
     
-    // TODO: Add RestTemplate or WebClient to communicate with Payment Processing Service
-    // @Autowired
-    // private RestTemplate restTemplate;
+    @Autowired
+    private RestTemplate restTemplate;
     
     /**
      * Create tenant with multi-level authentication configuration
@@ -34,19 +35,9 @@ public class MultiLevelAuthConfigurationService {
         logger.info("Creating tenant with multi-level authentication configuration: {}", request.getBasicInfo().getTenantId());
         
         try {
-            // TODO: Call Payment Processing Service to create multi-level auth configuration
-            // String url = "http://payment-processing-service/api/v1/multi-level-auth/tenant";
-            // EnhancedTenantSetupResponse response = restTemplate.postForObject(url, request, EnhancedTenantSetupResponse.class);
-            
-            // For now, create a placeholder response
-            EnhancedTenantSetupResponse response = EnhancedTenantSetupResponse.builder()
-                    .success(true)
-                    .message("Tenant created successfully with multi-level auth configuration")
-                    .tenantId(request.getBasicInfo().getTenantId())
-                    .tenantName(request.getBasicInfo().getTenantName())
-                    .environment(request.getBasicInfo().getEnvironment())
-                    .createdAt(LocalDateTime.now())
-                    .build();
+            // Call Payment Processing Service to create multi-level auth configuration
+            String url = "http://payment-processing-service/api/v1/multi-level-auth/tenant";
+            EnhancedTenantSetupResponse response = restTemplate.postForObject(url, request, EnhancedTenantSetupResponse.class);
             
             logger.info("Successfully created tenant with multi-level auth: {}", request.getBasicInfo().getTenantId());
             return response;
@@ -67,17 +58,9 @@ public class MultiLevelAuthConfigurationService {
         logger.info("Validating tenant configuration: {}", request.getBasicInfo().getTenantId());
         
         try {
-            // TODO: Call Payment Processing Service to validate configuration
-            // String url = "http://payment-processing-service/api/v1/multi-level-auth/validate";
-            // Map<String, Object> validationResult = restTemplate.postForObject(url, request, Map.class);
-            
-            // For now, return a placeholder validation result
-            Map<String, Object> validationResult = Map.of(
-                    "valid", true,
-                    "errors", List.of(),
-                    "warnings", List.of(),
-                    "tenantId", request.getBasicInfo().getTenantId()
-            );
+            // Call Payment Processing Service to validate configuration
+            String url = "http://payment-processing-service/api/v1/multi-level-auth/validate";
+            Map<String, Object> validationResult = restTemplate.postForObject(url, request, Map.class);
             
             return validationResult;
             

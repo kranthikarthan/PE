@@ -46,7 +46,6 @@ import StatusChip from '../common/StatusChip';
 import HelpTooltip from '../common/HelpTooltip';
 import HelpSystem from '../common/HelpSystem';
 import ThemeSelector from '../common/ThemeSelector';
-import TenantSetupWizard from './TenantSetupWizard';
 import EnhancedTenantSetupWizard from './EnhancedTenantSetupWizard';
 import TenantTodoList from './TenantTodoList';
 import MultiLevelAuthConfigurationManager from '../multiLevelAuth/MultiLevelAuthConfigurationManager';
@@ -83,16 +82,10 @@ const ModernTenantManagement: React.FC = () => {
       onClick: () => setSelectedTab(1), // Enhanced Setup Wizard tab
     },
     {
-      icon: <AddIcon />,
-      name: 'New Tenant (Basic)',
-      tooltip: 'Set up a new tenant with basic configuration',
-      onClick: () => setSelectedTab(2), // Basic Setup Wizard tab
-    },
-    {
       icon: <SecurityIcon />,
       name: 'Multi-Level Auth',
       tooltip: 'Manage multi-level authentication configuration',
-      onClick: () => setSelectedTab(3), // Multi-Level Auth tab
+      onClick: () => setSelectedTab(2), // Multi-Level Auth tab
     },
     {
       icon: <CloneIcon />,
@@ -454,11 +447,6 @@ const ModernTenantManagement: React.FC = () => {
               iconPosition="start"
             />
             <Tab
-              icon={<SettingsIcon />}
-              label="Basic Setup"
-              iconPosition="start"
-            />
-            <Tab
               icon={<SecurityIcon />}
               label="Multi-Level Auth"
               iconPosition="start"
@@ -485,15 +473,12 @@ const ModernTenantManagement: React.FC = () => {
             <EnhancedTenantSetupWizard />
           </TabPanel>
           <TabPanel value={selectedTab} index={2}>
-            <TenantSetupWizard />
-          </TabPanel>
-          <TabPanel value={selectedTab} index={3}>
             <MultiLevelAuthConfigurationManager />
           </TabPanel>
-          <TabPanel value={selectedTab} index={4}>
+          <TabPanel value={selectedTab} index={3}>
             {renderTodoList()}
           </TabPanel>
-          <TabPanel value={selectedTab} index={5}>
+          <TabPanel value={selectedTab} index={4}>
             {renderAnalytics()}
           </TabPanel>
         </Box>
