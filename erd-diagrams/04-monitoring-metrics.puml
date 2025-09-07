@@ -1,0 +1,443 @@
+@startuml MONITORING_METRICS_ERD
+!theme plain
+title Monitoring & Metrics Entities ERD
+
+entity "system_metrics" {
+  * id : UUID <<PK>>
+  --
+  * metric_name : VARCHAR(100)
+  * metric_type : VARCHAR(20)
+  * metric_value : DECIMAL(20,6)
+  * metric_unit : VARCHAR(20)
+  * labels : TEXT
+  * timestamp : TIMESTAMP
+  * service_name : VARCHAR(100)
+  * instance_id : VARCHAR(100)
+  * created_at : TIMESTAMP
+}
+
+entity "business_metrics" {
+  * id : UUID <<PK>>
+  --
+  * tenant_id : UUID <<FK>>
+  * metric_name : VARCHAR(100)
+  * metric_type : VARCHAR(20)
+  * metric_value : DECIMAL(20,6)
+  * metric_unit : VARCHAR(20)
+  * labels : TEXT
+  * timestamp : TIMESTAMP
+  * created_at : TIMESTAMP
+}
+
+entity "performance_metrics" {
+  * id : UUID <<PK>>
+  --
+  * service_name : VARCHAR(100)
+  * endpoint : VARCHAR(255)
+  * method : VARCHAR(10)
+  * response_time_ms : INTEGER
+  * status_code : INTEGER
+  * request_size_bytes : INTEGER
+  * response_size_bytes : INTEGER
+  * timestamp : TIMESTAMP
+  * created_at : TIMESTAMP
+}
+
+entity "error_metrics" {
+  * id : UUID <<PK>>
+  --
+  * service_name : VARCHAR(100)
+  * error_type : VARCHAR(50)
+  * error_code : VARCHAR(50)
+  * error_message : TEXT
+  * stack_trace : TEXT
+  * user_id : VARCHAR(100)
+  * tenant_id : UUID <<FK>>
+  * correlation_id : VARCHAR(100)
+  * timestamp : TIMESTAMP
+  * created_at : TIMESTAMP
+}
+
+entity "health_checks" {
+  * id : UUID <<PK>>
+  --
+  * service_name : VARCHAR(100)
+  * check_name : VARCHAR(100)
+  * check_type : VARCHAR(50)
+  * status : VARCHAR(20)
+  * response_time_ms : INTEGER
+  * error_message : TEXT
+  * details : TEXT
+  * timestamp : TIMESTAMP
+  * created_at : TIMESTAMP
+}
+
+entity "circuit_breaker_metrics" {
+  * id : UUID <<PK>>
+  --
+  * circuit_breaker_name : VARCHAR(100)
+  * state : VARCHAR(20)
+  * failure_rate : DECIMAL(5,2)
+  * success_count : INTEGER
+  * failure_count : INTEGER
+  * timeout_count : INTEGER
+  * rejected_count : INTEGER
+  * timestamp : TIMESTAMP
+  * created_at : TIMESTAMP
+}
+
+entity "rate_limiter_metrics" {
+  * id : UUID <<PK>>
+  --
+  * rate_limiter_name : VARCHAR(100)
+  * limit_value : INTEGER
+  * current_value : INTEGER
+  * available_tokens : INTEGER
+  * rejected_requests : INTEGER
+  * accepted_requests : INTEGER
+  * timestamp : TIMESTAMP
+  * created_at : TIMESTAMP
+}
+
+entity "kafka_metrics" {
+  * id : UUID <<PK>>
+  --
+  * topic_name : VARCHAR(100)
+  * partition_id : INTEGER
+  * producer_id : VARCHAR(100)
+  * consumer_id : VARCHAR(100)
+  * message_count : BIGINT
+  * bytes_count : BIGINT
+  * lag_count : BIGINT
+  * timestamp : TIMESTAMP
+  * created_at : TIMESTAMP
+}
+
+entity "database_metrics" {
+  * id : UUID <<PK>>
+  --
+  * database_name : VARCHAR(100)
+  * connection_pool_name : VARCHAR(100)
+  * active_connections : INTEGER
+  * idle_connections : INTEGER
+  * max_connections : INTEGER
+  * query_count : BIGINT
+  * slow_query_count : BIGINT
+  * avg_query_time_ms : DECIMAL(10,2)
+  * timestamp : TIMESTAMP
+  * created_at : TIMESTAMP
+}
+
+entity "cache_metrics" {
+  * id : UUID <<PK>>
+  --
+  * cache_name : VARCHAR(100)
+  * hit_count : BIGINT
+  * miss_count : BIGINT
+  * eviction_count : BIGINT
+  * hit_rate : DECIMAL(5,2)
+  * memory_usage_bytes : BIGINT
+  * key_count : BIGINT
+  * timestamp : TIMESTAMP
+  * created_at : TIMESTAMP
+}
+
+entity "alert_rules" {
+  * id : UUID <<PK>>
+  --
+  * rule_name : VARCHAR(100) <<UK>>
+  * rule_description : TEXT
+  * metric_name : VARCHAR(100)
+  * condition : VARCHAR(50)
+  * threshold_value : DECIMAL(20,6)
+  * severity : VARCHAR(20)
+  * is_active : BOOLEAN
+  * evaluation_interval : INTEGER
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "alert_instances" {
+  * id : UUID <<PK>>
+  --
+  * alert_rule_id : UUID <<FK>>
+  * alert_name : VARCHAR(100)
+  * severity : VARCHAR(20)
+  * status : VARCHAR(20)
+  * message : TEXT
+  * metric_value : DECIMAL(20,6)
+  * threshold_value : DECIMAL(20,6)
+  * labels : TEXT
+  * started_at : TIMESTAMP
+  * resolved_at : TIMESTAMP
+  * acknowledged_at : TIMESTAMP
+  * acknowledged_by : VARCHAR(100)
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "notification_channels" {
+  * id : UUID <<PK>>
+  --
+  * channel_name : VARCHAR(100) <<UK>>
+  * channel_type : VARCHAR(50)
+  * configuration : TEXT
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "notification_deliveries" {
+  * id : UUID <<PK>>
+  --
+  * alert_instance_id : UUID <<FK>>
+  * notification_channel_id : UUID <<FK>>
+  * delivery_status : VARCHAR(20)
+  * delivery_attempt : INTEGER
+  * error_message : TEXT
+  * delivered_at : TIMESTAMP
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+' Relationships
+alert_rules ||--o{ alert_instances : "triggers"
+alert_instances ||--o{ notification_deliveries : "delivers via"
+notification_channels ||--o{ notification_deliveries : "receives"
+
+tenants ||--o{ business_metrics : "generates"
+tenants ||--o{ error_metrics : "experiences"
+
+' Indexes and constraints
+note right of system_metrics
+Indexes:
+- idx_system_metrics_metric_name (metric_name)
+- idx_system_metrics_metric_type (metric_type)
+- idx_system_metrics_timestamp (timestamp)
+- idx_system_metrics_service_name (service_name)
+- idx_system_metrics_instance_id (instance_id)
+- idx_system_metrics_created_at (created_at)
+
+Constraints:
+- CHK_system_metrics_metric_type (metric_type IN ('COUNTER', 'GAUGE', 'HISTOGRAM', 'SUMMARY'))
+- CHK_system_metrics_metric_value (metric_value >= 0)
+- CHK_system_metrics_metric_unit (metric_unit IN ('seconds', 'milliseconds', 'bytes', 'count', 'percent', 'ratio'))
+end note
+
+note right of business_metrics
+Indexes:
+- idx_business_metrics_tenant_id (tenant_id)
+- idx_business_metrics_metric_name (metric_name)
+- idx_business_metrics_metric_type (metric_type)
+- idx_business_metrics_timestamp (timestamp)
+- idx_business_metrics_created_at (created_at)
+
+Constraints:
+- FK_business_metrics_tenant_id (tenant_id)
+- CHK_business_metrics_metric_type (metric_type IN ('COUNTER', 'GAUGE', 'HISTOGRAM', 'SUMMARY'))
+- CHK_business_metrics_metric_value (metric_value >= 0)
+- CHK_business_metrics_metric_unit (metric_unit IN ('seconds', 'milliseconds', 'bytes', 'count', 'percent', 'ratio'))
+end note
+
+note right of performance_metrics
+Indexes:
+- idx_performance_metrics_service_name (service_name)
+- idx_performance_metrics_endpoint (endpoint)
+- idx_performance_metrics_method (method)
+- idx_performance_metrics_status_code (status_code)
+- idx_performance_metrics_timestamp (timestamp)
+- idx_performance_metrics_created_at (created_at)
+
+Constraints:
+- CHK_performance_metrics_method (method IN ('GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'))
+- CHK_performance_metrics_response_time_ms (response_time_ms >= 0)
+- CHK_performance_metrics_status_code (status_code BETWEEN 100 AND 599)
+- CHK_performance_metrics_request_size_bytes (request_size_bytes >= 0)
+- CHK_performance_metrics_response_size_bytes (response_size_bytes >= 0)
+end note
+
+note right of error_metrics
+Indexes:
+- idx_error_metrics_service_name (service_name)
+- idx_error_metrics_error_type (error_type)
+- idx_error_metrics_error_code (error_code)
+- idx_error_metrics_user_id (user_id)
+- idx_error_metrics_tenant_id (tenant_id)
+- idx_error_metrics_correlation_id (correlation_id)
+- idx_error_metrics_timestamp (timestamp)
+- idx_error_metrics_created_at (created_at)
+
+Constraints:
+- FK_error_metrics_tenant_id (tenant_id)
+- CHK_error_metrics_error_type (error_type IN ('VALIDATION_ERROR', 'BUSINESS_ERROR', 'SYSTEM_ERROR', 'NETWORK_ERROR', 'TIMEOUT_ERROR', 'AUTHENTICATION_ERROR', 'AUTHORIZATION_ERROR'))
+end note
+
+note right of health_checks
+Indexes:
+- idx_health_checks_service_name (service_name)
+- idx_health_checks_check_name (check_name)
+- idx_health_checks_check_type (check_type)
+- idx_health_checks_status (status)
+- idx_health_checks_timestamp (timestamp)
+- idx_health_checks_created_at (created_at)
+
+Constraints:
+- CHK_health_checks_check_type (check_type IN ('DATABASE', 'CACHE', 'MESSAGE_QUEUE', 'EXTERNAL_SERVICE', 'DISK_SPACE', 'MEMORY', 'CPU'))
+- CHK_health_checks_status (status IN ('UP', 'DOWN', 'DEGRADED', 'UNKNOWN'))
+- CHK_health_checks_response_time_ms (response_time_ms >= 0)
+end note
+
+note right of circuit_breaker_metrics
+Indexes:
+- idx_circuit_breaker_metrics_circuit_breaker_name (circuit_breaker_name)
+- idx_circuit_breaker_metrics_state (state)
+- idx_circuit_breaker_metrics_failure_rate (failure_rate)
+- idx_circuit_breaker_metrics_timestamp (timestamp)
+- idx_circuit_breaker_metrics_created_at (created_at)
+
+Constraints:
+- CHK_circuit_breaker_metrics_state (state IN ('CLOSED', 'OPEN', 'HALF_OPEN'))
+- CHK_circuit_breaker_metrics_failure_rate (failure_rate BETWEEN 0 AND 100)
+- CHK_circuit_breaker_metrics_success_count (success_count >= 0)
+- CHK_circuit_breaker_metrics_failure_count (failure_count >= 0)
+- CHK_circuit_breaker_metrics_timeout_count (timeout_count >= 0)
+- CHK_circuit_breaker_metrics_rejected_count (rejected_count >= 0)
+end note
+
+note right of rate_limiter_metrics
+Indexes:
+- idx_rate_limiter_metrics_rate_limiter_name (rate_limiter_name)
+- idx_rate_limiter_metrics_limit_value (limit_value)
+- idx_rate_limiter_metrics_current_value (current_value)
+- idx_rate_limiter_metrics_timestamp (timestamp)
+- idx_rate_limiter_metrics_created_at (created_at)
+
+Constraints:
+- CHK_rate_limiter_metrics_limit_value (limit_value > 0)
+- CHK_rate_limiter_metrics_current_value (current_value >= 0)
+- CHK_rate_limiter_metrics_available_tokens (available_tokens >= 0)
+- CHK_rate_limiter_metrics_rejected_requests (rejected_requests >= 0)
+- CHK_rate_limiter_metrics_accepted_requests (accepted_requests >= 0)
+end note
+
+note right of kafka_metrics
+Indexes:
+- idx_kafka_metrics_topic_name (topic_name)
+- idx_kafka_metrics_partition_id (partition_id)
+- idx_kafka_metrics_producer_id (producer_id)
+- idx_kafka_metrics_consumer_id (consumer_id)
+- idx_kafka_metrics_timestamp (timestamp)
+- idx_kafka_metrics_created_at (created_at)
+
+Constraints:
+- CHK_kafka_metrics_partition_id (partition_id >= 0)
+- CHK_kafka_metrics_message_count (message_count >= 0)
+- CHK_kafka_metrics_bytes_count (bytes_count >= 0)
+- CHK_kafka_metrics_lag_count (lag_count >= 0)
+end note
+
+note right of database_metrics
+Indexes:
+- idx_database_metrics_database_name (database_name)
+- idx_database_metrics_connection_pool_name (connection_pool_name)
+- idx_database_metrics_active_connections (active_connections)
+- idx_database_metrics_timestamp (timestamp)
+- idx_database_metrics_created_at (created_at)
+
+Constraints:
+- CHK_database_metrics_active_connections (active_connections >= 0)
+- CHK_database_metrics_idle_connections (idle_connections >= 0)
+- CHK_database_metrics_max_connections (max_connections > 0)
+- CHK_database_metrics_query_count (query_count >= 0)
+- CHK_database_metrics_slow_query_count (slow_query_count >= 0)
+- CHK_database_metrics_avg_query_time_ms (avg_query_time_ms >= 0)
+end note
+
+note right of cache_metrics
+Indexes:
+- idx_cache_metrics_cache_name (cache_name)
+- idx_cache_metrics_hit_count (hit_count)
+- idx_cache_metrics_miss_count (miss_count)
+- idx_cache_metrics_hit_rate (hit_rate)
+- idx_cache_metrics_timestamp (timestamp)
+- idx_cache_metrics_created_at (created_at)
+
+Constraints:
+- CHK_cache_metrics_hit_count (hit_count >= 0)
+- CHK_cache_metrics_miss_count (miss_count >= 0)
+- CHK_cache_metrics_eviction_count (eviction_count >= 0)
+- CHK_cache_metrics_hit_rate (hit_rate BETWEEN 0 AND 100)
+- CHK_cache_metrics_memory_usage_bytes (memory_usage_bytes >= 0)
+- CHK_cache_metrics_key_count (key_count >= 0)
+end note
+
+note right of alert_rules
+Indexes:
+- idx_alert_rules_rule_name (rule_name)
+- idx_alert_rules_metric_name (metric_name)
+- idx_alert_rules_condition (condition)
+- idx_alert_rules_severity (severity)
+- idx_alert_rules_is_active (is_active)
+- idx_alert_rules_created_at (created_at)
+
+Constraints:
+- UK_alert_rules_rule_name (rule_name)
+- CHK_alert_rules_condition (condition IN ('GREATER_THAN', 'LESS_THAN', 'EQUAL_TO', 'NOT_EQUAL_TO', 'GREATER_THAN_OR_EQUAL', 'LESS_THAN_OR_EQUAL'))
+- CHK_alert_rules_severity (severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL'))
+- CHK_alert_rules_is_active (is_active IN (true, false))
+- CHK_alert_rules_evaluation_interval (evaluation_interval > 0)
+end note
+
+note right of alert_instances
+Indexes:
+- idx_alert_instances_alert_rule_id (alert_rule_id)
+- idx_alert_instances_alert_name (alert_name)
+- idx_alert_instances_severity (severity)
+- idx_alert_instances_status (status)
+- idx_alert_instances_started_at (started_at)
+- idx_alert_instances_resolved_at (resolved_at)
+- idx_alert_instances_acknowledged_at (acknowledged_at)
+- idx_alert_instances_created_at (created_at)
+
+Constraints:
+- FK_alert_instances_alert_rule_id (alert_rule_id)
+- CHK_alert_instances_severity (severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL'))
+- CHK_alert_instances_status (status IN ('FIRING', 'RESOLVED', 'ACKNOWLEDGED', 'SUPPRESSED'))
+- CHK_alert_instances_metric_value (metric_value >= 0)
+- CHK_alert_instances_threshold_value (threshold_value >= 0)
+end note
+
+note right of notification_channels
+Indexes:
+- idx_notification_channels_channel_name (channel_name)
+- idx_notification_channels_channel_type (channel_type)
+- idx_notification_channels_is_active (is_active)
+- idx_notification_channels_created_at (created_at)
+
+Constraints:
+- UK_notification_channels_channel_name (channel_name)
+- CHK_notification_channels_channel_type (channel_type IN ('EMAIL', 'SMS', 'SLACK', 'WEBHOOK', 'PAGERDUTY', 'TEAMS'))
+- CHK_notification_channels_is_active (is_active IN (true, false))
+end note
+
+note right of notification_deliveries
+Indexes:
+- idx_notification_deliveries_alert_instance_id (alert_instance_id)
+- idx_notification_deliveries_notification_channel_id (notification_channel_id)
+- idx_notification_deliveries_delivery_status (delivery_status)
+- idx_notification_deliveries_delivery_attempt (delivery_attempt)
+- idx_notification_deliveries_delivered_at (delivered_at)
+- idx_notification_deliveries_created_at (created_at)
+
+Constraints:
+- FK_notification_deliveries_alert_instance_id (alert_instance_id)
+- FK_notification_deliveries_notification_channel_id (notification_channel_id)
+- CHK_notification_deliveries_delivery_status (delivery_status IN ('PENDING', 'DELIVERED', 'FAILED', 'RETRYING'))
+- CHK_notification_deliveries_delivery_attempt (delivery_attempt > 0)
+end note
+
+@enduml
