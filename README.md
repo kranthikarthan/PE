@@ -180,6 +180,38 @@ A comprehensive payment engine designed for seamless integration within a bank's
 - Security incidents
 - Cost threshold breaches
 
+## Documentation
+
+### Architecture & Design
+- [System Architecture](ARCHITECTURE.md) - Overall system design and component relationships
+- [Technology Stack](TECHNOLOGY_STACK.md) - Detailed technology choices and rationale
+- [Database Design](DATABASE_DESIGN.md) - Database schema and relationships
+- [API Documentation](API_DOCUMENTATION.md) - REST API specifications and examples
+
+### Implementation Guides
+- [Resiliency and Self-Healing Guide](RESILIENCY_AND_SELF_HEALING_GUIDE.md) - Comprehensive guide to resiliency patterns, circuit breakers, retry mechanisms, and self-healing capabilities
+- [Advanced Payload Mapping Usage Guide](ADVANCED_MAPPING_USAGE_GUIDE.md) - Guide to using the advanced payload mapping system
+- [Fraud Detection and Risk Management](FRAUD_DETECTION_GUIDE.md) - Fraud detection implementation and configuration
+- [UETR Implementation Guide](UETR_IMPLEMENTATION_GUIDE.md) - Unique End-to-End Transaction Reference implementation
+- [Core Banking Integration Guide](CORE_BANKING_INTEGRATION_GUIDE.md) - External core banking system integration
+
+### Operations & Maintenance
+- [Deployment Guide](DEPLOYMENT_GUIDE.md) - Step-by-step deployment instructions
+- [Monitoring and Alerting](MONITORING_GUIDE.md) - Monitoring setup and alerting configuration
+- [Security Configuration](SECURITY_GUIDE.md) - Security setup and best practices
+- [Performance Tuning](PERFORMANCE_GUIDE.md) - Performance optimization guidelines
+
+### PlantUML Diagrams
+- [Sequence Diagrams](diagrams/sequence/) - Payment processing flows and interactions
+- [Component Diagrams](diagrams/component/) - System component architecture
+- [Database ERD](diagrams/database/) - Entity relationship diagrams
+- [Technology Architecture](diagrams/technology/) - Technology stack visualization
+
+### Quick Reference
+- [API Quick Reference](API_QUICK_REFERENCE.md) - Quick API endpoint reference
+- [Configuration Quick Reference](CONFIGURATION_QUICK_REFERENCE.md) - Configuration parameters reference
+- [Troubleshooting Guide](TROUBLESHOOTING_GUIDE.md) - Common issues and solutions
+
 ## Contributing
 
 1. Fork the repository

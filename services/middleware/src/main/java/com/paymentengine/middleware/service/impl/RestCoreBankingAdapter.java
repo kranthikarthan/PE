@@ -3,6 +3,7 @@ package com.paymentengine.middleware.service.impl;
 import com.paymentengine.middleware.dto.corebanking.*;
 import com.paymentengine.middleware.service.CoreBankingAdapter;
 import com.paymentengine.middleware.service.AdvancedPayloadTransformationService;
+import com.paymentengine.middleware.service.ResiliencyConfigurationService;
 import com.paymentengine.middleware.entity.AdvancedPayloadMapping;
 import com.paymentengine.middleware.client.ExternalCoreBankingClient;
 import org.slf4j.Logger;
@@ -43,6 +44,9 @@ public class RestCoreBankingAdapter implements CoreBankingAdapter {
     
     @Autowired
     private AdvancedPayloadTransformationService advancedPayloadTransformationService;
+    
+    @Autowired
+    private ResiliencyConfigurationService resiliencyConfigurationService;
     
     @Value("${core-banking.rest.base-url}")
     private String baseUrl;
@@ -184,53 +188,16 @@ public class RestCoreBankingAdapter implements CoreBankingAdapter {
     
     @Override
     public TransactionResult processDebit(DebitTransactionRequest request) {
-        logger.info("Processing debit transaction: {} using advanced mapping", request.getTransactionReference());
+        logger.info("Processing debit transaction: {} using advanced mapping and resiliency patterns", request.getTransactionReference());
         
         try {
-            // Convert request to map for advanced mapping
-            Map<String, Object> requestMap = convertRequestToMap(request);
-            
-            // Try to use advanced mapping for core banking debit request transformation
-            Optional<Map<String, Object>> transformedRequest = advancedPayloadTransformationService.transformPayload(
-                    request.getTenantId(), request.getPaymentType(), request.getLocalInstrumentCode(), null,
-                    AdvancedPayloadMapping.Direction.CORE_BANKING_DEBIT_REQUEST, requestMap);
-            
-            DebitTransactionRequest finalRequest = request;
-            if (transformedRequest.isPresent()) {
-                logger.debug("Using advanced mapping for core banking debit request transformation");
-                finalRequest = convertMapToDebitRequest(transformedRequest.get(), request);
-            } else {
-                logger.debug("No advanced mapping found for core banking debit request, using original request");
-            }
-            
-            HttpHeaders headers = createHeaders(request.getTenantId());
-            HttpEntity<DebitTransactionRequest> entity = new HttpEntity<>(finalRequest, headers);
-            
-            ResponseEntity<TransactionResult> response = restTemplate.exchange(
-                baseUrl + "/api/v1/transactions/debit",
-                HttpMethod.POST,
-                entity,
-                TransactionResult.class
+            // Use resiliency service for the core banking call
+            return resiliencyConfigurationService.executeResilientCall(
+                    "core-banking-debit", 
+                    request.getTenantId(),
+                    () -> performDebitTransaction(request),
+                    (exception) -> handleDebitFallback(request, exception)
             );
-            
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                TransactionResult result = response.getBody();
-                
-                // Try to transform response using advanced mapping
-                Map<String, Object> responseMap = convertResultToMap(result);
-                Optional<Map<String, Object>> transformedResponse = advancedPayloadTransformationService.transformPayload(
-                        request.getTenantId(), request.getPaymentType(), request.getLocalInstrumentCode(), null,
-                        AdvancedPayloadMapping.Direction.CORE_BANKING_DEBIT_RESPONSE, responseMap);
-                
-                if (transformedResponse.isPresent()) {
-                    logger.debug("Using advanced mapping for core banking debit response transformation");
-                    result = convertMapToTransactionResult(transformedResponse.get(), result);
-                }
-                
-                return result;
-            } else {
-                throw new RuntimeException("Failed to process debit: " + response.getStatusCode());
-            }
             
         } catch (Exception e) {
             logger.error("Error processing debit transaction {}: {}", 
@@ -239,61 +206,176 @@ public class RestCoreBankingAdapter implements CoreBankingAdapter {
         }
     }
     
+    /**
+     * Perform the actual debit transaction
+     */
+    private TransactionResult performDebitTransaction(DebitTransactionRequest request) {
+        // Convert request to map for advanced mapping
+        Map<String, Object> requestMap = convertRequestToMap(request);
+        
+        // Try to use advanced mapping for core banking debit request transformation
+        Optional<Map<String, Object>> transformedRequest = advancedPayloadTransformationService.transformPayload(
+                request.getTenantId(), request.getPaymentType(), request.getLocalInstrumentCode(), null,
+                AdvancedPayloadMapping.Direction.CORE_BANKING_DEBIT_REQUEST, requestMap);
+        
+        DebitTransactionRequest finalRequest = request;
+        if (transformedRequest.isPresent()) {
+            logger.debug("Using advanced mapping for core banking debit request transformation");
+            finalRequest = convertMapToDebitRequest(transformedRequest.get(), request);
+        } else {
+            logger.debug("No advanced mapping found for core banking debit request, using original request");
+        }
+        
+        HttpHeaders headers = createHeaders(request.getTenantId());
+        HttpEntity<DebitTransactionRequest> entity = new HttpEntity<>(finalRequest, headers);
+        
+        ResponseEntity<TransactionResult> response = restTemplate.exchange(
+            baseUrl + "/api/v1/transactions/debit",
+            HttpMethod.POST,
+            entity,
+            TransactionResult.class
+        );
+        
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            TransactionResult result = response.getBody();
+            
+            // Try to transform response using advanced mapping
+            Map<String, Object> responseMap = convertResultToMap(result);
+            Optional<Map<String, Object>> transformedResponse = advancedPayloadTransformationService.transformPayload(
+                    request.getTenantId(), request.getPaymentType(), request.getLocalInstrumentCode(), null,
+                    AdvancedPayloadMapping.Direction.CORE_BANKING_DEBIT_RESPONSE, responseMap);
+            
+            if (transformedResponse.isPresent()) {
+                logger.debug("Using advanced mapping for core banking debit response transformation");
+                result = convertMapToTransactionResult(transformedResponse.get(), result);
+            }
+            
+            return result;
+        } else {
+            throw new RuntimeException("Failed to process debit: " + response.getStatusCode());
+        }
+    }
+    
+    /**
+     * Handle debit transaction fallback when the call fails
+     */
+    private TransactionResult handleDebitFallback(DebitTransactionRequest request, Exception exception) {
+        logger.warn("Using fallback response for debit transaction {} due to: {}", 
+                   request.getTransactionReference(), exception.getMessage());
+        
+        // Create a fallback transaction result
+        TransactionResult fallbackResult = new TransactionResult();
+        fallbackResult.setTransactionReference(request.getTransactionReference());
+        fallbackResult.setStatus(TransactionResult.Status.PENDING);
+        fallbackResult.setStatusMessage("Transaction queued for manual processing due to core banking unavailability");
+        fallbackResult.setErrorMessage("Core banking system unavailable: " + exception.getMessage());
+        fallbackResult.setProcessedAt(LocalDateTime.now());
+        
+        // Add fallback metadata
+        Map<String, Object> additionalData = new HashMap<>();
+        additionalData.put("fallbackUsed", true);
+        additionalData.put("fallbackReason", "Core banking system unavailable");
+        additionalData.put("originalError", exception.getMessage());
+        additionalData.put("requiresManualProcessing", true);
+        additionalData.put("fallbackTimestamp", LocalDateTime.now().toString());
+        fallbackResult.setAdditionalData(additionalData);
+        
+        return fallbackResult;
+    }
+    
     @Override
     public TransactionResult processCredit(CreditTransactionRequest request) {
-        logger.info("Processing credit transaction: {} using advanced mapping", request.getTransactionReference());
+        logger.info("Processing credit transaction: {} using advanced mapping and resiliency patterns", request.getTransactionReference());
         
         try {
-            // Convert request to map for advanced mapping
-            Map<String, Object> requestMap = convertCreditRequestToMap(request);
-            
-            // Try to use advanced mapping for core banking credit request transformation
-            Optional<Map<String, Object>> transformedRequest = advancedPayloadTransformationService.transformPayload(
-                    request.getTenantId(), request.getPaymentType(), request.getLocalInstrumentCode(), null,
-                    AdvancedPayloadMapping.Direction.CORE_BANKING_CREDIT_REQUEST, requestMap);
-            
-            CreditTransactionRequest finalRequest = request;
-            if (transformedRequest.isPresent()) {
-                logger.debug("Using advanced mapping for core banking credit request transformation");
-                finalRequest = convertMapToCreditRequest(transformedRequest.get(), request);
-            } else {
-                logger.debug("No advanced mapping found for core banking credit request, using original request");
-            }
-            
-            HttpHeaders headers = createHeaders(request.getTenantId());
-            HttpEntity<CreditTransactionRequest> entity = new HttpEntity<>(finalRequest, headers);
-            
-            ResponseEntity<TransactionResult> response = restTemplate.exchange(
-                baseUrl + "/api/v1/transactions/credit",
-                HttpMethod.POST,
-                entity,
-                TransactionResult.class
+            return resiliencyConfigurationService.executeResilientCall(
+                    "core-banking-credit",
+                    request.getTenantId(),
+                    () -> performCreditTransaction(request),
+                    (exception) -> handleCreditFallback(request, exception)
             );
-            
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                TransactionResult result = response.getBody();
-                
-                // Try to transform response using advanced mapping
-                Map<String, Object> responseMap = convertResultToMap(result);
-                Optional<Map<String, Object>> transformedResponse = advancedPayloadTransformationService.transformPayload(
-                        request.getTenantId(), request.getPaymentType(), request.getLocalInstrumentCode(), null,
-                        AdvancedPayloadMapping.Direction.CORE_BANKING_CREDIT_RESPONSE, responseMap);
-                
-                if (transformedResponse.isPresent()) {
-                    logger.debug("Using advanced mapping for core banking credit response transformation");
-                    result = convertMapToTransactionResult(transformedResponse.get(), result);
-                }
-                
-                return result;
-            } else {
-                throw new RuntimeException("Failed to process credit: " + response.getStatusCode());
-            }
-            
         } catch (Exception e) {
             logger.error("Error processing credit transaction {}: {}", 
                         request.getTransactionReference(), e.getMessage());
             return createFailedTransactionResult(request.getTransactionReference(), e.getMessage());
         }
+    }
+    
+    /**
+     * Perform the actual credit transaction
+     */
+    private TransactionResult performCreditTransaction(CreditTransactionRequest request) {
+        // Convert request to map for advanced mapping
+        Map<String, Object> requestMap = convertCreditRequestToMap(request);
+        
+        // Try to use advanced mapping for core banking credit request transformation
+        Optional<Map<String, Object>> transformedRequest = advancedPayloadTransformationService.transformPayload(
+                request.getTenantId(), request.getPaymentType(), request.getLocalInstrumentCode(), null,
+                AdvancedPayloadMapping.Direction.CORE_BANKING_CREDIT_REQUEST, requestMap);
+        
+        CreditTransactionRequest finalRequest = request;
+        if (transformedRequest.isPresent()) {
+            logger.debug("Using advanced mapping for core banking credit request transformation");
+            finalRequest = convertMapToCreditRequest(transformedRequest.get(), request);
+        } else {
+            logger.debug("No advanced mapping found for core banking credit request, using original request");
+        }
+        
+        HttpHeaders headers = createHeaders(request.getTenantId());
+        HttpEntity<CreditTransactionRequest> entity = new HttpEntity<>(finalRequest, headers);
+        
+        ResponseEntity<TransactionResult> response = restTemplate.exchange(
+            baseUrl + "/api/v1/transactions/credit",
+            HttpMethod.POST,
+            entity,
+            TransactionResult.class
+        );
+        
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            TransactionResult result = response.getBody();
+            
+            // Try to transform response using advanced mapping
+            Map<String, Object> responseMap = convertResultToMap(result);
+            Optional<Map<String, Object>> transformedResponse = advancedPayloadTransformationService.transformPayload(
+                    request.getTenantId(), request.getPaymentType(), request.getLocalInstrumentCode(), null,
+                    AdvancedPayloadMapping.Direction.CORE_BANKING_CREDIT_RESPONSE, responseMap);
+            
+            if (transformedResponse.isPresent()) {
+                logger.debug("Using advanced mapping for core banking credit response transformation");
+                result = convertMapToTransactionResult(transformedResponse.get(), result);
+            }
+            
+            return result;
+        } else {
+            throw new RuntimeException("Failed to process credit: " + response.getStatusCode());
+        }
+    }
+    
+    /**
+     * Handle credit transaction fallback when the call fails
+     */
+    private TransactionResult handleCreditFallback(CreditTransactionRequest request, Exception exception) {
+        logger.warn("Using fallback response for credit transaction {} due to: {}", 
+                   request.getTransactionReference(), exception.getMessage());
+        
+        // Create a fallback transaction result
+        TransactionResult fallbackResult = new TransactionResult();
+        fallbackResult.setTransactionReference(request.getTransactionReference());
+        fallbackResult.setStatus(TransactionResult.Status.PENDING);
+        fallbackResult.setStatusMessage("Transaction queued for manual processing due to core banking unavailability");
+        fallbackResult.setErrorMessage("Core banking system unavailable: " + exception.getMessage());
+        fallbackResult.setProcessedAt(LocalDateTime.now());
+        
+        // Add fallback metadata
+        Map<String, Object> additionalData = new HashMap<>();
+        additionalData.put("fallbackUsed", true);
+        additionalData.put("fallbackReason", "Core banking system unavailable");
+        additionalData.put("originalError", exception.getMessage());
+        additionalData.put("requiresManualProcessing", true);
+        additionalData.put("fallbackTimestamp", LocalDateTime.now().toString());
+        fallbackResult.setAdditionalData(additionalData);
+        
+        return fallbackResult;
     }
     
     @Override

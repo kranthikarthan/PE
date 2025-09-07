@@ -39,6 +39,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
     private final FraudRiskMonitoringService fraudRiskMonitoringService;
     private final UetrGenerationService uetrGenerationService;
     private final UetrTrackingService uetrTrackingService;
+    private final ResiliencyConfigurationService resiliencyConfigurationService;
     
     @Autowired
     public SchemeProcessingServiceImpl(
@@ -51,7 +52,8 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
             AdvancedPayloadTransformationService advancedPayloadTransformationService,
             FraudRiskMonitoringService fraudRiskMonitoringService,
             UetrGenerationService uetrGenerationService,
-            UetrTrackingService uetrTrackingService) {
+            UetrTrackingService uetrTrackingService,
+            ResiliencyConfigurationService resiliencyConfigurationService) {
         this.clearingSystemRoutingService = clearingSystemRoutingService;
         this.transformationService = transformationService;
         this.schemeMessageService = schemeMessageService;
@@ -62,6 +64,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
         this.fraudRiskMonitoringService = fraudRiskMonitoringService;
         this.uetrGenerationService = uetrGenerationService;
         this.uetrTrackingService = uetrTrackingService;
+        this.resiliencyConfigurationService = resiliencyConfigurationService;
     }
     
     @Override
@@ -440,87 +443,138 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
             String messageType,
             String schemeConfigurationId) {
         
-        logger.info("Sending {} message to clearing system: {} using advanced mapping", messageType, clearingSystemCode);
+        logger.info("Sending {} message to clearing system: {} using advanced mapping and resiliency patterns", messageType, clearingSystemCode);
         
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // Get clearing system configuration
-                ClearingSystemRoutingService.ClearingSystemConfig config = 
-                        clearingSystemRoutingService.getClearingSystemConfig(clearingSystemCode);
-                
-                // Extract tenant and payment context from message for advanced mapping
+                // Extract tenant and payment context from message for resiliency
                 String tenantId = extractTenantIdFromMessage(message);
-                String paymentType = extractPaymentTypeFromMessage(message);
-                String localInstrumentCode = extractLocalInstrumentCodeFromMessage(message);
                 
-                // Try to use advanced mapping for scheme request transformation
-                Map<String, Object> sourcePayload = new HashMap<>(message);
-                sourcePayload.put("clearingSystemCode", clearingSystemCode);
-                sourcePayload.put("messageType", messageType);
-                sourcePayload.put("schemeConfigurationId", schemeConfigurationId);
-                sourcePayload.put("endpointUrl", config.getEndpointUrl());
-                
-                Optional<Map<String, Object>> transformedMessage = advancedPayloadTransformationService.transformPayload(
-                        tenantId, paymentType, localInstrumentCode, clearingSystemCode,
-                        AdvancedPayloadMapping.Direction.SCHEME_REQUEST, sourcePayload);
-                
-                Map<String, Object> finalMessage = message;
-                if (transformedMessage.isPresent()) {
-                    logger.debug("Using advanced mapping for scheme request transformation");
-                    finalMessage = transformedMessage.get();
-                } else {
-                    logger.debug("No advanced mapping found for scheme request, using original message");
-                }
-                
-                // Create scheme message request
-                com.paymentengine.middleware.dto.SchemeMessageRequest request = 
-                        new com.paymentengine.middleware.dto.SchemeMessageRequest(
-                                messageType,
-                                "MSG-" + System.currentTimeMillis(),
-                                "CORR-" + System.currentTimeMillis(),
-                                com.paymentengine.middleware.dto.SchemeConfigRequest.MessageFormat.JSON,
-                                com.paymentengine.middleware.dto.SchemeConfigRequest.InteractionMode.SYNCHRONOUS,
-                                finalMessage,
-                                Map.of(
-                                        "clearingSystemCode", clearingSystemCode,
-                                        "schemeConfigurationId", schemeConfigurationId,
-                                        "endpointUrl", config.getEndpointUrl()
-                                )
-                        );
-                
-                // Send message using scheme message service
-                com.paymentengine.middleware.dto.SchemeMessageResponse response = 
-                        schemeMessageService.sendMessage(schemeConfigurationId, request);
-                
-                logger.info("Sent {} message to clearing system: {} - Status: {}", 
-                        messageType, clearingSystemCode, response.getStatus());
-                
-                Map<String, Object> result = Map.of(
-                        "status", response.getStatus(),
-                        "responseCode", response.getResponseCode(),
-                        "responseMessage", response.getResponseMessage(),
-                        "payload", response.getPayload(),
-                        "processingTimeMs", response.getProcessingTimeMs(),
-                        "timestamp", response.getTimestamp()
+                // Execute with resiliency patterns
+                return resiliencyConfigurationService.executeResilientCall(
+                        "scheme-processing",
+                        tenantId != null ? tenantId : "default",
+                        () -> performSchemeMessageSend(message, clearingSystemCode, messageType, schemeConfigurationId),
+                        (exception) -> handleSchemeFallback(message, clearingSystemCode, messageType, schemeConfigurationId, exception)
                 );
-                
-                // Try to transform response using advanced mapping
-                Optional<Map<String, Object>> transformedResponse = advancedPayloadTransformationService.transformPayload(
-                        tenantId, paymentType, localInstrumentCode, clearingSystemCode,
-                        AdvancedPayloadMapping.Direction.SCHEME_RESPONSE, result);
-                
-                if (transformedResponse.isPresent()) {
-                    logger.debug("Using advanced mapping for scheme response transformation");
-                    return transformedResponse.get();
-                }
-                
-                return result;
                 
             } catch (Exception e) {
                 logger.error("Error sending message to clearing system: {}", e.getMessage());
                 throw new RuntimeException("Failed to send message to clearing system", e);
             }
         });
+    }
+    
+    /**
+     * Perform the actual scheme message send
+     */
+    private Map<String, Object> performSchemeMessageSend(
+            Map<String, Object> message,
+            String clearingSystemCode,
+            String messageType,
+            String schemeConfigurationId) {
+        
+        // Get clearing system configuration
+        ClearingSystemRoutingService.ClearingSystemConfig config = 
+                clearingSystemRoutingService.getClearingSystemConfig(clearingSystemCode);
+        
+        // Extract tenant and payment context from message for advanced mapping
+        String tenantId = extractTenantIdFromMessage(message);
+        String paymentType = extractPaymentTypeFromMessage(message);
+        String localInstrumentCode = extractLocalInstrumentCodeFromMessage(message);
+        
+        // Try to use advanced mapping for scheme request transformation
+        Map<String, Object> sourcePayload = new HashMap<>(message);
+        sourcePayload.put("clearingSystemCode", clearingSystemCode);
+        sourcePayload.put("messageType", messageType);
+        sourcePayload.put("schemeConfigurationId", schemeConfigurationId);
+        sourcePayload.put("endpointUrl", config.getEndpointUrl());
+        
+        Optional<Map<String, Object>> transformedMessage = advancedPayloadTransformationService.transformPayload(
+                tenantId, paymentType, localInstrumentCode, clearingSystemCode,
+                AdvancedPayloadMapping.Direction.SCHEME_REQUEST, sourcePayload);
+        
+        Map<String, Object> finalMessage = message;
+        if (transformedMessage.isPresent()) {
+            logger.debug("Using advanced mapping for scheme request transformation");
+            finalMessage = transformedMessage.get();
+        } else {
+            logger.debug("No advanced mapping found for scheme request, using original message");
+        }
+        
+        // Create scheme message request
+        com.paymentengine.middleware.dto.SchemeMessageRequest request = 
+                new com.paymentengine.middleware.dto.SchemeMessageRequest(
+                        messageType,
+                        "MSG-" + System.currentTimeMillis(),
+                        "CORR-" + System.currentTimeMillis(),
+                        com.paymentengine.middleware.dto.SchemeConfigRequest.MessageFormat.JSON,
+                        com.paymentengine.middleware.dto.SchemeConfigRequest.InteractionMode.SYNCHRONOUS,
+                        finalMessage,
+                        Map.of(
+                                "clearingSystemCode", clearingSystemCode,
+                                "schemeConfigurationId", schemeConfigurationId,
+                                "endpointUrl", config.getEndpointUrl()
+                        )
+                );
+        
+        // Send message using scheme message service
+        com.paymentengine.middleware.dto.SchemeMessageResponse response = 
+                schemeMessageService.sendMessage(schemeConfigurationId, request);
+        
+        logger.info("Sent {} message to clearing system: {} - Status: {}", 
+                messageType, clearingSystemCode, response.getStatus());
+        
+        Map<String, Object> result = Map.of(
+                "status", response.getStatus(),
+                "responseCode", response.getResponseCode(),
+                "responseMessage", response.getResponseMessage(),
+                "payload", response.getPayload(),
+                "processingTimeMs", response.getProcessingTimeMs(),
+                "timestamp", response.getTimestamp()
+        );
+        
+        // Try to transform response using advanced mapping
+        Optional<Map<String, Object>> transformedResponse = advancedPayloadTransformationService.transformPayload(
+                tenantId, paymentType, localInstrumentCode, clearingSystemCode,
+                AdvancedPayloadMapping.Direction.SCHEME_RESPONSE, result);
+        
+        if (transformedResponse.isPresent()) {
+            logger.debug("Using advanced mapping for scheme response transformation");
+            return transformedResponse.get();
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Handle scheme message fallback when the call fails
+     */
+    private Map<String, Object> handleSchemeFallback(
+            Map<String, Object> message,
+            String clearingSystemCode,
+            String messageType,
+            String schemeConfigurationId,
+            Exception exception) {
+        
+        logger.warn("Using fallback response for scheme message {} to clearing system {} due to: {}", 
+                   messageType, clearingSystemCode, exception.getMessage());
+        
+        Map<String, Object> fallbackResult = new HashMap<>();
+        fallbackResult.put("status", "FAILED");
+        fallbackResult.put("responseCode", "FALLBACK");
+        fallbackResult.put("responseMessage", "Clearing system unavailable - message queued for retry");
+        fallbackResult.put("payload", message);
+        fallbackResult.put("processingTimeMs", 0L);
+        fallbackResult.put("timestamp", LocalDateTime.now().toString());
+        fallbackResult.put("fallbackUsed", true);
+        fallbackResult.put("fallbackReason", "Clearing system unavailable: " + exception.getMessage());
+        fallbackResult.put("requiresRetry", true);
+        fallbackResult.put("clearingSystemCode", clearingSystemCode);
+        fallbackResult.put("messageType", messageType);
+        fallbackResult.put("schemeConfigurationId", schemeConfigurationId);
+        
+        return fallbackResult;
     }
     
     @Override
