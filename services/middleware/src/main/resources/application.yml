@@ -69,6 +69,43 @@ spring:
       ack-mode: manual_immediate
       concurrency: 3
   
+  # Database Configuration
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/payment_engine}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  # Flyway Configuration
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+    validate-on-migrate: true
+    clean-disabled: false
+
   # Mail Configuration (for notifications)
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
@@ -98,6 +135,22 @@ jwt:
   secret: ${JWT_SECRET:your-secret-key-here-change-in-production}
   access-token-expiration: 3600 # 1 hour
   refresh-token-expiration: 86400 # 24 hours
+
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 30
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    health-check-url-path: /actuator/health
+    status-page-url-path: /actuator/info
 
 # Service URLs
 services:

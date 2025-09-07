@@ -148,6 +148,8 @@ const TenantCloningManagement: React.FC = () => {
   const [tenantHistory, setTenantHistory] = useState<TenantConfiguration[]>([]);
   const [statistics, setStatistics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState(0);
   
   // Dialog states
@@ -169,6 +171,7 @@ const TenantCloningManagement: React.FC = () => {
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
       await Promise.all([
         loadTenants(),
@@ -176,6 +179,7 @@ const TenantCloningManagement: React.FC = () => {
       ]);
     } catch (error) {
       console.error('Error loading tenant data:', error);
+      setError('Failed to load tenant data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -185,8 +189,16 @@ const TenantCloningManagement: React.FC = () => {
     try {
       const response = await axios.get('/api/tenant-management/tenants');
       setTenants(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading tenants:', error);
+      if (error.response?.status === 401) {
+        setError('Authentication required. Please login again.');
+      } else if (error.response?.status === 403) {
+        setError('Access denied. You do not have permission to view tenants.');
+      } else {
+        setError('Failed to load tenants. Please try again.');
+      }
+      throw error;
     }
   };
 
@@ -218,38 +230,62 @@ const TenantCloningManagement: React.FC = () => {
   };
 
   const handleCloneTenant = async (data: TenantCloneRequest) => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await axios.post('/api/tenant-management/clone', data);
       if (response.data.success) {
-        alert('Tenant cloned successfully!');
+        setSuccess(`Tenant ${data.sourceTenantId} successfully cloned to ${data.targetTenantId}`);
         setCloneDialogOpen(false);
         resetClone();
         loadData();
       } else {
-        alert('Failed to clone tenant: ' + response.data.message);
+        setError('Failed to clone tenant: ' + response.data.message);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error cloning tenant:', error);
-      alert('Error cloning tenant');
+      if (error.response?.status === 401) {
+        setError('Authentication required. Please login again.');
+      } else if (error.response?.status === 403) {
+        setError('Access denied. You do not have permission to clone tenants.');
+      } else if (error.response?.status === 400) {
+        setError(error.response.data?.message || 'Invalid request. Please check your input.');
+      } else {
+        setError('Failed to clone tenant. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleExportTenant = async (data: TenantExportRequest) => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await axios.post('/api/tenant-management/export', data);
       if (response.data.success) {
         // Download the exported file
         const downloadUrl = response.data.downloadUrl;
         window.open(downloadUrl, '_blank');
-        alert('Tenant exported successfully!');
+        setSuccess(`Tenant ${data.tenantId} exported successfully`);
         setExportDialogOpen(false);
         resetExport();
       } else {
-        alert('Failed to export tenant: ' + response.data.message);
+        setError('Failed to export tenant: ' + response.data.message);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error exporting tenant:', error);
-      alert('Error exporting tenant');
+      if (error.response?.status === 401) {
+        setError('Authentication required. Please login again.');
+      } else if (error.response?.status === 403) {
+        setError('Access denied. You do not have permission to export tenants.');
+      } else if (error.response?.status === 400) {
+        setError(error.response.data?.message || 'Invalid request. Please check your input.');
+      } else {
+        setError('Failed to export tenant. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -349,6 +385,46 @@ const TenantCloningManagement: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      {/* Success and Error Notifications */}
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>
+          {success}
+        </Alert>
+      )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+      
+      {/* Loading Overlay */}
+      {loading && (
+        <Box sx={{ 
+          position: 'fixed', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          backgroundColor: 'rgba(0,0,0,0.5)', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          zIndex: 9999 
+        }}>
+          <Box sx={{ 
+            backgroundColor: 'white', 
+            p: 3, 
+            borderRadius: 2, 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 2 
+          }}>
+            <CircularProgress />
+            <Typography>Processing...</Typography>
+          </Box>
+        </Box>
+      )}
+      
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
           Tenant Management

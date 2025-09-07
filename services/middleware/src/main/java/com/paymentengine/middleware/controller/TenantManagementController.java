@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,6 +39,7 @@ public class TenantManagementController {
      * Clone a tenant configuration
      */
     @PostMapping("/clone")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('tenant:manage')")
     public ResponseEntity<TenantCloneResponse> cloneTenant(@Valid @RequestBody TenantCloneRequest request) {
         logger.info("Received tenant clone request: {} -> {}", request.getSourceTenantId(), request.getTargetTenantId());
         
@@ -114,6 +116,7 @@ public class TenantManagementController {
      * Export tenant configuration
      */
     @PostMapping("/export")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('tenant:export') or hasAuthority('tenant:manage')")
     public ResponseEntity<TenantExportResponse> exportTenant(@Valid @RequestBody TenantExportRequest request) {
         logger.info("Received tenant export request: {} (version: {})", request.getTenantId(), request.getVersion());
         
@@ -131,6 +134,7 @@ public class TenantManagementController {
      * Import tenant configuration
      */
     @PostMapping("/import")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('tenant:import') or hasAuthority('tenant:manage')")
     public ResponseEntity<TenantImportResponse> importTenant(@Valid @RequestBody TenantImportRequest request) {
         logger.info("Received tenant import request: {} -> {}", request.getImportData(), request.getTargetTenantId());
         
@@ -187,6 +191,7 @@ public class TenantManagementController {
      * Get all available tenants
      */
     @GetMapping("/tenants")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('tenant:read') or hasAuthority('tenant:manage')")
     public ResponseEntity<List<String>> getAvailableTenants() {
         logger.info("Received request for available tenants");
         
