@@ -1,9 +1,13 @@
 package com.paymentengine.middleware.service.impl;
 
 import com.paymentengine.middleware.service.*;
+import com.paymentengine.middleware.dto.corebanking.*;
+import com.paymentengine.middleware.entity.CoreBankingConfiguration;
+import com.paymentengine.middleware.repository.CoreBankingConfigurationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,17 +28,23 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
     private final Pain001ToPacs008TransformationService transformationService;
     private final SchemeMessageService schemeMessageService;
     private final Iso20022FormatService iso20022FormatService;
+    private final PaymentRoutingService paymentRoutingService;
+    private final CoreBankingConfigurationRepository coreBankingConfigRepository;
     
     @Autowired
     public SchemeProcessingServiceImpl(
             ClearingSystemRoutingService clearingSystemRoutingService,
             Pain001ToPacs008TransformationService transformationService,
             SchemeMessageService schemeMessageService,
-            Iso20022FormatService iso20022FormatService) {
+            Iso20022FormatService iso20022FormatService,
+            PaymentRoutingService paymentRoutingService,
+            CoreBankingConfigurationRepository coreBankingConfigRepository) {
         this.clearingSystemRoutingService = clearingSystemRoutingService;
         this.transformationService = transformationService;
         this.schemeMessageService = schemeMessageService;
         this.iso20022FormatService = iso20022FormatService;
+        this.paymentRoutingService = paymentRoutingService;
+        this.coreBankingConfigRepository = coreBankingConfigRepository;
     }
     
     @Override
@@ -387,5 +397,144 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
             logger.error("Error processing clearing system response: {}", e.getMessage());
             throw new RuntimeException("Failed to process clearing system response", e);
         }
+    }
+    
+    /**
+     * Process payment with core banking integration
+     */
+    public CompletableFuture<SchemeProcessingResult> processPaymentWithCoreBanking(
+            Map<String, Object> paymentRequest,
+            String tenantId,
+            String paymentType,
+            String localInstrumentCode) {
+        
+        logger.info("Processing payment with core banking integration for tenant: {}, paymentType: {}", 
+                   tenantId, paymentType);
+        
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // Extract payment details from request
+                String fromAccountNumber = (String) paymentRequest.get("fromAccountNumber");
+                String toAccountNumber = (String) paymentRequest.get("toAccountNumber");
+                BigDecimal amount = new BigDecimal(paymentRequest.get("amount").toString());
+                String currency = (String) paymentRequest.get("currency");
+                String transactionReference = (String) paymentRequest.get("transactionReference");
+                
+                // Create payment routing request
+                PaymentRoutingRequest routingRequest = new PaymentRoutingRequest();
+                routingRequest.setFromAccountNumber(fromAccountNumber);
+                routingRequest.setToAccountNumber(toAccountNumber);
+                routingRequest.setPaymentType(paymentType);
+                routingRequest.setLocalInstrumentationCode(localInstrumentCode);
+                routingRequest.setAmount(amount);
+                routingRequest.setCurrency(currency);
+                routingRequest.setTenantId(tenantId);
+                routingRequest.setTransactionReference(transactionReference);
+                
+                // Determine payment routing
+                PaymentRouting routing = paymentRoutingService.determinePaymentRouting(routingRequest);
+                
+                // Process based on routing type
+                TransactionResult result;
+                switch (routing.getRoutingType()) {
+                    case SAME_BANK:
+                        result = processSameBankPayment(paymentRequest, tenantId);
+                        break;
+                    case OTHER_BANK:
+                        result = processOtherBankPayment(paymentRequest, tenantId, routing);
+                        break;
+                    case INCOMING_CLEARING:
+                        result = processIncomingClearingPayment(paymentRequest, tenantId);
+                        break;
+                    default:
+                        throw new RuntimeException("Unsupported routing type: " + routing.getRoutingType());
+                }
+                
+                // Create scheme processing result
+                SchemeProcessingResult schemeResult = new SchemeProcessingResult();
+                schemeResult.setSuccess(result.isSuccess());
+                schemeResult.setTransactionReference(result.getTransactionReference());
+                schemeResult.setStatus(result.getStatus().name());
+                schemeResult.setMessage(result.getStatusMessage());
+                schemeResult.setRoutingType(routing.getRoutingType().name());
+                schemeResult.setClearingSystemCode(routing.getClearingSystemCode());
+                schemeResult.setProcessedAt(LocalDateTime.now());
+                
+                if (result.isFailed()) {
+                    schemeResult.setErrorCode(result.getErrorCode());
+                    schemeResult.setErrorMessage(result.getErrorMessage());
+                }
+                
+                logger.info("Payment processed successfully with core banking: {}", result.getTransactionReference());
+                return schemeResult;
+                
+            } catch (Exception e) {
+                logger.error("Error processing payment with core banking: {}", e.getMessage(), e);
+                
+                SchemeProcessingResult errorResult = new SchemeProcessingResult();
+                errorResult.setSuccess(false);
+                errorResult.setStatus("FAILED");
+                errorResult.setMessage("Payment processing failed");
+                errorResult.setErrorMessage(e.getMessage());
+                errorResult.setProcessedAt(LocalDateTime.now());
+                
+                return errorResult;
+            }
+        });
+    }
+    
+    /**
+     * Process same bank payment
+     */
+    private TransactionResult processSameBankPayment(Map<String, Object> paymentRequest, String tenantId) {
+        // Create transfer request
+        TransferTransactionRequest transferRequest = new TransferTransactionRequest();
+        transferRequest.setTransactionReference((String) paymentRequest.get("transactionReference"));
+        transferRequest.setFromAccountNumber((String) paymentRequest.get("fromAccountNumber"));
+        transferRequest.setToAccountNumber((String) paymentRequest.get("toAccountNumber"));
+        transferRequest.setAmount(new BigDecimal(paymentRequest.get("amount").toString()));
+        transferRequest.setCurrency((String) paymentRequest.get("currency"));
+        transferRequest.setPaymentType((String) paymentRequest.get("paymentType"));
+        transferRequest.setDescription((String) paymentRequest.get("description"));
+        transferRequest.setTenantId(tenantId);
+        
+        return paymentRoutingService.processSameBankPayment(transferRequest);
+    }
+    
+    /**
+     * Process other bank payment via clearing system
+     */
+    private TransactionResult processOtherBankPayment(Map<String, Object> paymentRequest, String tenantId, PaymentRouting routing) {
+        // Create transfer request
+        TransferTransactionRequest transferRequest = new TransferTransactionRequest();
+        transferRequest.setTransactionReference((String) paymentRequest.get("transactionReference"));
+        transferRequest.setFromAccountNumber((String) paymentRequest.get("fromAccountNumber"));
+        transferRequest.setToAccountNumber((String) paymentRequest.get("toAccountNumber"));
+        transferRequest.setAmount(new BigDecimal(paymentRequest.get("amount").toString()));
+        transferRequest.setCurrency((String) paymentRequest.get("currency"));
+        transferRequest.setPaymentType((String) paymentRequest.get("paymentType"));
+        transferRequest.setDescription((String) paymentRequest.get("description"));
+        transferRequest.setTenantId(tenantId);
+        
+        return paymentRoutingService.processOtherBankPayment(transferRequest);
+    }
+    
+    /**
+     * Process incoming clearing payment
+     */
+    private TransactionResult processIncomingClearingPayment(Map<String, Object> paymentRequest, String tenantId) {
+        // Create ISO 20022 payment request
+        Iso20022PaymentRequest isoRequest = new Iso20022PaymentRequest();
+        isoRequest.setTransactionReference((String) paymentRequest.get("transactionReference"));
+        isoRequest.setFromAccountNumber((String) paymentRequest.get("fromAccountNumber"));
+        isoRequest.setToAccountNumber((String) paymentRequest.get("toAccountNumber"));
+        isoRequest.setAmount(new BigDecimal(paymentRequest.get("amount").toString()));
+        isoRequest.setCurrency((String) paymentRequest.get("currency"));
+        isoRequest.setPaymentType((String) paymentRequest.get("paymentType"));
+        isoRequest.setMessageType((String) paymentRequest.get("messageType"));
+        isoRequest.setIso20022Message((String) paymentRequest.get("iso20022Message"));
+        isoRequest.setTenantId(tenantId);
+        
+        return paymentRoutingService.processIncomingClearingPayment(isoRequest);
     }
 }
