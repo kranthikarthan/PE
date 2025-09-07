@@ -56,7 +56,7 @@ package "Monitoring & Metrics" {
     [Resilience Metrics] as RM
     [State Metrics] as SM
     [Performance Metrics] as PM
-    [Custom Alerts] as CA
+    [Alert Manager] as AM
 }
 
 ' Circuit breaker connections

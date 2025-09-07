@@ -62,11 +62,11 @@ package "Security Layer" {
 }
 
 package "Monitoring & Observability" {
-    [Micrometer] as Micrometer2
-    [Spring Boot Actuator] as SBA
-    [Custom Metrics] as CM2
-    [Health Checks] as HC
-    [Audit Logging] as AL
+    [Prometheus] as P
+    [Grafana] as G
+    [Jaeger] as J
+    [ELK Stack] as ELK
+    [Alert Manager] as AM
 }
 
 package "Infrastructure Layer" {
@@ -78,10 +78,11 @@ package "Infrastructure Layer" {
 }
 
 package "CI/CD Pipeline" {
+    [Azure DevOps] as AD
     [Maven] as Maven
     [Docker] as Docker
-    [Docker Compose] as DC
-    [Local Development] as LD
+    [SonarQube] as SQ
+    [Trivy] as Trivy
 }
 
 package "External Integrations" {
@@ -139,10 +140,11 @@ JWT --> RSA : "Digital Signatures"
 SS3 --> BCrypt : "Password Hashing"
 
 ' Monitoring connections
-Micrometer2 --> SBA : "Metrics Collection"
-SBA --> CM2 : "Custom Metrics"
-SBA --> HC : "Health Checks"
-SBA --> AL : "Audit Logging"
+SBA --> P : "Metrics Export"
+P --> G : "Metrics Query"
+SBA --> J : "Trace Data"
+SBA --> ELK : "Log Data"
+P --> AM : "Alert Rules"
 
 ' Infrastructure connections
 Docker --> DC2 : "Container Orchestration"
@@ -151,9 +153,10 @@ LD2 --> SCG2 : "API Gateway"
 SCG2 --> SD : "Service Discovery"
 
 ' CI/CD connections
-Maven --> Docker : "Build Process"
-Docker --> DC : "Local Development"
-DC --> LD : "Development Environment"
+AD --> Maven : "Build Process"
+Maven --> Docker : "Container Build"
+Docker --> SQ : "Code Quality"
+Docker --> Trivy : "Security Scan"
 
 ' External integrations
 SB --> CSA : "Clearing System APIs"

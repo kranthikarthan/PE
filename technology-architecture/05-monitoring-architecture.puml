@@ -20,23 +20,24 @@ package "Infrastructure Layer" {
 }
 
 package "Metrics Collection" {
-    [Spring Boot Actuator] as SBA2
-    [Micrometer Registry] as MR
-    [Custom Metrics] as CM3
+    [Prometheus Server] as PS
+    [Metrics Scraper] as MS
     [Metrics Storage] as MST
-    [Metrics Aggregation] as MA
+    [Metrics Aggregator] as MA
 }
 
 package "Log Collection" {
-    [Structured Logging] as SL
-    [JSON Logging] as JL
+    [Fluentd] as Fluentd
+    [Filebeat] as FB
+    [Logstash] as LS
     [Log Aggregation] as LA
     [Log Parsing] as LP
     [Log Enrichment] as LE
 }
 
 package "Log Storage" {
-    [File System] as FS
+    [Elasticsearch] as ES
+    [Elasticsearch Index] as ESI
     [Log Retention] as LR
     [Log Archival] as LA2
     [Log Compression] as LC
@@ -44,23 +45,22 @@ package "Log Storage" {
 }
 
 package "Distributed Tracing" {
-    [Trace Context] as TC
-    [Span Management] as SM2
+    [Jaeger Collector] as JC
+    [Jaeger Query] as JQ
+    [Jaeger Storage] as JS
     [Trace Analysis] as TA
-    [Trace Export] as TE
-    [Trace Storage] as TS
 }
 
 package "Visualization" {
+    [Grafana] as G
+    [Grafana Dashboards] as GD
     [Custom Dashboards] as CD
     [Business Dashboards] as BD
     [Performance Dashboards] as PD
-    [Health Dashboards] as HD
-    [Security Dashboards] as SD
 }
 
 package "Alerting" {
-    [Custom Alerts] as CA
+    [Alert Manager] as AM
     [Alert Rules] as AR
     [Alert Routing] as AR2
     [Alert Grouping] as AG
@@ -100,50 +100,49 @@ JM --> DM : "Application Metrics"
 DM --> CacheM : "Performance Metrics"
 
 ' Metrics collection connections
-SBA2 --> MR : "Metrics Registry"
-MR --> CM3 : "Custom Metrics"
-CM3 --> MST : "Metrics Storage"
+PS --> MS : "Metrics Scraping"
+MS --> MST : "Metrics Storage"
 MST --> MA : "Metrics Aggregation"
 
-MM --> SBA2 : "Application Metrics"
-SM --> SBA2 : "System Metrics"
-JM --> SBA2 : "JVM Metrics"
-DM --> SBA2 : "Database Metrics"
-CacheM --> SBA2 : "Cache Metrics"
+MM --> PS : "Application Metrics"
+SM --> PS : "System Metrics"
+JM --> PS : "JVM Metrics"
+DM --> PS : "Database Metrics"
+CacheM --> PS : "Cache Metrics"
 
 ' Log collection connections
-SL --> LA : "Log Aggregation"
-JL --> LA : "Log Aggregation"
-LA --> LP : "Log Parsing"
+Fluentd --> LA : "Log Aggregation"
+FB --> LA : "Log Aggregation"
+LS --> LP : "Log Parsing"
 LP --> LE : "Log Enrichment"
-LE --> FS : "Log Storage"
+LE --> ES : "Log Storage"
 
 ' Log storage connections
-FS --> LR : "Log Retention"
+ES --> ESI : "Index Management"
+ESI --> LR : "Log Retention"
 LR --> LA2 : "Log Archival"
 LA2 --> LC : "Log Compression"
 LC --> LS2 : "Log Search"
 
 ' Distributed tracing connections
-TC --> SM2 : "Span Management"
-SM2 --> TA : "Trace Analysis"
-TA --> TE : "Trace Export"
-TE --> TS : "Trace Storage"
+JC --> JS : "Trace Storage"
+JS --> JQ : "Trace Query"
+JQ --> TA : "Trace Analysis"
 
-MM --> TC : "Trace Data"
-SBA --> TC : "Trace Data"
+MM --> JC : "Trace Data"
+SBA --> JC : "Trace Data"
 
 ' Visualization connections
-SBA2 --> CD : "Custom Dashboards"
-MST --> BD : "Business Dashboards"
-MA --> PD : "Performance Dashboards"
-HC --> HD : "Health Dashboards"
-CBM --> SD : "Security Dashboards"
+PS --> G : "Metrics Query"
+G --> GD : "Dashboard Management"
+GD --> CD : "Custom Dashboards"
+GD --> BD : "Business Dashboards"
+GD --> PD : "Performance Dashboards"
 
 ' Alerting connections
-SBA2 --> AR : "Alert Rules"
-AR --> CA : "Custom Alerts"
-CA --> AR2 : "Alert Routing"
+PS --> AR : "Alert Rules"
+AR --> AM : "Alert Manager"
+AM --> AR2 : "Alert Routing"
 AR2 --> AG : "Alert Grouping"
 AG --> NC : "Notification Channels"
 

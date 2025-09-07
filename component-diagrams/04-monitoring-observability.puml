@@ -10,39 +10,39 @@ package "Application Layer" {
 }
 
 package "Metrics Collection" {
-    [Spring Boot Actuator] as SBA
-    [Micrometer] as M
-    [Custom Metrics] as CM
+    [Prometheus Server] as PS
+    [Metrics Scraper] as MS
     [Metrics Storage] as MST
     [Metrics Aggregator] as MA
 }
 
 package "Distributed Tracing" {
-    [Trace Context] as TC
-    [Span Management] as SM
+    [Jaeger Collector] as JC
+    [Jaeger Query] as JQ
+    [Jaeger Storage] as JS
     [Trace Analyzer] as TA
-    [Trace Storage] as TS
 }
 
 package "Log Management" {
-    [Structured Logging] as SL2
-    [JSON Logging] as JL
+    [Elasticsearch] as ES
+    [Logstash] as LS
+    [Kibana] as K
     [Log Parser] as LP
-    [Log Storage] as LS
 }
 
 package "Alerting & Notification" {
-    [Custom Alerts] as CA
+    [Alert Manager] as AM
     [Notification Service] as NS
     [Alert Rules Engine] as ARE
     [Escalation Manager] as EM
 }
 
 package "Dashboards & Visualization" {
+    [Grafana] as G
+    [Grafana Dashboards] as GD
     [Custom Dashboards] as CD
     [Business Metrics] as BM
     [Performance Metrics] as PM
-    [Health Dashboards] as HD
 }
 
 package "Health Monitoring" {

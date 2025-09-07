@@ -95,12 +95,12 @@ package "Security & Compliance" {
     [Audit Logging] as AL2
 }
 
-package "Development & Deployment" {
+package "CI/CD Pipeline" {
+    [Azure DevOps] as AD
     [Maven Build] as MB
     [Docker Build] as DB
-    [Docker Compose] as DC
-    [Local Development] as LD
-    [Manual Deployment] as MD
+    [SonarQube] as SQ
+    [Trivy Scanner] as TS
 }
 
 package "External Services" {
@@ -198,10 +198,11 @@ OAuth2S --> SS : "Spring Security"
 OAuth2S --> AL2 : "Audit Logging"
 
 ' CI/CD connections
+AD --> MB : "Build Process"
 MB --> DB : "Build Images"
-DB --> DC : "Local Development"
-DC --> MD : "Manual Deployment"
-MD --> APIServer : "Deploy Services"
+DB --> SQ : "Code Quality"
+DB --> TS : "Security Scan"
+AD --> APIServer : "Deploy Services"
 
 ' External service connections
 GS1 --> CS : "Clearing System APIs"
@@ -280,12 +281,13 @@ Security Stack:
 - Audit logging
 end note
 
-note right of MB
+note right of AD
 CI/CD Pipeline:
+- Azure DevOps for automation
 - Maven for building
 - Docker for containerization
-- Docker Compose for local development
-- Manual deployment process
+- SonarQube for code quality
+- Trivy for security scanning
 end note
 
 @enduml

@@ -12,10 +12,11 @@ package "Development Environment" {
 }
 
 package "CI/CD Pipeline" {
+    [Azure DevOps] as AD
     [Maven Build] as MB
     [Docker Build] as DB
-    [Docker Compose] as DC
-    [Manual Deployment] as MD
+    [SonarQube] as SQ
+    [Trivy Scanner] as TS
 }
 
 package "Testing Environments" {
@@ -100,10 +101,12 @@ MK --> DevDB : "Development Database"
 MK --> DevKafka : "Development Kafka"
 
 ' CI/CD flow
-LD --> MB : "Maven Build"
+AD --> MB : "Maven Build"
 MB --> DB : "Docker Build"
-DB --> DC : "Docker Compose"
-DC --> MD : "Manual Deployment"
+DB --> SQ : "Code Quality"
+DB --> TS : "Security Scan"
+AD --> SK : "Deploy to Staging"
+AD --> PC : "Deploy to Production"
 
 ' Testing flow
 LD --> JUnit : "Unit Tests"
@@ -122,7 +125,7 @@ Gatling --> PE : "Performance Environment"
 PE --> LT : "Load Testing"
 
 ' Staging flow
-MD --> SK : "Staging Deployment"
+AD --> SK : "Staging Deployment"
 SK --> StagingDB : "Staging Database"
 SK --> StagingKafka : "Staging Kafka"
 SK --> StagingRedis : "Staging Redis"
@@ -130,7 +133,7 @@ SK --> SM : "Staging Monitoring"
 SK --> UAT : "User Acceptance Testing"
 
 ' Production flow
-MD --> PC : "Production Deployment"
+AD --> PC : "Production Deployment"
 PC --> PG : "Production Gateway"
 PC --> PM : "Production Middleware"
 PC --> PCB : "Production Core Banking"
@@ -172,13 +175,14 @@ Development Workflow:
 - Code review process
 end note
 
-note right of MB
+note right of AD
 CI/CD Pipeline:
+- Azure DevOps for automation
 - Maven for building
 - Docker for containerization
-- Docker Compose for local development
-- Manual deployment process
-- Local testing and validation
+- SonarQube for code quality
+- Trivy for security scanning
+- Automated deployment to environments
 end note
 
 note right of JUnit

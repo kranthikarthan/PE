@@ -83,14 +83,14 @@ package "Data Layer Cluster" {
 
 package "Monitoring Cluster" {
     node "Monitoring Node 1" {
-        [Spring Boot Actuator] as SBA
-        [Micrometer] as M
-        [Custom Dashboards] as CD
+        [Prometheus] as P
+        [Grafana] as G
+        [Alert Manager] as AM
     }
     
     node "Monitoring Node 2" {
-        [Structured Logging] as SL
-        [Custom Alerts] as CA
+        [Jaeger] as J
+        [ELK Stack] as ELK
         [Log Aggregator] as LA
     }
 }
@@ -188,22 +188,22 @@ MS1 --> J : Trace Data
 MS2 --> J : Trace Data
 MS3 --> J : Trace Data
 
-MS1 --> SL : Log Data
-MS2 --> SL : Log Data
-MS3 --> SL : Log Data
-CBS --> SL : Log Data
+MS1 --> ELK : Log Data
+MS2 --> ELK : Log Data
+MS3 --> ELK : Log Data
+CBS --> ELK : Log Data
 
-MS1 --> SBA : Metrics Query
-MS2 --> SBA : Metrics Query
-MS3 --> SBA : Metrics Query
-CBS --> SBA : Metrics Query
+MS1 --> P : Metrics Query
+MS2 --> P : Metrics Query
+MS3 --> P : Metrics Query
+CBS --> P : Metrics Query
 
-SBA --> M : Metrics Data
-M --> CD : Dashboard Data
-SL --> CD : Log Data
+P --> G : Metrics Data
+J --> G : Trace Data
+ELK --> G : Log Data
 
-SBA --> CA : Alert Rules
-CA --> CD : Alert Dashboard
+P --> AM : Alert Rules
+AM --> G : Alert Dashboard
 
 ' Security connections
 SCG1 --> OAuth2S : Token Validation

@@ -83,7 +83,7 @@ package "Data Layer" {
     database "PostgreSQL" as PG
     database "Redis" as R
     database "Kafka" as K
-    database "OAuth2/JWT" as OAuth2
+    database "Azure Key Vault" as AKV
 }
 
 package "External Systems" {
@@ -156,8 +156,8 @@ MS --> EncS
 MS --> DSS
 MS --> AudS
 MS --> CompS
-EncS --> OAuth2
-DSS --> OAuth2
+EncS --> AKV
+DSS --> AKV
 
 ' External connections
 CSA --> CS2
