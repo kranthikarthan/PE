@@ -1,0 +1,145 @@
+@startuml SECURITY_ARCHITECTURE
+!theme plain
+title Security Architecture Components
+
+package "Authentication & Authorization" {
+    [OAuth2 Server] as OAuth2S
+    [JWT Token Service] as JWT
+    [Authentication Manager] as AM
+    [Authorization Manager] as AZM
+    [User Principal] as UP
+}
+
+package "API Gateway Security" {
+    [Security Filter Chain] as SFC
+    [JWT Authentication Converter] as JWTAC
+    [Scope Validator] as SV
+    [Rate Limiter] as RL
+    [CORS Filter] as CF
+}
+
+package "Message Security" {
+    [Message Encryption Service] as MES
+    [Digital Signature Service] as DSS
+    [Key Management Service] as KMS
+    [Certificate Manager] as CM
+}
+
+package "Audit & Compliance" {
+    [Audit Logging Service] as ALS
+    [Security Event Monitor] as SEM
+    [Compliance Reporter] as CR
+    [Audit Trail Generator] as ATG
+}
+
+package "Infrastructure Security" {
+    [Network Security] as NS
+    [Database Security] as DBS
+    [Cache Security] as CS
+    [Message Queue Security] as MQS
+}
+
+package "Monitoring & Alerting" {
+    [Security Metrics Collector] as SMC
+    [Threat Detection] as TD
+    [Incident Response] as IR
+    [Security Dashboard] as SD
+}
+
+' Authentication flow
+OAuth2S --> JWT : Generate Token
+JWT --> AM : Validate Token
+AM --> UP : Create Principal
+UP --> AZM : Check Authorization
+
+' API Gateway security
+SFC --> JWTAC : Token Validation
+JWTAC --> SV : Scope Validation
+SFC --> RL : Rate Limiting
+SFC --> CF : CORS Protection
+
+' Message security
+MES --> KMS : Get Encryption Key
+MES --> MES : Encrypt Message
+DSS --> CM : Get Certificate
+DSS --> DSS : Sign Message
+
+' Audit and compliance
+ALS --> SEM : Log Security Events
+SEM --> CR : Generate Reports
+CR --> ATG : Create Audit Trails
+
+' Infrastructure security
+NS --> DBS : Database Protection
+NS --> CS : Cache Protection
+NS --> MQS : Message Queue Protection
+
+' Monitoring and alerting
+SMC --> TD : Collect Security Metrics
+TD --> IR : Detect Threats
+IR --> SD : Update Dashboard
+
+' Cross-component connections
+AM --> ALS : Log Authentication
+AZM --> ALS : Log Authorization
+MES --> ALS : Log Encryption
+DSS --> ALS : Log Signatures
+SFC --> SMC : Security Metrics
+RL --> SMC : Rate Limit Metrics
+
+note right of OAuth2S
+OAuth2 Server Features:
+- Client credentials flow
+- JWT token generation
+- Scope management
+- Token validation
+- Token refresh
+- Client management
+end note
+
+note right of MES
+Message Encryption Service:
+- AES-GCM encryption
+- Key rotation
+- IV generation
+- Message integrity
+- Performance optimization
+end note
+
+note right of DSS
+Digital Signature Service:
+- RSA digital signatures
+- SHA-256 hashing
+- Certificate validation
+- Signature verification
+- Key management
+end note
+
+note right of ALS
+Audit Logging Service:
+- Comprehensive audit trails
+- Security event logging
+- Compliance reporting
+- Real-time monitoring
+- Data retention
+end note
+
+note right of SMC
+Security Metrics Collector:
+- Authentication metrics
+- Authorization metrics
+- Encryption metrics
+- Rate limiting metrics
+- Threat detection metrics
+end note
+
+note right of TD
+Threat Detection:
+- Anomaly detection
+- Pattern recognition
+- Risk scoring
+- Threat intelligence
+- Automated response
+end note
+
+@enduml

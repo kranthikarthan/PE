@@ -1,0 +1,166 @@
+@startuml ISO20022_MESSAGE_PROCESSING
+!theme plain
+title ISO 20022 Message Processing Components
+
+package "Message Processing Layer" {
+    [Comprehensive ISO20022 Controller] as CIC
+    [Message Flow Service] as MFS
+    [Transformation Service] as TS
+    [Validation Service] as VS
+    [Routing Service] as RS
+}
+
+package "Message Types" {
+    [PAIN.001] as P001
+    [PAIN.002] as P002
+    [PACS.008] as P008
+    [PACS.002] as P002_2
+    [PACS.004] as P004
+    [PACS.007] as P007
+    [PACS.028] as P028
+    [CAMT.054] as C054
+    [CAMT.055] as C055
+    [CAMT.029] as C029
+}
+
+package "Transformation Engine" {
+    [PAIN.001 to PACS.008 Transformer] as T1
+    [PACS.002 to PAIN.002 Transformer] as T2
+    [PACS.004 Transformer] as T3
+    [PACS.007 Transformer] as T4
+    [PACS.028 Transformer] as T5
+    [CAMT.054 Transformer] as T6
+    [CAMT.055 to CAMT.029 Transformer] as T7
+}
+
+package "Validation Engine" {
+    [Schema Validator] as SV
+    [Business Rule Validator] as BRV
+    [Field Validator] as FV
+    [Format Validator] as FV2
+}
+
+package "Routing Engine" {
+    [Tenant Router] as TR
+    [Payment Type Router] as PTR
+    [Local Instrument Router] as LIR
+    [Clearing System Router] as CSR
+}
+
+package "Configuration Management" {
+    [Scheme Configuration] as SC
+    [Clearing System Configuration] as CSC
+    [Tenant Configuration] as TC
+    [Routing Rules] as RR
+}
+
+package "External Integration" {
+    [Clearing System Adapter] as CSA
+    [Webhook Delivery Service] as WDS
+    [Kafka Message Producer] as KMP
+}
+
+' Message flow connections
+CIC --> MFS : Process Message
+MFS --> VS : Validate Message
+VS --> TS : Transform Message
+TS --> RS : Route Message
+RS --> CSA : Send to Clearing System
+
+' Message type connections
+P001 --> T1 : Transform
+T1 --> P008 : Output
+P002_2 --> T2 : Transform
+T2 --> P002 : Output
+P004 --> T3 : Transform
+P007 --> T4 : Transform
+P028 --> T5 : Transform
+C054 --> T6 : Transform
+C055 --> T7 : Transform
+T7 --> C029 : Output
+
+' Validation connections
+VS --> SV : Schema Validation
+VS --> BRV : Business Rules
+VS --> FV : Field Validation
+VS --> FV2 : Format Validation
+
+' Routing connections
+RS --> TR : Tenant Routing
+RS --> PTR : Payment Type Routing
+RS --> LIR : Local Instrument Routing
+RS --> CSR : Clearing System Routing
+
+' Configuration connections
+TR --> TC : Tenant Config
+PTR --> SC : Scheme Config
+LIR --> SC : Scheme Config
+CSR --> CSC : Clearing System Config
+CSR --> RR : Routing Rules
+
+' External integration connections
+CSA --> WDS : Webhook Delivery
+CSA --> KMP : Kafka Messages
+
+' Response handling
+CSA --> MFS : Response Processing
+MFS --> TS : Response Transformation
+TS --> CIC : Return Response
+
+note right of CIC
+Comprehensive ISO20022 Controller:
+- Handles all ISO 20022 message types
+- Supports JSON and XML formats
+- Configurable response modes
+- Comprehensive error handling
+- Audit logging
+end note
+
+note right of MFS
+Message Flow Service:
+- Orchestrates message processing
+- Manages message lifecycle
+- Handles error scenarios
+- Coordinates transformations
+- Manages routing decisions
+end note
+
+note right of TS
+Transformation Service:
+- PAIN.001 → PACS.008
+- PACS.002 → PAIN.002
+- PACS.004 processing
+- PACS.007 processing
+- PACS.028 processing
+- CAMT.054 processing
+- CAMT.055 → CAMT.029
+end note
+
+note right of VS
+Validation Service:
+- ISO 20022 schema validation
+- Business rule validation
+- Field-level validation
+- Format validation
+- Cross-field validation
+end note
+
+note right of RS
+Routing Service:
+- Tenant-based routing
+- Payment type routing
+- Local instrument routing
+- Clearing system routing
+- Load balancing
+end note
+
+note right of CSA
+Clearing System Adapter:
+- Protocol translation
+- Message format conversion
+- Authentication handling
+- Error handling
+- Retry logic
+end note
+
+@enduml

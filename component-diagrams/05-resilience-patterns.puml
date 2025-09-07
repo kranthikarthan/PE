@@ -1,0 +1,185 @@
+@startuml RESILIENCE_PATTERNS
+!theme plain
+title Resilience Patterns & Circuit Breaker Architecture
+
+package "Resilience4j Components" {
+    [Circuit Breaker] as CB
+    [Retry] as R
+    [Time Limiter] as TL
+    [Bulkhead] as BH
+    [Rate Limiter] as RL
+}
+
+package "Circuit Breaker States" {
+    [CLOSED State] as CS
+    [OPEN State] as OS
+    [HALF_OPEN State] as HOS
+    [State Transition Manager] as STM
+}
+
+package "Retry Mechanisms" {
+    [Exponential Backoff] as EB
+    [Fixed Delay] as FD
+    [Random Delay] as RD
+    [Retry Policy] as RP
+}
+
+package "Bulkhead Isolation" {
+    [Thread Pool Bulkhead] as TPB
+    [Semaphore Bulkhead] as SB
+    [Resource Isolation] as RI
+    [Isolation Manager] as IM
+}
+
+package "Rate Limiting" {
+    [Token Bucket] as TB
+    [Sliding Window] as SW
+    [Fixed Window] as FW
+    [Rate Limiter Manager] as RLM
+}
+
+package "Timeout Management" {
+    [Request Timeout] as RT
+    [Connection Timeout] as CT
+    [Read Timeout] as RDT
+    [Timeout Manager] as TM
+}
+
+package "Fallback Mechanisms" {
+    [Fallback Service] as FS
+    [Default Response] as DR
+    [Cached Response] as CR
+    [Fallback Manager] as FM
+}
+
+package "Monitoring & Metrics" {
+    [Resilience Metrics] as RM
+    [State Metrics] as SM
+    [Performance Metrics] as PM
+    [Alert Manager] as AM
+}
+
+' Circuit breaker connections
+CB --> CS : Normal Operation
+CB --> OS : Failure Threshold
+CB --> HOS : Recovery Testing
+STM --> CB : State Management
+
+' Retry connections
+R --> EB : Exponential Backoff
+R --> FD : Fixed Delay
+R --> RD : Random Delay
+RP --> R : Retry Policy
+
+' Bulkhead connections
+BH --> TPB : Thread Pool
+BH --> SB : Semaphore
+RI --> BH : Resource Isolation
+IM --> BH : Isolation Management
+
+' Rate limiting connections
+RL --> TB : Token Bucket
+RL --> SW : Sliding Window
+RL --> FW : Fixed Window
+RLM --> RL : Rate Management
+
+' Timeout connections
+TL --> RT : Request Timeout
+TL --> CT : Connection Timeout
+TL --> RDT : Read Timeout
+TM --> TL : Timeout Management
+
+' Fallback connections
+FS --> DR : Default Response
+FS --> CR : Cached Response
+FM --> FS : Fallback Management
+
+' Monitoring connections
+CB --> RM : Circuit Breaker Metrics
+R --> RM : Retry Metrics
+BH --> RM : Bulkhead Metrics
+RL --> RM : Rate Limiter Metrics
+TL --> RM : Timeout Metrics
+
+RM --> SM : State Metrics
+RM --> PM : Performance Metrics
+RM --> AM : Alert Generation
+
+' Cross-component connections
+CB --> R : Retry on Failure
+CB --> TL : Timeout Protection
+CB --> BH : Resource Isolation
+CB --> RL : Rate Limiting
+CB --> FS : Fallback Response
+
+note right of CB
+Circuit Breaker Features:
+- Failure rate threshold: 50%
+- Minimum calls: 5
+- Wait duration: 30s
+- Half-open calls: 3
+- Automatic recovery
+- State monitoring
+end note
+
+note right of R
+Retry Mechanisms:
+- Max attempts: 3
+- Exponential backoff
+- Jitter support
+- Exception handling
+- Performance optimization
+- Circuit breaker integration
+end note
+
+note right of BH
+Bulkhead Isolation:
+- Max concurrent calls: 10
+- Wait duration: 1s
+- Resource isolation
+- Thread pool management
+- Semaphore control
+- Performance protection
+end note
+
+note right of RL
+Rate Limiting:
+- Limit: 100 req/sec
+- Token bucket algorithm
+- Burst capacity: 200
+- Timeout: 1s
+- Per-user limiting
+- Dynamic adjustment
+end note
+
+note right of TL
+Timeout Management:
+- Request timeout: 30s
+- Connection timeout: 5s
+- Read timeout: 10s
+- Cancellation support
+- Performance optimization
+- Error handling
+end note
+
+note right of FS
+Fallback Mechanisms:
+- Default responses
+- Cached responses
+- Service degradation
+- Error handling
+- User experience
+- Business continuity
+end note
+
+note right of RM
+Resilience Metrics:
+- Circuit breaker state
+- Retry attempts
+- Bulkhead utilization
+- Rate limit violations
+- Timeout occurrences
+- Fallback activations
+end note
+
+@enduml
