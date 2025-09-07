@@ -6,6 +6,7 @@ import com.paymentengine.middleware.repository.FraudRiskAssessmentRepository;
 import com.paymentengine.middleware.repository.FraudRiskConfigurationRepository;
 import com.paymentengine.middleware.service.FraudRiskMonitoringService;
 import com.paymentengine.middleware.service.ExternalFraudApiService;
+import com.paymentengine.middleware.service.FraudApiToggleService;
 import com.paymentengine.middleware.service.RiskAssessmentEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,9 @@ public class FraudRiskMonitoringServiceImpl implements FraudRiskMonitoringServic
     @Autowired
     private RiskAssessmentEngine riskAssessmentEngine;
     
+    @Autowired
+    private FraudApiToggleService fraudApiToggleService;
+    
     @Override
     public CompletableFuture<FraudRiskAssessment> assessPaymentRisk(
             String transactionReference,
@@ -72,6 +76,23 @@ public class FraudRiskMonitoringServiceImpl implements FraudRiskMonitoringServic
                 
                 // Save initial assessment
                 assessment = fraudRiskAssessmentRepository.save(assessment);
+                
+                // Check if fraud API is enabled for this context
+                boolean fraudApiEnabled = fraudApiToggleService.isFraudApiEnabled(
+                        tenantId, paymentType, localInstrumentationCode, clearingSystemCode);
+                
+                if (!fraudApiEnabled) {
+                    logger.info("Fraud API is disabled for transaction: {}, tenant: {}, paymentType: {}, localInstrument: {}, clearingSystem: {}", 
+                               transactionReference, tenantId, paymentType, localInstrumentationCode, clearingSystemCode);
+                    assessment.setStatus(FraudRiskAssessment.AssessmentStatus.COMPLETED);
+                    assessment.setDecision(FraudRiskAssessment.Decision.APPROVE);
+                    assessment.setDecisionReason("Fraud API is disabled for this context - automatic approval");
+                    assessment.setRiskLevel(FraudRiskAssessment.RiskLevel.LOW);
+                    assessment.setRiskScore(BigDecimal.ZERO);
+                    assessment.setProcessingTimeMs(System.currentTimeMillis() - startTime);
+                    
+                    return fraudRiskAssessmentRepository.save(assessment);
+                }
                 
                 // Get applicable configurations
                 List<FraudRiskConfiguration> configurations = getApplicableConfigurations(
