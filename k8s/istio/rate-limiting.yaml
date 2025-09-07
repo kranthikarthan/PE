@@ -1,0 +1,189 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ratelimit-config
+  namespace: payment-engine
+  labels:
+    app: ratelimit-config
+    version: v1
+data:
+  config.yaml: |
+    domain: payment-engine
+    descriptors:
+      # Global rate limiting
+      - key: generic_key
+        value: global
+        rate_limit:
+          unit: minute
+          requests_per_unit: 1000
+      
+      # API endpoint rate limiting
+      - key: generic_key
+        value: api
+        rate_limit:
+          unit: minute
+          requests_per_unit: 500
+      
+      # Tenant-specific rate limiting
+      - key: tenant_id
+        rate_limit:
+          unit: minute
+          requests_per_unit: 100
+      
+      # Payment processing rate limiting
+      - key: generic_key
+        value: payment-processing
+        rate_limit:
+          unit: minute
+          requests_per_unit: 200
+      
+      # Auth service rate limiting
+      - key: generic_key
+        value: auth
+        rate_limit:
+          unit: minute
+          requests_per_unit: 300
+      
+      # Certificate management rate limiting
+      - key: generic_key
+        value: certificates
+        rate_limit:
+          unit: minute
+          requests_per_unit: 50
+      
+      # Multi-level auth rate limiting
+      - key: generic_key
+        value: multi-level-auth
+        rate_limit:
+          unit: minute
+          requests_per_unit: 100
+      
+      # Enhanced tenant setup rate limiting
+      - key: generic_key
+        value: enhanced-tenant-setup
+        rate_limit:
+          unit: minute
+          requests_per_unit: 20
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: ratelimit
+  namespace: payment-engine
+  labels:
+    app: ratelimit
+    version: v1
+spec:
+  workloadSelector:
+    labels:
+      app: istio-ingressgateway
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.ratelimit
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
+          domain: payment-engine
+          failure_mode_deny: true
+          rate_limit_service:
+            grpc_service:
+              envoy_grpc:
+                cluster_name: rate_limit_cluster
+              timeout: 0.25s
+  - applyTo: CLUSTER
+    patch:
+      operation: ADD
+      value:
+        name: rate_limit_cluster
+        type: STRICT_DNS
+        connect_timeout: 0.25s
+        lb_policy: ROUND_ROBIN
+        http2_protocol_options: {}
+        load_assignment:
+          cluster_name: rate_limit_cluster
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: redis
+                    port_value: 6379
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: ratelimit-config
+  namespace: payment-engine
+  labels:
+    app: ratelimit-config
+    version: v1
+spec:
+  workloadSelector:
+    labels:
+      app: istio-ingressgateway
+  configPatches:
+  - applyTo: HTTP_ROUTE
+    match:
+      context: GATEWAY
+      routeConfiguration:
+        vhost:
+          route:
+            action: ANY
+    patch:
+      operation: MERGE
+      value:
+        route:
+          rate_limits:
+          - actions:
+            - generic_key:
+                descriptor_value: "global"
+          - actions:
+            - generic_key:
+                descriptor_value: "api"
+          - actions:
+            - header_value_match:
+                descriptor_value: "payment-processing"
+                headers:
+                - name: ":path"
+                  string_match:
+                    prefix: "/api/v1/payment-processing"
+          - actions:
+            - header_value_match:
+                descriptor_value: "auth"
+                headers:
+                - name: ":path"
+                  string_match:
+                    prefix: "/api/v1/auth"
+          - actions:
+            - header_value_match:
+                descriptor_value: "certificates"
+                headers:
+                - name: ":path"
+                  string_match:
+                    prefix: "/api/v1/certificates"
+          - actions:
+            - header_value_match:
+                descriptor_value: "multi-level-auth"
+                headers:
+                - name: ":path"
+                  string_match:
+                    prefix: "/api/v1/multi-level-auth"
+          - actions:
+            - header_value_match:
+                descriptor_value: "enhanced-tenant-setup"
+                headers:
+                - name: ":path"
+                  string_match:
+                    prefix: "/api/v1/enhanced-tenant-setup"
+          - actions:
+            - request_headers:
+                header_name: "x-tenant-id"
+                descriptor_key: "tenant_id"

@@ -1,0 +1,209 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: request-id-filter
+  namespace: payment-engine
+  labels:
+    app: request-id-filter
+    version: v1
+spec:
+  workloadSelector:
+    labels:
+      app: istio-ingressgateway
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.lua
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+          inline_code: |
+            function envoy_on_request(request_handle)
+              -- Generate request ID if not present
+              local request_id = request_handle:headers():get("x-request-id")
+              if not request_id then
+                request_id = request_handle:headers():get("x-correlation-id")
+              end
+              if not request_id then
+                request_id = string.format("%s-%s", os.time(), math.random(1000, 9999))
+              end
+              request_handle:headers():add("x-request-id", request_id)
+              
+              -- Add timestamp
+              request_handle:headers():add("x-request-timestamp", os.date("!%Y-%m-%dT%H:%M:%SZ"))
+              
+              -- Log request
+              request_handle:logInfo("Request: " .. request_handle:headers():get(":method") .. " " .. request_handle:headers():get(":path") .. " [ID: " .. request_id .. "]")
+            end
+            
+            function envoy_on_response(response_handle)
+              -- Add response headers
+              local request_id = response_handle:headers():get("x-request-id")
+              if request_id then
+                response_handle:headers():add("x-response-id", request_id)
+              end
+              
+              -- Add response timestamp
+              response_handle:headers():add("x-response-timestamp", os.date("!%Y-%m-%dT%H:%M:%SZ"))
+              
+              -- Log response
+              response_handle:logInfo("Response: " .. response_handle:headers():get(":status") .. " [ID: " .. (request_id or "unknown") .. "]")
+            end
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: tenant-header-filter
+  namespace: payment-engine
+  labels:
+    app: tenant-header-filter
+    version: v1
+spec:
+  workloadSelector:
+    labels:
+      app: istio-ingressgateway
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.lua
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+          inline_code: |
+            function envoy_on_request(request_handle)
+              local host = request_handle:headers():get(":authority")
+              local path = request_handle:headers():get(":path")
+              
+              -- Extract tenant ID from host
+              if host then
+                local tenant_id = string.match(host, "tenant%-(%d+)%.payment%-engine%.local")
+                if tenant_id then
+                  request_handle:headers():add("x-tenant-id", "tenant-" .. tenant_id)
+                  request_handle:headers():add("x-service-type", "payment-processing")
+                  request_handle:headers():add("x-route-context", "tenant-specific")
+                end
+              end
+              
+              -- Extract service type from path
+              if path then
+                if string.match(path, "^/api/v1/payment%-processing") then
+                  request_handle:headers():add("x-service-type", "payment-processing")
+                elseif string.match(path, "^/api/v1/core%-banking") then
+                  request_handle:headers():add("x-service-type", "core-banking")
+                elseif string.match(path, "^/api/v1/auth") then
+                  request_handle:headers():add("x-service-type", "auth")
+                elseif string.match(path, "^/api/v1/config") then
+                  request_handle:headers():add("x-service-type", "config")
+                elseif string.match(path, "^/api/v1/discovery") then
+                  request_handle:headers():add("x-service-type", "discovery")
+                elseif string.match(path, "^/api/v1/gateway") then
+                  request_handle:headers():add("x-service-type", "gateway")
+                elseif string.match(path, "^/api/v1/shared") then
+                  request_handle:headers():add("x-service-type", "shared")
+                end
+              end
+            end
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: security-headers-filter
+  namespace: payment-engine
+  labels:
+    app: security-headers-filter
+    version: v1
+spec:
+  workloadSelector:
+    labels:
+      app: istio-ingressgateway
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.lua
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+          inline_code: |
+            function envoy_on_response(response_handle)
+              -- Add security headers
+              response_handle:headers():add("X-Content-Type-Options", "nosniff")
+              response_handle:headers():add("X-Frame-Options", "DENY")
+              response_handle:headers():add("X-XSS-Protection", "1; mode=block")
+              response_handle:headers():add("Referrer-Policy", "strict-origin-when-cross-origin")
+              response_handle:headers():add("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+              
+              -- Add HSTS header for HTTPS
+              local scheme = response_handle:headers():get(":scheme")
+              if scheme == "https" then
+                response_handle:headers():add("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+              end
+            end
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: downstream-routing-filter
+  namespace: payment-engine
+  labels:
+    app: downstream-routing-filter
+    version: v1
+spec:
+  workloadSelector:
+    labels:
+      app: istio-ingressgateway
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.lua
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+          inline_code: |
+            function envoy_on_request(request_handle)
+              local path = request_handle:headers():get(":path")
+              local tenant_id = request_handle:headers():get("x-tenant-id")
+              
+              -- Add downstream routing headers for external service calls
+              if path and string.match(path, "^/api/v1/outgoing%-http") then
+                request_handle:headers():add("x-downstream-route", "external-service")
+                
+                -- Add bank-specific routing headers
+                if tenant_id then
+                  if tenant_id == "tenant-001" then
+                    request_handle:headers():add("x-bank-route", "bank-001-nginx")
+                  elseif tenant_id == "tenant-002" then
+                    request_handle:headers():add("x-bank-route", "bank-002-nginx")
+                  elseif tenant_id == "tenant-003" then
+                    request_handle:headers():add("x-bank-route", "bank-003-nginx")
+                  end
+                end
+              end
+            end

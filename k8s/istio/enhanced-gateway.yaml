@@ -1,0 +1,112 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: payment-engine-gateway
+  namespace: payment-engine
+  labels:
+    app: payment-engine-gateway
+    version: v1
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  # Main API Gateway
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - payment-engine.local
+    - "*.payment-engine.local"
+    tls:
+      httpsRedirect: true
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    hosts:
+    - payment-engine.local
+    - "*.payment-engine.local"
+    tls:
+      mode: SIMPLE
+      credentialName: payment-engine-tls
+  # Admin/Management Interface
+  - port:
+      number: 8080
+      name: admin-http
+      protocol: HTTP
+    hosts:
+    - admin.payment-engine.local
+  # Health Check Endpoints
+  - port:
+      number: 8081
+      name: health
+      protocol: HTTP
+    hosts:
+    - health.payment-engine.local
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: frontend-gateway
+  namespace: payment-engine
+  labels:
+    app: frontend-gateway
+    version: v1
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 3000
+      name: frontend-http
+      protocol: HTTP
+    hosts:
+    - frontend.payment-engine.local
+    - "*.frontend.payment-engine.local"
+    tls:
+      httpsRedirect: true
+  - port:
+      number: 3443
+      name: frontend-https
+      protocol: HTTPS
+    hosts:
+    - frontend.payment-engine.local
+    - "*.frontend.payment-engine.local"
+    tls:
+      mode: SIMPLE
+      credentialName: frontend-tls
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: tenant-gateway
+  namespace: payment-engine
+  labels:
+    app: tenant-gateway
+    version: v1
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 8082
+      name: tenant-http
+      protocol: HTTP
+    hosts:
+    - tenant-001.payment-engine.local
+    - tenant-002.payment-engine.local
+    - tenant-003.payment-engine.local
+    - "*.tenant.payment-engine.local"
+  - port:
+      number: 8443
+      name: tenant-https
+      protocol: HTTPS
+    hosts:
+    - tenant-001.payment-engine.local
+    - tenant-002.payment-engine.local
+    - tenant-003.payment-engine.local
+    - "*.tenant.payment-engine.local"
+    tls:
+      mode: SIMPLE
+      credentialName: tenant-tls
