@@ -17,6 +17,7 @@ A comprehensive payment processing system built with Spring Boot and React, supp
 ### Architecture & Infrastructure
 - **Microservices Architecture**: Service mesh with Istio, dedicated services for auth, config, and monitoring
 - **Multi-Tenant Istio**: Host-based routing with automatic conflict resolution for same host + same port scenarios
+- **Downstream Routing**: Header-based routing for external services using same host:port with tenant isolation
 - **Event Sourcing & CQRS**: Event-driven architecture with event store and projections
 - **Resiliency & Self-Healing**: Circuit breakers, retry mechanisms, bulkhead patterns, and automated recovery
 - **Security**: OAuth2/JWT/JWS, message encryption, digital signatures, configurable client headers, and comprehensive audit logging
@@ -139,6 +140,7 @@ sudo ./infrastructure/air-gapped/offline-deploy.sh
 - [Tenant Cloning and Migration Guide](TENANT_CLONING_AND_MIGRATION_GUIDE.md) - Complete tenant configuration management
 - [JWS and Client Headers Implementation Guide](JWS_AND_CLIENT_HEADERS_IMPLEMENTATION_GUIDE.md) - Advanced authentication and client header configuration
 - [Istio Multi-Tenancy Solution](ISTIO_MULTITENANCY_SOLUTION.md) - Multi-tenant Istio configuration with conflict resolution
+- [Downstream Routing Solution](DOWNSTREAM_ROUTING_SOLUTION.md) - Same host/port routing conflicts resolution for external services
 
 ### Configuration & Customization
 - [Configuration Management](docs/CONFIGURATION_GUIDE.md) - Environment-specific configurations
@@ -289,6 +291,36 @@ npm audit
 - **Development**: https://tenant-001.dev.payment-engine.local
 - **Staging**: https://tenant-001.staging.payment-engine.local
 - **Production**: https://tenant-001.prod.payment-engine.local
+
+## 🔄 Downstream Routing Solution
+
+### Same Host/Port Conflict Resolution
+- **Header-Based Routing**: Uses HTTP headers to route to different services via same host:port
+- **Tenant Isolation**: Complete isolation between tenants using X-Tenant-ID headers
+- **Service Type Routing**: Automatic routing based on X-Service-Type headers
+- **External Service Integration**: Seamless integration with bank's NGINX and external systems
+
+### Deployment Commands
+```bash
+# Deploy downstream routing solution
+./scripts/deploy-downstream-routing.sh --host bank-nginx.example.com --port 443
+
+# Test downstream routing
+./scripts/test-downstream-routing.sh --url https://payment-engine.local
+```
+
+### API Endpoints
+- **Fraud System**: `POST /api/v1/downstream/fraud/{tenantId}`
+- **Clearing System**: `POST /api/v1/downstream/clearing/{tenantId}`
+- **Auto-Routing**: `POST /api/v1/downstream/auto/{tenantId}`
+- **Specific Service**: `POST /api/v1/downstream/service/{tenantId}/{serviceType}`
+
+### Routing Headers
+- **X-Tenant-ID**: Identifies the tenant
+- **X-Service-Type**: Identifies the service (fraud/clearing)
+- **X-Route-Context**: Combines tenant and service
+- **X-Downstream-Route**: Final routing destination
+- **X-Bank-Route**: Bank-specific routing path
 
 ## 📊 Monitoring & Observability
 
