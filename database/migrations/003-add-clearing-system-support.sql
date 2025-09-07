@@ -76,7 +76,10 @@ CREATE TABLE IF NOT EXISTS clearing_system_endpoints (
     clearing_system_id UUID NOT NULL,
     name VARCHAR(100) NOT NULL,
     endpoint_type VARCHAR(50) NOT NULL, -- SYNC, ASYNC, POLLING, WEBHOOK
-    message_type VARCHAR(50) NOT NULL, -- pacs008, pacs002, pain001, pain002
+    message_type VARCHAR(50) NOT NULL, -- pacs008, pacs002, pain001, pain002, pacs004, pacs007, pacs028, camt054, camt055, camt056, camt029
+    message_format VARCHAR(10), -- JSON, XML
+    response_mode VARCHAR(20), -- IMMEDIATE, ASYNC, KAFKA, WEBHOOK
+    flow_direction VARCHAR(30), -- CLIENT_TO_CLEARING, CLEARING_TO_CLIENT, BIDIRECTIONAL
     url VARCHAR(500) NOT NULL,
     http_method VARCHAR(10), -- GET, POST, PUT, DELETE
     timeout_ms INTEGER,
@@ -284,48 +287,48 @@ INSERT INTO tenant_clearing_system_mappings (tenant_id, payment_type, local_inst
 ON CONFLICT (tenant_id, payment_type, local_instrument_code) DO NOTHING;
 
 -- Insert default endpoints for each clearing system
-INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
-SELECT cs.id, 'PACS008 Sync Endpoint', 'SYNC', 'pacs008', cs.endpoint_url || '/sync/pacs008', 'POST', cs.timeout_seconds * 1000, 3, cs.authentication_type, 1, 'Synchronous PACS008 endpoint'
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, message_format, response_mode, flow_direction, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'PACS008 Sync Endpoint', 'SYNC', 'pacs008', 'JSON', 'IMMEDIATE', 'CLIENT_TO_CLEARING', cs.endpoint_url || '/sync/pacs008', 'POST', cs.timeout_seconds * 1000, 3, cs.authentication_type, 1, 'Synchronous PACS008 endpoint'
 FROM clearing_systems cs
 ON CONFLICT DO NOTHING;
 
-INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
-SELECT cs.id, 'PACS008 Async Endpoint', 'ASYNC', 'pacs008', cs.endpoint_url || '/async/pacs008', 'POST', cs.timeout_seconds * 1000, 3, cs.authentication_type, 1, 'Asynchronous PACS008 endpoint'
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, message_format, response_mode, flow_direction, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'PACS008 Async Endpoint', 'ASYNC', 'pacs008', 'JSON', 'ASYNC', 'CLIENT_TO_CLEARING', cs.endpoint_url || '/async/pacs008', 'POST', cs.timeout_seconds * 1000, 3, cs.authentication_type, 1, 'Asynchronous PACS008 endpoint'
 FROM clearing_systems cs
 ON CONFLICT DO NOTHING;
 
-INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
-SELECT cs.id, 'PACS002 Response Endpoint', 'WEBHOOK', 'pacs002', cs.endpoint_url || '/webhook/pacs002', 'POST', 30000, 3, cs.authentication_type, 1, 'PACS002 response webhook endpoint'
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, message_format, response_mode, flow_direction, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'PACS002 Response Endpoint', 'WEBHOOK', 'pacs002', 'JSON', 'WEBHOOK', 'CLEARING_TO_CLIENT', cs.endpoint_url || '/webhook/pacs002', 'POST', 30000, 3, cs.authentication_type, 1, 'PACS002 response webhook endpoint'
 FROM clearing_systems cs
 ON CONFLICT DO NOTHING;
 
-INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
-SELECT cs.id, 'PACS004 Return Endpoint', 'WEBHOOK', 'pacs004', cs.endpoint_url || '/webhook/pacs004', 'POST', 30000, 3, cs.authentication_type, 1, 'PACS004 return webhook endpoint'
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, message_format, response_mode, flow_direction, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'PACS004 Return Endpoint', 'WEBHOOK', 'pacs004', 'JSON', 'WEBHOOK', 'CLEARING_TO_CLIENT', cs.endpoint_url || '/webhook/pacs004', 'POST', 30000, 3, cs.authentication_type, 1, 'PACS004 return webhook endpoint'
 FROM clearing_systems cs
 ON CONFLICT DO NOTHING;
 
-INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
-SELECT cs.id, 'PACS007 Cancellation Endpoint', 'SYNC', 'pacs007', cs.endpoint_url || '/sync/pacs007', 'POST', cs.timeout_seconds * 1000, 3, cs.authentication_type, 1, 'PACS007 cancellation endpoint'
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, message_format, response_mode, flow_direction, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'PACS007 Cancellation Endpoint', 'SYNC', 'pacs007', 'JSON', 'IMMEDIATE', 'CLIENT_TO_CLEARING', cs.endpoint_url || '/sync/pacs007', 'POST', cs.timeout_seconds * 1000, 3, cs.authentication_type, 1, 'PACS007 cancellation endpoint'
 FROM clearing_systems cs
 ON CONFLICT DO NOTHING;
 
-INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
-SELECT cs.id, 'PACS028 Status Request Endpoint', 'SYNC', 'pacs028', cs.endpoint_url || '/sync/pacs028', 'POST', cs.timeout_seconds * 1000, 3, cs.authentication_type, 1, 'PACS028 status request endpoint'
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, message_format, response_mode, flow_direction, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'PACS028 Status Request Endpoint', 'SYNC', 'pacs028', 'JSON', 'IMMEDIATE', 'CLIENT_TO_CLEARING', cs.endpoint_url || '/sync/pacs028', 'POST', cs.timeout_seconds * 1000, 3, cs.authentication_type, 1, 'PACS028 status request endpoint'
 FROM clearing_systems cs
 ON CONFLICT DO NOTHING;
 
-INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
-SELECT cs.id, 'CAMT054 Notification Endpoint', 'WEBHOOK', 'camt054', cs.endpoint_url || '/webhook/camt054', 'POST', 30000, 3, cs.authentication_type, 1, 'CAMT054 notification webhook endpoint'
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, message_format, response_mode, flow_direction, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'CAMT054 Notification Endpoint', 'WEBHOOK', 'camt054', 'JSON', 'WEBHOOK', 'CLEARING_TO_CLIENT', cs.endpoint_url || '/webhook/camt054', 'POST', 30000, 3, cs.authentication_type, 1, 'CAMT054 notification webhook endpoint'
 FROM clearing_systems cs
 ON CONFLICT DO NOTHING;
 
-INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
-SELECT cs.id, 'CAMT029 Resolution Endpoint', 'WEBHOOK', 'camt029', cs.endpoint_url || '/webhook/camt029', 'POST', 30000, 3, cs.authentication_type, 1, 'CAMT029 resolution webhook endpoint'
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, message_format, response_mode, flow_direction, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'CAMT029 Resolution Endpoint', 'WEBHOOK', 'camt029', 'JSON', 'WEBHOOK', 'CLEARING_TO_CLIENT', cs.endpoint_url || '/webhook/camt029', 'POST', 30000, 3, cs.authentication_type, 1, 'CAMT029 resolution webhook endpoint'
 FROM clearing_systems cs
 ON CONFLICT DO NOTHING;
 
-INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
-SELECT cs.id, 'Status Polling Endpoint', 'POLLING', 'status', cs.endpoint_url || '/poll/status', 'GET', 10000, 3, cs.authentication_type, 1, 'Status polling endpoint'
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, message_format, response_mode, flow_direction, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'Status Polling Endpoint', 'POLLING', 'status', 'JSON', 'IMMEDIATE', 'BIDIRECTIONAL', cs.endpoint_url || '/poll/status', 'GET', 10000, 3, cs.authentication_type, 1, 'Status polling endpoint'
 FROM clearing_systems cs
 ON CONFLICT DO NOTHING;
 

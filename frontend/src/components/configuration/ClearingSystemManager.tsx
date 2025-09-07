@@ -1116,10 +1116,18 @@ const ClearingSystemManager: React.FC = () => {
                       <FormControl fullWidth required>
                         <InputLabel>Message Type</InputLabel>
                         <Select {...field} label="Message Type">
-                          <MenuItem value="pacs008">PACS.008</MenuItem>
-                          <MenuItem value="pacs002">PACS.002</MenuItem>
-                          <MenuItem value="pain001">PAIN.001</MenuItem>
-                          <MenuItem value="pain002">PAIN.002</MenuItem>
+                          <MenuItem value="pacs008">PACS.008 - FI to FI Customer Credit Transfer</MenuItem>
+                          <MenuItem value="pacs002">PACS.002 - FI to FI Payment Status Report</MenuItem>
+                          <MenuItem value="pacs004">PACS.004 - Payment Return</MenuItem>
+                          <MenuItem value="pacs007">PACS.007 - Payment Cancellation Request</MenuItem>
+                          <MenuItem value="pacs028">PACS.028 - Payment Status Request</MenuItem>
+                          <MenuItem value="pain001">PAIN.001 - Customer Credit Transfer Initiation</MenuItem>
+                          <MenuItem value="pain002">PAIN.002 - Customer Payment Status Report</MenuItem>
+                          <MenuItem value="camt054">CAMT.054 - Bank to Customer Debit Credit Notification</MenuItem>
+                          <MenuItem value="camt055">CAMT.055 - FI to FI Payment Cancellation Request</MenuItem>
+                          <MenuItem value="camt056">CAMT.056 - FI to FI Payment Status Request</MenuItem>
+                          <MenuItem value="camt029">CAMT.029 - Resolution of Investigation</MenuItem>
+                          <MenuItem value="status">Status - General Status Messages</MenuItem>
                         </Select>
                       </FormControl>
                     )}

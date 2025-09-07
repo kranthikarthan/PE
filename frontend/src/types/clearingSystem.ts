@@ -2,13 +2,20 @@ export type ClearingSystemProcessingMode = 'SYNCHRONOUS' | 'ASYNCHRONOUS' | 'BAT
 export type ClearingSystemAuthenticationType = 'NONE' | 'API_KEY' | 'JWT' | 'OAUTH2' | 'MTLS';
 export type EndpointType = 'SYNC' | 'ASYNC' | 'POLLING' | 'WEBHOOK';
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+export type Iso20022MessageType = 'pacs008' | 'pacs002' | 'pacs004' | 'pacs007' | 'pacs028' | 
+                                  'pain001' | 'pain002' | 
+                                  'camt054' | 'camt055' | 'camt056' | 'camt029' | 
+                                  'status';
+export type MessageFormat = 'JSON' | 'XML';
+export type ResponseMode = 'IMMEDIATE' | 'ASYNC' | 'KAFKA' | 'WEBHOOK';
+export type FlowDirection = 'CLIENT_TO_CLEARING' | 'CLEARING_TO_CLIENT' | 'BIDIRECTIONAL';
 
 export interface ClearingSystemEndpoint {
   id: string;
   clearingSystemId: string;
   name: string;
   endpointType: EndpointType;
-  messageType: string; // pacs008, pacs002, pain001, pain002
+  messageType: Iso20022MessageType;
   url: string;
   httpMethod: HttpMethod;
   timeoutMs: number;
@@ -21,6 +28,26 @@ export interface ClearingSystemEndpoint {
   description?: string;
   createdAt: string;
   updatedAt: string;
+  // Enhanced configuration for comprehensive ISO 20022 support
+  messageFormat?: MessageFormat;
+  responseMode?: ResponseMode;
+  flowDirection?: FlowDirection;
+  transformationRules?: {
+    inputMapping?: Record<string, string>;
+    outputMapping?: Record<string, string>;
+    validationRules?: Record<string, any>;
+  };
+  rateLimiting?: {
+    enabled: boolean;
+    requestsPerMinute: number;
+    burstLimit: number;
+  };
+  monitoring?: {
+    enabled: boolean;
+    healthCheckIntervalMs: number;
+    alertThresholdMs: number;
+    alertEmails?: string[];
+  };
 }
 
 export interface ClearingSystem {

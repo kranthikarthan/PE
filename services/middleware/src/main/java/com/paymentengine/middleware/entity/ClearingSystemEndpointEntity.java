@@ -28,7 +28,16 @@ public class ClearingSystemEndpointEntity {
     private String endpointType; // SYNC, ASYNC, POLLING, WEBHOOK
     
     @Column(name = "message_type", nullable = false, length = 50)
-    private String messageType; // pacs008, pacs002, pain001, pain002
+    private String messageType; // pacs008, pacs002, pain001, pain002, pacs004, pacs007, pacs028, camt054, camt055, camt056, camt029
+    
+    @Column(name = "message_format", length = 10)
+    private String messageFormat; // JSON, XML
+    
+    @Column(name = "response_mode", length = 20)
+    private String responseMode; // IMMEDIATE, ASYNC, KAFKA, WEBHOOK
+    
+    @Column(name = "flow_direction", length = 30)
+    private String flowDirection; // CLIENT_TO_CLEARING, CLEARING_TO_CLIENT, BIDIRECTIONAL
     
     @Column(name = "url", nullable = false, length = 500)
     private String url;
@@ -115,6 +124,15 @@ public class ClearingSystemEndpointEntity {
     
     public String getMessageType() { return messageType; }
     public void setMessageType(String messageType) { this.messageType = messageType; }
+    
+    public String getMessageFormat() { return messageFormat; }
+    public void setMessageFormat(String messageFormat) { this.messageFormat = messageFormat; }
+    
+    public String getResponseMode() { return responseMode; }
+    public void setResponseMode(String responseMode) { this.responseMode = responseMode; }
+    
+    public String getFlowDirection() { return flowDirection; }
+    public void setFlowDirection(String flowDirection) { this.flowDirection = flowDirection; }
     
     public String getUrl() { return url; }
     public void setUrl(String url) { this.url = url; }

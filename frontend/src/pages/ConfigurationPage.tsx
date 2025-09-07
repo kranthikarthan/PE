@@ -41,10 +41,12 @@ import {
   Topic as TopicIcon,
   Api as ApiIcon,
   AccountTree as AccountTreeIcon,
+  SwapHoriz as SwapHorizIcon,
 } from '@mui/icons-material';
 import PaymentResponseConfigManager from '../components/configuration/PaymentResponseConfigManager';
 import SchemeConfigManager from '../components/configuration/SchemeConfigManager';
 import ClearingSystemManager from '../components/configuration/ClearingSystemManager';
+import MessageFlowConfig from '../components/configuration/MessageFlowConfig';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -362,6 +364,11 @@ const ConfigurationPage: React.FC = () => {
               iconPosition="start"
             />
             <Tab
+              label="Message Flows"
+              icon={<SwapHorizIcon />}
+              iconPosition="start"
+            />
+            <Tab
               label="Security Settings"
               icon={<SecurityIcon />}
               iconPosition="start"
@@ -602,6 +609,20 @@ const ConfigurationPage: React.FC = () => {
         </TabPanel>
 
         <TabPanel value={tabValue} index={6}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Message Flows - {currentTenant}
+            </Typography>
+            
+            <MessageFlowConfig 
+              tenantId={currentTenant}
+              paymentType="RTP"
+              localInstrumentCode="RTP"
+            />
+          </CardContent>
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={7}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Security Settings - {currentTenant}
