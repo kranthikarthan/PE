@@ -18,6 +18,7 @@ A comprehensive payment processing system built with Spring Boot and React, supp
 - **Microservices Architecture**: Service mesh with Istio, dedicated services for auth, config, and monitoring
 - **Multi-Tenant Istio**: Host-based routing with automatic conflict resolution for same host + same port scenarios
 - **Downstream Routing**: Header-based routing for external services using same host:port with tenant isolation
+- **Multi-Level Auth Configuration**: Granular authentication configuration at clearing system, tenant, payment type, and downstream call levels
 - **Event Sourcing & CQRS**: Event-driven architecture with event store and projections
 - **Resiliency & Self-Healing**: Circuit breakers, retry mechanisms, bulkhead patterns, and automated recovery
 - **Security**: OAuth2/JWT/JWS, message encryption, digital signatures, configurable client headers, and comprehensive audit logging
@@ -141,6 +142,7 @@ sudo ./infrastructure/air-gapped/offline-deploy.sh
 - [JWS and Client Headers Implementation Guide](JWS_AND_CLIENT_HEADERS_IMPLEMENTATION_GUIDE.md) - Advanced authentication and client header configuration
 - [Istio Multi-Tenancy Solution](ISTIO_MULTITENANCY_SOLUTION.md) - Multi-tenant Istio configuration with conflict resolution
 - [Downstream Routing Solution](DOWNSTREAM_ROUTING_SOLUTION.md) - Same host/port routing conflicts resolution for external services
+- [Multi-Level Auth Configuration Guide](MULTI_LEVEL_AUTH_CONFIGURATION_GUIDE.md) - Granular authentication configuration at multiple levels
 
 ### Configuration & Customization
 - [Configuration Management](docs/CONFIGURATION_GUIDE.md) - Environment-specific configurations
@@ -321,6 +323,61 @@ npm audit
 - **X-Route-Context**: Combines tenant and service
 - **X-Downstream-Route**: Final routing destination
 - **X-Bank-Route**: Bank-specific routing path
+
+## 🔐 Multi-Level Authentication Configuration
+
+### Granular Configuration Levels
+- **Clearing System Level**: Global environment configuration (dev/staging/prod)
+- **Tenant Level**: Tenant-specific authentication and client headers
+- **Payment Type Level**: Payment type specific configuration (SEPA, SWIFT, ACH, etc.)
+- **Downstream Call Level**: Most granular configuration for specific service calls
+
+### Authentication Methods
+- **JWT**: JSON Web Token with configurable issuer, audience, and expiration
+- **JWS**: JSON Web Signature with multiple algorithms (HS256, HS384, HS512, RS256, RS384, RS512)
+- **OAuth2**: Industry standard OAuth2 with configurable endpoints and scopes
+- **API Key**: Simple API key authentication with custom header names
+- **Basic Auth**: HTTP Basic Authentication for legacy system integration
+
+### Configuration Hierarchy
+```
+Priority 1: Downstream Call Level (Highest)
+├── Tenant + Service Type + Endpoint + Payment Type
+├── Example: tenant-001/fraud//fraud/SEPA
+└── Overrides all other levels
+
+Priority 2: Payment Type Level
+├── Tenant + Payment Type
+├── Example: tenant-001/SEPA
+└── Overrides tenant and clearing system levels
+
+Priority 3: Tenant Level
+├── Tenant Only
+├── Example: tenant-001
+└── Overrides clearing system level
+
+Priority 4: Clearing System Level (Lowest)
+├── Environment Only
+├── Example: dev/staging/prod
+└── Used as fallback when no higher-level config exists
+```
+
+### API Endpoints
+- **Enhanced Routing**: `POST /api/v1/enhanced-downstream/call/{tenantId}/{serviceType}/{endpoint}`
+- **Fraud System**: `POST /api/v1/enhanced-downstream/fraud/{tenantId}`
+- **Clearing System**: `POST /api/v1/enhanced-downstream/clearing/{tenantId}`
+- **Banking System**: `POST /api/v1/enhanced-downstream/banking/{tenantId}`
+- **Auto-Routing**: `POST /api/v1/enhanced-downstream/auto/{tenantId}`
+- **Configuration**: `GET /api/v1/enhanced-downstream/config/{tenantId}/{serviceType}/{endpoint}`
+
+### Testing Commands
+```bash
+# Test multi-level authentication configuration
+./scripts/test-multi-level-auth-config.sh
+
+# Test specific tenant and level
+./scripts/test-multi-level-auth-config.sh --test-tenant tenant-001 --test-level payment-type
+```
 
 ## 📊 Monitoring & Observability
 
