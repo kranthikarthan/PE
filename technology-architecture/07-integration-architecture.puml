@@ -1,0 +1,301 @@
+@startuml INTEGRATION_ARCHITECTURE
+!theme plain
+title ISO 20022 Payment Engine - Integration Architecture
+
+package "Client Integration" {
+    [Web Applications] as WA
+    [Mobile Applications] as MA
+    [Third Party Systems] as TPS
+    [Partner Systems] as PS
+    [Internal Systems] as IS
+    [Legacy Systems] as LS
+}
+
+package "API Gateway Layer" {
+    [Spring Cloud Gateway] as SCG
+    [Rate Limiting] as RL
+    [Authentication] as Auth
+    [Authorization] as AuthZ
+    [Request Routing] as RR
+    [Response Transformation] as RT
+    [Circuit Breaker] as CB
+}
+
+package "Service Layer" {
+    [Middleware Service] as MS
+    [Core Banking Service] as CBS
+    [Notification Service] as NS
+    [Configuration Service] as CS
+    [Audit Service] as AS
+    [Security Service] as SS
+}
+
+package "Message Processing" {
+    [Kafka Producer] as KP
+    [Kafka Consumer] as KC
+    [Message Router] as MR
+    [Message Transformer] as MT
+    [Message Validator] as MV
+    [Dead Letter Handler] as DLH
+}
+
+package "External System Integration" {
+    [Clearing System Adapter] as CSA
+    [Third Party Adapter] as TPA
+    [Webhook Adapter] as WA2
+    [File Transfer Adapter] as FTA
+    [Database Adapter] as DBA
+    [API Adapter] as APA
+}
+
+package "Protocol Adapters" {
+    [REST API Adapter] as REST
+    [SOAP API Adapter] as SOAP
+    [FTP/SFTP Adapter] as FTP
+    [Message Queue Adapter] as MQA
+    [Database Adapter] as DBA2
+    [File Adapter] as FA
+}
+
+package "Data Transformation" {
+    [JSON Transformer] as JT
+    [XML Transformer] as XT
+    [CSV Transformer] as CT
+    [ISO 20022 Transformer] as IT
+    [Custom Transformer] as CUT
+    [Schema Validator] as SV
+}
+
+package "Integration Patterns" {
+    [Request-Response] as RR2
+    [Publish-Subscribe] as PS2
+    [Message Queue] as MQ
+    [Event Sourcing] as ES
+    [Saga Pattern] as SP
+    [Circuit Breaker] as CB2
+}
+
+package "Error Handling" {
+    [Retry Logic] as RL2
+    [Dead Letter Queue] as DLQ
+    [Error Notifications] as EN
+    [Fallback Mechanisms] as FM
+    [Compensation Logic] as CL
+    [Error Recovery] as ER
+}
+
+package "Monitoring & Observability" {
+    [Integration Metrics] as IM
+    [Performance Monitoring] as PM
+    [Error Tracking] as ET
+    [Audit Logging] as AL
+    [Health Checks] as HC
+    [Distributed Tracing] as DT
+}
+
+' Client integration connections
+WA --> SCG : "HTTP/HTTPS"
+MA --> SCG : "HTTP/HTTPS"
+TPS --> SCG : "HTTP/HTTPS"
+PS --> SCG : "HTTP/HTTPS"
+IS --> SCG : "HTTP/HTTPS"
+LS --> SCG : "HTTP/HTTPS"
+
+' API Gateway connections
+SCG --> RL : "Rate Limiting"
+SCG --> Auth : "Authentication"
+SCG --> AuthZ : "Authorization"
+SCG --> RR : "Request Routing"
+SCG --> RT : "Response Transformation"
+SCG --> CB : "Circuit Breaker"
+
+' Service layer connections
+SCG --> MS : "Middleware Service"
+SCG --> CBS : "Core Banking Service"
+SCG --> NS : "Notification Service"
+SCG --> CS : "Configuration Service"
+SCG --> AS : "Audit Service"
+SCG --> SS : "Security Service"
+
+' Message processing connections
+MS --> KP : "Message Production"
+KP --> KC : "Message Consumption"
+KC --> MR : "Message Routing"
+MR --> MT : "Message Transformation"
+MT --> MV : "Message Validation"
+MV --> DLH : "Dead Letter Handling"
+
+' External system integration connections
+MS --> CSA : "Clearing System Integration"
+MS --> TPA : "Third Party Integration"
+MS --> WA2 : "Webhook Integration"
+MS --> FTA : "File Transfer Integration"
+MS --> DBA : "Database Integration"
+MS --> APA : "API Integration"
+
+' Protocol adapter connections
+CSA --> REST : "REST API"
+CSA --> SOAP : "SOAP API"
+TPA --> FTP : "FTP/SFTP"
+WA2 --> MQA : "Message Queue"
+DBA --> DBA2 : "Database"
+FTA --> FA : "File Processing"
+
+' Data transformation connections
+MT --> JT : "JSON Transformation"
+MT --> XT : "XML Transformation"
+MT --> CT : "CSV Transformation"
+MT --> IT : "ISO 20022 Transformation"
+MT --> CUT : "Custom Transformation"
+MT --> SV : "Schema Validation"
+
+' Integration pattern connections
+RR2 --> PS2 : "Publish-Subscribe"
+PS2 --> MQ : "Message Queue"
+MQ --> ES : "Event Sourcing"
+ES --> SP : "Saga Pattern"
+SP --> CB2 : "Circuit Breaker"
+
+' Error handling connections
+RL2 --> DLQ : "Dead Letter Queue"
+DLQ --> EN : "Error Notifications"
+EN --> FM : "Fallback Mechanisms"
+FM --> CL : "Compensation Logic"
+CL --> ER : "Error Recovery"
+
+' Monitoring connections
+IM --> PM : "Performance Monitoring"
+PM --> ET : "Error Tracking"
+ET --> AL : "Audit Logging"
+AL --> HC : "Health Checks"
+HC --> DT : "Distributed Tracing"
+
+' Cross-component connections
+MS --> IM : "Integration Metrics"
+CSA --> PM : "Performance Monitoring"
+MT --> ET : "Error Tracking"
+DLH --> EN : "Error Notifications"
+CB2 --> FM : "Fallback Mechanisms"
+SP --> CL : "Compensation Logic"
+
+note right of WA
+Client Integration:
+- Web applications
+- Mobile applications
+- Third party systems
+- Partner systems
+- Internal systems
+- Legacy systems
+- Various protocols
+- Multiple formats
+end note
+
+note right of SCG
+API Gateway Features:
+- Spring Cloud Gateway
+- Rate limiting and throttling
+- Authentication and authorization
+- Request routing and load balancing
+- Response transformation
+- Circuit breaker protection
+- Request/response logging
+- CORS handling
+end note
+
+note right of MS
+Service Layer:
+- Middleware service for orchestration
+- Core banking service for business logic
+- Notification service for alerts
+- Configuration service for settings
+- Audit service for compliance
+- Security service for protection
+- Microservices architecture
+- Service mesh integration
+end note
+
+note right of KP
+Message Processing:
+- Kafka producer for message publishing
+- Kafka consumer for message consumption
+- Message router for routing logic
+- Message transformer for format conversion
+- Message validator for validation
+- Dead letter handler for error processing
+- Event-driven architecture
+- Asynchronous processing
+end note
+
+note right of CSA
+External System Integration:
+- Clearing system adapter
+- Third party adapter
+- Webhook adapter
+- File transfer adapter
+- Database adapter
+- API adapter
+- Protocol translation
+- Data transformation
+end note
+
+note right of REST
+Protocol Adapters:
+- REST API adapter
+- SOAP API adapter
+- FTP/SFTP adapter
+- Message queue adapter
+- Database adapter
+- File adapter
+- Protocol abstraction
+- Data format conversion
+end note
+
+note right of JT
+Data Transformation:
+- JSON transformer
+- XML transformer
+- CSV transformer
+- ISO 20022 transformer
+- Custom transformer
+- Schema validator
+- Format conversion
+- Data mapping
+end note
+
+note right of RR2
+Integration Patterns:
+- Request-Response pattern
+- Publish-Subscribe pattern
+- Message Queue pattern
+- Event Sourcing pattern
+- Saga pattern
+- Circuit Breaker pattern
+- Resilience patterns
+- Error handling patterns
+end note
+
+note right of RL2
+Error Handling:
+- Retry logic with exponential backoff
+- Dead letter queue for failed messages
+- Error notifications and alerting
+- Fallback mechanisms
+- Compensation logic for sagas
+- Error recovery procedures
+- Graceful degradation
+- Fault tolerance
+end note
+
+note right of IM
+Monitoring & Observability:
+- Integration metrics collection
+- Performance monitoring
+- Error tracking and analysis
+- Audit logging for compliance
+- Health checks for services
+- Distributed tracing
+- Real-time monitoring
+- Proactive alerting
+end note
+
+@enduml

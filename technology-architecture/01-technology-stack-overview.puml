@@ -1,0 +1,254 @@
+@startuml TECHNOLOGY_STACK_OVERVIEW
+!theme plain
+title ISO 20022 Payment Engine - Technology Stack Overview
+
+package "Frontend Layer" {
+    [React 18] as React
+    [TypeScript] as TS
+    [Material-UI (MUI)] as MUI
+    [Redux Toolkit] as RTK
+    [React Query] as RQ
+    [Axios] as Axios
+    [React Router] as Router
+    [Formik] as Formik
+    [Yup] as Yup
+}
+
+package "API Gateway Layer" {
+    [Spring Cloud Gateway] as SCG
+    [Spring Security] as SS
+    [Spring Cloud LoadBalancer] as SCLB
+    [Resilience4j] as R4j
+    [Redis Rate Limiter] as RRL
+    [OAuth2 Resource Server] as OAuth2
+}
+
+package "Backend Services Layer" {
+    [Spring Boot 3.x] as SB
+    [Spring Web] as SW
+    [Spring Data JPA] as SDJ
+    [Spring Security] as SS2
+    [Spring Cloud OpenFeign] as SCOF
+    [Spring Cloud Sleuth] as SCS
+    [Micrometer] as Micrometer
+    [Spring Kafka] as SK
+    [Spring Cache] as SC
+}
+
+package "Message Processing Layer" {
+    [Apache Kafka] as Kafka
+    [Kafka Streams] as KS
+    [Kafka Connect] as KC
+    [Schema Registry] as SR
+    [Dead Letter Queues] as DLQ
+    [Kafka UI] as KUI
+}
+
+package "Data Layer" {
+    [PostgreSQL 15] as PG
+    [Redis 7] as Redis
+    [Flyway] as Flyway
+    [HikariCP] as HCP
+    [JPA/Hibernate] as JPA
+}
+
+package "Security Layer" {
+    [OAuth2 Authorization Server] as OAuth2AS
+    [JWT Tokens] as JWT
+    [AES-GCM Encryption] as AES
+    [RSA Digital Signatures] as RSA
+    [Spring Security] as SS3
+    [BCrypt] as BCrypt
+}
+
+package "Monitoring & Observability" {
+    [Prometheus] as Prometheus
+    [Grafana] as Grafana
+    [Jaeger] as Jaeger
+    [ELK Stack] as ELK
+    [Alert Manager] as AM
+    [Micrometer] as Micrometer2
+}
+
+package "Infrastructure Layer" {
+    [Docker] as Docker
+    [Kubernetes] as K8s
+    [Helm] as Helm
+    [Istio Service Mesh] as Istio
+    [NGINX Ingress] as NGINX
+    [Cert-Manager] as CM
+}
+
+package "CI/CD Pipeline" {
+    [GitHub Actions] as GHA
+    [Maven] as Maven
+    [Docker Registry] as DR
+    [ArgoCD] as ArgoCD
+    [SonarQube] as SQ
+    [Trivy] as Trivy
+}
+
+package "External Integrations" {
+    [Clearing Systems APIs] as CSA
+    [Third Party APIs] as TPA
+    [Webhook Endpoints] as WE
+    [SMTP Server] as SMTP
+    [SMS Gateway] as SMS
+}
+
+' Frontend connections
+React --> TS : "Type Safety"
+React --> MUI : "UI Components"
+React --> RTK : "State Management"
+React --> RQ : "Data Fetching"
+React --> Axios : "HTTP Client"
+React --> Router : "Navigation"
+React --> Formik : "Form Management"
+Formik --> Yup : "Validation"
+
+' API Gateway connections
+SCG --> SS : "Security"
+SCG --> SCLB : "Load Balancing"
+SCG --> R4j : "Resilience"
+SCG --> RRL : "Rate Limiting"
+SCG --> OAuth2 : "Authentication"
+
+' Backend connections
+SB --> SW : "Web Layer"
+SB --> SDJ : "Data Access"
+SB --> SS2 : "Security"
+SB --> SCOF : "HTTP Client"
+SB --> SCS : "Tracing"
+SB --> Micrometer : "Metrics"
+SB --> SK : "Messaging"
+SB --> SC : "Caching"
+
+' Message processing connections
+Kafka --> KS : "Stream Processing"
+Kafka --> KC : "Data Integration"
+Kafka --> SR : "Schema Management"
+Kafka --> DLQ : "Error Handling"
+Kafka --> KUI : "Management UI"
+
+' Data layer connections
+PG --> Flyway : "Migrations"
+PG --> HCP : "Connection Pooling"
+PG --> JPA : "ORM"
+Redis --> SC : "Caching"
+
+' Security connections
+OAuth2AS --> JWT : "Token Generation"
+JWT --> AES : "Message Encryption"
+JWT --> RSA : "Digital Signatures"
+SS3 --> BCrypt : "Password Hashing"
+
+' Monitoring connections
+Micrometer2 --> Prometheus : "Metrics Collection"
+Prometheus --> Grafana : "Visualization"
+SCS --> Jaeger : "Distributed Tracing"
+SB --> ELK : "Log Aggregation"
+Prometheus --> AM : "Alerting"
+
+' Infrastructure connections
+Docker --> K8s : "Container Orchestration"
+K8s --> Helm : "Package Management"
+K8s --> Istio : "Service Mesh"
+K8s --> NGINX : "Ingress Controller"
+K8s --> CM : "Certificate Management"
+
+' CI/CD connections
+GHA --> Maven : "Build Process"
+Maven --> DR : "Image Registry"
+DR --> ArgoCD : "GitOps Deployment"
+GHA --> SQ : "Code Quality"
+GHA --> Trivy : "Security Scanning"
+
+' External integrations
+SB --> CSA : "Clearing System APIs"
+SB --> TPA : "Third Party APIs"
+SB --> WE : "Webhook Delivery"
+SB --> SMTP : "Email Notifications"
+SB --> SMS : "SMS Notifications"
+
+note right of React
+Frontend Technology Stack:
+- React 18 with TypeScript
+- Material-UI for components
+- Redux Toolkit for state management
+- React Query for data fetching
+- Axios for HTTP communication
+- Formik + Yup for forms
+- React Router for navigation
+end note
+
+note right of SCG
+API Gateway Technology:
+- Spring Cloud Gateway
+- OAuth2 Resource Server
+- Redis Rate Limiting
+- Resilience4j Circuit Breakers
+- Load Balancing
+- Request/Response Transformation
+end note
+
+note right of SB
+Backend Technology Stack:
+- Spring Boot 3.x
+- Spring Data JPA
+- Spring Security
+- Spring Cloud OpenFeign
+- Spring Cloud Sleuth
+- Micrometer Metrics
+- Spring Kafka
+- Spring Cache
+end note
+
+note right of Kafka
+Message Processing Technology:
+- Apache Kafka for messaging
+- Kafka Streams for processing
+- Schema Registry for schemas
+- Dead Letter Queues for errors
+- Kafka UI for management
+end note
+
+note right of PG
+Data Technology Stack:
+- PostgreSQL 15 for persistence
+- Redis 7 for caching
+- Flyway for migrations
+- HikariCP for connection pooling
+- JPA/Hibernate for ORM
+end note
+
+note right of Prometheus
+Monitoring Technology:
+- Prometheus for metrics
+- Grafana for visualization
+- Jaeger for tracing
+- ELK Stack for logging
+- Alert Manager for alerts
+- Micrometer for metrics
+end note
+
+note right of K8s
+Infrastructure Technology:
+- Docker for containerization
+- Kubernetes for orchestration
+- Helm for package management
+- Istio for service mesh
+- NGINX for ingress
+- Cert-Manager for certificates
+end note
+
+note right of GHA
+CI/CD Technology:
+- GitHub Actions for CI/CD
+- Maven for building
+- Docker Registry for images
+- ArgoCD for GitOps
+- SonarQube for quality
+- Trivy for security
+end note
+
+@enduml

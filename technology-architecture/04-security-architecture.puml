@@ -1,0 +1,234 @@
+@startuml SECURITY_ARCHITECTURE
+!theme plain
+title ISO 20022 Payment Engine - Security Architecture
+
+package "Network Security" {
+    [CloudFlare WAF] as CFWAF
+    [AWS Security Groups] as ASG
+    [Kubernetes Network Policies] as KNP
+    [Istio Security Policies] as ISP
+    [mTLS] as mTLS
+    [VPN Gateway] as VPN
+}
+
+package "Identity & Access Management" {
+    [OAuth2 Authorization Server] as OAuth2AS
+    [JWT Token Service] as JWT
+    [RBAC] as RBAC
+    [Multi-Factor Authentication] as MFA
+    [Single Sign-On] as SSO
+    [Identity Provider] as IdP
+}
+
+package "API Security" {
+    [API Gateway Security] as AGS
+    [Rate Limiting] as RL
+    [Request Validation] as RV
+    [Response Sanitization] as RS
+    [API Versioning] as AV
+    [CORS Policies] as CP
+}
+
+package "Data Security" {
+    [Encryption at Rest] as EAR
+    [Encryption in Transit] as EIT
+    [Key Management] as KM
+    [Data Masking] as DM
+    [Data Classification] as DC
+    [Data Loss Prevention] as DLP
+}
+
+package "Message Security" {
+    [Message Encryption] as ME
+    [Digital Signatures] as DS
+    [Message Integrity] as MI
+    [Non-Repudiation] as NR
+    [Audit Trails] as AT
+    [Message Validation] as MV
+}
+
+package "Infrastructure Security" {
+    [Container Security] as CS
+    [Image Scanning] as IS
+    [Runtime Security] as RS2
+    [Secrets Management] as SM
+    [Certificate Management] as CM
+    [Vulnerability Management] as VM
+}
+
+package "Monitoring & Compliance" {
+    [Security Monitoring] as SM2
+    [Threat Detection] as TD
+    [Incident Response] as IR
+    [Compliance Reporting] as CR
+    [Audit Logging] as AL
+    [Forensics] as F
+}
+
+package "External Security" {
+    [Clearing System Security] as CSS
+    [Third Party Security] as TPS
+    [Webhook Security] as WS
+    [API Security] as AS
+    [Network Security] as NS
+}
+
+' Network security connections
+CFWAF --> ASG : "Traffic Filtering"
+ASG --> KNP : "Network Isolation"
+KNP --> ISP : "Service Mesh Security"
+ISP --> mTLS : "Mutual TLS"
+mTLS --> VPN : "Secure Connectivity"
+
+' Identity & access management connections
+OAuth2AS --> JWT : "Token Generation"
+JWT --> RBAC : "Role-Based Access"
+RBAC --> MFA : "Multi-Factor Auth"
+MFA --> SSO : "Single Sign-On"
+SSO --> IdP : "Identity Provider"
+
+' API security connections
+AGS --> RL : "Rate Limiting"
+AGS --> RV : "Request Validation"
+AGS --> RS : "Response Sanitization"
+AGS --> AV : "API Versioning"
+AGS --> CP : "CORS Policies"
+
+' Data security connections
+EAR --> EIT : "End-to-End Encryption"
+EIT --> KM : "Key Management"
+KM --> DM : "Data Masking"
+DM --> DC : "Data Classification"
+DC --> DLP : "Data Loss Prevention"
+
+' Message security connections
+ME --> DS : "Digital Signatures"
+DS --> MI : "Message Integrity"
+MI --> NR : "Non-Repudiation"
+NR --> AT : "Audit Trails"
+AT --> MV : "Message Validation"
+
+' Infrastructure security connections
+CS --> IS : "Image Scanning"
+IS --> RS2 : "Runtime Security"
+RS2 --> SM : "Secrets Management"
+SM --> CM : "Certificate Management"
+CM --> VM : "Vulnerability Management"
+
+' Monitoring & compliance connections
+SM2 --> TD : "Threat Detection"
+TD --> IR : "Incident Response"
+IR --> CR : "Compliance Reporting"
+CR --> AL : "Audit Logging"
+AL --> F : "Forensics"
+
+' External security connections
+CSS --> TPS : "Third Party Security"
+TPS --> WS : "Webhook Security"
+WS --> AS : "API Security"
+AS --> NS : "Network Security"
+
+' Cross-component security connections
+OAuth2AS --> AGS : "API Authentication"
+JWT --> ME : "Message Encryption"
+RBAC --> SM2 : "Access Monitoring"
+KM --> DS : "Digital Signatures"
+AT --> AL : "Audit Integration"
+TD --> IR : "Security Incidents"
+
+note right of CFWAF
+Network Security Features:
+- CloudFlare WAF for DDoS protection
+- AWS Security Groups for network isolation
+- Kubernetes Network Policies
+- Istio security policies
+- Mutual TLS for service communication
+- VPN for secure connectivity
+- Firewall rules and ACLs
+end note
+
+note right of OAuth2AS
+Identity & Access Management:
+- OAuth2 Authorization Server
+- JWT token management
+- Role-based access control (RBAC)
+- Multi-factor authentication (MFA)
+- Single sign-on (SSO)
+- Identity provider integration
+- Session management
+- Token revocation
+end note
+
+note right of AGS
+API Security Features:
+- API Gateway security
+- Rate limiting and throttling
+- Request validation and sanitization
+- Response sanitization
+- API versioning
+- CORS policies
+- Input validation
+- Output encoding
+end note
+
+note right of EAR
+Data Security Features:
+- Encryption at rest (AES-256)
+- Encryption in transit (TLS 1.3)
+- Key management with rotation
+- Data masking for sensitive data
+- Data classification
+- Data loss prevention (DLP)
+- Database encryption
+- File system encryption
+end note
+
+note right of ME
+Message Security Features:
+- Message encryption (AES-GCM)
+- Digital signatures (RSA/ECDSA)
+- Message integrity verification
+- Non-repudiation
+- Audit trails
+- Message validation
+- Schema validation
+- Business rule validation
+end note
+
+note right of CS
+Infrastructure Security:
+- Container security scanning
+- Image vulnerability scanning
+- Runtime security monitoring
+- Secrets management with Vault
+- Certificate management
+- Vulnerability management
+- Pod security policies
+- Network policies
+end note
+
+note right of SM2
+Monitoring & Compliance:
+- Security monitoring and alerting
+- Threat detection and analysis
+- Incident response procedures
+- Compliance reporting
+- Audit logging
+- Forensics capabilities
+- Security metrics
+- Risk assessment
+end note
+
+note right of CSS
+External Security:
+- Clearing system security
+- Third party API security
+- Webhook security
+- API security
+- Network security
+- Certificate validation
+- Mutual authentication
+- Security policies
+end note
+
+@enduml

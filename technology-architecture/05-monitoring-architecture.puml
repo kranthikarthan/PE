@@ -1,0 +1,288 @@
+@startuml MONITORING_ARCHITECTURE
+!theme plain
+title ISO 20022 Payment Engine - Monitoring Architecture
+
+package "Application Layer" {
+    [Micrometer Metrics] as MM
+    [Spring Boot Actuator] as SBA
+    [Custom Metrics] as CM
+    [Business Metrics] as BM
+    [Health Checks] as HC
+    [Circuit Breaker Metrics] as CBM
+}
+
+package "Infrastructure Layer" {
+    [Node Exporter] as NE
+    [cAdvisor] as cAdvisor
+    [kube-state-metrics] as KSM
+    [Prometheus Node Exporter] as PNE
+    [System Metrics] as SM
+    [Container Metrics] as CM2
+}
+
+package "Metrics Collection" {
+    [Prometheus Server] as PS
+    [Prometheus Config] as PC
+    [Service Discovery] as SD
+    [Metrics Scraping] as MS
+    [Metrics Storage] as MST
+    [Metrics Aggregation] as MA
+}
+
+package "Log Collection" {
+    [Fluentd] as Fluentd
+    [Filebeat] as FB
+    [Logstash] as LS
+    [Log Aggregation] as LA
+    [Log Parsing] as LP
+    [Log Enrichment] as LE
+}
+
+package "Log Storage" {
+    [Elasticsearch] as ES
+    [Elasticsearch Index] as ESI
+    [Log Retention] as LR
+    [Log Archival] as LA2
+    [Log Compression] as LC
+    [Log Search] as LS2
+}
+
+package "Distributed Tracing" {
+    [Jaeger Agent] as JA
+    [Jaeger Collector] as JC
+    [Jaeger Storage] as JS
+    [Jaeger Query] as JQ
+    [Trace Analysis] as TA
+    [Span Correlation] as SC
+}
+
+package "Visualization" {
+    [Grafana] as Grafana
+    [Grafana Dashboards] as GD
+    [Grafana Alerts] as GA
+    [Custom Dashboards] as CD
+    [Business Dashboards] as BD
+    [Performance Dashboards] as PD
+}
+
+package "Alerting" {
+    [Alert Manager] as AM
+    [Alert Rules] as AR
+    [Alert Routing] as AR2
+    [Alert Grouping] as AG
+    [Alert Silencing] as AS
+    [Notification Channels] as NC
+}
+
+package "Notification" {
+    [Email Notifications] as EN
+    [Slack Notifications] as SN
+    [PagerDuty] as PD2
+    [Webhook Notifications] as WN
+    [SMS Notifications] as SMS
+    [Teams Notifications] as TN
+}
+
+package "External Monitoring" {
+    [Uptime Monitoring] as UM
+    [Synthetic Monitoring] as SM2
+    [Performance Monitoring] as PM
+    [Error Tracking] as ET
+    [User Experience] as UX
+    [Business Intelligence] as BI
+}
+
+' Application layer connections
+MM --> SBA : "Metrics Export"
+SBA --> CM : "Custom Metrics"
+CM --> BM : "Business Metrics"
+BM --> HC : "Health Checks"
+HC --> CBM : "Circuit Breaker Metrics"
+
+' Infrastructure layer connections
+NE --> PNE : "Node Metrics"
+cAdvisor --> CM2 : "Container Metrics"
+KSM --> SM : "Kubernetes Metrics"
+PNE --> SM : "System Metrics"
+CM2 --> SM : "Container Metrics"
+
+' Metrics collection connections
+PS --> PC : "Configuration"
+PS --> SD : "Service Discovery"
+PS --> MS : "Metrics Scraping"
+MS --> MST : "Metrics Storage"
+MST --> MA : "Metrics Aggregation"
+
+MM --> PS : "Application Metrics"
+NE --> PS : "Node Metrics"
+cAdvisor --> PS : "Container Metrics"
+KSM --> PS : "Kubernetes Metrics"
+
+' Log collection connections
+Fluentd --> LA : "Log Aggregation"
+FB --> LA : "Log Aggregation"
+LS --> LP : "Log Parsing"
+LP --> LE : "Log Enrichment"
+LE --> ES : "Log Storage"
+
+' Log storage connections
+ES --> ESI : "Index Management"
+ESI --> LR : "Log Retention"
+LR --> LA2 : "Log Archival"
+LA2 --> LC : "Log Compression"
+LC --> LS2 : "Log Search"
+
+' Distributed tracing connections
+JA --> JC : "Trace Collection"
+JC --> JS : "Trace Storage"
+JS --> JQ : "Trace Query"
+JQ --> TA : "Trace Analysis"
+TA --> SC : "Span Correlation"
+
+MM --> JA : "Trace Data"
+SBA --> JA : "Trace Data"
+
+' Visualization connections
+Grafana --> PS : "Metrics Query"
+Grafana --> ES : "Log Query"
+Grafana --> JQ : "Trace Query"
+Grafana --> GD : "Dashboard Management"
+GD --> CD : "Custom Dashboards"
+GD --> BD : "Business Dashboards"
+GD --> PD : "Performance Dashboards"
+
+' Alerting connections
+PS --> AR : "Alert Rules"
+AR --> AM : "Alert Manager"
+AM --> AR2 : "Alert Routing"
+AR2 --> AG : "Alert Grouping"
+AG --> AS : "Alert Silencing"
+AS --> NC : "Notification Channels"
+
+' Notification connections
+NC --> EN : "Email Notifications"
+NC --> SN : "Slack Notifications"
+NC --> PD2 : "PagerDuty"
+NC --> WN : "Webhook Notifications"
+NC --> SMS : "SMS Notifications"
+NC --> TN : "Teams Notifications"
+
+' External monitoring connections
+UM --> PS : "Uptime Metrics"
+SM2 --> PS : "Synthetic Metrics"
+PM --> PS : "Performance Metrics"
+ET --> PS : "Error Metrics"
+UX --> PS : "User Experience Metrics"
+BI --> PS : "Business Intelligence"
+
+note right of MM
+Application Monitoring:
+- Micrometer for metrics collection
+- Spring Boot Actuator for health checks
+- Custom business metrics
+- Circuit breaker metrics
+- Performance metrics
+- Error metrics
+- Throughput metrics
+end note
+
+note right of NE
+Infrastructure Monitoring:
+- Node Exporter for system metrics
+- cAdvisor for container metrics
+- kube-state-metrics for Kubernetes
+- Prometheus Node Exporter
+- System resource monitoring
+- Container resource monitoring
+- Network monitoring
+end note
+
+note right of PS
+Metrics Collection:
+- Prometheus for metrics storage
+- Service discovery for targets
+- Metrics scraping and collection
+- Time series database
+- Metrics aggregation
+- Query language (PromQL)
+- High availability
+end note
+
+note right of Fluentd
+Log Collection:
+- Fluentd for log aggregation
+- Filebeat for log shipping
+- Logstash for log processing
+- Log parsing and enrichment
+- Structured logging
+- Log correlation
+- Log filtering
+end note
+
+note right of ES
+Log Storage:
+- Elasticsearch for log storage
+- Index management
+- Log retention policies
+- Log archival
+- Log compression
+- Full-text search
+- Real-time analysis
+end note
+
+note right of JA
+Distributed Tracing:
+- Jaeger for distributed tracing
+- Trace collection and storage
+- Span correlation
+- Performance analysis
+- Dependency mapping
+- Error tracking
+- Request flow visualization
+end note
+
+note right of Grafana
+Visualization:
+- Grafana for dashboards
+- Custom dashboards
+- Business dashboards
+- Performance dashboards
+- Real-time visualization
+- Historical analysis
+- Multi-data source support
+end note
+
+note right of AM
+Alerting:
+- Alert Manager for alerting
+- Alert rules and conditions
+- Alert routing and grouping
+- Alert silencing
+- Notification channels
+- Escalation policies
+- Alert correlation
+end note
+
+note right of EN
+Notification:
+- Email notifications
+- Slack integration
+- PagerDuty integration
+- Webhook notifications
+- SMS notifications
+- Teams notifications
+- Multi-channel support
+end note
+
+note right of UM
+External Monitoring:
+- Uptime monitoring
+- Synthetic monitoring
+- Performance monitoring
+- Error tracking
+- User experience monitoring
+- Business intelligence
+- External service monitoring
+end note
+
+@enduml

@@ -1,0 +1,338 @@
+@startuml INFRASTRUCTURE_ARCHITECTURE
+!theme plain
+title ISO 20022 Payment Engine - Infrastructure Architecture
+
+package "Load Balancer & CDN" {
+    [CloudFlare CDN] as CF
+    [AWS Application Load Balancer] as ALB
+    [NGINX Ingress Controller] as NGINX
+    [SSL/TLS Termination] as SSL
+}
+
+package "Kubernetes Cluster" {
+    package "Control Plane" {
+        [API Server] as APIServer
+        [etcd] as etcd
+        [Scheduler] as Scheduler
+        [Controller Manager] as CM
+        [Cloud Controller Manager] as CCM
+    }
+    
+    package "Worker Nodes" {
+        node "Worker Node 1" {
+            [kubelet] as kubelet1
+            [kube-proxy] as kube-proxy1
+            [Container Runtime] as CR1
+            [Gateway Pod] as GP1
+            [Middleware Pod] as MP1
+            [Core Banking Pod] as CBP1
+        }
+        
+        node "Worker Node 2" {
+            [kubelet] as kubelet2
+            [kube-proxy] as kube-proxy2
+            [Container Runtime] as CR2
+            [Gateway Pod] as GP2
+            [Middleware Pod] as MP2
+            [Core Banking Pod] as CBP2
+        }
+        
+        node "Worker Node 3" {
+            [kubelet] as kubelet3
+            [kube-proxy] as kube-proxy3
+            [Container Runtime] as CR3
+            [Gateway Pod] as GP3
+            [Middleware Pod] as MP3
+            [Core Banking Pod] as CBP3
+        }
+    }
+}
+
+package "Service Mesh (Istio)" {
+    [Istio Control Plane] as ICP
+    [Envoy Sidecar Proxies] as ESP
+    [Istio Gateway] as IG
+    [Virtual Services] as VS
+    [Destination Rules] as DR
+    [Service Entries] as SE
+}
+
+package "Data Layer" {
+    package "PostgreSQL Cluster" {
+        [PostgreSQL Primary] as PGP
+        [PostgreSQL Replica 1] as PGR1
+        [PostgreSQL Replica 2] as PGR2
+        [PostgreSQL Replica 3] as PGR3
+        [Connection Pooler] as CP
+    }
+    
+    package "Redis Cluster" {
+        [Redis Master 1] as RM1
+        [Redis Replica 1] as RR1
+        [Redis Master 2] as RM2
+        [Redis Replica 2] as RR2
+        [Redis Master 3] as RM3
+        [Redis Replica 3] as RR3
+        [Redis Sentinel] as RS
+    }
+    
+    package "Kafka Cluster" {
+        [Kafka Broker 1] as KB1
+        [Kafka Broker 2] as KB2
+        [Kafka Broker 3] as KB3
+        [Zookeeper Ensemble] as ZE
+        [Schema Registry] as SR
+        [Kafka Connect] as KC
+    }
+}
+
+package "Monitoring & Observability" {
+    package "Metrics & Monitoring" {
+        [Prometheus] as Prometheus
+        [Grafana] as Grafana
+        [Alert Manager] as AM
+        [Node Exporter] as NE
+        [cAdvisor] as cAdvisor
+    }
+    
+    package "Logging" {
+        [Elasticsearch] as ES
+        [Logstash] as LS
+        [Kibana] as Kibana
+        [Filebeat] as FB
+        [Fluentd] as Fluentd
+    }
+    
+    package "Tracing" {
+        [Jaeger] as Jaeger
+        [Jaeger Collector] as JC
+        [Jaeger Query] as JQ
+        [Jaeger UI] as JUI
+    }
+}
+
+package "Security & Compliance" {
+    [Vault] as Vault
+    [Cert-Manager] as CM2
+    [Falco] as Falco
+    [OPA Gatekeeper] as OPA
+    [Network Policies] as NP
+    [Pod Security Policies] as PSP
+}
+
+package "CI/CD Pipeline" {
+    [GitHub Actions] as GHA
+    [Docker Registry] as DR
+    [ArgoCD] as ArgoCD
+    [Helm Charts] as HC
+    [SonarQube] as SQ
+    [Trivy Scanner] as TS
+}
+
+package "External Services" {
+    [Clearing Systems] as CS
+    [SMTP Server] as SMTP
+    [SMS Gateway] as SMS
+    [Webhook Endpoints] as WE
+    [Third Party APIs] as TPA
+}
+
+' Load balancer connections
+CF --> ALB : "Traffic Routing"
+ALB --> NGINX : "Ingress"
+NGINX --> SSL : "SSL Termination"
+SSL --> IG : "Istio Gateway"
+
+' Kubernetes cluster connections
+APIServer --> etcd : "State Storage"
+APIServer --> Scheduler : "Pod Scheduling"
+APIServer --> CM : "Controller Management"
+APIServer --> CCM : "Cloud Integration"
+
+kubelet1 --> APIServer : "Node Registration"
+kubelet2 --> APIServer : "Node Registration"
+kubelet3 --> APIServer : "Node Registration"
+
+kube-proxy1 --> APIServer : "Service Proxy"
+kube-proxy2 --> APIServer : "Service Proxy"
+kube-proxy3 --> APIServer : "Service Proxy"
+
+' Service mesh connections
+ICP --> ESP : "Configuration"
+ESP --> GP1 : "Sidecar Proxy"
+ESP --> MP1 : "Sidecar Proxy"
+ESP --> CBP1 : "Sidecar Proxy"
+ESP --> GP2 : "Sidecar Proxy"
+ESP --> MP2 : "Sidecar Proxy"
+ESP --> CBP2 : "Sidecar Proxy"
+ESP --> GP3 : "Sidecar Proxy"
+ESP --> MP3 : "Sidecar Proxy"
+ESP --> CBP3 : "Sidecar Proxy"
+
+IG --> VS : "Virtual Service"
+VS --> DR : "Destination Rules"
+DR --> SE : "Service Entries"
+
+' Data layer connections
+PGP --> PGR1 : "Streaming Replication"
+PGP --> PGR2 : "Streaming Replication"
+PGP --> PGR3 : "Streaming Replication"
+CP --> PGP : "Primary Connections"
+CP --> PGR1 : "Read Connections"
+CP --> PGR2 : "Read Connections"
+CP --> PGR3 : "Read Connections"
+
+RM1 --> RR1 : "Replication"
+RM2 --> RR2 : "Replication"
+RM3 --> RR3 : "Replication"
+RS --> RM1 : "Sentinel"
+RS --> RM2 : "Sentinel"
+RS --> RM3 : "Sentinel"
+
+KB1 --> ZE : "Coordination"
+KB2 --> ZE : "Coordination"
+KB3 --> ZE : "Coordination"
+SR --> KB1 : "Schema Storage"
+KC --> KB1 : "Data Integration"
+
+' Monitoring connections
+Prometheus --> NE : "Node Metrics"
+Prometheus --> cAdvisor : "Container Metrics"
+Prometheus --> GP1 : "Application Metrics"
+Prometheus --> MP1 : "Application Metrics"
+Prometheus --> CBP1 : "Application Metrics"
+Prometheus --> AM : "Alert Rules"
+
+Grafana --> Prometheus : "Metrics Query"
+Grafana --> ES : "Log Query"
+Grafana --> Jaeger : "Trace Query"
+
+FB --> ES : "Log Shipping"
+Fluentd --> ES : "Log Aggregation"
+LS --> ES : "Log Processing"
+ES --> Kibana : "Log Visualization"
+
+JC --> Jaeger : "Trace Storage"
+JQ --> Jaeger : "Trace Query"
+JUI --> JQ : "Trace Visualization"
+
+' Security connections
+Vault --> GP1 : "Secret Management"
+Vault --> MP1 : "Secret Management"
+Vault --> CBP1 : "Secret Management"
+CM2 --> GP1 : "Certificate Management"
+CM2 --> MP1 : "Certificate Management"
+CM2 --> CBP1 : "Certificate Management"
+
+Falco --> APIServer : "Security Monitoring"
+OPA --> APIServer : "Policy Enforcement"
+NP --> kube-proxy1 : "Network Policies"
+PSP --> kubelet1 : "Pod Security"
+
+' CI/CD connections
+GHA --> DR : "Image Push"
+GHA --> SQ : "Code Quality"
+GHA --> TS : "Security Scan"
+ArgoCD --> DR : "Image Pull"
+ArgoCD --> HC : "Helm Deployment"
+ArgoCD --> APIServer : "GitOps Sync"
+
+' External service connections
+GP1 --> CS : "Clearing System APIs"
+MP1 --> CS : "Clearing System APIs"
+CBP1 --> CS : "Clearing System APIs"
+MP1 --> SMTP : "Email Notifications"
+MP1 --> SMS : "SMS Notifications"
+MP1 --> WE : "Webhook Delivery"
+MP1 --> TPA : "Third Party APIs"
+
+note right of CF
+CDN & Load Balancing:
+- CloudFlare for global CDN
+- AWS ALB for load balancing
+- NGINX for ingress control
+- SSL/TLS termination
+- DDoS protection
+- Global edge caching
+end note
+
+note right of APIServer
+Kubernetes Control Plane:
+- API Server for cluster management
+- etcd for state storage
+- Scheduler for pod placement
+- Controller Manager for automation
+- Cloud Controller Manager for cloud integration
+end note
+
+note right of ICP
+Istio Service Mesh:
+- Service discovery and load balancing
+- Traffic management and routing
+- Security policies and mTLS
+- Observability and monitoring
+- Circuit breaking and retry logic
+- Rate limiting and quotas
+end note
+
+note right of PGP
+PostgreSQL Cluster:
+- Primary-replica architecture
+- Streaming replication
+- Connection pooling
+- High availability
+- Automated failover
+- Backup and recovery
+end note
+
+note right of RM1
+Redis Cluster:
+- Master-replica architecture
+- Sentinel for high availability
+- Clustering for scalability
+- Persistence options
+- Memory optimization
+- Pub/Sub messaging
+end note
+
+note right of KB1
+Kafka Cluster:
+- Multi-broker cluster
+- Zookeeper coordination
+- Schema registry
+- Kafka Connect
+- High throughput
+- Durability and replication
+end note
+
+note right of Prometheus
+Monitoring Stack:
+- Prometheus for metrics collection
+- Grafana for visualization
+- Alert Manager for alerting
+- Node Exporter for system metrics
+- cAdvisor for container metrics
+- Custom application metrics
+end note
+
+note right of Vault
+Security Stack:
+- Vault for secret management
+- Cert-Manager for certificates
+- Falco for security monitoring
+- OPA Gatekeeper for policies
+- Network Policies for isolation
+- Pod Security Policies
+end note
+
+note right of GHA
+CI/CD Pipeline:
+- GitHub Actions for automation
+- Docker Registry for images
+- ArgoCD for GitOps
+- Helm for package management
+- SonarQube for quality
+- Trivy for security scanning
+end note
+
+@enduml
