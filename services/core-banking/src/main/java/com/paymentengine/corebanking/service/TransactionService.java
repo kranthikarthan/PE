@@ -5,6 +5,9 @@ import com.paymentengine.corebanking.dto.TransactionResponse;
 import com.paymentengine.corebanking.entity.Account;
 import com.paymentengine.corebanking.entity.PaymentType;
 import com.paymentengine.corebanking.entity.Transaction;
+import com.paymentengine.corebanking.exception.AccountException;
+import com.paymentengine.corebanking.exception.TransactionException;
+import com.paymentengine.corebanking.exception.ValidationException;
 import com.paymentengine.corebanking.repository.AccountRepository;
 import com.paymentengine.corebanking.repository.PaymentTypeRepository;
 import com.paymentengine.corebanking.repository.TransactionRepository;
@@ -67,63 +70,84 @@ public class TransactionService {
             // Validate request
             validateTransactionRequest(request);
             
-            // Get payment type
-            PaymentType paymentType = paymentTypeRepository.findById(request.getPaymentTypeId())
-                .orElseThrow(() -> new IllegalArgumentException("Payment type not found"));
+            // Get and validate payment type
+            PaymentType paymentType = getAndValidatePaymentType(request.getPaymentTypeId());
             
-            if (!paymentType.getIsActive()) {
-                throw new IllegalArgumentException("Payment type is not active");
-            }
-            
-            // Validate amount
-            if (!paymentType.isAmountValid(request.getAmount())) {
-                throw new IllegalArgumentException("Amount is outside allowed range for payment type");
-            }
-            
-            // Create transaction
-            Transaction transaction = new Transaction();
-            transaction.setTransactionReference(generateTransactionReference());
-            transaction.setExternalReference(request.getExternalReference());
-            transaction.setFromAccountId(request.getFromAccountId());
-            transaction.setToAccountId(request.getToAccountId());
-            transaction.setPaymentTypeId(request.getPaymentTypeId());
-            transaction.setAmount(request.getAmount());
-            transaction.setCurrencyCode(request.getCurrencyCode());
-            transaction.setFeeAmount(paymentType.calculateFee(request.getAmount()));
-            transaction.setTransactionType(determineTransactionType(request));
-            transaction.setDescription(request.getDescription());
-            transaction.setMetadata(request.getMetadata());
+            // Create transaction entity
+            Transaction transaction = createTransactionEntity(request, paymentType);
             
             // Validate accounts and balances
-            if (transaction.getFromAccountId() != null) {
-                validateDebitAccount(transaction);
-            }
-            
-            if (transaction.getToAccountId() != null) {
-                validateCreditAccount(transaction);
-            }
+            validateTransactionAccounts(transaction);
             
             // Save transaction
             transaction = transactionRepository.save(transaction);
             
-            // Publish event
-            TransactionCreatedEvent event = createTransactionCreatedEvent(transaction, request);
-            eventPublisher.publishEvent(KafkaTopics.TRANSACTION_CREATED, 
-                                      transaction.getTransactionReference(), event);
+            // Publish creation event
+            publishTransactionCreatedEvent(transaction, request);
             
             // Process transaction based on payment type
-            if (paymentType.getIsSynchronous()) {
-                processTransactionSync(transaction);
-            } else {
-                // Async processing will be handled by event listeners
-                logger.info("Transaction {} queued for async processing", transaction.getTransactionReference());
-            }
+            processTransactionByType(transaction, paymentType);
             
             return mapToTransactionResponse(transaction);
             
+        } catch (ValidationException | AccountException e) {
+            logger.warn("Transaction validation/account error: {}", e.getMessage());
+            throw e;
         } catch (Exception e) {
             logger.error("Error creating transaction: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to create transaction: " + e.getMessage(), e);
+            throw new TransactionException("Failed to create transaction: " + e.getMessage(), "TRANSACTION_CREATION_ERROR", e);
+        }
+    }
+    
+    private PaymentType getAndValidatePaymentType(UUID paymentTypeId) {
+        PaymentType paymentType = paymentTypeRepository.findById(paymentTypeId)
+            .orElseThrow(() -> new ValidationException("Payment type not found"));
+        
+        if (!paymentType.getIsActive()) {
+            throw new ValidationException("Payment type is not active");
+        }
+        
+        return paymentType;
+    }
+    
+    private Transaction createTransactionEntity(CreateTransactionRequest request, PaymentType paymentType) {
+        Transaction transaction = new Transaction();
+        transaction.setTransactionReference(generateTransactionReference());
+        transaction.setExternalReference(request.getExternalReference());
+        transaction.setFromAccountId(request.getFromAccountId());
+        transaction.setToAccountId(request.getToAccountId());
+        transaction.setPaymentTypeId(request.getPaymentTypeId());
+        transaction.setAmount(request.getAmount());
+        transaction.setCurrencyCode(request.getCurrencyCode());
+        transaction.setFeeAmount(paymentType.calculateFee(request.getAmount()));
+        transaction.setTransactionType(determineTransactionType(request));
+        transaction.setDescription(request.getDescription());
+        transaction.setMetadata(request.getMetadata());
+        return transaction;
+    }
+    
+    private void validateTransactionAccounts(Transaction transaction) {
+        if (transaction.getFromAccountId() != null) {
+            validateDebitAccount(transaction);
+        }
+        
+        if (transaction.getToAccountId() != null) {
+            validateCreditAccount(transaction);
+        }
+    }
+    
+    private void publishTransactionCreatedEvent(Transaction transaction, CreateTransactionRequest request) {
+        TransactionCreatedEvent event = createTransactionCreatedEvent(transaction, request);
+        eventPublisher.publishEvent(KafkaTopics.TRANSACTION_CREATED, 
+                                  transaction.getTransactionReference(), event);
+    }
+    
+    private void processTransactionByType(Transaction transaction, PaymentType paymentType) {
+        if (paymentType.getIsSynchronous()) {
+            processTransactionSync(transaction);
+        } else {
+            // Async processing will be handled by event listeners
+            logger.info("Transaction {} queued for async processing", transaction.getTransactionReference());
         }
     }
     
@@ -188,23 +212,43 @@ public class TransactionService {
     
     /**
      * Update account balances for a transaction
+     * Uses consistent locking order to prevent deadlocks
      */
     private void updateAccountBalances(Transaction transaction) {
-        if (transaction.getFromAccountId() != null) {
-            Account fromAccount = accountRepository.findByIdForUpdate(transaction.getFromAccountId())
-                .orElseThrow(() -> new IllegalArgumentException("From account not found"));
-            
-            fromAccount.debit(transaction.getTotalAmount());
-            accountRepository.save(fromAccount);
-        }
+        // Determine locking order based on account ID comparison to prevent deadlocks
+        UUID fromAccountId = transaction.getFromAccountId();
+        UUID toAccountId = transaction.getToAccountId();
         
-        if (transaction.getToAccountId() != null) {
-            Account toAccount = accountRepository.findByIdForUpdate(transaction.getToAccountId())
-                .orElseThrow(() -> new IllegalArgumentException("To account not found"));
-            
-            toAccount.credit(transaction.getAmount());
-            accountRepository.save(toAccount);
+        if (fromAccountId != null && toAccountId != null) {
+            // Lock accounts in consistent order (smaller ID first)
+            if (fromAccountId.compareTo(toAccountId) < 0) {
+                updateFromAccount(transaction);
+                updateToAccount(transaction);
+            } else {
+                updateToAccount(transaction);
+                updateFromAccount(transaction);
+            }
+        } else if (fromAccountId != null) {
+            updateFromAccount(transaction);
+        } else if (toAccountId != null) {
+            updateToAccount(transaction);
         }
+    }
+    
+    private void updateFromAccount(Transaction transaction) {
+        Account fromAccount = accountRepository.findByIdForUpdate(transaction.getFromAccountId())
+            .orElseThrow(() -> new AccountException("From account not found", transaction.getFromAccountId().toString()));
+        
+        fromAccount.debit(transaction.getTotalAmount());
+        accountRepository.save(fromAccount);
+    }
+    
+    private void updateToAccount(Transaction transaction) {
+        Account toAccount = accountRepository.findByIdForUpdate(transaction.getToAccountId())
+            .orElseThrow(() -> new AccountException("To account not found", transaction.getToAccountId().toString()));
+        
+        toAccount.credit(transaction.getAmount());
+        accountRepository.save(toAccount);
     }
     
     /**
@@ -307,38 +351,44 @@ public class TransactionService {
     // Helper methods
     
     private void validateTransactionRequest(CreateTransactionRequest request) {
+        List<String> errors = new ArrayList<>();
+        
         if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Amount must be positive");
+            errors.add("Amount must be positive");
         }
         
         if (request.getPaymentTypeId() == null) {
-            throw new IllegalArgumentException("Payment type ID is required");
+            errors.add("Payment type ID is required");
         }
         
         if (request.getFromAccountId() == null && request.getToAccountId() == null) {
-            throw new IllegalArgumentException("At least one account (from or to) is required");
+            errors.add("At least one account (from or to) is required");
+        }
+        
+        if (!errors.isEmpty()) {
+            throw new ValidationException(errors);
         }
     }
     
     private void validateDebitAccount(Transaction transaction) {
         Account account = accountRepository.findByIdForUpdate(transaction.getFromAccountId())
-            .orElseThrow(() -> new IllegalArgumentException("From account not found"));
+            .orElseThrow(() -> new AccountException("From account not found", transaction.getFromAccountId().toString()));
         
         if (!account.isActive()) {
-            throw new IllegalArgumentException("From account is not active");
+            throw new AccountException("From account is not active", "ACCOUNT_INACTIVE", transaction.getFromAccountId().toString());
         }
         
         if (!account.hasSufficientFunds(transaction.getTotalAmount())) {
-            throw new IllegalArgumentException("Insufficient funds in from account");
+            throw new AccountException("Insufficient funds in from account", "INSUFFICIENT_FUNDS", transaction.getFromAccountId().toString());
         }
     }
     
     private void validateCreditAccount(Transaction transaction) {
         Account account = accountRepository.findById(transaction.getToAccountId())
-            .orElseThrow(() -> new IllegalArgumentException("To account not found"));
+            .orElseThrow(() -> new AccountException("To account not found", transaction.getToAccountId().toString()));
         
         if (!account.isActive()) {
-            throw new IllegalArgumentException("To account is not active");
+            throw new AccountException("To account is not active", "ACCOUNT_INACTIVE", transaction.getToAccountId().toString());
         }
     }
     
@@ -353,8 +403,11 @@ public class TransactionService {
     }
     
     private String generateTransactionReference() {
-        return "TXN-" + System.currentTimeMillis() + "-" + 
-               UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        // Use UUID-based approach to prevent collisions
+        // Format: TXN-{UUID}-{timestamp}
+        String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        return "TXN-" + uuid + "-" + timestamp;
     }
     
     private TransactionCreatedEvent createTransactionCreatedEvent(Transaction transaction, CreateTransactionRequest request) {

@@ -206,21 +206,31 @@ payment-engine:
     default-timeout-minutes: 30
     max-retry-attempts: 3
     duplicate-check-window-minutes: 5
+    reference-generation:
+      use-uuid-based: true
+      include-timestamp: true
   
   validation:
     strict-mode: ${STRICT_VALIDATION:true}
     max-amount-per-transaction: ${MAX_TRANSACTION_AMOUNT:1000000.00}
     daily-limit-per-account: ${DAILY_ACCOUNT_LIMIT:50000.00}
+    enable-specific-exceptions: true
   
   processing:
     async-processing-enabled: true
     batch-processing-size: 100
     processing-thread-pool-size: 10
+    database-locking:
+      consistent-order: true
+      deadlock-prevention: true
   
   monitoring:
     enable-metrics: true
     enable-tracing: true
     sample-rate: 0.1
+    error-tracking:
+      enable-error-codes: true
+      track-transaction-references: true
 
 # Environment Specific Configurations
 ---

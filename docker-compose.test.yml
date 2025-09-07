@@ -1,0 +1,143 @@
+version: '3.8'
+
+services:
+  # Test Database
+  postgres-test:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: payment_engine_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d payment_engine_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Test Redis
+  redis-test:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Test Kafka
+  zookeeper-test:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka-test:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper-test
+    ports:
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-test:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-test:29092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "kafka-test:29092", "--list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Test Core Banking Service
+  core-banking-test:
+    build:
+      context: ./services/core-banking
+      dockerfile: Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+      DATABASE_URL: jdbc:postgresql://postgres-test:5432/payment_engine_test
+      DATABASE_USERNAME: test_user
+      DATABASE_PASSWORD: test_pass
+      REDIS_HOST: redis-test
+      REDIS_PORT: 6379
+      KAFKA_BOOTSTRAP_SERVERS: kafka-test:29092
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      kafka-test:
+        condition: service_healthy
+    ports:
+      - "8082:8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Test Middleware Service
+  middleware-test:
+    build:
+      context: ./services/middleware
+      dockerfile: Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+      DATABASE_URL: jdbc:postgresql://postgres-test:5432/payment_engine_test
+      DATABASE_USERNAME: test_user
+      DATABASE_PASSWORD: test_pass
+      REDIS_HOST: redis-test
+      REDIS_PORT: 6379
+      KAFKA_BOOTSTRAP_SERVERS: kafka-test:29092
+      CORE_BANKING_SERVICE_URL: http://core-banking-test:8081
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      kafka-test:
+        condition: service_healthy
+      core-banking-test:
+        condition: service_healthy
+    ports:
+      - "8083:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Test API Gateway
+  api-gateway-test:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+      MIDDLEWARE_SERVICE_URL: http://middleware-test:8080
+      CORE_BANKING_SERVICE_URL: http://core-banking-test:8081
+    depends_on:
+      middleware-test:
+        condition: service_healthy
+      core-banking-test:
+        condition: service_healthy
+    ports:
+      - "8084:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres_test_data:

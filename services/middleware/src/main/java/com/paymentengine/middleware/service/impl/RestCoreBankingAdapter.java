@@ -3,9 +3,12 @@ package com.paymentengine.middleware.service.impl;
 import com.paymentengine.middleware.dto.corebanking.*;
 import com.paymentengine.middleware.service.CoreBankingAdapter;
 import com.paymentengine.middleware.service.AdvancedPayloadTransformationService;
-import com.paymentengine.middleware.service.ResiliencyConfigurationService;
+import com.paymentengine.middleware.service.ResilientCoreBankingService;
 import com.paymentengine.middleware.entity.AdvancedPayloadMapping;
 import com.paymentengine.middleware.client.ExternalCoreBankingClient;
+import com.paymentengine.middleware.exception.CoreBankingException;
+import com.paymentengine.middleware.exception.AccountException;
+import com.paymentengine.middleware.exception.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +49,7 @@ public class RestCoreBankingAdapter implements CoreBankingAdapter {
     private AdvancedPayloadTransformationService advancedPayloadTransformationService;
     
     @Autowired
-    private ResiliencyConfigurationService resiliencyConfigurationService;
+    private ResilientCoreBankingService resilientCoreBankingService;
     
     @Value("${core-banking.rest.base-url}")
     private String baseUrl;
