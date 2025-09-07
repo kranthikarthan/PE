@@ -90,10 +90,22 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 messageId = paymentInfo.getMessageId();
                 correlationId = "CORR-" + System.currentTimeMillis();
                 
-                // 2. Generate UETR for end-to-end tracking
-                uetr = uetrGenerationService.generateUetr("PAIN001", tenantId);
-                logger.info("Generated UETR: {} for PAIN.001 messageId: {}, tenantId: {}", 
-                           uetr, messageId, tenantId);
+                // 2. Extract UETR from incoming PAIN.001 message or generate if blank
+                String externalUetr = uetrGenerationService.extractUetrFromMessage(pain001Message, "PAIN001");
+                uetr = uetrGenerationService.getOrGenerateUetr("PAIN001", tenantId, externalUetr);
+                
+                if (externalUetr != null && !externalUetr.trim().isEmpty()) {
+                    if (uetr.equals(externalUetr)) {
+                        logger.info("Using external UETR from client: {} for PAIN.001 messageId: {}, tenantId: {}", 
+                                   uetr, messageId, tenantId);
+                    } else {
+                        logger.warn("External UETR from client was invalid: {}, generated new UETR: {} for PAIN.001 messageId: {}, tenantId: {}", 
+                                   externalUetr, uetr, messageId, tenantId);
+                    }
+                } else {
+                    logger.info("No UETR in PAIN.001 message, generated new UETR: {} for messageId: {}, tenantId: {}", 
+                               uetr, messageId, tenantId);
+                }
                 
                 // 3. Set UETR in payment info for use in transformation
                 paymentInfo.setUetr(uetr);
@@ -957,6 +969,109 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
         return paymentData;
     }
     
+    /**
+     * Process incoming PACS.008 message from clearing system
+     * 
+     * @param pacs008Message The PACS.008 message from clearing system
+     * @param tenantId The tenant identifier
+     * @return Processing result with UETR information
+     */
+    public CompletableFuture<Map<String, Object>> processIncomingPacs008(
+            Map<String, Object> pacs008Message,
+            String tenantId) {
+        
+        logger.info("Processing incoming PACS.008 message for tenant: {}", tenantId);
+        
+        return CompletableFuture.supplyAsync(() -> {
+            long startTime = System.currentTimeMillis();
+            String uetr = null;
+            String messageId = null;
+            
+            try {
+                // 1. Extract UETR from incoming PACS.008 message or generate if blank
+                String externalUetr = uetrGenerationService.extractUetrFromMessage(pacs008Message, "PACS008");
+                uetr = uetrGenerationService.getOrGenerateUetr("PACS008", tenantId, externalUetr);
+                
+                if (externalUetr != null && !externalUetr.trim().isEmpty()) {
+                    if (uetr.equals(externalUetr)) {
+                        logger.info("Using external UETR from clearing system: {} for PACS.008 message, tenantId: {}", 
+                                   uetr, tenantId);
+                    } else {
+                        logger.warn("External UETR from clearing system was invalid: {}, generated new UETR: {} for PACS.008 message, tenantId: {}", 
+                                   externalUetr, uetr, tenantId);
+                    }
+                } else {
+                    logger.info("No UETR in PACS.008 message from clearing system, generated new UETR: {} for tenantId: {}", 
+                               uetr, tenantId);
+                }
+                
+                // 2. Extract message ID from PACS.008
+                messageId = extractMessageIdFromPacs008(pacs008Message);
+                
+                // 3. Track UETR in the system
+                uetrTrackingService.trackUetr(uetr, "PACS008", tenantId, messageId, "INBOUND");
+                uetrTrackingService.updateUetrStatus(uetr, "RECEIVED", "PACS.008 message received from clearing system", "Middleware Service");
+                
+                // 4. Process the PACS.008 message (transform to PACS.002 response)
+                Map<String, Object> pacs002Response = generatePacs002Response(messageId, null, "ACSC", "G000");
+                
+                // 5. Update UETR status
+                uetrTrackingService.updateUetrStatus(uetr, "PROCESSED", "PACS.008 processed successfully", "Middleware Service");
+                
+                long processingTime = System.currentTimeMillis() - startTime;
+                
+                logger.info("Successfully processed incoming PACS.008 with UETR: {} in {}ms", uetr, processingTime);
+                
+                Map<String, Object> result = new HashMap<>();
+                result.put("uetr", uetr);
+                result.put("messageId", messageId);
+                result.put("status", "SUCCESS");
+                result.put("pacs002Response", pacs002Response);
+                result.put("processingTimeMs", processingTime);
+                result.put("externalUetrUsed", externalUetr != null && uetr.equals(externalUetr));
+                
+                return result;
+                
+            } catch (Exception e) {
+                long processingTime = System.currentTimeMillis() - startTime;
+                logger.error("Error processing incoming PACS.008 with UETR: {}", uetr, e);
+                
+                // Update UETR status to failed
+                if (uetr != null) {
+                    uetrTrackingService.updateUetrStatus(uetr, "FAILED", 
+                        "PACS.008 processing failed: " + e.getMessage(), "Middleware Service");
+                }
+                
+                Map<String, Object> result = new HashMap<>();
+                result.put("uetr", uetr);
+                result.put("messageId", messageId);
+                result.put("status", "ERROR");
+                result.put("error", e.getMessage());
+                result.put("processingTimeMs", processingTime);
+                
+                return result;
+            }
+        });
+    }
+    
+    /**
+     * Extract message ID from PACS.008 message
+     */
+    private String extractMessageIdFromPacs008(Map<String, Object> pacs008Message) {
+        try {
+            Map<String, Object> fiToFICustomerCreditTransfer = (Map<String, Object>) pacs008Message.get("FIToFICstmrCdtTrf");
+            if (fiToFICustomerCreditTransfer == null) return null;
+            
+            Map<String, Object> grpHdr = (Map<String, Object>) fiToFICustomerCreditTransfer.get("GrpHdr");
+            if (grpHdr == null) return null;
+            
+            return (String) grpHdr.get("MsgId");
+        } catch (Exception e) {
+            logger.error("Error extracting message ID from PACS.008 message", e);
+            return null;
+        }
+    }
+
     /**
      * Extract response status from clearing system response
      * 

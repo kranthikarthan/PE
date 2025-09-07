@@ -74,10 +74,10 @@ public class UetrController {
     }
 
     /**
-     * Validate UETR format
+     * Validate UETR format and determine if it's external or internal
      * 
      * @param uetr The UETR to validate
-     * @return Validation result
+     * @return Validation result with external/internal classification
      */
     @GetMapping("/validate/{uetr}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('OPERATOR') or hasRole('USER')")
@@ -93,9 +93,29 @@ public class UetrController {
             response.put("isValid", isValid);
             
             if (isValid) {
-                response.put("timestamp", uetrGenerationService.extractTimestamp(uetr));
-                response.put("systemId", uetrGenerationService.extractSystemId(uetr));
-                response.put("messageTypeId", uetrGenerationService.extractMessageType(uetr));
+                String timestamp = uetrGenerationService.extractTimestamp(uetr);
+                String systemId = uetrGenerationService.extractSystemId(uetr);
+                String messageTypeId = uetrGenerationService.extractMessageType(uetr);
+                
+                response.put("timestamp", timestamp);
+                response.put("systemId", systemId);
+                response.put("messageTypeId", messageTypeId);
+                
+                // Determine if UETR is external (not from our system) or internal
+                boolean isExternal = !"PE01".equals(systemId);
+                response.put("isExternal", isExternal);
+                response.put("source", isExternal ? "External System" : "Payment Engine");
+                
+                // Check if UETR is tracked in our system
+                Optional<UetrTrackingService.UetrTrackingRecord> trackingRecord = 
+                        uetrTrackingService.getUetrTracking(uetr);
+                response.put("isTracked", trackingRecord.isPresent());
+                
+                if (trackingRecord.isPresent()) {
+                    response.put("trackingStatus", trackingRecord.get().getStatus());
+                    response.put("tenantId", trackingRecord.get().getTenantId());
+                    response.put("messageType", trackingRecord.get().getMessageType());
+                }
             }
             
             return ResponseEntity.ok(response);
@@ -295,6 +315,74 @@ public class UetrController {
             logger.error("Error retrieving UETR statistics for tenantId: {}", tenantId, e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to retrieve UETR statistics");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+
+    /**
+     * Process external UETR (from client or clearing system)
+     * 
+     * @param uetr The external UETR to process
+     * @param messageType The message type
+     * @param tenantId The tenant identifier
+     * @param source The source of the UETR (CLIENT, CLEARING_SYSTEM)
+     * @return Processing result
+     */
+    @PostMapping("/process-external")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('OPERATOR')")
+    public ResponseEntity<Map<String, Object>> processExternalUetr(
+            @RequestParam String uetr,
+            @RequestParam String messageType,
+            @RequestParam String tenantId,
+            @RequestParam String source) {
+        
+        try {
+            logger.info("Processing external UETR: {} from source: {} for messageType: {}, tenantId: {}", 
+                       uetr, source, messageType, tenantId);
+            
+            // Validate external UETR
+            boolean isValid = uetrGenerationService.isValidUetr(uetr);
+            if (!isValid) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Invalid external UETR format");
+                errorResponse.put("uetr", uetr);
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            // Check if UETR is already tracked
+            Optional<UetrTrackingService.UetrTrackingRecord> existingRecord = 
+                    uetrTrackingService.getUetrTracking(uetr);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("uetr", uetr);
+            response.put("messageType", messageType);
+            response.put("tenantId", tenantId);
+            response.put("source", source);
+            response.put("isValid", true);
+            response.put("alreadyTracked", existingRecord.isPresent());
+            
+            if (existingRecord.isPresent()) {
+                response.put("existingStatus", existingRecord.get().getStatus());
+                response.put("existingTenantId", existingRecord.get().getTenantId());
+                response.put("message", "UETR already tracked in system");
+            } else {
+                // Track the external UETR
+                UetrTrackingService.UetrTrackingRecord record = uetrTrackingService.trackUetr(
+                        uetr, messageType, tenantId, "EXTERNAL-" + System.currentTimeMillis(), "INBOUND");
+                uetrTrackingService.updateUetrStatus(uetr, "EXTERNAL_RECEIVED", 
+                    "External UETR received from " + source, "External System");
+                
+                response.put("trackingRecord", record);
+                response.put("message", "External UETR successfully tracked");
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Error processing external UETR: {} from source: {}", uetr, source, e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to process external UETR");
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.internalServerError().body(errorResponse);
         }

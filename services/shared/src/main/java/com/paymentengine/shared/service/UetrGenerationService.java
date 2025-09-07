@@ -44,6 +44,35 @@ public class UetrGenerationService {
     private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
     
     /**
+     * Get or generate UETR for a payment transaction
+     * If externalUetr is provided and valid, use it; otherwise generate a new one
+     * 
+     * @param messageType The ISO 20022 message type
+     * @param tenantId The tenant identifier
+     * @param externalUetr Optional external UETR from client or clearing system
+     * @return UETR (external if valid, or newly generated)
+     */
+    public String getOrGenerateUetr(String messageType, String tenantId, String externalUetr) {
+        // If external UETR is provided and valid, use it
+        if (externalUetr != null && !externalUetr.trim().isEmpty() && isValidUetr(externalUetr)) {
+            logger.info("Using external UETR: {} for messageType: {}, tenantId: {}", 
+                       externalUetr, messageType, tenantId);
+            return externalUetr;
+        }
+        
+        // Generate new UETR if external UETR is not provided or invalid
+        if (externalUetr != null && !externalUetr.trim().isEmpty()) {
+            logger.warn("External UETR provided but invalid: {} for messageType: {}, tenantId: {}. Generating new UETR.", 
+                       externalUetr, messageType, tenantId);
+        } else {
+            logger.info("No external UETR provided for messageType: {}, tenantId: {}. Generating new UETR.", 
+                       messageType, tenantId);
+        }
+        
+        return generateUetr(messageType, tenantId);
+    }
+
+    /**
      * Generate a UETR for a new payment transaction
      * 
      * @param messageType The ISO 20022 message type
@@ -172,6 +201,208 @@ public class UetrGenerationService {
         return uetr.substring(14, 18);
     }
     
+    /**
+     * Extract UETR from ISO 20022 message
+     * 
+     * @param message The ISO 20022 message
+     * @param messageType The message type (PAIN001, PACS008, etc.)
+     * @return UETR if found, null otherwise
+     */
+    public String extractUetrFromMessage(Map<String, Object> message, String messageType) {
+        try {
+            if (message == null) {
+                return null;
+            }
+            
+            // Extract UETR based on message type
+            switch (messageType.toUpperCase()) {
+                case "PAIN001":
+                    return extractUetrFromPain001(message);
+                case "PACS008":
+                    return extractUetrFromPacs008(message);
+                case "PACS002":
+                    return extractUetrFromPacs002(message);
+                case "PAIN002":
+                    return extractUetrFromPain002(message);
+                case "CAMT054":
+                    return extractUetrFromCamt054(message);
+                case "CAMT055":
+                    return extractUetrFromCamt055(message);
+                default:
+                    logger.warn("UETR extraction not implemented for message type: {}", messageType);
+                    return null;
+            }
+        } catch (Exception e) {
+            logger.error("Error extracting UETR from message type: {}", messageType, e);
+            return null;
+        }
+    }
+
+    /**
+     * Extract UETR from PAIN.001 message
+     */
+    private String extractUetrFromPain001(Map<String, Object> message) {
+        try {
+            Map<String, Object> cstmrCdtTrfInitn = (Map<String, Object>) message.get("CstmrCdtTrfInitn");
+            if (cstmrCdtTrfInitn == null) return null;
+            
+            List<Map<String, Object>> pmtInfList = (List<Map<String, Object>>) cstmrCdtTrfInitn.get("PmtInf");
+            if (pmtInfList == null || pmtInfList.isEmpty()) return null;
+            
+            Map<String, Object> pmtInf = pmtInfList.get(0);
+            List<Map<String, Object>> cdtTrfTxInfList = (List<Map<String, Object>>) pmtInf.get("CdtTrfTxInf");
+            if (cdtTrfTxInfList == null || cdtTrfTxInfList.isEmpty()) return null;
+            
+            Map<String, Object> cdtTrfTxInf = cdtTrfTxInfList.get(0);
+            Map<String, Object> pmtId = (Map<String, Object>) cdtTrfTxInf.get("PmtId");
+            if (pmtId == null) return null;
+            
+            return (String) pmtId.get("UETR");
+        } catch (Exception e) {
+            logger.error("Error extracting UETR from PAIN.001 message", e);
+            return null;
+        }
+    }
+
+    /**
+     * Extract UETR from PACS.008 message
+     */
+    private String extractUetrFromPacs008(Map<String, Object> message) {
+        try {
+            Map<String, Object> fiToFICustomerCreditTransfer = (Map<String, Object>) message.get("FIToFICstmrCdtTrf");
+            if (fiToFICustomerCreditTransfer == null) return null;
+            
+            List<Map<String, Object>> cdtTrfTxInfList = (List<Map<String, Object>>) fiToFICustomerCreditTransfer.get("CdtTrfTxInf");
+            if (cdtTrfTxInfList == null || cdtTrfTxInfList.isEmpty()) return null;
+            
+            Map<String, Object> cdtTrfTxInf = cdtTrfTxInfList.get(0);
+            Map<String, Object> pmtId = (Map<String, Object>) cdtTrfTxInf.get("PmtId");
+            if (pmtId == null) return null;
+            
+            return (String) pmtId.get("UETR");
+        } catch (Exception e) {
+            logger.error("Error extracting UETR from PACS.008 message", e);
+            return null;
+        }
+    }
+
+    /**
+     * Extract UETR from PACS.002 message
+     */
+    private String extractUetrFromPacs002(Map<String, Object> message) {
+        try {
+            Map<String, Object> document = (Map<String, Object>) message.get("Document");
+            if (document == null) return null;
+            
+            Map<String, Object> fiToFIPmtStsRpt = (Map<String, Object>) document.get("FIToFIPmtStsRpt");
+            if (fiToFIPmtStsRpt == null) return null;
+            
+            List<Map<String, Object>> txInfAndStsList = (List<Map<String, Object>>) fiToFIPmtStsRpt.get("TxInfAndSts");
+            if (txInfAndStsList == null || txInfAndStsList.isEmpty()) return null;
+            
+            Map<String, Object> txInfAndSts = txInfAndStsList.get(0);
+            Map<String, Object> orgnlTxId = (Map<String, Object>) txInfAndSts.get("OrgnlTxId");
+            if (orgnlTxId == null) return null;
+            
+            return (String) orgnlTxId.get("OrgnlUETR");
+        } catch (Exception e) {
+            logger.error("Error extracting UETR from PACS.002 message", e);
+            return null;
+        }
+    }
+
+    /**
+     * Extract UETR from PAIN.002 message
+     */
+    private String extractUetrFromPain002(Map<String, Object> message) {
+        try {
+            Map<String, Object> cstmrPmtStsRpt = (Map<String, Object>) message.get("CstmrPmtStsRpt");
+            if (cstmrPmtStsRpt == null) return null;
+            
+            List<Map<String, Object>> orgnlPmtInfAndStsList = (List<Map<String, Object>>) cstmrPmtStsRpt.get("OrgnlPmtInfAndSts");
+            if (orgnlPmtInfAndStsList == null || orgnlPmtInfAndStsList.isEmpty()) return null;
+            
+            Map<String, Object> orgnlPmtInfAndSts = orgnlPmtInfAndStsList.get(0);
+            List<Map<String, Object>> txInfAndStsList = (List<Map<String, Object>>) orgnlPmtInfAndSts.get("TxInfAndSts");
+            if (txInfAndStsList == null || txInfAndStsList.isEmpty()) return null;
+            
+            Map<String, Object> txInfAndSts = txInfAndStsList.get(0);
+            Map<String, Object> orgnlTxId = (Map<String, Object>) txInfAndSts.get("OrgnlTxId");
+            if (orgnlTxId == null) return null;
+            
+            return (String) orgnlTxId.get("OrgnlUETR");
+        } catch (Exception e) {
+            logger.error("Error extracting UETR from PAIN.002 message", e);
+            return null;
+        }
+    }
+
+    /**
+     * Extract UETR from CAMT.054 message
+     */
+    private String extractUetrFromCamt054(Map<String, Object> message) {
+        try {
+            Map<String, Object> document = (Map<String, Object>) message.get("Document");
+            if (document == null) return null;
+            
+            Map<String, Object> bkTpCstmrDbtCdtNtfctn = (Map<String, Object>) document.get("BkTpCstmrDbtCdtNtfctn");
+            if (bkTpCstmrDbtCdtNtfctn == null) return null;
+            
+            List<Map<String, Object>> ntfctnList = (List<Map<String, Object>>) bkTpCstmrDbtCdtNtfctn.get("Ntfctn");
+            if (ntfctnList == null || ntfctnList.isEmpty()) return null;
+            
+            Map<String, Object> ntfctn = ntfctnList.get(0);
+            List<Map<String, Object>> ntryList = (List<Map<String, Object>>) ntfctn.get("Ntry");
+            if (ntryList == null || ntryList.isEmpty()) return null;
+            
+            Map<String, Object> ntry = ntryList.get(0);
+            List<Map<String, Object>> ntryDtlsList = (List<Map<String, Object>>) ntry.get("NtryDtls");
+            if (ntryDtlsList == null || ntryDtlsList.isEmpty()) return null;
+            
+            Map<String, Object> ntryDtls = ntryDtlsList.get(0);
+            List<Map<String, Object>> txDtlsList = (List<Map<String, Object>>) ntryDtls.get("TxDtls");
+            if (txDtlsList == null || txDtlsList.isEmpty()) return null;
+            
+            Map<String, Object> txDtls = txDtlsList.get(0);
+            Map<String, Object> refs = (Map<String, Object>) txDtls.get("Refs");
+            if (refs == null) return null;
+            
+            return (String) refs.get("UETR");
+        } catch (Exception e) {
+            logger.error("Error extracting UETR from CAMT.054 message", e);
+            return null;
+        }
+    }
+
+    /**
+     * Extract UETR from CAMT.055 message
+     */
+    private String extractUetrFromCamt055(Map<String, Object> message) {
+        try {
+            Map<String, Object> document = (Map<String, Object>) message.get("Document");
+            if (document == null) return null;
+            
+            Map<String, Object> cstmrPmtCxlReq = (Map<String, Object>) document.get("CstmrPmtCxlReq");
+            if (cstmrPmtCxlReq == null) return null;
+            
+            List<Map<String, Object>> pmtInfList = (List<Map<String, Object>>) cstmrPmtCxlReq.get("PmtInf");
+            if (pmtInfList == null || pmtInfList.isEmpty()) return null;
+            
+            Map<String, Object> pmtInf = pmtInfList.get(0);
+            List<Map<String, Object>> cxlTxInfList = (List<Map<String, Object>>) pmtInf.get("CxlTxInf");
+            if (cxlTxInfList == null || cxlTxInfList.isEmpty()) return null;
+            
+            Map<String, Object> cxlTxInf = cxlTxInfList.get(0);
+            Map<String, Object> orgnlTxId = (Map<String, Object>) cxlTxInf.get("OrgnlTxId");
+            if (orgnlTxId == null) return null;
+            
+            return (String) orgnlTxId.get("OrgnlUETR");
+        } catch (Exception e) {
+            logger.error("Error extracting UETR from CAMT.055 message", e);
+            return null;
+        }
+    }
+
     /**
      * Check if two UETRs are related (same timestamp and system)
      * 

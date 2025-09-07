@@ -55,6 +55,11 @@ public interface SchemeProcessingService {
     Map<String, Object> processClearingSystemResponse(Map<String, Object> response, String messageType);
     
     /**
+     * Process incoming PACS.008 message from clearing system
+     */
+    CompletableFuture<Map<String, Object>> processIncomingPacs008(Map<String, Object> pacs008Message, String tenantId);
+    
+    /**
      * Scheme processing result
      */
     class SchemeProcessingResult {

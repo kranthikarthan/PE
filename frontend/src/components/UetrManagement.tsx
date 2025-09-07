@@ -129,6 +129,13 @@ const UetrManagement: React.FC = () => {
   const [validateUetr, setValidateUetr] = useState('');
   const [validationResult, setValidationResult] = useState<any>(null);
 
+  // External UETR processing state
+  const [externalUetr, setExternalUetr] = useState('');
+  const [externalMessageType, setExternalMessageType] = useState('PAIN001');
+  const [externalTenantId, setExternalTenantId] = useState('');
+  const [externalSource, setExternalSource] = useState('CLIENT');
+  const [externalProcessingResult, setExternalProcessingResult] = useState<any>(null);
+
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
@@ -238,6 +245,33 @@ const UetrManagement: React.FC = () => {
     }
   };
 
+  const handleProcessExternalUetr = async () => {
+    if (!externalUetr.trim() || !externalTenantId.trim()) {
+      setError('Please enter UETR and tenant ID');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.post('/api/v1/uetr/process-external', null, {
+        params: {
+          uetr: externalUetr,
+          messageType: externalMessageType,
+          tenantId: externalTenantId,
+          source: externalSource
+        }
+      });
+      setExternalProcessingResult(response.data);
+      setSuccess('External UETR processed successfully');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to process external UETR');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status?.toUpperCase()) {
       case 'COMPLETED': return 'success';
@@ -281,6 +315,7 @@ const UetrManagement: React.FC = () => {
             <Tab label="Search & Track" icon={<SearchIcon />} />
             <Tab label="Generate" icon={<GenerateIcon />} />
             <Tab label="Validate" icon={<ValidIcon />} />
+            <Tab label="External UETR" icon={<TimelineIcon />} />
             <Tab label="Statistics" icon={<StatsIcon />} />
           </Tabs>
         </Box>
@@ -497,14 +532,36 @@ const UetrManagement: React.FC = () => {
                   {validationResult.isValid && (
                     <Box sx={{ mt: 2 }}>
                       <Typography variant="body2">
-                        Timestamp: {validationResult.timestamp}
+                        <strong>Timestamp:</strong> {validationResult.timestamp}
                       </Typography>
                       <Typography variant="body2">
-                        System ID: {validationResult.systemId}
+                        <strong>System ID:</strong> {validationResult.systemId}
                       </Typography>
                       <Typography variant="body2">
-                        Message Type: {validationResult.messageTypeId}
+                        <strong>Message Type:</strong> {validationResult.messageTypeId}
                       </Typography>
+                      <Typography variant="body2">
+                        <strong>Source:</strong> {validationResult.source}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>External:</strong> {validationResult.isExternal ? 'Yes' : 'No'}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Tracked in System:</strong> {validationResult.isTracked ? 'Yes' : 'No'}
+                      </Typography>
+                      {validationResult.isTracked && (
+                        <>
+                          <Typography variant="body2">
+                            <strong>Status:</strong> {validationResult.trackingStatus}
+                          </Typography>
+                          <Typography variant="body2">
+                            <strong>Tenant ID:</strong> {validationResult.tenantId}
+                          </Typography>
+                          <Typography variant="body2">
+                            <strong>Message Type:</strong> {validationResult.messageType}
+                          </Typography>
+                        </>
+                      )}
                     </Box>
                   )}
                 </Alert>
@@ -514,6 +571,118 @@ const UetrManagement: React.FC = () => {
         </TabPanel>
 
         <TabPanel value={activeTab} index={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Process External UETR
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Process UETRs received from external systems (clients or clearing systems)
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="External UETR"
+                    value={externalUetr}
+                    onChange={(e) => setExternalUetr(e.target.value)}
+                    placeholder="Enter external UETR"
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Message Type</InputLabel>
+                    <Select
+                      value={externalMessageType}
+                      onChange={(e) => setExternalMessageType(e.target.value)}
+                      label="Message Type"
+                    >
+                      <MenuItem value="PAIN001">PAIN.001</MenuItem>
+                      <MenuItem value="PACS008">PACS.008</MenuItem>
+                      <MenuItem value="PACS002">PACS.002</MenuItem>
+                      <MenuItem value="PAIN002">PAIN.002</MenuItem>
+                      <MenuItem value="CAMT054">CAMT.054</MenuItem>
+                      <MenuItem value="CAMT055">CAMT.055</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Tenant ID"
+                    value={externalTenantId}
+                    onChange={(e) => setExternalTenantId(e.target.value)}
+                    placeholder="Enter tenant ID"
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Source</InputLabel>
+                    <Select
+                      value={externalSource}
+                      onChange={(e) => setExternalSource(e.target.value)}
+                      label="Source"
+                    >
+                      <MenuItem value="CLIENT">Client</MenuItem>
+                      <MenuItem value="CLEARING_SYSTEM">Clearing System</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    variant="contained"
+                    onClick={handleProcessExternalUetr}
+                    disabled={loading}
+                    startIcon={loading ? <CircularProgress size={20} /> : <TimelineIcon />}
+                  >
+                    Process External UETR
+                  </Button>
+                </Grid>
+                {externalProcessingResult && (
+                  <Grid item xs={12}>
+                    <Alert severity={externalProcessingResult.alreadyTracked ? "info" : "success"}>
+                      <Typography variant="h6">External UETR Processing Result</Typography>
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="body2">
+                          <strong>UETR:</strong> {externalProcessingResult.uetr}
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong>Source:</strong> {externalProcessingResult.source}
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong>Message Type:</strong> {externalProcessingResult.messageType}
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong>Tenant ID:</strong> {externalProcessingResult.tenantId}
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong>Already Tracked:</strong> {externalProcessingResult.alreadyTracked ? 'Yes' : 'No'}
+                        </Typography>
+                        {externalProcessingResult.alreadyTracked && (
+                          <>
+                            <Typography variant="body2">
+                              <strong>Existing Status:</strong> {externalProcessingResult.existingStatus}
+                            </Typography>
+                            <Typography variant="body2">
+                              <strong>Existing Tenant:</strong> {externalProcessingResult.existingTenantId}
+                            </Typography>
+                          </>
+                        )}
+                        <Typography variant="body2" sx={{ mt: 1 }}>
+                          <strong>Message:</strong> {externalProcessingResult.message}
+                        </Typography>
+                      </Box>
+                    </Alert>
+                  </Grid>
+                )}
+              </Grid>
+            </CardContent>
+          </Card>
+        </TabPanel>
+
+        <TabPanel value={activeTab} index={4}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
