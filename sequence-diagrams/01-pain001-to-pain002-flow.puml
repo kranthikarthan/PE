@@ -1,0 +1,170 @@
+@startuml PAIN001_TO_PAIN002_FLOW
+!theme plain
+title ISO 20022 Payment Processing Flow: PAIN.001 to PAIN.002
+
+actor Client as C
+participant "API Gateway" as AG
+participant "Middleware Service" as MS
+participant "Core Banking" as CB
+participant "Clearing System" as CS
+participant "Kafka" as K
+participant "Redis Cache" as RC
+participant "Audit Service" as AS
+
+== Positive Flow: Successful Payment Processing ==
+
+C -> AG: POST /api/v1/iso20022/comprehensive/pain001
+note right: JWT Token: Bearer <token>\nScope: iso20022:send
+
+AG -> AG: Validate JWT Token
+AG -> AG: Check Rate Limits (100 req/sec)
+AG -> AG: Apply Circuit Breaker
+
+alt Circuit Breaker CLOSED
+    AG -> MS: Forward PAIN.001 Request
+    note right: Headers: X-Gateway, X-User-ID, X-Correlation-ID
+    
+    MS -> AS: Log Authentication Event
+    note right: Event: AUTHENTICATION\nAction: API_ACCESS\nSuccess: true
+    
+    MS -> RC: Check Cache for Tenant Config
+    RC --> MS: Return Tenant Configuration
+    
+    MS -> MS: Validate PAIN.001 Message
+    MS -> MS: Extract Payment Details
+    note right: - Debtor Account\n- Creditor Account\n- Amount\n- Currency\n- Local Instrument Code
+    
+    MS -> MS: Determine Clearing System
+    note right: Based on:\n- Tenant ID\n- Payment Type\n- Local Instrument Code
+    
+    MS -> RC: Get Clearing System Config
+    RC --> MS: Return Endpoint Configuration
+    
+    MS -> MS: Transform PAIN.001 to PACS.008
+    note right: ISO 20022 Message Transformation\n- Map debtor/creditor\n- Add clearing system details\n- Generate unique transaction ID
+    
+    MS -> AS: Log Message Processing Event
+    note right: Event: MESSAGE_PROCESSING\nAction: TRANSFORM\nMessageType: pain001->pacs008\nSuccess: true
+    
+    MS -> CS: POST PACS.008 to Clearing System
+    note right: Endpoint: /sync/pacs008\nFormat: JSON\nAuth: API Key/JWT\nTimeout: 30s
+    
+    CS -> CS: Process Payment Request
+    CS -> CS: Validate Account Details
+    CS -> CS: Check Available Balance
+    CS -> CS: Reserve Funds
+    
+    CS --> MS: Return PACS.002 Response
+    note right: Status: ACCP (Accepted)\nTransaction ID: <txn-id>\nProcessing Time: <timestamp>
+    
+    MS -> AS: Log Clearing System Event
+    note right: Event: CLEARING_SYSTEM\nAction: PAYMENT_PROCESSING\nClearingSystem: <system-id>\nSuccess: true\nResponseTime: <ms>
+    
+    MS -> MS: Transform PACS.002 to PAIN.002
+    note right: Map clearing system response\nto client response format
+    
+    MS -> AS: Log Message Processing Event
+    note right: Event: MESSAGE_PROCESSING\nAction: TRANSFORM\nMessageType: pacs002->pain002\nSuccess: true
+    
+    alt Response Mode: IMMEDIATE
+        MS --> AG: Return PAIN.002 Response
+        AG --> C: Return Success Response
+        note right: Status: 200 OK\nPAIN.002 Message\nProcessing Time: <ms>
+        
+    else Response Mode: ASYNC
+        MS -> K: Send PAIN.002 to Kafka Topic
+        note right: Topic: tenant-<tenant-id>\nKey: <correlation-id>\nMessage: PAIN.002
+        
+        MS --> AG: Return Acknowledgment
+        AG --> C: Return 202 Accepted
+        note right: Status: 202 Accepted\nMessage: "Payment processing initiated"\nCorrelation ID: <id>
+        
+        K -> C: Deliver PAIN.002 via Webhook
+        note right: Webhook URL: <client-webhook>\nRetry: 3 attempts\nTimeout: 10s
+    end
+    
+else Circuit Breaker OPEN
+    AG -> AG: Return Fallback Response
+    AG --> C: Return 503 Service Unavailable
+    note right: Status: 503\nMessage: "Service temporarily unavailable"\nRetry After: 30s
+end
+
+== Negative Flow: Payment Rejection ==
+
+C -> AG: POST /api/v1/iso20022/comprehensive/pain001
+AG -> AG: Validate JWT Token
+AG -> AG: Check Rate Limits
+AG -> AG: Apply Circuit Breaker
+
+alt Circuit Breaker CLOSED
+    AG -> MS: Forward PAIN.001 Request
+    
+    MS -> AS: Log Authentication Event
+    MS -> RC: Check Cache for Tenant Config
+    RC --> MS: Return Tenant Configuration
+    
+    MS -> MS: Validate PAIN.001 Message
+    
+    alt Validation Failure
+        MS -> AS: Log Message Processing Event
+        note right: Event: MESSAGE_PROCESSING\nAction: VALIDATE\nMessageType: pain001\nSuccess: false\nError: "Invalid message format"
+        
+        MS --> AG: Return Validation Error
+        AG --> C: Return 400 Bad Request
+        note right: Status: 400\nError: "Invalid PAIN.001 message format"\nDetails: <validation-errors>
+    else Validation Success
+        MS -> MS: Transform PAIN.001 to PACS.008
+        MS -> CS: POST PACS.008 to Clearing System
+        
+        CS -> CS: Process Payment Request
+        CS -> CS: Validate Account Details
+        
+        alt Insufficient Funds
+            CS --> MS: Return PACS.002 Rejection
+            note right: Status: RJCT (Rejected)\nReason: "Insufficient funds"\nError Code: NARR
+            
+            MS -> AS: Log Clearing System Event
+            note right: Event: CLEARING_SYSTEM\nAction: PAYMENT_PROCESSING\nClearingSystem: <system-id>\nSuccess: false\nError: "Insufficient funds"
+            
+            MS -> MS: Transform PACS.002 to PAIN.002
+            MS --> AG: Return PAIN.002 Rejection
+            AG --> C: Return 200 OK with Rejection
+            note right: Status: 200 OK\nPAIN.002 Message\nStatus: RJCT\nReason: "Insufficient funds"
+            
+        else Account Not Found
+            CS --> MS: Return PACS.002 Rejection
+            note right: Status: RJCT (Rejected)\nReason: "Account not found"\nError Code: ACCT
+            
+            MS -> AS: Log Clearing System Event
+            note right: Event: CLEARING_SYSTEM\nAction: PAYMENT_PROCESSING\nClearingSystem: <system-id>\nSuccess: false\nError: "Account not found"
+            
+            MS -> MS: Transform PACS.002 to PAIN.002
+            MS --> AG: Return PAIN.002 Rejection
+            AG --> C: Return 200 OK with Rejection
+            note right: Status: 200 OK\nPAIN.002 Message\nStatus: RJCT\nReason: "Account not found"
+        end
+    end
+    
+else Circuit Breaker OPEN
+    AG -> AG: Return Fallback Response
+    AG --> C: Return 503 Service Unavailable
+    note right: Status: 503\nMessage: "Service temporarily unavailable"\nRetry After: 30s
+end
+
+== Security Mechanisms ==
+
+note over C,AS
+Security Features:
+- JWT Token Authentication
+- Rate Limiting (100 req/sec)
+- Circuit Breaker Protection
+- Message Encryption (AES-GCM)
+- Digital Signatures (RSA)
+- Comprehensive Audit Logging
+- Input Validation
+- CORS Protection
+- Request/Response Headers
+- Correlation ID Tracking
+end note
+
+@enduml
