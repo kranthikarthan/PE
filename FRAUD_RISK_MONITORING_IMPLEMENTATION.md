@@ -59,6 +59,7 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - **Pre-processing fraud assessment** before debit/credit operations
 - **Automatic decision enforcement** (Approve, Reject, Manual Review, Hold, Escalate)
 - **Transaction repair system** for failed assessments
+- **Dynamic fraud API toggle** integration for enabling/disabling fraud checks at multiple levels
 
 ## Architecture Components
 
@@ -75,8 +76,14 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - Stores results of fraud/risk assessments
 - Risk scores and levels
 - Decision outcomes
-- External API responses
+- Bank's fraud API responses
 - Processing metrics
+
+#### FraudApiToggleConfiguration
+- Stores configuration for fraud API enable/disable at different levels
+- Supports tenant, payment type, local instrument, and clearing system specificity
+- Includes timing controls (effective from/until) and priority ordering
+- Tracks audit information (created by, updated by, timestamps)
 
 ### 2. **Services**
 
@@ -104,6 +111,13 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - Multi-channel alerting
 - Alert management
 
+#### FraudApiToggleService
+- Main service for fraud API toggle operations
+- Configuration management (CRUD operations)
+- Status checking with priority-based resolution
+- Statistics and monitoring
+- Cache management
+
 ### 3. **Repositories**
 
 #### FraudRiskConfigurationRepository
@@ -118,6 +132,12 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - Risk level queries
 - Time-based filtering
 
+#### FraudApiToggleConfigurationRepository
+- JPA repository with custom queries for priority-based resolution
+- Efficient queries for different configuration levels
+- Time-based filtering for effective configurations
+- Performance-optimized indexes
+
 ### 4. **Controllers**
 
 #### FraudRiskMonitoringController
@@ -126,6 +146,12 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - Statistics and metrics
 - Manual review operations
 
+#### FraudApiToggleController
+- REST API endpoints for fraud API toggle configuration management
+- Status checking endpoints
+- Statistics and monitoring endpoints
+- Cache management endpoints
+
 ## Database Schema
 
 ### Tables
@@ -133,63 +159,83 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 #### fraud_risk_configurations
 ```sql
 - id (UUID, Primary Key)
-- configuration_name (VARCHAR(100))
-- tenant_id (VARCHAR(50))
-- payment_type (VARCHAR(50))
-- local_instrumentation_code (VARCHAR(50))
-- clearing_system_code (VARCHAR(50))
-- payment_source (ENUM: BANK_CLIENT, CLEARING_SYSTEM, BOTH)
-- risk_assessment_type (ENUM: REAL_TIME, BATCH, HYBRID, CUSTOM)
-- bank_fraud_api_config (JSONB)
-- risk_rules (JSONB)
-- decision_criteria (JSONB)
-- thresholds (JSONB)
-- timeout_config (JSONB)
-- retry_config (JSONB)
-- circuit_breaker_config (JSONB)
-- fallback_config (JSONB)
-- monitoring_config (JSONB)
-- alerting_config (JSONB)
-- is_enabled (BOOLEAN)
-- priority (INTEGER)
-- version (VARCHAR(20))
-- description (VARCHAR(1000))
-- created_at (TIMESTAMP)
-- updated_at (TIMESTAMP)
-- created_by (VARCHAR(100))
-- updated_by (VARCHAR(100))
+- configuration_name (VARCHAR(100), NOT NULL)
+- tenant_id (VARCHAR(50), NOT NULL)
+- payment_type (VARCHAR(50), Optional)
+- local_instrumentation_code (VARCHAR(50), Optional)
+- clearing_system_code (VARCHAR(50), Optional)
+- payment_source (VARCHAR(20), NOT NULL, CHECK: BANK_CLIENT, CLEARING_SYSTEM, BOTH)
+- risk_assessment_type (VARCHAR(50), NOT NULL, CHECK: REAL_TIME, BATCH, HYBRID, CUSTOM)
+- bank_fraud_api_config (JSONB, Optional)
+- risk_rules (JSONB, Optional)
+- decision_criteria (JSONB, Optional)
+- thresholds (JSONB, Optional)
+- timeout_config (JSONB, Optional)
+- retry_config (JSONB, Optional)
+- circuit_breaker_config (JSONB, Optional)
+- fallback_config (JSONB, Optional)
+- monitoring_config (JSONB, Optional)
+- alerting_config (JSONB, Optional)
+- is_enabled (BOOLEAN, DEFAULT true)
+- priority (INTEGER, DEFAULT 1)
+- version (VARCHAR(20), DEFAULT '1.0')
+- description (VARCHAR(1000), Optional)
+- created_at (TIMESTAMP, NOT NULL, DEFAULT CURRENT_TIMESTAMP)
+- updated_at (TIMESTAMP, NOT NULL, DEFAULT CURRENT_TIMESTAMP)
+- created_by (VARCHAR(100), Optional)
+- updated_by (VARCHAR(100), Optional)
 ```
 
 #### fraud_risk_assessments
 ```sql
 - id (UUID, Primary Key)
-- assessment_id (VARCHAR(100), Unique)
-- transaction_reference (VARCHAR(100))
-- tenant_id (VARCHAR(50))
-- payment_type (VARCHAR(50))
-- local_instrumentation_code (VARCHAR(50))
-- clearing_system_code (VARCHAR(50))
-- payment_source (ENUM: BANK_CLIENT, CLEARING_SYSTEM, BOTH)
-- risk_assessment_type (ENUM: REAL_TIME, BATCH, HYBRID, CUSTOM)
-- configuration_id (UUID, Foreign Key)
-- external_api_used (VARCHAR(100))
-- risk_score (DECIMAL(5,4))
-- risk_level (ENUM: LOW, MEDIUM, HIGH, CRITICAL)
-- decision (ENUM: APPROVE, REJECT, MANUAL_REVIEW, HOLD, ESCALATE)
-- decision_reason (VARCHAR(500))
-- external_api_request (JSONB)
-- external_api_response (JSONB)
-- risk_factors (JSONB)
-- assessment_details (JSONB)
-- processing_time_ms (BIGINT)
-- external_api_response_time_ms (BIGINT)
-- status (ENUM: PENDING, IN_PROGRESS, COMPLETED, FAILED, ERROR, TIMEOUT, CANCELLED)
-- error_message (VARCHAR(1000))
-- retry_count (INTEGER)
-- assessed_at (TIMESTAMP)
-- expires_at (TIMESTAMP)
-- created_at (TIMESTAMP)
-- updated_at (TIMESTAMP)
+- assessment_id (VARCHAR(100), NOT NULL, UNIQUE)
+- transaction_reference (VARCHAR(100), NOT NULL)
+- tenant_id (VARCHAR(50), NOT NULL)
+- payment_type (VARCHAR(50), Optional)
+- local_instrumentation_code (VARCHAR(50), Optional)
+- clearing_system_code (VARCHAR(50), Optional)
+- payment_source (VARCHAR(20), NOT NULL, CHECK: BANK_CLIENT, CLEARING_SYSTEM, BOTH)
+- risk_assessment_type (VARCHAR(50), NOT NULL, CHECK: REAL_TIME, BATCH, HYBRID, CUSTOM)
+- configuration_id (UUID, Foreign Key to fraud_risk_configurations)
+- external_api_used (VARCHAR(100), Optional)
+- risk_score (DECIMAL(5,4), Optional)
+- risk_level (VARCHAR(20), Optional, CHECK: LOW, MEDIUM, HIGH, CRITICAL)
+- decision (VARCHAR(20), Optional, CHECK: APPROVE, REJECT, MANUAL_REVIEW, HOLD, ESCALATE)
+- decision_reason (VARCHAR(500), Optional)
+- external_api_request (JSONB, Optional)
+- external_api_response (JSONB, Optional)
+- risk_factors (JSONB, Optional)
+- assessment_details (JSONB, Optional)
+- processing_time_ms (BIGINT, Optional)
+- external_api_response_time_ms (BIGINT, Optional)
+- status (VARCHAR(20), NOT NULL, CHECK: PENDING, IN_PROGRESS, COMPLETED, FAILED, ERROR, TIMEOUT, CANCELLED)
+- error_message (VARCHAR(1000), Optional)
+- retry_count (INTEGER, DEFAULT 0)
+- assessed_at (TIMESTAMP, Optional)
+- expires_at (TIMESTAMP, Optional)
+- created_at (TIMESTAMP, NOT NULL, DEFAULT CURRENT_TIMESTAMP)
+- updated_at (TIMESTAMP, NOT NULL, DEFAULT CURRENT_TIMESTAMP)
+```
+
+#### fraud_api_toggle_configurations
+```sql
+- id (UUID, Primary Key)
+- tenant_id (VARCHAR(50), NOT NULL)
+- payment_type (VARCHAR(50), Optional)
+- local_instrumentation_code (VARCHAR(50), Optional)
+- clearing_system_code (VARCHAR(50), Optional)
+- is_enabled (BOOLEAN, NOT NULL)
+- enabled_reason (VARCHAR(500), Optional)
+- disabled_reason (VARCHAR(500), Optional)
+- effective_from (TIMESTAMP WITH TIME ZONE, Optional)
+- effective_until (TIMESTAMP WITH TIME ZONE, Optional)
+- priority (INTEGER, NOT NULL, DEFAULT 100)
+- is_active (BOOLEAN, NOT NULL, DEFAULT TRUE)
+- created_by (VARCHAR(100), Optional)
+- updated_by (VARCHAR(100), Optional)
+- created_at (TIMESTAMP WITH TIME ZONE, NOT NULL)
+- updated_at (TIMESTAMP WITH TIME ZONE, NOT NULL)
 ```
 
 ### Indexes
@@ -202,6 +248,10 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - `fraud_risk_assessments_recent` - Recent assessments
 - `fraud_risk_assessments_pending_review` - Manual review queue
 - `fraud_risk_assessments_high_risk` - High-risk assessments
+- `fraud_api_toggle_configurations_active` - All active fraud API toggle configurations
+- `fraud_api_toggle_configurations_currently_effective` - Currently effective configurations
+- `fraud_api_toggle_configurations_future_effective` - Future effective configurations
+- `fraud_api_toggle_configurations_expired` - Expired configurations
 
 ## API Endpoints
 
@@ -229,6 +279,23 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - `GET /api/v1/fraud-risk/high-risk` - High-risk assessments
 - `GET /api/v1/fraud-risk/critical-risk` - Critical-risk assessments
 
+### Fraud API Toggle Management
+- `GET /api/v1/fraud-api-toggle/configurations` - List all active fraud API toggle configurations
+- `GET /api/v1/fraud-api-toggle/configurations/tenant/{tenantId}` - Get configurations by tenant
+- `GET /api/v1/fraud-api-toggle/configurations/effective` - Get currently effective configurations
+- `GET /api/v1/fraud-api-toggle/configurations/future` - Get future effective configurations
+- `GET /api/v1/fraud-api-toggle/configurations/expired` - Get expired configurations
+- `POST /api/v1/fraud-api-toggle/configurations` - Create new configuration
+- `PUT /api/v1/fraud-api-toggle/configurations/{id}` - Update configuration
+- `DELETE /api/v1/fraud-api-toggle/configurations/{id}` - Delete configuration
+- `GET /api/v1/fraud-api-toggle/check` - Check if fraud API is enabled for specific context
+- `POST /api/v1/fraud-api-toggle/enable` - Enable fraud API for specific context
+- `POST /api/v1/fraud-api-toggle/disable` - Disable fraud API for specific context
+- `POST /api/v1/fraud-api-toggle/toggle` - Toggle fraud API for specific context
+- `POST /api/v1/fraud-api-toggle/configurations/schedule` - Schedule configuration for future effective time
+- `GET /api/v1/fraud-api-toggle/statistics` - Get configuration statistics
+- `POST /api/v1/fraud-api-toggle/cache/refresh` - Refresh cache
+
 ## React Frontend
 
 ### FraudRiskConfiguration Component
@@ -242,6 +309,15 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - **Statistics dashboard** with key metrics
 - **API testing capabilities** for the bank's fraud engine
 - **Alert management** and manual review workflows
+
+### FraudApiToggleConfiguration Component
+- **Tabbed interface** for configurations, status checking, and statistics
+- **Configuration management** with form validation and date/time pickers
+- **Real-time status checking** with context-specific queries
+- **Statistics dashboard** with key metrics
+- **Scheduled configuration** support for future effective times
+- **Priority-based configuration** display and management
+- **Audit trail** display for configuration changes
 
 ### Key Features
 - **Responsive design** with Material-UI components
@@ -257,6 +333,7 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - Pre-processing fraud assessment before payment execution
 - Automatic decision enforcement based on assessment results
 - Transaction repair system for failed assessments
+- Dynamic fraud API toggle check before fraud assessment
 
 ### 2. **Bank's Fraud Engine API**
 - Configurable integration with the bank's own fraud/risk monitoring engine
@@ -276,6 +353,14 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - Optimized queries with proper indexing
 - Database views for common operations
 - Migration scripts for schema management
+
+### 5. **Fraud API Toggle Integration**
+- Integrated into `FraudRiskMonitoringServiceImpl`
+- Pre-assessment check for fraud API enabled status
+- Automatic approval when fraud API is disabled
+- Logging of disabled fraud API decisions
+- Redis-based caching for configuration lookups
+- Cache invalidation on configuration updates
 
 ## Security Considerations
 
@@ -357,10 +442,43 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - Additional internal data sources
 - Advanced fraud detection algorithms
 
+## Integration with Fraud API Toggle System
+
+The fraud/risk monitoring system is integrated with the dynamic fraud API toggle configuration system to provide granular control over when fraud assessments are performed. This integration allows for:
+
+### 1. **Dynamic Fraud API Control**
+- **Pre-assessment Check**: Before performing any fraud assessment, the system checks if fraud API is enabled for the specific context
+- **Automatic Approval**: If fraud API is disabled, the system automatically approves the transaction without calling the bank's fraud engine
+- **Context-Aware Control**: Fraud API can be enabled/disabled at different levels (tenant, payment type, local instrument, clearing system)
+
+### 2. **Configuration Resolution**
+- **Priority-Based Resolution**: More specific configurations override general ones
+- **Real-time Updates**: Configuration changes take effect immediately without application restart
+- **Caching**: Redis-based caching for optimal performance of configuration lookups
+
+### 3. **Integration Flow**
+```
+Payment Request → Fraud API Toggle Check → Fraud Assessment (if enabled) → Payment Processing
+```
+
+### 4. **Benefits**
+- **Performance Optimization**: Skip fraud assessment when not needed
+- **Operational Flexibility**: Enable/disable fraud checks based on business requirements
+- **Cost Management**: Reduce API calls to bank's fraud engine when appropriate
+- **Maintenance Support**: Disable fraud checks during maintenance windows
+
+## Related Documentation
+
+For detailed information about the fraud API toggle system, see:
+- **FRAUD_API_TOGGLE_IMPLEMENTATION.md** - Complete documentation of the dynamic fraud API toggle system
+- **FRAUD_DOCUMENTATION_INDEX.md** - Comprehensive index of all fraud-related documentation
+
 ## Conclusion
 
-The bank's fraud/risk monitoring system integration provides a comprehensive solution for real-time fraud detection and risk assessment in the payment engine by leveraging the bank's own fraud/risk monitoring engine. With its configurable API integration, advanced monitoring capabilities, and seamless payment processing integration, it offers a robust foundation for fraud prevention and risk management that aligns with the bank's existing fraud detection infrastructure.
+The bank's fraud/risk monitoring system integration provides a comprehensive solution for real-time fraud detection and risk assessment in the payment engine by leveraging the bank's own fraud/risk monitoring engine. With its configurable API integration, advanced monitoring capabilities, seamless payment processing integration, and dynamic fraud API toggle control, it offers a robust foundation for fraud prevention and risk management that aligns with the bank's existing fraud detection infrastructure.
 
 The system is designed to be scalable, maintainable, and extensible, with proper security considerations and performance optimizations. The React frontend provides an intuitive interface for configuring the bank's fraud API settings and monitoring assessment results, while the backend services ensure reliable and efficient fraud assessment operations by calling the bank's internal fraud engine.
+
+The integration with the fraud API toggle system adds an additional layer of flexibility, allowing for dynamic control over fraud assessment execution based on business requirements, operational needs, and performance considerations. This dual-component architecture provides the optimal balance between security, performance, and operational flexibility.
 
 This implementation establishes a solid foundation for fraud prevention and risk management that integrates seamlessly with the bank's existing fraud detection capabilities, providing the flexibility to adapt to changing fraud patterns and business requirements while maintaining consistency with the bank's fraud detection policies and procedures.

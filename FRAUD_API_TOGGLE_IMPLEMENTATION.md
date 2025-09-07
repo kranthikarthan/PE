@@ -304,10 +304,44 @@ curl -X POST /api/v1/fraud-api-toggle/configurations/schedule \
 - Integration with external configuration management systems
 - API versioning and backward compatibility
 
+## Integration with Fraud Risk Monitoring System
+
+The fraud API toggle system is integrated with the core fraud/risk monitoring system to provide dynamic control over fraud assessment execution. This integration enables:
+
+### 1. **Seamless Integration**
+- **Pre-assessment Check**: The fraud risk monitoring service checks the toggle configuration before performing any fraud assessment
+- **Automatic Bypass**: When fraud API is disabled, the system automatically approves transactions without calling the bank's fraud engine
+- **Context-Aware Control**: Toggle configurations are evaluated based on the specific payment context (tenant, payment type, local instrument, clearing system)
+
+### 2. **Performance Benefits**
+- **Reduced API Calls**: Skip unnecessary calls to the bank's fraud engine when fraud checking is disabled
+- **Faster Processing**: Automatic approval for disabled contexts reduces processing time
+- **Cost Optimization**: Reduce operational costs by controlling when fraud assessments are performed
+
+### 3. **Operational Benefits**
+- **Maintenance Windows**: Disable fraud checks during system maintenance
+- **Business Rules**: Enable/disable fraud checks based on business requirements
+- **Emergency Control**: Quickly disable fraud checks in case of system issues
+
+### 4. **Integration Flow**
+```
+Payment Request → Fraud API Toggle Check → 
+├─ If Disabled: Auto-approve and continue
+└─ If Enabled: Proceed to Fraud Risk Assessment → Bank's Fraud Engine API Call
+```
+
+## Related Documentation
+
+For detailed information about the core fraud monitoring system, see:
+- **FRAUD_RISK_MONITORING_IMPLEMENTATION.md** - Complete documentation of the fraud/risk monitoring system
+- **FRAUD_DOCUMENTATION_INDEX.md** - Comprehensive index of all fraud-related documentation
+
 ## Conclusion
 
 The fraud API toggle configuration system provides a comprehensive solution for dynamic fraud API enable/disable management at multiple levels. With its priority-based resolution, real-time updates, caching optimization, and comprehensive monitoring capabilities, it offers a robust foundation for fraud API management that adapts to changing business requirements without requiring application restarts.
 
 The system is designed to be scalable, maintainable, and extensible, with proper security considerations and performance optimizations. The React frontend provides an intuitive interface for configuration management and monitoring, while the backend services ensure reliable and efficient fraud API toggle operations.
+
+The integration with the fraud risk monitoring system adds significant value by providing dynamic control over fraud assessment execution, enabling performance optimization, operational flexibility, and cost management. This dual-component architecture ensures that fraud detection capabilities can be precisely controlled based on business needs while maintaining the highest levels of security and performance.
 
 This implementation establishes a solid foundation for dynamic fraud API management, providing the flexibility to adapt to changing fraud detection requirements and business policies while maintaining optimal performance and security.
