@@ -4,6 +4,8 @@ import com.paymentengine.middleware.service.*;
 import com.paymentengine.middleware.dto.corebanking.*;
 import com.paymentengine.middleware.entity.CoreBankingConfiguration;
 import com.paymentengine.middleware.entity.AdvancedPayloadMapping;
+import com.paymentengine.middleware.entity.FraudRiskConfiguration;
+import com.paymentengine.middleware.entity.FraudRiskAssessment;
 import com.paymentengine.middleware.repository.CoreBankingConfigurationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
     private final PaymentRoutingService paymentRoutingService;
     private final CoreBankingConfigurationRepository coreBankingConfigRepository;
     private final AdvancedPayloadTransformationService advancedPayloadTransformationService;
+    private final FraudRiskMonitoringService fraudRiskMonitoringService;
     
     @Autowired
     public SchemeProcessingServiceImpl(
@@ -41,7 +44,8 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
             Iso20022FormatService iso20022FormatService,
             PaymentRoutingService paymentRoutingService,
             CoreBankingConfigurationRepository coreBankingConfigRepository,
-            AdvancedPayloadTransformationService advancedPayloadTransformationService) {
+            AdvancedPayloadTransformationService advancedPayloadTransformationService,
+            FraudRiskMonitoringService fraudRiskMonitoringService) {
         this.clearingSystemRoutingService = clearingSystemRoutingService;
         this.transformationService = transformationService;
         this.schemeMessageService = schemeMessageService;
@@ -49,6 +53,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
         this.paymentRoutingService = paymentRoutingService;
         this.coreBankingConfigRepository = coreBankingConfigRepository;
         this.advancedPayloadTransformationService = advancedPayloadTransformationService;
+        this.fraudRiskMonitoringService = fraudRiskMonitoringService;
     }
     
     @Override
@@ -76,7 +81,49 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 messageId = paymentInfo.getMessageId();
                 correlationId = "CORR-" + System.currentTimeMillis();
                 
-                // 2. Determine clearing system
+                // 2. Perform fraud/risk assessment before processing
+                FraudRiskAssessment fraudAssessment = performFraudRiskAssessment(
+                        pain001Message, tenantId, paymentType, localInstrumentCode, paymentInfo);
+                
+                // Check if fraud assessment requires rejection or manual review
+                if (fraudAssessment.getDecision() == FraudRiskAssessment.Decision.REJECT) {
+                    logger.warn("Payment rejected by fraud/risk assessment for messageId: {}, reason: {}", 
+                               messageId, fraudAssessment.getDecisionReason());
+                    
+                    Map<String, Object> pacs002Reject = generatePacs002Response(
+                            messageId, transactionId, "RJCT", "FRAUD"); // Rejected due to fraud
+                    Map<String, Object> pain002Reject = generatePain002ResponseWithAdvancedMapping(
+                            messageId, transactionId, "RJCT", "FRAUD", responseMode,
+                            tenantId, paymentType, localInstrumentCode, null);
+                    
+                    return new SchemeProcessingResult(
+                            messageId, correlationId, "FRAUD_REJECTED", null, transactionId,
+                            null, pacs002Reject, pain002Reject, 
+                            "Payment rejected by fraud/risk assessment: " + fraudAssessment.getDecisionReason(), 
+                            System.currentTimeMillis() - startTime);
+                }
+                
+                if (fraudAssessment.getDecision() == FraudRiskAssessment.Decision.MANUAL_REVIEW) {
+                    logger.warn("Payment requires manual review due to fraud/risk assessment for messageId: {}, reason: {}", 
+                               messageId, fraudAssessment.getDecisionReason());
+                    
+                    Map<String, Object> pacs002Review = generatePacs002Response(
+                            messageId, transactionId, "PDNG", "REVIEW"); // Pending manual review
+                    Map<String, Object> pain002Review = generatePain002ResponseWithAdvancedMapping(
+                            messageId, transactionId, "PDNG", "REVIEW", responseMode,
+                            tenantId, paymentType, localInstrumentCode, null);
+                    
+                    return new SchemeProcessingResult(
+                            messageId, correlationId, "MANUAL_REVIEW", null, transactionId,
+                            null, pacs002Review, pain002Review, 
+                            "Payment requires manual review: " + fraudAssessment.getDecisionReason(), 
+                            System.currentTimeMillis() - startTime);
+                }
+                
+                logger.info("Fraud/risk assessment passed for messageId: {}, decision: {}, riskLevel: {}", 
+                           messageId, fraudAssessment.getDecision(), fraudAssessment.getRiskLevel());
+                
+                // 3. Determine clearing system
                 ClearingSystemRoutingService.ClearingSystemRoute route = 
                         clearingSystemRoutingService.routeMessage(tenantId, paymentType, localInstrumentCode, "pacs008");
                 clearingSystemCode = route.getClearingSystemCode();
@@ -671,5 +718,181 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
             // Fallback to standard response
             return generatePain002Response(originalMessageId, transactionId, status, reasonCode, responseMode);
         }
+    }
+    
+    /**
+     * Perform fraud/risk assessment for a payment
+     */
+    private FraudRiskAssessment performFraudRiskAssessment(
+            Map<String, Object> pain001Message,
+            String tenantId,
+            String paymentType,
+            String localInstrumentCode,
+            Pain001ToPacs008TransformationService.PaymentInfo paymentInfo) {
+        
+        logger.info("Performing fraud/risk assessment for tenant: {}, paymentType: {}, localInstrument: {}", 
+                   tenantId, paymentType, localInstrumentCode);
+        
+        try {
+            // Determine payment source based on the payment type and clearing system
+            FraudRiskConfiguration.PaymentSource paymentSource = determinePaymentSource(paymentType, localInstrumentCode);
+            
+            // Build payment data for fraud assessment
+            Map<String, Object> paymentData = buildPaymentDataForFraudAssessment(pain001Message, paymentInfo);
+            
+            // Perform fraud/risk assessment
+            CompletableFuture<FraudRiskAssessment> assessmentFuture = fraudRiskMonitoringService.assessPaymentRisk(
+                    paymentInfo.getMessageId(),
+                    tenantId,
+                    paymentType,
+                    localInstrumentCode,
+                    null, // clearingSystemCode will be determined later
+                    paymentSource,
+                    paymentData
+            );
+            
+            // Wait for assessment to complete (with timeout)
+            FraudRiskAssessment assessment = assessmentFuture.get(30, java.util.concurrent.TimeUnit.SECONDS);
+            
+            logger.info("Fraud/risk assessment completed for messageId: {}, decision: {}, riskLevel: {}, riskScore: {}", 
+                       paymentInfo.getMessageId(), assessment.getDecision(), assessment.getRiskLevel(), assessment.getRiskScore());
+            
+            return assessment;
+            
+        } catch (Exception e) {
+            logger.error("Error performing fraud/risk assessment: {}", e.getMessage(), e);
+            
+            // Create a default assessment in case of error
+            FraudRiskAssessment defaultAssessment = new FraudRiskAssessment(
+                    "FRAUD-ERROR-" + System.currentTimeMillis(),
+                    paymentInfo.getMessageId(),
+                    tenantId,
+                    FraudRiskConfiguration.PaymentSource.BANK_CLIENT,
+                    FraudRiskConfiguration.RiskAssessmentType.REAL_TIME
+            );
+            defaultAssessment.setStatus(FraudRiskAssessment.AssessmentStatus.ERROR);
+            defaultAssessment.setDecision(FraudRiskAssessment.Decision.MANUAL_REVIEW);
+            defaultAssessment.setDecisionReason("Fraud/risk assessment failed - requires manual review");
+            defaultAssessment.setErrorMessage(e.getMessage());
+            defaultAssessment.setRiskLevel(FraudRiskAssessment.RiskLevel.MEDIUM);
+            defaultAssessment.setRiskScore(new java.math.BigDecimal("0.5"));
+            
+            return defaultAssessment;
+        }
+    }
+    
+    /**
+     * Determine payment source based on payment type and local instrument code
+     */
+    private FraudRiskConfiguration.PaymentSource determinePaymentSource(String paymentType, String localInstrumentCode) {
+        // Logic to determine if payment is from bank client or clearing system
+        // This is a simplified implementation - in production, this would be more sophisticated
+        
+        if (paymentType != null && paymentType.toLowerCase().contains("clearing")) {
+            return FraudRiskConfiguration.PaymentSource.CLEARING_SYSTEM;
+        }
+        
+        if (localInstrumentCode != null && localInstrumentCode.toLowerCase().contains("clearing")) {
+            return FraudRiskConfiguration.PaymentSource.CLEARING_SYSTEM;
+        }
+        
+        // Default to bank client
+        return FraudRiskConfiguration.PaymentSource.BANK_CLIENT;
+    }
+    
+    /**
+     * Build payment data for fraud assessment
+     */
+    private Map<String, Object> buildPaymentDataForFraudAssessment(
+            Map<String, Object> pain001Message,
+            Pain001ToPacs008TransformationService.PaymentInfo paymentInfo) {
+        
+        Map<String, Object> paymentData = new HashMap<>();
+        
+        try {
+            // Extract basic payment information
+            paymentData.put("messageId", paymentInfo.getMessageId());
+            paymentData.put("amount", paymentInfo.getAmount());
+            paymentData.put("currency", paymentInfo.getCurrency());
+            paymentData.put("fromAccountNumber", paymentInfo.getFromAccountNumber());
+            paymentData.put("toAccountNumber", paymentInfo.getToAccountNumber());
+            paymentData.put("transactionReference", paymentInfo.getTransactionReference());
+            paymentData.put("description", paymentInfo.getDescription());
+            paymentData.put("paymentType", paymentInfo.getPaymentType());
+            paymentData.put("localInstrumentCode", paymentInfo.getLocalInstrumentCode());
+            
+            // Extract additional information from PAIN.001 message
+            if (pain001Message.containsKey("CstmrCdtTrfInitn")) {
+                Map<String, Object> cstmrCdtTrfInitn = (Map<String, Object>) pain001Message.get("CstmrCdtTrfInitn");
+                
+                // Extract customer information
+                if (cstmrCdtTrfInitn.containsKey("InitgPty")) {
+                    Map<String, Object> initgPty = (Map<String, Object>) cstmrCdtTrfInitn.get("InitgPty");
+                    if (initgPty.containsKey("Nm")) {
+                        paymentData.put("customerName", initgPty.get("Nm"));
+                    }
+                    if (initgPty.containsKey("Id")) {
+                        Map<String, Object> id = (Map<String, Object>) initgPty.get("Id");
+                        if (id.containsKey("OrgId")) {
+                            Map<String, Object> orgId = (Map<String, Object>) id.get("OrgId");
+                            if (orgId.containsKey("Othr")) {
+                                Map<String, Object> othr = (Map<String, Object>) orgId.get("Othr");
+                                if (othr.containsKey("Id")) {
+                                    paymentData.put("customerId", othr.get("Id"));
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Extract payment information
+                if (cstmrCdtTrfInitn.containsKey("PmtInf")) {
+                    List<Map<String, Object>> pmtInfList = (List<Map<String, Object>>) cstmrCdtTrfInitn.get("PmtInf");
+                    if (!pmtInfList.isEmpty()) {
+                        Map<String, Object> pmtInf = pmtInfList.get(0);
+                        
+                        if (pmtInf.containsKey("CdtTrfTxInf")) {
+                            List<Map<String, Object>> cdtTrfTxInfList = (List<Map<String, Object>>) pmtInf.get("CdtTrfTxInf");
+                            if (!cdtTrfTxInfList.isEmpty()) {
+                                Map<String, Object> cdtTrfTxInf = cdtTrfTxInfList.get(0);
+                                
+                                // Extract additional transaction details
+                                if (cdtTrfTxInf.containsKey("PmtId")) {
+                                    Map<String, Object> pmtId = (Map<String, Object>) cdtTrfTxInf.get("PmtId");
+                                    if (pmtId.containsKey("TxId")) {
+                                        paymentData.put("transactionId", pmtId.get("TxId"));
+                                    }
+                                }
+                                
+                                if (cdtTrfTxInf.containsKey("RmtInf")) {
+                                    Map<String, Object> rmtInf = (Map<String, Object>) cdtTrfTxInf.get("RmtInf");
+                                    if (rmtInf.containsKey("Ustrd")) {
+                                        List<String> ustrdList = (List<String>) rmtInf.get("Ustrd");
+                                        if (!ustrdList.isEmpty()) {
+                                            paymentData.put("remittanceInfo", String.join(" ", ustrdList));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Add timestamp
+            paymentData.put("timestamp", LocalDateTime.now().toString());
+            
+            // Add mock device and location information (in production, this would come from actual sources)
+            paymentData.put("deviceId", "DEVICE-" + System.currentTimeMillis());
+            paymentData.put("ipAddress", "192.168.1.100");
+            paymentData.put("userAgent", "PaymentEngine/1.0");
+            paymentData.put("sessionId", "SESSION-" + System.currentTimeMillis());
+            paymentData.put("country", "US");
+            
+        } catch (Exception e) {
+            logger.error("Error building payment data for fraud assessment: {}", e.getMessage(), e);
+        }
+        
+        return paymentData;
     }
 }
