@@ -56,7 +56,7 @@ package "Production Environment" {
     package "Production Kubernetes" {
         [Production Cluster] as PC
         [Production Gateway] as PG
-        [Production Middleware] as PM
+        [Production Payment Processing] as PM
         [Production Core Banking] as PCB
         [Production Monitoring] as PMon
     }
@@ -135,7 +135,7 @@ SK --> UAT : "User Acceptance Testing"
 ' Production flow
 AD --> PC : "Production Deployment"
 PC --> PG : "Production Gateway"
-PC --> PM : "Production Middleware"
+PC --> PM : "Production Payment Processing"
 PC --> PCB : "Production Core Banking"
 PC --> PMon : "Production Monitoring"
 

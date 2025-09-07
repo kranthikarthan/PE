@@ -4,7 +4,7 @@ title ISO 20022 Payment Processing Flow: PAIN.001 to PAIN.002
 
 actor Client as C
 participant "API Gateway" as AG
-participant "Middleware Service" as MS
+participant "Payment Processing Service" as MS
 participant "Fraud Risk Monitoring" as FRM
 participant "Fraud API Toggle" as FAT
 participant "Core Banking" as CB

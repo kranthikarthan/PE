@@ -141,7 +141,7 @@ package "Configuration Service Entities" {
     }
 }
 
-package "Middleware Service Entities" {
+package "Payment Processing Service Entities" {
     entity "MessageTransaction" {
         * id : UUID
         --

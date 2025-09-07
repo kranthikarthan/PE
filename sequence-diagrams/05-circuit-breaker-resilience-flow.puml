@@ -4,7 +4,7 @@ title Circuit Breaker & Resilience Patterns Flow
 
 actor Client as C
 participant "API Gateway" as AG
-participant "Middleware Service" as MS
+participant "Payment Processing Service" as MS
 participant "Clearing System" as CS
 participant "Circuit Breaker" as CB
 participant "Retry Service" as RS

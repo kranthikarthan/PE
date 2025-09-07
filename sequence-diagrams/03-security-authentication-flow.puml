@@ -5,7 +5,7 @@ title Security & Authentication Flow with OAuth2/JWT
 actor Client as C
 participant "API Gateway" as AG
 participant "OAuth2 Server" as OAuth
-participant "Middleware Service" as MS
+participant "Payment Processing Service" as MS
 participant "Security Service" as SS
 participant "Audit Service" as AS
 participant "Redis Cache" as RC

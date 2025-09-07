@@ -4,7 +4,7 @@ title Monitoring, Observability & Alerting Flow
 
 participant "Client Request" as CR
 participant "API Gateway" as AG
-participant "Middleware Service" as MS
+participant "Payment Processing Service" as MS
 participant "Micrometer" as MM
 participant "Prometheus" as P
 participant "Jaeger" as J
@@ -28,10 +28,10 @@ AG -> MS: Forward Request
 note right: Headers: X-Correlation-ID, X-Trace-ID, X-Span-ID
 
 MS -> J: Create Child Span
-note right: Operation: middleware-processing\nParent Span ID: <span-id>\nSpan ID: <child-span-id>\nTags: {service: middleware, operation: pain001-processing}
+note right: Operation: payment-processing\nParent Span ID: <span-id>\nSpan ID: <child-span-id>\nTags: {service: payment-processing, operation: pain001-processing}
 
-MS -> MM: Record Middleware Metrics
-note right: Counter: middleware_requests_total\nLabels: {message_type: pain001, tenant: <tenant-id>}\nTimer: middleware_processing_duration_seconds
+MS -> MM: Record Payment Processing Metrics
+note right: Counter: payment_processing_requests_total\nLabels: {message_type: pain001, tenant: <tenant-id>}\nTimer: payment_processing_duration_seconds
 
 MS -> MS: Process ISO 20022 Message
 MS -> MM: Record Business Metrics
@@ -52,7 +52,7 @@ AG --> CR: Return Response
 == Metrics Collection & Export ==
 
 MM -> P: Export Metrics
-note right: Endpoint: /actuator/prometheus\nMetrics:\n- api_gateway_requests_total\n- middleware_requests_total\n- iso20022_messages_processed_total\n- circuit_breaker_state\n- rate_limiter_requests_total\n- webhook_delivery_attempts_total
+note right: Endpoint: /actuator/prometheus\nMetrics:\n- api_gateway_requests_total\n- payment_processing_requests_total\n- iso20022_messages_processed_total\n- circuit_breaker_state\n- rate_limiter_requests_total\n- webhook_delivery_attempts_total
 
 P -> P: Store Metrics
 note right: Storage: Time Series Database\nRetention: 30 days\nAggregation: 1m, 5m, 1h, 1d
@@ -60,7 +60,7 @@ note right: Storage: Time Series Database\nRetention: 30 days\nAggregation: 1m, 
 == Distributed Tracing ==
 
 J -> J: Store Trace Data
-note right: Trace ID: <trace-id>\nSpans: [gateway-span, middleware-span, clearing-system-span]\nDuration: <total-duration>\nTags: {service: payment-engine, operation: pain001-to-pain002}
+note right: Trace ID: <trace-id>\nSpans: [gateway-span, payment-processing-span, clearing-system-span]\nDuration: <total-duration>\nTags: {service: payment-engine, operation: pain001-to-pain002}
 
 J -> J: Generate Trace Visualization
 note right: Timeline: Request flow across services\nDependencies: Service call graph\nPerformance: Latency breakdown\nErrors: Exception tracking
@@ -80,7 +80,7 @@ note right: Rules:\n- High error rate (>5%)\n- Slow response time (>5s)\n- Circu
 
 alt Alert Condition Met
     AM -> AM: Generate Alert
-    note right: Alert: High Error Rate Detected\nSeverity: WARNING\nService: middleware\nError Rate: 7.5%\nThreshold: 5%\nDuration: 5 minutes
+    note right: Alert: High Error Rate Detected\nSeverity: WARNING\nService: payment-processing\nError Rate: 7.5%\nThreshold: 5%\nDuration: 5 minutes
     
     AM -> NS: Send Notification
     note right: Channels:\n- Email: ops-team@company.com\n- Slack: #alerts channel\n- SMS: +1234567890\n- PagerDuty: Critical alerts
@@ -96,24 +96,24 @@ end
 == Health Checks & Service Discovery ==
 
 AG -> AG: Perform Health Checks
-note right: Services:\n- Middleware Service: /actuator/health\n- Core Banking: /actuator/health\n- Clearing System: /health\n- Redis: PING\n- Kafka: Metadata check
+note right: Services:\n- Payment Processing Service: /actuator/health\n- Core Banking: /actuator/health\n- Clearing System: /health\n- Redis: PING\n- Kafka: Metadata check
 
 alt All Services Healthy
     AG -> MM: Record Health Metrics
-    note right: Gauge: service_health_status\nLabels: {service: middleware, status: healthy}\nValue: 1
+    note right: Gauge: service_health_status\nLabels: {service: payment-processing, status: healthy}\nValue: 1
     
     AG -> ELK: Log Health Status
-    note right: Log Level: INFO\nMessage: "All services healthy"\nServices: [middleware, core-banking, clearing-system, redis, kafka]
+    note right: Log Level: INFO\nMessage: "All services healthy"\nServices: [payment-processing, core-banking, clearing-system, redis, kafka]
     
 else Service Unhealthy
     AG -> MM: Record Health Metrics
-    note right: Gauge: service_health_status\nLabels: {service: middleware, status: unhealthy}\nValue: 0
+    note right: Gauge: service_health_status\nLabels: {service: payment-processing, status: unhealthy}\nValue: 0
     
     AG -> ELK: Log Health Status
-    note right: Log Level: ERROR\nMessage: "Service unhealthy"\nService: middleware\nError: Connection timeout
+    note right: Log Level: ERROR\nMessage: "Service unhealthy"\nService: payment-processing\nError: Connection timeout
     
     AG -> AM: Trigger Health Alert
-    note right: Alert: Service Unhealthy\nSeverity: CRITICAL\nService: middleware\nStatus: DOWN\nDuration: 2 minutes
+    note right: Alert: Service Unhealthy\nSeverity: CRITICAL\nService: payment-processing\nStatus: DOWN\nDuration: 2 minutes
 end
 
 == Performance Monitoring ==
@@ -147,7 +147,7 @@ P -> AM: Trigger Scaling Alert
 note right: Alert: High Resource Usage\nSeverity: WARNING\nCPU: 75% (threshold: 70%)\nMemory: 80% (threshold: 75%)\nRecommendation: Scale up instances
 
 AM -> NS: Send Scaling Notification
-note right: Notification: "Consider scaling up services"\nDetails: High resource usage detected\nServices: middleware, api-gateway\nCurrent: 3 instances\nRecommended: 5 instances
+note right: Notification: "Consider scaling up services"\nDetails: High resource usage detected\nServices: payment-processing, api-gateway\nCurrent: 3 instances\nRecommended: 5 instances
 
 == Security Monitoring ==
 

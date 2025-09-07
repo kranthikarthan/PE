@@ -4,7 +4,7 @@ title Redis Caching & Performance Optimization Flow
 
 actor Client as C
 participant "API Gateway" as AG
-participant "Middleware Service" as MS
+participant "Payment Processing Service" as MS
 participant "Redis Cache" as RC
 participant "Database" as DB
 participant "Cache Manager" as CM

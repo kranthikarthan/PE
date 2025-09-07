@@ -22,7 +22,7 @@ package "API Gateway Layer" {
 }
 
 package "Service Layer" {
-    [Middleware Service] as MS
+    [Payment Processing Service] as MS
     [Core Banking Service] as CBS
     [Notification Service] as NS
     [Configuration Service] as CS
@@ -110,7 +110,7 @@ SCG --> RT : "Response Transformation"
 SCG --> CB : "Circuit Breaker"
 
 ' Service layer connections
-SCG --> MS : "Middleware Service"
+SCG --> MS : "Payment Processing Service"
 SCG --> CBS : "Core Banking Service"
 SCG --> NS : "Notification Service"
 SCG --> CS : "Configuration Service"
@@ -204,7 +204,7 @@ end note
 
 note right of MS
 Service Layer:
-- Middleware service for orchestration
+- Payment Processing service for orchestration
 - Core banking service for business logic
 - Notification service for alerts
 - Configuration service for settings

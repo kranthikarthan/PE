@@ -12,7 +12,7 @@ participant "Auth Service" as AS
 participant "Envoy Proxy" as EP3
 participant "Config Service" as CS
 participant "Envoy Proxy" as EP4
-participant "Middleware Service" as MS
+participant "Payment Processing Service" as MS
 participant "Envoy Proxy" as EP5
 participant "Database" as DB
 participant "Redis" as R
@@ -71,18 +71,18 @@ CS --> EP3: Configuration response
 EP3 --> AG: Configuration response
 AG -> AG: Apply configuration
 
-AG -> EP4: Call Middleware Service
-note right: API Gateway to Middleware
+AG -> EP4: Call Payment Processing Service
+note right: API Gateway to Payment Processing
 
 EP4 -> EP4: Apply sidecar policies
 EP4 -> EP4: Check mTLS
 EP4 -> EP4: Apply timeout
 
-EP4 -> MS: Forward to Middleware Service
+EP4 -> MS: Forward to Payment Processing Service
 MS -> MS: Process business logic
 
 MS -> EP5: Call Database
-note right: Middleware to Database
+note right: Payment Processing to Database
 
 EP5 -> EP5: Apply sidecar policies
 EP5 -> EP5: Check mTLS
@@ -94,7 +94,7 @@ DB --> EP5: Database response
 EP5 --> MS: Database response
 MS --> EP4: Business logic response
 
-EP4 --> AG: Middleware response
+EP4 --> AG: Payment Processing response
 AG --> EP1: API Gateway response
 
 EP1 --> IG: Envoy response

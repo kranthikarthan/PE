@@ -4,7 +4,7 @@ title Kafka Message Queue & Event Streaming Flow
 
 actor Client as C
 participant "API Gateway" as AG
-participant "Middleware Service" as MS
+participant "Payment Processing Service" as MS
 participant "Kafka Producer" as KP
 participant "Kafka Broker" as KB
 participant "Kafka Consumer" as KC

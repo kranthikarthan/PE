@@ -5,7 +5,7 @@ title Microservices Configuration Flow
 actor "Client" as C
 participant "API Gateway" as AG
 participant "Config Service" as CS
-participant "Middleware Service" as MS
+participant "Payment Processing Service" as MS
 participant "Database" as DB
 participant "Redis Cache" as RC
 participant "Kafka" as K

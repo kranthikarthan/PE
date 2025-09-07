@@ -21,7 +21,7 @@ package "Services" {
     [API Gateway] as AG
     [Auth Service] as AS
     [Config Service] as CS
-    [Middleware Service] as MS
+    [Payment Processing Service] as MS
     [Database] as DB
 }
 

@@ -31,7 +31,7 @@ package "API Gateway Layer" {
 }
 
 package "Core Business Services" {
-    [Middleware Service] as MS
+    [Payment Processing Service] as MS
     [ISO 20022 Service] as IS
     [Message Processing Service] as MPS
     [Routing Service] as RS

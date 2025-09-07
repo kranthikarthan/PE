@@ -21,7 +21,7 @@ package "API Gateway Layer" {
 
 package "Application Services Layer" {
     package "Core Services" {
-        [Middleware Service] as MS
+        [Payment Processing Service] as MS
         [Core Banking Service] as CBS
         [Notification Service] as NS
     }
@@ -97,7 +97,7 @@ SCG --> MS : Load Balanced
 SCG --> CBS : Load Balanced
 SCG --> NS : Load Balanced
 
-' Middleware Service connections
+' Payment Processing Service connections
 MS --> MFS : Message Processing
 MS --> TS : Message Transformation
 MS --> VS : Message Validation
@@ -168,7 +168,7 @@ API Gateway Features:
 end note
 
 note right of MS
-Middleware Service Features:
+Payment Processing Service Features:
 - ISO 20022 Message Processing
 - Message Transformation
 - Business Logic Orchestration

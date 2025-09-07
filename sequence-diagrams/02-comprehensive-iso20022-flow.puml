@@ -4,7 +4,7 @@ title Comprehensive ISO 20022 Message Flow with All Message Types
 
 actor Client as C
 participant "API Gateway" as AG
-participant "Middleware Service" as MS
+participant "Payment Processing Service" as MS
 participant "Core Banking" as CB
 participant "Clearing System" as CS
 participant "Kafka" as K

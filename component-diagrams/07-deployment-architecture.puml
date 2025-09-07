@@ -30,20 +30,20 @@ package "API Gateway Cluster" {
 }
 
 package "Application Services Cluster" {
-    node "Middleware Node 1" {
-        [Middleware Service 1] as MS1
+    node "Payment Processing Node 1" {
+        [Payment Processing Service 1] as MS1
         [JVM 1] as JVM1
         [Health Check 1] as HC1
     }
     
-    node "Middleware Node 2" {
-        [Middleware Service 2] as MS2
+    node "Payment Processing Node 2" {
+        [Payment Processing Service 2] as MS2
         [JVM 2] as JVM2
         [Health Check 2] as HC2
     }
     
-    node "Middleware Node 3" {
-        [Middleware Service 3] as MS3
+    node "Payment Processing Node 3" {
+        [Payment Processing Service 3] as MS3
         [JVM 3] as JVM3
         [Health Check 3] as HC3
     }
@@ -247,7 +247,7 @@ Spring Cloud Gateway:
 end note
 
 note right of MS1
-Middleware Service:
+Payment Processing Service:
 - ISO 20022 processing
 - Business logic
 - External integration

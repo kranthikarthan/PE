@@ -14,7 +14,7 @@ package "Application Services" {
         [Gateway Service] as GS1
         [Auth Service] as AS1
         [Config Service] as CS1
-        [Middleware Service] as MS1
+        [Payment Processing Service] as MS1
         [Discovery Service] as DS1
     }
     
@@ -22,7 +22,7 @@ package "Application Services" {
         [Gateway Service] as GS2
         [Auth Service] as AS2
         [Config Service] as CS2
-        [Middleware Service] as MS2
+        [Payment Processing Service] as MS2
         [Discovery Service] as DS2
     }
     
@@ -30,7 +30,7 @@ package "Application Services" {
         [Gateway Service] as GS3
         [Auth Service] as AS3
         [Config Service] as CS3
-        [Middleware Service] as MS3
+        [Payment Processing Service] as MS3
         [Discovery Service] as DS3
     }
 }
