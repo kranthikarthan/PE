@@ -1,121 +1,66 @@
-# Payment Engine - Enterprise Banking Solution
+# Payment Engine - ISO 20022 Financial Messaging System
 
-## Architecture Overview
+A comprehensive payment processing system built with Spring Boot and React, supporting ISO 20022 standards for financial messaging with advanced resiliency, security, and air-gapped deployment capabilities.
 
-A comprehensive payment engine designed for seamless integration within a bank's system landscape. The solution provides:
+## 🚀 Features
 
-- **Independent React Frontend** for operations management
-- **Middleware Layer** for communication orchestration
-- **Core Banking Services** with multi-account support
-- **Event-Driven Architecture** using Kafka messaging
-- **Scalable Infrastructure** on Azure AKS
-- **Enterprise Security** with OAuth2/JWT and Azure Key Vault
-- **Comprehensive Monitoring** with Azure Monitor and observability stack
+### Core Functionality
+- **ISO 20022 Message Support**: pain.001, pacs.008, pacs.002, pain.002, pacs.028, pacs.004, pacs.007, camt.054, camt.055, camt.056, camt.029, status
+- **Multi-Scheme Processing**: Support for various clearing systems and payment schemes
+- **UETR Management**: Unique End-to-End Transaction Reference tracking and reconciliation
+- **Advanced Payload Mapping**: Flexible value assignment with static, derived, and auto-generated values
+- **Fraud & Risk Monitoring**: Configurable integration with external fraud APIs
+- **Core Banking Integration**: REST API and gRPC support for external core banking systems
 
-## System Components
+### Architecture & Infrastructure
+- **Microservices Architecture**: Service mesh with Istio, dedicated services for auth, config, and monitoring
+- **Event Sourcing & CQRS**: Event-driven architecture with event store and projections
+- **Resiliency & Self-Healing**: Circuit breakers, retry mechanisms, bulkhead patterns, and automated recovery
+- **Security**: OAuth2/JWT, message encryption, digital signatures, and comprehensive audit logging
+- **Monitoring & Observability**: Prometheus, Grafana, Jaeger, ELK Stack with custom metrics and alerting
+- **Air-Gapped Deployment**: Complete offline build and deployment capabilities
 
-### Frontend Layer
-- **Technology**: React with TypeScript
-- **Purpose**: Operations management interface
-- **Integration**: REST APIs to middleware
+### Technology Stack
+- **Backend**: Spring Boot 3.x, Spring Data JPA, Spring Security, Spring Cloud OpenFeign
+- **Frontend**: React 18, TypeScript, Material-UI, Redux Toolkit, React Query
+- **Database**: PostgreSQL 15 with HikariCP connection pooling
+- **Message Queue**: Apache Kafka with Schema Registry and Dead Letter Queues
+- **Containerization**: Docker with multi-stage builds and security hardening
+- **Orchestration**: Kubernetes with Helm charts and Istio service mesh
+- **CI/CD**: Azure DevOps with comprehensive testing and security scanning
 
-### Middleware Layer
-- **Technology**: Spring Boot
-- **Purpose**: Communication orchestration between frontend and core services
-- **Protocols**: REST APIs, gRPC
-- **Features**: Request routing, transformation, validation
-
-### Core Banking Services
-- **Technology**: Spring Boot microservices
-- **Purpose**: Transaction processing, account management
-- **Features**: Multi-account support, transaction validation, balance management
-- **Integration**: PostgreSQL persistence, Kafka messaging
-- **Fraud Detection**: Real-time fraud risk assessment and monitoring
-
-### API Gateway
-- **Technology**: Spring Boot Gateway
-- **Purpose**: API management and routing
-- **Features**: Rate limiting, authentication, request/response transformation
-
-### Messaging System
-- **Technology**: Apache Kafka
-- **Purpose**: Event-driven communication
-- **Features**: Async transaction processing, event sourcing, system decoupling
-
-### Database
-- **Technology**: PostgreSQL
-- **Purpose**: Persistent storage
-- **Features**: ACID compliance, transaction logging, audit trails
-
-## Key Features
-
-### Configuration Capabilities
-- Dynamic payment type onboarding through configuration files
-- Configurable sync/async transaction responses
-- Runtime API endpoint and Kafka topic configuration
-
-### Security & Compliance
-- OAuth2 and JWT authentication
-- Azure Key Vault integration
-- TLS/SSL encryption
-- Role-Based Access Control (RBAC)
-- Regular security audits
-- Real-time fraud detection and risk assessment
-- Dynamic fraud API toggle management
-
-### Monitoring & Observability
-- Azure Monitor and Application Insights
-- SLO/SLI/SLA dashboards
-- Prometheus and Grafana integration
-- ELK Stack for log aggregation
-- Real-time performance tracking
-
-### Self-Healing & Recovery
-- Kubernetes self-healing capabilities
-- Automated rollbacks
-- Disaster recovery with Azure Site Recovery
-- Regular backups with Azure Backup
-
-## Deployment Architecture
+## 📁 Project Structure
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Azure Cloud                          │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐    ┌─────────────────┐                │
-│  │   React App     │    │   API Gateway   │                │
-│  │   (Frontend)    │    │  (Spring Boot)  │                │
-│  └─────────────────┘    └─────────────────┘                │
-│           │                       │                         │
-│           └───────────────────────┘                         │
-│                       │                                     │
-│  ┌─────────────────────────────────────────────────────────┤
-│  │                 AKS Cluster                             │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │  │ Middleware  │  │Core Banking │  │   Kafka     │    │
-│  │  │  Service    │  │  Services   │  │  Cluster    │    │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘    │
-│  │           │               │               │            │
-│  │           └───────────────┼───────────────┘            │
-│  │                           │                            │
-│  │  ┌─────────────────────────────────────────────────────┤
-│  │  │              PostgreSQL                            │
-│  │  └─────────────────────────────────────────────────────┘
-│  └─────────────────────────────────────────────────────────┘
-└─────────────────────────────────────────────────────────────┘
+payment-engine/
+├── services/                    # Backend microservices
+│   ├── middleware/             # API Gateway and middleware services
+│   ├── payment-engine/         # Core payment processing service
+│   ├── auth-service/           # Authentication and authorization
+│   ├── config-service/         # Configuration management
+│   └── monitoring-service/     # Metrics and monitoring
+├── frontend/                   # React frontend application
+├── database/                   # Database migrations and schemas
+├── infrastructure/             # Infrastructure as Code
+│   ├── kubernetes/            # Kubernetes manifests
+│   ├── helm/                  # Helm charts
+│   ├── docker/                # Docker configurations
+│   └── air-gapped/            # Air-gapped deployment scripts
+├── azure-pipelines/           # CI/CD pipeline definitions
+├── docs/                      # Documentation
+└── tests/                     # Test suites and test data
 ```
 
-## Getting Started
+## 🛠️ Quick Start
 
 ### Prerequisites
-- Node.js 18+ and npm
 - Java 17+
-- Maven 3.8+
-- Docker and Docker Compose
-- Azure CLI
-- kubectl
+- Node.js 18+
+- Docker & Docker Compose
+- Kubernetes cluster (or Docker Desktop with Kubernetes)
+- Helm 3.8+
 
-### Local Development Setup
+### Local Development
 
 1. **Clone the repository**
    ```bash
@@ -125,100 +70,242 @@ A comprehensive payment engine designed for seamless integration within a bank's
 
 2. **Start infrastructure services**
    ```bash
-   docker-compose up -d kafka postgres
+   docker-compose up -d postgres redis kafka
    ```
 
-3. **Build and run services**
+3. **Run backend services**
    ```bash
-   # Backend services
-   cd services && mvn clean install
-   java -jar api-gateway/target/api-gateway-1.0.0.jar
-   java -jar middleware/target/middleware-1.0.0.jar
-   java -jar core-banking/target/core-banking-1.0.0.jar
-   
-   # Frontend
-   cd frontend && npm install && npm start
+   cd services
+   mvn spring-boot:run -pl middleware
+   mvn spring-boot:run -pl payment-engine
    ```
 
-### Azure Deployment
-
-1. **Infrastructure setup**
+4. **Run frontend**
    ```bash
-   az group create --name payment-engine-rg --location eastus
-   az aks create --resource-group payment-engine-rg --name payment-engine-aks
+   cd frontend
+   npm install
+   npm start
    ```
 
-2. **Deploy using Azure DevOps pipelines**
-   - Configure Azure DevOps project
-   - Set up service connections
-   - Run deployment pipeline
+5. **Access the application**
+   - Frontend: http://localhost:3000
+   - API Gateway: http://localhost:8080
+   - API Documentation: http://localhost:8080/swagger-ui.html
 
-## Configuration
+### Production Deployment
 
-### Environment Variables
-- `DATABASE_URL`: PostgreSQL connection string
-- `KAFKA_BROKERS`: Kafka broker endpoints
-- `AZURE_KEY_VAULT_URL`: Azure Key Vault URL
-- `JWT_SECRET`: JWT signing secret (from Key Vault)
+#### Standard Deployment
+```bash
+# Build and deploy using Helm
+helm upgrade --install payment-engine helm/payment-engine \
+  --values helm/values-production.yaml \
+  --namespace payment-engine \
+  --create-namespace
+```
 
-### Configuration Files
-- `application.yml`: Spring Boot configuration
-- `payment-types.yml`: Payment type definitions
-- `kafka-topics.yml`: Kafka topic configuration
+#### Air-Gapped Deployment
+```bash
+# Set up air-gapped environment
+sudo ./infrastructure/air-gapped/registry-mirror-setup.sh
+sudo ./infrastructure/air-gapped/nexus-setup.sh
+sudo ./infrastructure/air-gapped/package-repository-setup.sh
 
-## Monitoring & Alerts
+# Deploy in air-gapped environment
+sudo ./infrastructure/air-gapped/offline-deploy.sh
+```
 
-### Dashboards
-- **Operations Dashboard**: Real-time transaction monitoring
-- **Performance Dashboard**: SLI/SLO tracking
-- **FinOps Dashboard**: Cost optimization metrics
-- **Security Dashboard**: Security events and compliance
-
-### Alerts
-- Transaction failure rates
-- System performance degradation
-- Security incidents
-- Cost threshold breaches
-
-## Documentation
+## 📚 Documentation
 
 ### Architecture & Design
-- [System Architecture](ARCHITECTURE.md) - Overall system design and component relationships
-- [Technology Stack](TECHNOLOGY_STACK.md) - Detailed technology choices and rationale
-- [Database Design](DATABASE_DESIGN.md) - Database schema and relationships
-- [API Documentation](API_DOCUMENTATION.md) - REST API specifications and examples
+- [System Architecture](docs/ARCHITECTURE.md) - Overall system design and components
+- [Microservices Architecture](docs/MICROSERVICES_ARCHITECTURE.md) - Service decomposition and communication
+- [Security Architecture](docs/SECURITY_ARCHITECTURE.md) - Security patterns and implementations
+- [Resiliency & Self-Healing](RESILIENCY_AND_SELF_HEALING_GUIDE.md) - Fault tolerance and recovery mechanisms
 
-### Implementation Guides
-- [Resiliency and Self-Healing Guide](RESILIENCY_AND_SELF_HEALING_GUIDE.md) - Comprehensive guide to resiliency patterns, circuit breakers, retry mechanisms, and self-healing capabilities
-- [Advanced Payload Mapping Usage Guide](ADVANCED_MAPPING_USAGE_GUIDE.md) - Guide to using the advanced payload mapping system
-- [Fraud Detection and Risk Management](FRAUD_DETECTION_GUIDE.md) - Fraud detection implementation and configuration
-- [UETR Implementation Guide](UETR_IMPLEMENTATION_GUIDE.md) - Unique End-to-End Transaction Reference implementation
-- [Core Banking Integration Guide](CORE_BANKING_INTEGRATION_GUIDE.md) - External core banking system integration
+### Deployment & Operations
+- [Air-Gapped Deployment Guide](AIR_GAPPED_DEPLOYMENT_GUIDE.md) - Complete offline deployment procedures
+- [Kubernetes Deployment](docs/KUBERNETES_DEPLOYMENT.md) - Container orchestration and management
+- [Monitoring & Observability](docs/MONITORING_GUIDE.md) - Metrics, logging, and alerting setup
+- [Disaster Recovery](docs/DISASTER_RECOVERY.md) - Backup, restore, and business continuity
 
-### Operations & Maintenance
-- [Deployment Guide](DEPLOYMENT_GUIDE.md) - Step-by-step deployment instructions
-- [Monitoring and Alerting](MONITORING_GUIDE.md) - Monitoring setup and alerting configuration
-- [Security Configuration](SECURITY_GUIDE.md) - Security setup and best practices
-- [Performance Tuning](PERFORMANCE_GUIDE.md) - Performance optimization guidelines
+### Development & Integration
+- [API Documentation](docs/API_DOCUMENTATION.md) - REST API specifications and examples
+- [ISO 20022 Message Formats](docs/ISO_20022_MESSAGES.md) - Supported message types and schemas
+- [Core Banking Integration](docs/CORE_BANKING_INTEGRATION.md) - External system integration patterns
+- [Fraud & Risk Integration](docs/FRAUD_RISK_INTEGRATION.md) - Fraud detection and risk management
 
-### PlantUML Diagrams
-- [Sequence Diagrams](diagrams/sequence/) - Payment processing flows and interactions
-- [Component Diagrams](diagrams/component/) - System component architecture
-- [Database ERD](diagrams/database/) - Entity relationship diagrams
-- [Technology Architecture](diagrams/technology/) - Technology stack visualization
+### Configuration & Customization
+- [Configuration Management](docs/CONFIGURATION_GUIDE.md) - Environment-specific configurations
+- [Payload Mapping](docs/PAYLOAD_MAPPING.md) - Advanced mapping system documentation
+- [UETR Management](docs/UETR_MANAGEMENT.md) - Transaction reference tracking
+- [Multi-Tenancy](docs/MULTI_TENANCY.md) - Tenant isolation and configuration
 
-### Quick Reference
-- [API Quick Reference](API_QUICK_REFERENCE.md) - Quick API endpoint reference
-- [Configuration Quick Reference](CONFIGURATION_QUICK_REFERENCE.md) - Configuration parameters reference
-- [Troubleshooting Guide](TROUBLESHOOTING_GUIDE.md) - Common issues and solutions
+## 🔧 Configuration
 
-## Contributing
+### Environment Variables
+```bash
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=payment_engine
+DB_USER=payment_user
+DB_PASSWORD=secure_password
+
+# Redis Configuration
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Kafka Configuration
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+KAFKA_SCHEMA_REGISTRY_URL=http://localhost:8081
+
+# Security Configuration
+JWT_SECRET=your-super-secret-jwt-key
+ENCRYPTION_KEY=your-encryption-key
+
+# External Services
+FRAUD_API_URL=https://fraud-api.company.com
+CORE_BANKING_API_URL=https://core-banking.company.com
+```
+
+### Application Properties
+```yaml
+# application.yml
+spring:
+  profiles:
+    active: production
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      fraud-api:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 10
+```
+
+## 🧪 Testing
+
+### Unit Tests
+```bash
+# Run all unit tests
+mvn test
+
+# Run specific test suite
+mvn test -Dtest=PaymentEngineServiceTest
+```
+
+### Integration Tests
+```bash
+# Run integration tests with TestContainers
+mvn verify -P integration-tests
+```
+
+### Load Tests
+```bash
+# Run load tests with k6
+k6 run tests/load/payment-processing-load-test.js
+```
+
+### Security Tests
+```bash
+# Run security scans
+mvn org.owasp:dependency-check-maven:check
+npm audit
+```
+
+## 📊 Monitoring & Observability
+
+### Metrics
+- **Application Metrics**: Custom business metrics via Micrometer
+- **Infrastructure Metrics**: System metrics via Prometheus
+- **Performance Metrics**: Response times, throughput, and error rates
+
+### Logging
+- **Structured Logging**: JSON format with correlation IDs
+- **Centralized Logging**: ELK Stack for log aggregation and analysis
+- **Audit Logging**: Comprehensive audit trail for compliance
+
+### Tracing
+- **Distributed Tracing**: Jaeger for request flow analysis
+- **Span Management**: Automatic instrumentation and context propagation
+- **Trace Analytics**: Performance bottleneck identification
+
+### Alerting
+- **Health Checks**: Application and infrastructure health monitoring
+- **Custom Alerts**: Business logic and performance threshold alerts
+- **Incident Response**: Automated escalation and notification
+
+## 🔒 Security
+
+### Authentication & Authorization
+- **OAuth2/JWT**: Token-based authentication with refresh tokens
+- **Role-Based Access Control**: Granular permissions and access control
+- **Multi-Factor Authentication**: Enhanced security for sensitive operations
+
+### Data Protection
+- **Message Encryption**: AES-GCM encryption for sensitive data
+- **Digital Signatures**: RSA signatures for message integrity
+- **Key Management**: Azure Key Vault integration for secure key storage
+
+### Compliance
+- **Audit Logging**: Comprehensive audit trail for regulatory compliance
+- **Data Retention**: Configurable data retention policies
+- **Privacy Controls**: GDPR and data protection compliance
+
+## 🚀 CI/CD Pipeline
+
+### Azure DevOps Pipeline
+- **Build Stages**: Multi-stage builds with dependency caching
+- **Test Stages**: Unit, integration, and security testing
+- **Deploy Stages**: Environment-specific deployments
+- **Quality Gates**: Code quality and security checks
+
+### Air-Gapped Pipeline
+- **Offline Package Management**: Complete offline dependency resolution
+- **Container Registry Mirroring**: Local registry for air-gapped environments
+- **Deployment Packages**: Self-contained deployment artifacts
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit changes with conventional commit messages
-4. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## License
+### Development Guidelines
+- Follow the existing code style and conventions
+- Write comprehensive tests for new features
+- Update documentation for any API changes
+- Ensure all security checks pass
 
-Enterprise License - Internal Use Only
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+### Documentation
+- [FAQ](docs/FAQ.md) - Frequently asked questions
+- [Troubleshooting Guide](docs/TROUBLESHOOTING.md) - Common issues and solutions
+- [Performance Tuning](docs/PERFORMANCE_TUNING.md) - Optimization guidelines
+
+### Community
+- [GitHub Issues](https://github.com/your-org/payment-engine/issues) - Bug reports and feature requests
+- [Discussions](https://github.com/your-org/payment-engine/discussions) - Community discussions
+- [Wiki](https://github.com/your-org/payment-engine/wiki) - Community-maintained documentation
+
+### Professional Support
+For enterprise support, training, or consulting services, please contact the development team.
+
+---
+
+**Built with ❤️ for the financial services industry**
