@@ -16,6 +16,7 @@ A comprehensive payment processing system built with Spring Boot and React, supp
 
 ### Architecture & Infrastructure
 - **Microservices Architecture**: Service mesh with Istio, dedicated services for auth, config, and monitoring
+- **Multi-Tenant Istio**: Host-based routing with automatic conflict resolution for same host + same port scenarios
 - **Event Sourcing & CQRS**: Event-driven architecture with event store and projections
 - **Resiliency & Self-Healing**: Circuit breakers, retry mechanisms, bulkhead patterns, and automated recovery
 - **Security**: OAuth2/JWT/JWS, message encryption, digital signatures, configurable client headers, and comprehensive audit logging
@@ -137,6 +138,7 @@ sudo ./infrastructure/air-gapped/offline-deploy.sh
 - [Fraud & Risk Integration](docs/FRAUD_RISK_INTEGRATION.md) - Fraud detection and risk management
 - [Tenant Cloning and Migration Guide](TENANT_CLONING_AND_MIGRATION_GUIDE.md) - Complete tenant configuration management
 - [JWS and Client Headers Implementation Guide](JWS_AND_CLIENT_HEADERS_IMPLEMENTATION_GUIDE.md) - Advanced authentication and client header configuration
+- [Istio Multi-Tenancy Solution](ISTIO_MULTITENANCY_SOLUTION.md) - Multi-tenant Istio configuration with conflict resolution
 
 ### Configuration & Customization
 - [Configuration Management](docs/CONFIGURATION_GUIDE.md) - Environment-specific configurations
@@ -260,6 +262,33 @@ npm audit
   "clientSecretHeaderName": "X-Client-Secret"
 }
 ```
+
+## 🌐 Multi-Tenant Istio Configuration
+
+### Host-Based Routing
+- **Tenant Isolation**: Each tenant gets unique subdomains (tenant-001.payment-engine.local)
+- **Environment Separation**: Different environments (dev, staging, prod) with separate routing
+- **Conflict Resolution**: Automatic resolution of same host + same port conflicts
+- **Security Isolation**: Tenant-specific security policies and mTLS enforcement
+
+### Deployment Commands
+```bash
+# Deploy multi-tenant Istio configuration
+./scripts/deploy-multitenant-istio.sh
+
+# Generate configuration for new tenant
+./scripts/generate-tenant-istio-config.sh tenant-001 --environment dev
+
+# Test multi-tenancy setup
+./scripts/test-istio-multitenancy.sh --ingress-ip <gateway-ip>
+```
+
+### Access URLs
+- **Tenant-001**: https://tenant-001.payment-engine.local
+- **Tenant-002**: https://tenant-002.payment-engine.local
+- **Development**: https://tenant-001.dev.payment-engine.local
+- **Staging**: https://tenant-001.staging.payment-engine.local
+- **Production**: https://tenant-001.prod.payment-engine.local
 
 ## 📊 Monitoring & Observability
 
