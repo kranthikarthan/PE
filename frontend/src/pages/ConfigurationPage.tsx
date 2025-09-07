@@ -40,9 +40,11 @@ import {
   Flag as FlagIcon,
   Topic as TopicIcon,
   Api as ApiIcon,
+  AccountTree as AccountTreeIcon,
 } from '@mui/icons-material';
 import PaymentResponseConfigManager from '../components/configuration/PaymentResponseConfigManager';
 import SchemeConfigManager from '../components/configuration/SchemeConfigManager';
+import ClearingSystemManager from '../components/configuration/ClearingSystemManager';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -355,6 +357,11 @@ const ConfigurationPage: React.FC = () => {
               iconPosition="start"
             />
             <Tab
+              label="Clearing Systems"
+              icon={<AccountTreeIcon />}
+              iconPosition="start"
+            />
+            <Tab
               label="Security Settings"
               icon={<SecurityIcon />}
               iconPosition="start"
@@ -585,6 +592,16 @@ const ConfigurationPage: React.FC = () => {
         </TabPanel>
 
         <TabPanel value={tabValue} index={5}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Clearing Systems - {currentTenant}
+            </Typography>
+            
+            <ClearingSystemManager />
+          </CardContent>
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={6}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Security Settings - {currentTenant}
