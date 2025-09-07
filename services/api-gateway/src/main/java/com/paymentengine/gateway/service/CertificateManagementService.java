@@ -1,11 +1,11 @@
-package com.paymentengine.middleware.service;
+package com.paymentengine.gateway.service;
 
-import com.paymentengine.middleware.dto.certificate.*;
-import com.paymentengine.middleware.entity.CertificateInfo;
-import com.paymentengine.middleware.entity.TrustedCertificate;
-import com.paymentengine.middleware.exception.CertificateException;
-import com.paymentengine.middleware.repository.CertificateInfoRepository;
-import com.paymentengine.middleware.repository.TrustedCertificateRepository;
+import com.paymentengine.gateway.dto.certificate.*;
+import com.paymentengine.gateway.entity.CertificateInfo;
+import com.paymentengine.gateway.entity.TrustedCertificate;
+import com.paymentengine.gateway.exception.CertificateException;
+import com.paymentengine.gateway.repository.CertificateInfoRepository;
+import com.paymentengine.gateway.repository.TrustedCertificateRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +27,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Certificate Management Service
+ * Certificate Management Service for API Gateway
  * 
- * Provides automated certificate and key generation, .pfx consumption,
- * validation, and management for the Payment Engine.
+ * Provides certificate and key management capabilities specifically for the API Gateway service,
+ * including SSL/TLS certificates for secure communication and client certificate validation.
  */
 @Service
 @Transactional
@@ -44,7 +44,7 @@ public class CertificateManagementService {
     @Autowired
     private TrustedCertificateRepository trustedCertificateRepository;
     
-    @Value("${certificate.storage.path:/app/certificates}")
+    @Value("${certificate.storage.path:/app/certificates/gateway}")
     private String certificateStoragePath;
     
     @Value("${certificate.default.validity.days:365}")
@@ -57,17 +57,17 @@ public class CertificateManagementService {
     private String signatureAlgorithm;
     
     /**
-     * Generate a new certificate and private key pair
+     * Generate a new SSL/TLS certificate for the API Gateway
      */
-    public CertificateGenerationResult generateCertificate(CertificateGenerationRequest request) {
-        logger.info("Generating certificate for subject: {}", request.getSubjectDN());
+    public CertificateGenerationResult generateGatewayCertificate(CertificateGenerationRequest request) {
+        logger.info("Generating API Gateway certificate for subject: {}", request.getSubjectDN());
         
         try {
             // Generate key pair
             KeyPair keyPair = generateKeyPair();
             
-            // Create certificate
-            X509Certificate certificate = createSelfSignedCertificate(
+            // Create certificate with gateway-specific key usage
+            X509Certificate certificate = createGatewayCertificate(
                 keyPair, 
                 request.getSubjectDN(), 
                 request.getValidityDays() != null ? request.getValidityDays() : defaultValidityDays,
@@ -76,12 +76,12 @@ public class CertificateManagementService {
             );
             
             // Save certificate info to database
-            CertificateInfo certInfo = saveCertificateInfo(certificate, keyPair, request);
+            CertificateInfo certInfo = saveCertificateInfo(certificate, keyPair, request, "GATEWAY_SSL");
             
             // Save certificate and key to filesystem
             saveCertificateToFileSystem(certInfo, certificate, keyPair);
             
-            logger.info("Certificate generated successfully with ID: {}", certInfo.getId());
+            logger.info("API Gateway certificate generated successfully with ID: {}", certInfo.getId());
             
             return CertificateGenerationResult.builder()
                 .certificateId(certInfo.getId())
@@ -98,16 +98,16 @@ public class CertificateManagementService {
                 .build();
                 
         } catch (Exception e) {
-            logger.error("Error generating certificate: {}", e.getMessage(), e);
-            throw new CertificateException("Failed to generate certificate: " + e.getMessage(), e);
+            logger.error("Error generating API Gateway certificate: {}", e.getMessage(), e);
+            throw new CertificateException("Failed to generate API Gateway certificate: " + e.getMessage(), e);
         }
     }
     
     /**
-     * Import and consume a .pfx certificate file
+     * Import and consume a .pfx certificate file for client authentication
      */
-    public PfxImportResult importPfxCertificate(MultipartFile pfxFile, PfxImportRequest request) {
-        logger.info("Importing PFX certificate: {}", pfxFile.getOriginalFilename());
+    public PfxImportResult importClientCertificate(MultipartFile pfxFile, PfxImportRequest request) {
+        logger.info("Importing client certificate: {}", pfxFile.getOriginalFilename());
         
         try {
             // Load PFX file
@@ -118,17 +118,17 @@ public class CertificateManagementService {
             PfxImportResult result = extractFromPfx(keyStore, request);
             
             // Save to database
-            savePfxCertificateInfo(result, request);
+            savePfxCertificateInfo(result, request, "CLIENT_CERT");
             
             // Save to filesystem
             savePfxToFileSystem(result, pfxFile, request);
             
-            logger.info("PFX certificate imported successfully");
+            logger.info("Client certificate imported successfully");
             return result;
             
         } catch (Exception e) {
-            logger.error("Error importing PFX certificate: {}", e.getMessage(), e);
-            throw new CertificateException("Failed to import PFX certificate: " + e.getMessage(), e);
+            logger.error("Error importing client certificate: {}", e.getMessage(), e);
+            throw new CertificateException("Failed to import client certificate: " + e.getMessage(), e);
         }
     }
     
@@ -163,6 +163,77 @@ public class CertificateManagementService {
         } catch (Exception e) {
             logger.error("Error validating certificate: {}", e.getMessage(), e);
             throw new CertificateException("Failed to validate certificate: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Renew a certificate (generate new one and mark old as expired)
+     */
+    public CertificateGenerationResult renewCertificate(String certificateId, CertificateGenerationRequest request) {
+        logger.info("Renewing certificate: {}", certificateId);
+        
+        try {
+            // Get existing certificate
+            CertificateInfo existingCert = certificateInfoRepository.findById(UUID.fromString(certificateId))
+                .orElseThrow(() -> new CertificateException("Certificate not found: " + certificateId));
+            
+            // Generate new certificate
+            CertificateGenerationResult newCert = generateGatewayCertificate(request);
+            
+            // Mark old certificate as renewed
+            existingCert.setStatus("RENEWED");
+            existingCert.setRotatedTo(newCert.getCertificateId());
+            existingCert.setRotatedAt(LocalDateTime.now());
+            certificateInfoRepository.save(existingCert);
+            
+            logger.info("Certificate renewed successfully: {} -> {}", certificateId, newCert.getCertificateId());
+            return newCert;
+            
+        } catch (Exception e) {
+            logger.error("Error renewing certificate: {}", e.getMessage(), e);
+            throw new CertificateException("Failed to renew certificate: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Rollback certificate to previous version
+     */
+    public CertificateRollbackResult rollbackCertificate(String certificateId) {
+        logger.info("Rolling back certificate: {}", certificateId);
+        
+        try {
+            // Get current certificate
+            CertificateInfo currentCert = certificateInfoRepository.findById(UUID.fromString(certificateId))
+                .orElseThrow(() -> new CertificateException("Certificate not found: " + certificateId));
+            
+            // Find the certificate this was rotated from
+            CertificateInfo previousCert = certificateInfoRepository.findByRotatedTo(UUID.fromString(certificateId))
+                .orElseThrow(() -> new CertificateException("No previous certificate found for rollback"));
+            
+            // Mark current certificate as rolled back
+            currentCert.setStatus("ROLLED_BACK");
+            currentCert.setRolledBackAt(LocalDateTime.now());
+            certificateInfoRepository.save(currentCert);
+            
+            // Reactivate previous certificate
+            previousCert.setStatus("ACTIVE");
+            previousCert.setRotatedTo(null);
+            previousCert.setRotatedAt(null);
+            certificateInfoRepository.save(previousCert);
+            
+            logger.info("Certificate rolled back successfully: {} -> {}", certificateId, previousCert.getId());
+            
+            return CertificateRollbackResult.builder()
+                .success(true)
+                .message("Certificate rolled back successfully")
+                .previousCertificateId(previousCert.getId())
+                .currentCertificateId(currentCert.getId())
+                .rollbackTimestamp(LocalDateTime.now())
+                .build();
+            
+        } catch (Exception e) {
+            logger.error("Error rolling back certificate: {}", e.getMessage(), e);
+            throw new CertificateException("Failed to rollback certificate: " + e.getMessage(), e);
         }
     }
     
@@ -218,106 +289,6 @@ public class CertificateManagementService {
     }
     
     /**
-     * Rotate certificate (generate new one and mark old as expired)
-     */
-    public CertificateGenerationResult rotateCertificate(String certificateId, CertificateGenerationRequest request) {
-        logger.info("Rotating certificate: {}", certificateId);
-        
-        try {
-            // Get existing certificate
-            CertificateInfo existingCert = certificateInfoRepository.findById(UUID.fromString(certificateId))
-                .orElseThrow(() -> new CertificateException("Certificate not found: " + certificateId));
-            
-            // Generate new certificate
-            CertificateGenerationResult newCert = generateCertificate(request);
-            
-            // Mark old certificate as rotated
-            existingCert.setStatus("ROTATED");
-            existingCert.setRotatedTo(newCert.getCertificateId());
-            existingCert.setRotatedAt(LocalDateTime.now());
-            certificateInfoRepository.save(existingCert);
-            
-            logger.info("Certificate rotated successfully: {} -> {}", certificateId, newCert.getCertificateId());
-            return newCert;
-            
-        } catch (Exception e) {
-            logger.error("Error rotating certificate: {}", e.getMessage(), e);
-            throw new CertificateException("Failed to rotate certificate: " + e.getMessage(), e);
-        }
-    }
-    
-    /**
-     * Renew a certificate (generate new one and mark old as renewed)
-     */
-    public CertificateGenerationResult renewCertificate(String certificateId, CertificateGenerationRequest request) {
-        logger.info("Renewing certificate: {}", certificateId);
-        
-        try {
-            // Get existing certificate
-            CertificateInfo existingCert = certificateInfoRepository.findById(UUID.fromString(certificateId))
-                .orElseThrow(() -> new CertificateException("Certificate not found: " + certificateId));
-            
-            // Generate new certificate
-            CertificateGenerationResult newCert = generateCertificate(request);
-            
-            // Mark old certificate as renewed
-            existingCert.setStatus("RENEWED");
-            existingCert.setRotatedTo(newCert.getCertificateId());
-            existingCert.setRotatedAt(LocalDateTime.now());
-            certificateInfoRepository.save(existingCert);
-            
-            logger.info("Certificate renewed successfully: {} -> {}", certificateId, newCert.getCertificateId());
-            return newCert;
-            
-        } catch (Exception e) {
-            logger.error("Error renewing certificate: {}", e.getMessage(), e);
-            throw new CertificateException("Failed to renew certificate: " + e.getMessage(), e);
-        }
-    }
-    
-    /**
-     * Rollback certificate to previous version
-     */
-    public CertificateRollbackResult rollbackCertificate(String certificateId) {
-        logger.info("Rolling back certificate: {}", certificateId);
-        
-        try {
-            // Get current certificate
-            CertificateInfo currentCert = certificateInfoRepository.findById(UUID.fromString(certificateId))
-                .orElseThrow(() -> new CertificateException("Certificate not found: " + certificateId));
-            
-            // Find the certificate this was rotated from
-            CertificateInfo previousCert = certificateInfoRepository.findFirstByRotatedTo(UUID.fromString(certificateId))
-                .orElseThrow(() -> new CertificateException("No previous certificate found for rollback"));
-            
-            // Mark current certificate as rolled back
-            currentCert.setStatus("ROLLED_BACK");
-            currentCert.setRolledBackAt(LocalDateTime.now());
-            certificateInfoRepository.save(currentCert);
-            
-            // Reactivate previous certificate
-            previousCert.setStatus("ACTIVE");
-            previousCert.setRotatedTo(null);
-            previousCert.setRotatedAt(null);
-            certificateInfoRepository.save(previousCert);
-            
-            logger.info("Certificate rolled back successfully: {} -> {}", certificateId, previousCert.getId());
-            
-            return CertificateRollbackResult.builder()
-                .success(true)
-                .message("Certificate rolled back successfully")
-                .previousCertificateId(previousCert.getId())
-                .currentCertificateId(currentCert.getId())
-                .rollbackTimestamp(LocalDateTime.now())
-                .build();
-            
-        } catch (Exception e) {
-            logger.error("Error rolling back certificate: {}", e.getMessage(), e);
-            throw new CertificateException("Failed to rollback certificate: " + e.getMessage(), e);
-        }
-    }
-    
-    /**
      * Get certificates expiring soon
      */
     @Transactional(readOnly = true)
@@ -336,9 +307,9 @@ public class CertificateManagementService {
     }
     
     /**
-     * Create self-signed certificate
+     * Create gateway-specific certificate
      */
-    private X509Certificate createSelfSignedCertificate(
+    private X509Certificate createGatewayCertificate(
             KeyPair keyPair, 
             String subjectDN, 
             int validityDays,
@@ -354,13 +325,13 @@ public class CertificateManagementService {
             .setNotBefore(new Date())
             .setNotAfter(new Date(System.currentTimeMillis() + validityDays * 24L * 60L * 60L * 1000L));
         
-        // Add key usage extensions
+        // Add key usage extensions for gateway
         if (keyUsage != null && !keyUsage.isEmpty()) {
             builder.addExtension(Extension.keyUsage, false, 
-                new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment));
+                new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment));
         }
         
-        // Add extended key usage
+        // Add extended key usage for gateway
         if (extendedKeyUsage != null && !extendedKeyUsage.isEmpty()) {
             List<ASN1ObjectIdentifier> oids = extendedKeyUsage.stream()
                 .map(ExtendedKeyUsage::getOID)
@@ -502,7 +473,7 @@ public class CertificateManagementService {
     /**
      * Save certificate info to database
      */
-    private CertificateInfo saveCertificateInfo(X509Certificate certificate, KeyPair keyPair, CertificateGenerationRequest request) {
+    private CertificateInfo saveCertificateInfo(X509Certificate certificate, KeyPair keyPair, CertificateGenerationRequest request, String certificateType) {
         CertificateInfo certInfo = new CertificateInfo();
         certInfo.setId(UUID.randomUUID());
         certInfo.setSubjectDN(certificate.getSubjectDN().getName());
@@ -513,7 +484,7 @@ public class CertificateManagementService {
         certInfo.setPublicKeyAlgorithm(certificate.getPublicKey().getAlgorithm());
         certInfo.setKeySize(keySize);
         certInfo.setSignatureAlgorithm(certificate.getSigAlgName());
-        certInfo.setCertificateType(request.getCertificateType());
+        certInfo.setCertificateType(certificateType);
         certInfo.setTenantId(request.getTenantId());
         certInfo.setStatus("ACTIVE");
         certInfo.setCreatedAt(LocalDateTime.now());
@@ -549,7 +520,7 @@ public class CertificateManagementService {
     /**
      * Save PFX certificate info to database
      */
-    private void savePfxCertificateInfo(PfxImportResult result, PfxImportRequest request) {
+    private void savePfxCertificateInfo(PfxImportResult result, PfxImportRequest request, String certificateType) {
         CertificateInfo certInfo = new CertificateInfo();
         certInfo.setId(UUID.randomUUID());
         certInfo.setSubjectDN(result.getSubjectDN());
@@ -559,7 +530,7 @@ public class CertificateManagementService {
         certInfo.setValidTo(result.getValidTo());
         certInfo.setPublicKeyAlgorithm(result.getPublicKeyAlgorithm());
         certInfo.setSignatureAlgorithm(result.getSignatureAlgorithm());
-        certInfo.setCertificateType("PFX_IMPORTED");
+        certInfo.setCertificateType(certificateType);
         certInfo.setTenantId(request.getTenantId());
         certInfo.setStatus("ACTIVE");
         certInfo.setCreatedAt(LocalDateTime.now());

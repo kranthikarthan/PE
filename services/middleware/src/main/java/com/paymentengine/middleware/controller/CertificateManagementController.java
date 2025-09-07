@@ -289,6 +289,86 @@ public class CertificateManagementController {
     }
     
     /**
+     * Renew certificate
+     */
+    @PostMapping("/{certificateId}/renew")
+    @PreAuthorize("hasAuthority('certificate:renew')")
+    @Timed(value = "certificate.renew", description = "Time taken to renew a certificate")
+    public ResponseEntity<Map<String, Object>> renewCertificate(
+            @PathVariable String certificateId,
+            @Valid @RequestBody CertificateGenerationRequest request) {
+        
+        logger.info("Renewing certificate: {}", certificateId);
+        
+        try {
+            CertificateGenerationResult result = certificateManagementService.renewCertificate(certificateId, request);
+            
+            logger.info("Certificate renewed successfully: {} -> {}", certificateId, result.getCertificateId());
+            return ResponseEntity.ok(Map.of(
+                "message", "Certificate renewed successfully",
+                "oldCertificateId", certificateId,
+                "newCertificate", result
+            ));
+            
+        } catch (CertificateException e) {
+            logger.warn("Certificate renewal error: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(Map.of(
+                    "error", e.getErrorCode(),
+                    "message", e.getMessage(),
+                    "certificateId", e.getCertificateId() != null ? e.getCertificateId() : ""
+                ));
+        } catch (Exception e) {
+            logger.error("Unexpected error renewing certificate: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "error", "INTERNAL_ERROR",
+                    "message", "An unexpected error occurred"
+                ));
+        }
+    }
+    
+    /**
+     * Rollback certificate
+     */
+    @PostMapping("/{certificateId}/rollback")
+    @PreAuthorize("hasAuthority('certificate:rollback')")
+    @Timed(value = "certificate.rollback", description = "Time taken to rollback a certificate")
+    public ResponseEntity<Map<String, Object>> rollbackCertificate(
+            @PathVariable String certificateId) {
+        
+        logger.info("Rolling back certificate: {}", certificateId);
+        
+        try {
+            CertificateRollbackResult result = certificateManagementService.rollbackCertificate(certificateId);
+            
+            logger.info("Certificate rolled back successfully: {} -> {}", certificateId, result.getPreviousCertificateId());
+            return ResponseEntity.ok(Map.of(
+                "message", "Certificate rolled back successfully",
+                "currentCertificateId", result.getCurrentCertificateId(),
+                "previousCertificateId", result.getPreviousCertificateId(),
+                "rollbackTimestamp", result.getRollbackTimestamp()
+            ));
+            
+        } catch (CertificateException e) {
+            logger.warn("Certificate rollback error: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(Map.of(
+                    "error", e.getErrorCode(),
+                    "message", e.getMessage(),
+                    "certificateId", e.getCertificateId() != null ? e.getCertificateId() : ""
+                ));
+        } catch (Exception e) {
+            logger.error("Unexpected error rolling back certificate: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "error", "INTERNAL_ERROR",
+                    "message", "An unexpected error occurred"
+                ));
+        }
+    }
+    
+    /**
      * Get certificates expiring soon
      */
     @GetMapping("/expiring")

@@ -1,13 +1,16 @@
 # Certificate Management System
-## Automated Certificate and Key Management for Payment Engine
+## Multi-Service Automated Certificate and Key Management for Payment Engine
 
 ### Overview
 
-The Certificate Management System provides comprehensive automated certificate and key management capabilities for the Payment Engine, including:
+The Certificate Management System provides comprehensive automated certificate and key management capabilities across all Payment Engine services, including:
 
+- **Multi-Service Implementation**: Certificate management implemented across API Gateway, Core Banking, and Middleware services
 - **Automated Certificate Generation**: Generate X.509 certificates with custom key usage and extended key usage
 - **PFX Certificate Import**: Import and consume bank-generated trusted CA certificates in .pfx format
 - **Certificate Validation**: Validate certificates against trusted CA certificates
+- **Certificate Renewal**: Automated certificate renewal and lifecycle management
+- **Certificate Rollback**: Rollback certificates to previous versions for disaster recovery
 - **Certificate Rotation**: Automated certificate rotation and lifecycle management
 - **Secure Storage**: Encrypted storage of certificates and private keys
 - **Web-based Management**: React frontend for certificate management operations
@@ -16,7 +19,7 @@ The Certificate Management System provides comprehensive automated certificate a
 
 ## 🏗️ **Architecture Overview**
 
-### **System Components**
+### **Multi-Service System Components**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -25,6 +28,26 @@ The Certificate Management System provides comprehensive automated certificate a
 │  │   Certificate   │  │   Certificate   │  │ Certificate  │ │
 │  │   Management    │  │   Generation    │  │   Import     │ │
 │  │     Page        │  │     Dialog      │  │    Dialog    │ │
+│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 API Gateway Service                         │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│  │   Certificate   │  │   Certificate   │  │   Trusted    │ │
+│  │   Management    │  │      Info       │  │ Certificate  │ │
+│  │   Controller    │  │   Repository    │  │ Repository   │ │
+│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 Core Banking Service                        │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│  │   Certificate   │  │   Certificate   │  │   Trusted    │ │
+│  │   Management    │  │      Info       │  │ Certificate  │ │
+│  │   Controller    │  │   Repository    │  │ Repository   │ │
 │  └─────────────────┘  └─────────────────┘  └──────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                                 │
@@ -51,32 +74,52 @@ The Certificate Management System provides comprehensive automated certificate a
 
 ### **Key Features**
 
-1. **Certificate Generation**
+1. **Multi-Service Certificate Management**
+   - **API Gateway Service**: SSL/TLS certificates for secure communication and client certificate validation
+   - **Core Banking Service**: Banking-specific certificates for external system communication
+   - **Middleware Service**: Centralized certificate management and coordination
+
+2. **Certificate Generation**
    - Self-signed X.509 certificates
    - Custom key usage and extended key usage
    - Configurable validity periods
    - RSA key generation (2048-bit default)
+   - Service-specific certificate types (GATEWAY_SSL, BANKING_SSL, etc.)
 
-2. **PFX Import**
+3. **PFX Import**
    - Import .pfx and .p12 certificate files
    - Extract certificate chains
    - Password-protected import
    - Automatic validation
+   - Service-specific import handling
 
-3. **Certificate Validation**
+4. **Certificate Validation**
    - Trust chain verification
    - Certificate expiration checking
    - Signature validation
    - Trusted CA validation
+   - Cross-service validation
 
-4. **Certificate Rotation**
+5. **Certificate Renewal**
+   - Automated renewal process
+   - Zero-downtime renewal
+   - Service-specific renewal policies
+   - Audit trail
+
+6. **Certificate Rollback**
+   - Rollback to previous certificate versions
+   - Disaster recovery capabilities
+   - Service-specific rollback policies
+   - Audit trail
+
+7. **Certificate Rotation**
    - Automated rotation process
    - Zero-downtime rotation
    - Rollback capabilities
    - Audit trail
 
-5. **Secure Storage**
-   - Encrypted file storage
+8. **Secure Storage**
+   - Encrypted file storage per service
    - Database metadata storage
    - Access control
    - Audit logging
@@ -155,25 +198,123 @@ public class TrustedCertificate {
 }
 ```
 
-### **REST API Endpoints**
+### **Multi-Service REST API Endpoints**
 
-#### **Certificate Generation**
+#### **API Gateway Service Endpoints**
+
+**Certificate Generation**
+```http
+POST /api/v1/gateway/certificates/generate
+Content-Type: application/json
+
+{
+  "subjectDN": "CN=gateway.example.com, O=Organization, C=US",
+  "tenantId": "tenant-123",
+  "certificateType": "GATEWAY_SSL",
+  "validityDays": 365,
+  "keyUsage": ["digitalSignature", "keyEncipherment"],
+  "extendedKeyUsage": ["serverAuth", "clientAuth"],
+  "description": "API Gateway SSL Certificate"
+}
+```
+
+**Client Certificate Import**
+```http
+POST /api/v1/gateway/certificates/import/pfx
+Content-Type: multipart/form-data
+
+file: [PFX_FILE]
+password: "pfx_password"
+tenantId: "tenant-123"
+certificateType: "CLIENT_CERT"
+description: "Client Certificate"
+```
+
+**Certificate Renewal**
+```http
+POST /api/v1/gateway/certificates/{certificateId}/renew
+Content-Type: application/json
+
+{
+  "subjectDN": "CN=gateway.example.com, O=Organization, C=US",
+  "tenantId": "tenant-123",
+  "certificateType": "GATEWAY_SSL",
+  "validityDays": 365
+}
+```
+
+**Certificate Rollback**
+```http
+POST /api/v1/gateway/certificates/{certificateId}/rollback
+```
+
+#### **Core Banking Service Endpoints**
+
+**Certificate Generation**
+```http
+POST /api/v1/core-banking/certificates/generate
+Content-Type: application/json
+
+{
+  "subjectDN": "CN=banking.example.com, O=Organization, C=US",
+  "tenantId": "tenant-123",
+  "certificateType": "BANKING_SSL",
+  "validityDays": 365,
+  "keyUsage": ["digitalSignature", "keyEncipherment", "nonRepudiation"],
+  "extendedKeyUsage": ["serverAuth", "clientAuth"],
+  "description": "Core Banking SSL Certificate"
+}
+```
+
+**Banking Certificate Import**
+```http
+POST /api/v1/core-banking/certificates/import/pfx
+Content-Type: multipart/form-data
+
+file: [PFX_FILE]
+password: "pfx_password"
+tenantId: "tenant-123"
+certificateType: "BANKING_CERT"
+description: "Bank Certificate"
+```
+
+**Certificate Renewal**
+```http
+POST /api/v1/core-banking/certificates/{certificateId}/renew
+Content-Type: application/json
+
+{
+  "subjectDN": "CN=banking.example.com, O=Organization, C=US",
+  "tenantId": "tenant-123",
+  "certificateType": "BANKING_SSL",
+  "validityDays": 365
+}
+```
+
+**Certificate Rollback**
+```http
+POST /api/v1/core-banking/certificates/{certificateId}/rollback
+```
+
+#### **Middleware Service Endpoints**
+
+**Certificate Generation**
 ```http
 POST /api/v1/certificates/generate
 Content-Type: application/json
 
 {
-  "subjectDN": "CN=example.com, O=Organization, C=US",
+  "subjectDN": "CN=middleware.example.com, O=Organization, C=US",
   "tenantId": "tenant-123",
   "certificateType": "GENERATED",
   "validityDays": 365,
   "keyUsage": ["digitalSignature", "keyEncipherment"],
   "extendedKeyUsage": ["serverAuth", "clientAuth"],
-  "description": "Payment Engine Certificate"
+  "description": "Middleware Certificate"
 }
 ```
 
-#### **PFX Import**
+**PFX Import**
 ```http
 POST /api/v1/certificates/import/pfx
 Content-Type: multipart/form-data
@@ -185,23 +326,99 @@ certificateType: "PFX_IMPORTED"
 description: "Bank Certificate"
 ```
 
-#### **Certificate Validation**
+**Certificate Validation**
 ```http
 POST /api/v1/certificates/{certificateId}/validate
 ```
 
-#### **Certificate Rotation**
+**Certificate Renewal**
 ```http
-POST /api/v1/certificates/{certificateId}/rotate
+POST /api/v1/certificates/{certificateId}/renew
 Content-Type: application/json
 
 {
-  "subjectDN": "CN=example.com, O=Organization, C=US",
+  "subjectDN": "CN=middleware.example.com, O=Organization, C=US",
   "tenantId": "tenant-123",
   "certificateType": "GENERATED",
   "validityDays": 365
 }
 ```
+
+**Certificate Rollback**
+```http
+POST /api/v1/certificates/{certificateId}/rollback
+```
+
+**Certificate Rotation**
+```http
+POST /api/v1/certificates/{certificateId}/rotate
+Content-Type: application/json
+
+{
+  "subjectDN": "CN=middleware.example.com, O=Organization, C=US",
+  "tenantId": "tenant-123",
+  "certificateType": "GENERATED",
+  "validityDays": 365
+}
+```
+
+---
+
+## 🏢 **Multi-Service Implementation Summary**
+
+### **Service-Specific Certificate Management**
+
+#### **API Gateway Service**
+- **Purpose**: SSL/TLS certificates for secure communication and client certificate validation
+- **Certificate Types**: `GATEWAY_SSL`, `CLIENT_CERT`
+- **Storage Path**: `/app/certificates/gateway`
+- **Key Features**: 
+  - Gateway-specific SSL certificate generation
+  - Client certificate import and validation
+  - Certificate renewal and rollback
+  - Statistics and monitoring
+
+#### **Core Banking Service**
+- **Purpose**: Banking-specific certificates for external system communication
+- **Certificate Types**: `BANKING_SSL`, `BANKING_CERT`
+- **Storage Path**: `/app/certificates/core-banking`
+- **Key Features**:
+  - Banking-specific SSL certificate generation
+  - External banking system certificate import
+  - Certificate renewal and rollback
+  - Banking compliance features
+
+#### **Middleware Service**
+- **Purpose**: Centralized certificate management and coordination
+- **Certificate Types**: `GENERATED`, `PFX_IMPORTED`, `CLIENT`, `SERVER`, `CA`
+- **Storage Path**: `/app/certificates`
+- **Key Features**:
+  - Centralized certificate management
+  - PFX certificate import and validation
+  - Certificate rotation, renewal, and rollback
+  - Trusted certificate management
+  - Comprehensive audit and monitoring
+
+### **Cross-Service Features**
+
+#### **Certificate Lifecycle Management**
+- **Generation**: All services support certificate generation with service-specific configurations
+- **Import**: All services support PFX certificate import with validation
+- **Validation**: All services support certificate validation against trusted CAs
+- **Renewal**: All services support certificate renewal with zero downtime
+- **Rollback**: All services support certificate rollback for disaster recovery
+- **Rotation**: Middleware service provides centralized rotation capabilities
+
+#### **Security Features**
+- **Encrypted Storage**: All services use encrypted file storage for certificates
+- **Access Control**: Role-based access control across all services
+- **Audit Logging**: Comprehensive audit logging for all certificate operations
+- **Validation**: Cross-service certificate validation capabilities
+
+#### **Monitoring and Alerting**
+- **Expiration Monitoring**: All services monitor certificate expiration
+- **Statistics**: Service-specific certificate statistics and dashboards
+- **Alerting**: Automated alerts for certificate expiration and validation failures
 
 ---
 

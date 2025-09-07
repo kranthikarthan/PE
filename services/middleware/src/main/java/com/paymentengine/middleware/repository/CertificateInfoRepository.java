@@ -214,6 +214,11 @@ public interface CertificateInfoRepository extends JpaRepository<CertificateInfo
     List<CertificateInfo> findByRotatedTo(UUID rotatedTo);
     
     /**
+     * Find certificate by rotated certificate ID (single result)
+     */
+    Optional<CertificateInfo> findFirstByRotatedTo(UUID rotatedTo);
+    
+    /**
      * Find certificates that have been rotated
      */
     @Query("SELECT c FROM CertificateInfo c WHERE c.status = 'ROTATED'")
