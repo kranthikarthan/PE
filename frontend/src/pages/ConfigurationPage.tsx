@@ -39,8 +39,10 @@ import {
   Speed as SpeedIcon,
   Flag as FlagIcon,
   Topic as TopicIcon,
+  Api as ApiIcon,
 } from '@mui/icons-material';
 import PaymentResponseConfigManager from '../components/configuration/PaymentResponseConfigManager';
+import SchemeConfigManager from '../components/configuration/SchemeConfigManager';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -348,6 +350,11 @@ const ConfigurationPage: React.FC = () => {
               iconPosition="start"
             />
             <Tab
+              label="Scheme Configuration"
+              icon={<ApiIcon />}
+              iconPosition="start"
+            />
+            <Tab
               label="Security Settings"
               icon={<SecurityIcon />}
               iconPosition="start"
@@ -568,6 +575,16 @@ const ConfigurationPage: React.FC = () => {
         </TabPanel>
 
         <TabPanel value={tabValue} index={4}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Scheme Configuration - {currentTenant}
+            </Typography>
+            
+            <SchemeConfigManager />
+          </CardContent>
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={5}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Security Settings - {currentTenant}
