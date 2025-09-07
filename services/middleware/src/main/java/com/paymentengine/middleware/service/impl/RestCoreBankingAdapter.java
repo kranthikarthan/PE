@@ -2,6 +2,8 @@ package com.paymentengine.middleware.service.impl;
 
 import com.paymentengine.middleware.dto.corebanking.*;
 import com.paymentengine.middleware.service.CoreBankingAdapter;
+import com.paymentengine.middleware.service.AdvancedPayloadTransformationService;
+import com.paymentengine.middleware.entity.AdvancedPayloadMapping;
 import com.paymentengine.middleware.client.ExternalCoreBankingClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +40,9 @@ public class RestCoreBankingAdapter implements CoreBankingAdapter {
     
     @Autowired
     private RestTemplate restTemplate;
+    
+    @Autowired
+    private AdvancedPayloadTransformationService advancedPayloadTransformationService;
     
     @Value("${core-banking.rest.base-url}")
     private String baseUrl;
@@ -179,11 +184,27 @@ public class RestCoreBankingAdapter implements CoreBankingAdapter {
     
     @Override
     public TransactionResult processDebit(DebitTransactionRequest request) {
-        logger.info("Processing debit transaction: {}", request.getTransactionReference());
+        logger.info("Processing debit transaction: {} using advanced mapping", request.getTransactionReference());
         
         try {
+            // Convert request to map for advanced mapping
+            Map<String, Object> requestMap = convertRequestToMap(request);
+            
+            // Try to use advanced mapping for core banking debit request transformation
+            Optional<Map<String, Object>> transformedRequest = advancedPayloadTransformationService.transformPayload(
+                    request.getTenantId(), request.getPaymentType(), request.getLocalInstrumentCode(), null,
+                    AdvancedPayloadMapping.Direction.CORE_BANKING_DEBIT_REQUEST, requestMap);
+            
+            DebitTransactionRequest finalRequest = request;
+            if (transformedRequest.isPresent()) {
+                logger.debug("Using advanced mapping for core banking debit request transformation");
+                finalRequest = convertMapToDebitRequest(transformedRequest.get(), request);
+            } else {
+                logger.debug("No advanced mapping found for core banking debit request, using original request");
+            }
+            
             HttpHeaders headers = createHeaders(request.getTenantId());
-            HttpEntity<DebitTransactionRequest> entity = new HttpEntity<>(request, headers);
+            HttpEntity<DebitTransactionRequest> entity = new HttpEntity<>(finalRequest, headers);
             
             ResponseEntity<TransactionResult> response = restTemplate.exchange(
                 baseUrl + "/api/v1/transactions/debit",
@@ -193,7 +214,20 @@ public class RestCoreBankingAdapter implements CoreBankingAdapter {
             );
             
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return response.getBody();
+                TransactionResult result = response.getBody();
+                
+                // Try to transform response using advanced mapping
+                Map<String, Object> responseMap = convertResultToMap(result);
+                Optional<Map<String, Object>> transformedResponse = advancedPayloadTransformationService.transformPayload(
+                        request.getTenantId(), request.getPaymentType(), request.getLocalInstrumentCode(), null,
+                        AdvancedPayloadMapping.Direction.CORE_BANKING_DEBIT_RESPONSE, responseMap);
+                
+                if (transformedResponse.isPresent()) {
+                    logger.debug("Using advanced mapping for core banking debit response transformation");
+                    result = convertMapToTransactionResult(transformedResponse.get(), result);
+                }
+                
+                return result;
             } else {
                 throw new RuntimeException("Failed to process debit: " + response.getStatusCode());
             }
@@ -207,11 +241,27 @@ public class RestCoreBankingAdapter implements CoreBankingAdapter {
     
     @Override
     public TransactionResult processCredit(CreditTransactionRequest request) {
-        logger.info("Processing credit transaction: {}", request.getTransactionReference());
+        logger.info("Processing credit transaction: {} using advanced mapping", request.getTransactionReference());
         
         try {
+            // Convert request to map for advanced mapping
+            Map<String, Object> requestMap = convertCreditRequestToMap(request);
+            
+            // Try to use advanced mapping for core banking credit request transformation
+            Optional<Map<String, Object>> transformedRequest = advancedPayloadTransformationService.transformPayload(
+                    request.getTenantId(), request.getPaymentType(), request.getLocalInstrumentCode(), null,
+                    AdvancedPayloadMapping.Direction.CORE_BANKING_CREDIT_REQUEST, requestMap);
+            
+            CreditTransactionRequest finalRequest = request;
+            if (transformedRequest.isPresent()) {
+                logger.debug("Using advanced mapping for core banking credit request transformation");
+                finalRequest = convertMapToCreditRequest(transformedRequest.get(), request);
+            } else {
+                logger.debug("No advanced mapping found for core banking credit request, using original request");
+            }
+            
             HttpHeaders headers = createHeaders(request.getTenantId());
-            HttpEntity<CreditTransactionRequest> entity = new HttpEntity<>(request, headers);
+            HttpEntity<CreditTransactionRequest> entity = new HttpEntity<>(finalRequest, headers);
             
             ResponseEntity<TransactionResult> response = restTemplate.exchange(
                 baseUrl + "/api/v1/transactions/credit",
@@ -221,7 +271,20 @@ public class RestCoreBankingAdapter implements CoreBankingAdapter {
             );
             
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return response.getBody();
+                TransactionResult result = response.getBody();
+                
+                // Try to transform response using advanced mapping
+                Map<String, Object> responseMap = convertResultToMap(result);
+                Optional<Map<String, Object>> transformedResponse = advancedPayloadTransformationService.transformPayload(
+                        request.getTenantId(), request.getPaymentType(), request.getLocalInstrumentCode(), null,
+                        AdvancedPayloadMapping.Direction.CORE_BANKING_CREDIT_RESPONSE, responseMap);
+                
+                if (transformedResponse.isPresent()) {
+                    logger.debug("Using advanced mapping for core banking credit response transformation");
+                    result = convertMapToTransactionResult(transformedResponse.get(), result);
+                }
+                
+                return result;
             } else {
                 throw new RuntimeException("Failed to process credit: " + response.getStatusCode());
             }
@@ -502,6 +565,130 @@ public class RestCoreBankingAdapter implements CoreBankingAdapter {
         result.setStatusMessage("Transaction failed");
         result.setErrorMessage(errorMessage);
         result.setProcessedAt(LocalDateTime.now());
+        return result;
+    }
+    
+    // ============================================================================
+    // ADVANCED MAPPING HELPER METHODS
+    // ============================================================================
+    
+    /**
+     * Convert DebitTransactionRequest to Map for advanced mapping
+     */
+    private Map<String, Object> convertRequestToMap(DebitTransactionRequest request) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("transactionReference", request.getTransactionReference());
+        map.put("tenantId", request.getTenantId());
+        map.put("accountNumber", request.getAccountNumber());
+        map.put("amount", request.getAmount());
+        map.put("currency", request.getCurrency());
+        map.put("paymentType", request.getPaymentType());
+        map.put("localInstrumentCode", request.getLocalInstrumentCode());
+        map.put("description", request.getDescription());
+        map.put("reference", request.getReference());
+        map.put("valueDate", request.getValueDate());
+        map.put("requestedExecutionDate", request.getRequestedExecutionDate());
+        map.put("chargeBearer", request.getChargeBearer());
+        map.put("remittanceInfo", request.getRemittanceInfo());
+        map.put("additionalData", request.getAdditionalData());
+        return map;
+    }
+    
+    /**
+     * Convert CreditTransactionRequest to Map for advanced mapping
+     */
+    private Map<String, Object> convertCreditRequestToMap(CreditTransactionRequest request) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("transactionReference", request.getTransactionReference());
+        map.put("tenantId", request.getTenantId());
+        map.put("accountNumber", request.getAccountNumber());
+        map.put("amount", request.getAmount());
+        map.put("currency", request.getCurrency());
+        map.put("paymentType", request.getPaymentType());
+        map.put("localInstrumentCode", request.getLocalInstrumentCode());
+        map.put("description", request.getDescription());
+        map.put("reference", request.getReference());
+        map.put("valueDate", request.getValueDate());
+        map.put("requestedExecutionDate", request.getRequestedExecutionDate());
+        map.put("chargeBearer", request.getChargeBearer());
+        map.put("remittanceInfo", request.getRemittanceInfo());
+        map.put("additionalData", request.getAdditionalData());
+        return map;
+    }
+    
+    /**
+     * Convert Map back to DebitTransactionRequest
+     */
+    private DebitTransactionRequest convertMapToDebitRequest(Map<String, Object> map, DebitTransactionRequest original) {
+        DebitTransactionRequest request = new DebitTransactionRequest();
+        request.setTransactionReference((String) map.getOrDefault("transactionReference", original.getTransactionReference()));
+        request.setTenantId((String) map.getOrDefault("tenantId", original.getTenantId()));
+        request.setAccountNumber((String) map.getOrDefault("accountNumber", original.getAccountNumber()));
+        request.setAmount((BigDecimal) map.getOrDefault("amount", original.getAmount()));
+        request.setCurrency((String) map.getOrDefault("currency", original.getCurrency()));
+        request.setPaymentType((String) map.getOrDefault("paymentType", original.getPaymentType()));
+        request.setLocalInstrumentCode((String) map.getOrDefault("localInstrumentCode", original.getLocalInstrumentCode()));
+        request.setDescription((String) map.getOrDefault("description", original.getDescription()));
+        request.setReference((String) map.getOrDefault("reference", original.getReference()));
+        request.setValueDate((LocalDateTime) map.getOrDefault("valueDate", original.getValueDate()));
+        request.setRequestedExecutionDate((LocalDateTime) map.getOrDefault("requestedExecutionDate", original.getRequestedExecutionDate()));
+        request.setChargeBearer((String) map.getOrDefault("chargeBearer", original.getChargeBearer()));
+        request.setRemittanceInfo((String) map.getOrDefault("remittanceInfo", original.getRemittanceInfo()));
+        request.setAdditionalData((Map<String, Object>) map.getOrDefault("additionalData", original.getAdditionalData()));
+        return request;
+    }
+    
+    /**
+     * Convert Map back to CreditTransactionRequest
+     */
+    private CreditTransactionRequest convertMapToCreditRequest(Map<String, Object> map, CreditTransactionRequest original) {
+        CreditTransactionRequest request = new CreditTransactionRequest();
+        request.setTransactionReference((String) map.getOrDefault("transactionReference", original.getTransactionReference()));
+        request.setTenantId((String) map.getOrDefault("tenantId", original.getTenantId()));
+        request.setAccountNumber((String) map.getOrDefault("accountNumber", original.getAccountNumber()));
+        request.setAmount((BigDecimal) map.getOrDefault("amount", original.getAmount()));
+        request.setCurrency((String) map.getOrDefault("currency", original.getCurrency()));
+        request.setPaymentType((String) map.getOrDefault("paymentType", original.getPaymentType()));
+        request.setLocalInstrumentCode((String) map.getOrDefault("localInstrumentCode", original.getLocalInstrumentCode()));
+        request.setDescription((String) map.getOrDefault("description", original.getDescription()));
+        request.setReference((String) map.getOrDefault("reference", original.getReference()));
+        request.setValueDate((LocalDateTime) map.getOrDefault("valueDate", original.getValueDate()));
+        request.setRequestedExecutionDate((LocalDateTime) map.getOrDefault("requestedExecutionDate", original.getRequestedExecutionDate()));
+        request.setChargeBearer((String) map.getOrDefault("chargeBearer", original.getChargeBearer()));
+        request.setRemittanceInfo((String) map.getOrDefault("remittanceInfo", original.getRemittanceInfo()));
+        request.setAdditionalData((Map<String, Object>) map.getOrDefault("additionalData", original.getAdditionalData()));
+        return request;
+    }
+    
+    /**
+     * Convert TransactionResult to Map for advanced mapping
+     */
+    private Map<String, Object> convertResultToMap(TransactionResult result) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("transactionReference", result.getTransactionReference());
+        map.put("status", result.getStatus());
+        map.put("statusMessage", result.getStatusMessage());
+        map.put("errorMessage", result.getErrorMessage());
+        map.put("processedAt", result.getProcessedAt());
+        map.put("transactionId", result.getTransactionId());
+        map.put("balanceAfter", result.getBalanceAfter());
+        map.put("additionalData", result.getAdditionalData());
+        return map;
+    }
+    
+    /**
+     * Convert Map back to TransactionResult
+     */
+    private TransactionResult convertMapToTransactionResult(Map<String, Object> map, TransactionResult original) {
+        TransactionResult result = new TransactionResult();
+        result.setTransactionReference((String) map.getOrDefault("transactionReference", original.getTransactionReference()));
+        result.setStatus((TransactionResult.Status) map.getOrDefault("status", original.getStatus()));
+        result.setStatusMessage((String) map.getOrDefault("statusMessage", original.getStatusMessage()));
+        result.setErrorMessage((String) map.getOrDefault("errorMessage", original.getErrorMessage()));
+        result.setProcessedAt((LocalDateTime) map.getOrDefault("processedAt", original.getProcessedAt()));
+        result.setTransactionId((String) map.getOrDefault("transactionId", original.getTransactionId()));
+        result.setBalanceAfter((BigDecimal) map.getOrDefault("balanceAfter", original.getBalanceAfter()));
+        result.setAdditionalData((Map<String, Object>) map.getOrDefault("additionalData", original.getAdditionalData()));
         return result;
     }
     

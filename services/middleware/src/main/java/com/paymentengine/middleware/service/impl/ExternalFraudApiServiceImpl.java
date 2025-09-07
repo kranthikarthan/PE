@@ -2,6 +2,8 @@ package com.paymentengine.middleware.service.impl;
 
 import com.paymentengine.middleware.entity.FraudRiskAssessment;
 import com.paymentengine.middleware.service.ExternalFraudApiService;
+import com.paymentengine.middleware.service.AdvancedPayloadTransformationService;
+import com.paymentengine.middleware.entity.AdvancedPayloadMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,38 +27,70 @@ public class ExternalFraudApiServiceImpl implements ExternalFraudApiService {
     @Autowired
     private RestTemplate restTemplate;
     
+    @Autowired
+    private AdvancedPayloadTransformationService advancedPayloadTransformationService;
+    
     @Override
     public Map<String, Object> buildBankFraudApiRequest(
             Map<String, Object> bankFraudApiConfig,
             Map<String, Object> paymentData,
             FraudRiskAssessment assessment) {
         
-        logger.debug("Building API request for bank's fraud/risk monitoring engine");
+        logger.debug("Building API request for bank's fraud/risk monitoring engine using advanced mapping");
         
         try {
             String apiName = (String) bankFraudApiConfig.get("apiName");
-            Map<String, Object> requestTemplate = (Map<String, Object>) bankFraudApiConfig.get("requestTemplate");
+            String tenantId = assessment.getTenantId();
+            String paymentType = assessment.getPaymentType();
+            String localInstrumentCode = assessment.getLocalInstrumentationCode();
+            String clearingSystemCode = assessment.getClearingSystemCode();
             
-            Map<String, Object> apiRequest = new HashMap<>();
+            // Prepare source payload with payment data and assessment data
+            Map<String, Object> sourcePayload = new HashMap<>();
+            sourcePayload.putAll(paymentData);
+            sourcePayload.put("assessment", assessment);
+            sourcePayload.put("assessmentId", assessment.getAssessmentId());
+            sourcePayload.put("transactionReference", assessment.getTransactionReference());
+            sourcePayload.put("tenantId", assessment.getTenantId());
+            sourcePayload.put("paymentType", assessment.getPaymentType());
+            sourcePayload.put("localInstrumentCode", assessment.getLocalInstrumentationCode());
+            sourcePayload.put("clearingSystemCode", assessment.getClearingSystemCode());
+            sourcePayload.put("paymentSource", assessment.getPaymentSource());
+            sourcePayload.put("riskAssessmentType", assessment.getRiskAssessmentType());
+            sourcePayload.put("timestamp", LocalDateTime.now().toString());
             
-            // Build request for bank's fraud/risk monitoring engine
-            if (requestTemplate != null) {
-                // Use configured request template
-                apiRequest = buildRequestFromTemplate(requestTemplate, paymentData, assessment);
+            // Try to use advanced mapping for fraud API request transformation
+            Optional<Map<String, Object>> transformedPayload = advancedPayloadTransformationService.transformPayload(
+                    tenantId, paymentType, localInstrumentCode, clearingSystemCode,
+                    AdvancedPayloadMapping.Direction.FRAUD_API_REQUEST, sourcePayload);
+            
+            Map<String, Object> apiRequest;
+            if (transformedPayload.isPresent()) {
+                logger.debug("Using advanced mapping for fraud API request transformation");
+                apiRequest = transformedPayload.get();
             } else {
-                // Use default bank fraud API request format
-                apiRequest = buildDefaultBankFraudRequest(bankFraudApiConfig, paymentData, assessment);
+                logger.debug("No advanced mapping found, using fallback request building");
+                // Fallback to original logic
+                Map<String, Object> requestTemplate = (Map<String, Object>) bankFraudApiConfig.get("requestTemplate");
+                
+                if (requestTemplate != null) {
+                    // Use configured request template
+                    apiRequest = buildRequestFromTemplate(requestTemplate, paymentData, assessment);
+                } else {
+                    // Use default bank fraud API request format
+                    apiRequest = buildDefaultBankFraudRequest(bankFraudApiConfig, paymentData, assessment);
+                }
+                
+                // Add common fields
+                apiRequest.put("requestId", assessment.getAssessmentId());
+                apiRequest.put("timestamp", LocalDateTime.now().toString());
+                apiRequest.put("tenantId", assessment.getTenantId());
+                apiRequest.put("transactionReference", assessment.getTransactionReference());
+                apiRequest.put("paymentSource", assessment.getPaymentSource());
+                apiRequest.put("riskAssessmentType", assessment.getRiskAssessmentType());
             }
             
-            // Add common fields
-            apiRequest.put("requestId", assessment.getAssessmentId());
-            apiRequest.put("timestamp", LocalDateTime.now().toString());
-            apiRequest.put("tenantId", assessment.getTenantId());
-            apiRequest.put("transactionReference", assessment.getTransactionReference());
-            apiRequest.put("paymentSource", assessment.getPaymentSource());
-            apiRequest.put("riskAssessmentType", assessment.getRiskAssessmentType());
-            
-            logger.debug("Built API request for bank's fraud/risk monitoring engine");
+            logger.debug("Built API request for bank's fraud/risk monitoring engine: {}", apiName);
             return apiRequest;
             
         } catch (Exception e) {
@@ -105,7 +139,33 @@ public class ExternalFraudApiServiceImpl implements ExternalFraudApiService {
             if (response.getStatusCode().is2xxSuccessful()) {
                 Map<String, Object> responseBody = response.getBody();
                 logger.info("Successfully called bank's fraud/risk monitoring engine, status: {}", response.getStatusCode());
-                return responseBody != null ? responseBody : new HashMap<>();
+                
+                // Try to transform response using advanced mapping
+                Map<String, Object> finalResponse = responseBody != null ? responseBody : new HashMap<>();
+                
+                // Extract context from request for response transformation
+                String tenantId = (String) apiRequest.get("tenantId");
+                String paymentType = (String) apiRequest.get("paymentType");
+                String localInstrumentCode = (String) apiRequest.get("localInstrumentCode");
+                String clearingSystemCode = (String) apiRequest.get("clearingSystemCode");
+                
+                if (tenantId != null && paymentType != null && localInstrumentCode != null) {
+                    try {
+                        Optional<Map<String, Object>> transformedResponse = advancedPayloadTransformationService.transformPayload(
+                                tenantId, paymentType, localInstrumentCode, clearingSystemCode,
+                                AdvancedPayloadMapping.Direction.FRAUD_API_RESPONSE, finalResponse);
+                        
+                        if (transformedResponse.isPresent()) {
+                            logger.debug("Using advanced mapping for fraud API response transformation");
+                            finalResponse = transformedResponse.get();
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Error transforming fraud API response with advanced mapping: {}", e.getMessage());
+                        // Continue with original response
+                    }
+                }
+                
+                return finalResponse;
             } else {
                 logger.error("Bank's fraud/risk monitoring engine call failed, status: {}", response.getStatusCode());
                 throw new RuntimeException("Bank's fraud/risk monitoring engine call failed with status: " + response.getStatusCode());

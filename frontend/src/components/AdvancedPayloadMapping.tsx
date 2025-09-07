@@ -384,6 +384,141 @@ const AdvancedPayloadMapping: React.FC = () => {
     }
   };
 
+  const createTemplateMapping = (direction: string) => {
+    const templates = {
+      'FRAUD_API_REQUEST': {
+        mappingName: 'Fraud API Request Template',
+        direction: 'FRAUD_API_REQUEST',
+        mappingType: 'CUSTOM_MAPPING',
+        fieldMappings: {
+          "transactionId": "assessment.transactionReference",
+          "amount": "amount",
+          "currency": "currency",
+          "timestamp": "timestamp",
+          "accountNumber": "fromAccountNumber",
+          "beneficiaryAccount": "toAccountNumber",
+          "paymentType": "paymentType",
+          "localInstrumentCode": "localInstrumentCode"
+        },
+        valueAssignments: {
+          "channel": "API",
+          "apiVersion": "2.0",
+          "requestType": "FRAUD_ASSESSMENT"
+        },
+        derivedValueRules: {
+          "riskScore": {
+            "expression": "${source.amount} > 10000 ? 0.8 : 0.3",
+            "type": "NUMBER"
+          }
+        },
+        autoGenerationRules: {
+          "sessionId": {
+            "type": "UUID"
+          },
+          "requestId": {
+            "type": "SEQUENTIAL",
+            "prefix": "FRAUD-",
+            "length": 10
+          }
+        }
+      },
+      'CORE_BANKING_DEBIT_REQUEST': {
+        mappingName: 'Core Banking Debit Request Template',
+        direction: 'CORE_BANKING_DEBIT_REQUEST',
+        mappingType: 'CUSTOM_MAPPING',
+        fieldMappings: {
+          "transactionReference": "transactionReference",
+          "tenantId": "tenantId",
+          "accountNumber": "accountNumber",
+          "amount": "amount",
+          "currency": "currency",
+          "paymentType": "paymentType",
+          "localInstrumentCode": "localInstrumentCode",
+          "description": "description",
+          "reference": "reference"
+        },
+        valueAssignments: {
+          "transactionType": "DEBIT",
+          "processingMode": "REAL_TIME",
+          "apiVersion": "2.0"
+        },
+        derivedValueRules: {
+          "transactionCategory": {
+            "expression": "${source.paymentType} == \"CREDIT_TRANSFER\" ? \"WIRE_TRANSFER\" : \"PAYMENT\"",
+            "type": "STRING"
+          },
+          "priority": {
+            "expression": "${source.amount} > 100000 ? \"HIGH\" : \"NORMAL\"",
+            "type": "STRING"
+          }
+        },
+        autoGenerationRules: {
+          "coreBankingTransactionId": {
+            "type": "SEQUENTIAL",
+            "prefix": "CB-",
+            "length": 12
+          },
+          "processingTimestamp": {
+            "type": "TIMESTAMP"
+          }
+        }
+      },
+      'SCHEME_REQUEST': {
+        mappingName: 'Scheme Request Template',
+        direction: 'SCHEME_REQUEST',
+        mappingType: 'CUSTOM_MAPPING',
+        fieldMappings: {
+          "messageType": "messageType",
+          "clearingSystemCode": "clearingSystemCode",
+          "endpointUrl": "endpointUrl",
+          "payload": "payload"
+        },
+        valueAssignments: {
+          "apiVersion": "1.0",
+          "requestType": "SCHEME_MESSAGE",
+          "format": "JSON"
+        },
+        derivedValueRules: {
+          "priority": {
+            "expression": "${source.clearingSystemCode} == \"SWIFT\" ? \"HIGH\" : \"NORMAL\"",
+            "type": "STRING"
+          },
+          "timeout": {
+            "expression": "${source.clearingSystemCode} == \"SWIFT\" ? 60000 : 30000",
+            "type": "NUMBER"
+          }
+        },
+        autoGenerationRules: {
+          "messageId": {
+            "type": "SEQUENTIAL",
+            "prefix": "MSG-",
+            "length": 10
+          },
+          "correlationId": {
+            "type": "SEQUENTIAL",
+            "prefix": "CORR-",
+            "length": 10
+          }
+        }
+      }
+    };
+
+    const template = templates[direction as keyof typeof templates];
+    if (template) {
+      reset({
+        ...template,
+        tenantId: selectedTenant,
+        paymentType: 'CREDIT_TRANSFER',
+        localInstrumentationCode: 'WIRE',
+        version: '1.0',
+        priority: 1,
+        isActive: true,
+        description: `Template mapping for ${direction.toLowerCase().replace(/_/g, ' ')}`
+      });
+      setMappingDialogOpen(true);
+    }
+  };
+
   const getMappingTypeColor = (type: string) => {
     const colors: Record<string, 'primary' | 'secondary' | 'success' | 'warning' | 'error'> = {
       'FIELD_MAPPING': 'primary',
@@ -512,6 +647,30 @@ const AdvancedPayloadMapping: React.FC = () => {
           >
             Add Mapping
           </Button>
+          
+          <Button
+            variant="outlined"
+            startIcon={<TransformIcon />}
+            onClick={() => createTemplateMapping('FRAUD_API_REQUEST')}
+          >
+            Fraud API Template
+          </Button>
+          
+          <Button
+            variant="outlined"
+            startIcon={<SettingsIcon />}
+            onClick={() => createTemplateMapping('CORE_BANKING_DEBIT_REQUEST')}
+          >
+            Core Banking Template
+          </Button>
+          
+          <Button
+            variant="outlined"
+            startIcon={<SchemaIcon />}
+            onClick={() => createTemplateMapping('SCHEME_REQUEST')}
+          >
+            Scheme Template
+          </Button>
         </Box>
       </Box>
 
@@ -547,6 +706,14 @@ const AdvancedPayloadMapping: React.FC = () => {
               <MenuItem value="REQUEST">Request</MenuItem>
               <MenuItem value="RESPONSE">Response</MenuItem>
               <MenuItem value="BIDIRECTIONAL">Bidirectional</MenuItem>
+              <MenuItem value="FRAUD_API_REQUEST">Fraud API Request</MenuItem>
+              <MenuItem value="FRAUD_API_RESPONSE">Fraud API Response</MenuItem>
+              <MenuItem value="CORE_BANKING_DEBIT_REQUEST">Core Banking Debit Request</MenuItem>
+              <MenuItem value="CORE_BANKING_DEBIT_RESPONSE">Core Banking Debit Response</MenuItem>
+              <MenuItem value="CORE_BANKING_CREDIT_REQUEST">Core Banking Credit Request</MenuItem>
+              <MenuItem value="CORE_BANKING_CREDIT_RESPONSE">Core Banking Credit Response</MenuItem>
+              <MenuItem value="SCHEME_REQUEST">Scheme Request</MenuItem>
+              <MenuItem value="SCHEME_RESPONSE">Scheme Response</MenuItem>
             </Select>
           </FormControl>
         </Grid>
@@ -856,6 +1023,14 @@ const AdvancedPayloadMapping: React.FC = () => {
                         <MenuItem value="REQUEST">Request</MenuItem>
                         <MenuItem value="RESPONSE">Response</MenuItem>
                         <MenuItem value="BIDIRECTIONAL">Bidirectional</MenuItem>
+                        <MenuItem value="FRAUD_API_REQUEST">Fraud API Request</MenuItem>
+                        <MenuItem value="FRAUD_API_RESPONSE">Fraud API Response</MenuItem>
+                        <MenuItem value="CORE_BANKING_DEBIT_REQUEST">Core Banking Debit Request</MenuItem>
+                        <MenuItem value="CORE_BANKING_DEBIT_RESPONSE">Core Banking Debit Response</MenuItem>
+                        <MenuItem value="CORE_BANKING_CREDIT_REQUEST">Core Banking Credit Request</MenuItem>
+                        <MenuItem value="CORE_BANKING_CREDIT_RESPONSE">Core Banking Credit Response</MenuItem>
+                        <MenuItem value="SCHEME_REQUEST">Scheme Request</MenuItem>
+                        <MenuItem value="SCHEME_RESPONSE">Scheme Response</MenuItem>
                       </Select>
                     </FormControl>
                   )}

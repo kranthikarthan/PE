@@ -440,13 +440,37 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
             String messageType,
             String schemeConfigurationId) {
         
-        logger.info("Sending {} message to clearing system: {}", messageType, clearingSystemCode);
+        logger.info("Sending {} message to clearing system: {} using advanced mapping", messageType, clearingSystemCode);
         
         return CompletableFuture.supplyAsync(() -> {
             try {
                 // Get clearing system configuration
                 ClearingSystemRoutingService.ClearingSystemConfig config = 
                         clearingSystemRoutingService.getClearingSystemConfig(clearingSystemCode);
+                
+                // Extract tenant and payment context from message for advanced mapping
+                String tenantId = extractTenantIdFromMessage(message);
+                String paymentType = extractPaymentTypeFromMessage(message);
+                String localInstrumentCode = extractLocalInstrumentCodeFromMessage(message);
+                
+                // Try to use advanced mapping for scheme request transformation
+                Map<String, Object> sourcePayload = new HashMap<>(message);
+                sourcePayload.put("clearingSystemCode", clearingSystemCode);
+                sourcePayload.put("messageType", messageType);
+                sourcePayload.put("schemeConfigurationId", schemeConfigurationId);
+                sourcePayload.put("endpointUrl", config.getEndpointUrl());
+                
+                Optional<Map<String, Object>> transformedMessage = advancedPayloadTransformationService.transformPayload(
+                        tenantId, paymentType, localInstrumentCode, clearingSystemCode,
+                        AdvancedPayloadMapping.Direction.SCHEME_REQUEST, sourcePayload);
+                
+                Map<String, Object> finalMessage = message;
+                if (transformedMessage.isPresent()) {
+                    logger.debug("Using advanced mapping for scheme request transformation");
+                    finalMessage = transformedMessage.get();
+                } else {
+                    logger.debug("No advanced mapping found for scheme request, using original message");
+                }
                 
                 // Create scheme message request
                 com.paymentengine.middleware.dto.SchemeMessageRequest request = 
@@ -456,7 +480,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                                 "CORR-" + System.currentTimeMillis(),
                                 com.paymentengine.middleware.dto.SchemeConfigRequest.MessageFormat.JSON,
                                 com.paymentengine.middleware.dto.SchemeConfigRequest.InteractionMode.SYNCHRONOUS,
-                                message,
+                                finalMessage,
                                 Map.of(
                                         "clearingSystemCode", clearingSystemCode,
                                         "schemeConfigurationId", schemeConfigurationId,
@@ -471,7 +495,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 logger.info("Sent {} message to clearing system: {} - Status: {}", 
                         messageType, clearingSystemCode, response.getStatus());
                 
-                return Map.of(
+                Map<String, Object> result = Map.of(
                         "status", response.getStatus(),
                         "responseCode", response.getResponseCode(),
                         "responseMessage", response.getResponseMessage(),
@@ -479,6 +503,18 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                         "processingTimeMs", response.getProcessingTimeMs(),
                         "timestamp", response.getTimestamp()
                 );
+                
+                // Try to transform response using advanced mapping
+                Optional<Map<String, Object>> transformedResponse = advancedPayloadTransformationService.transformPayload(
+                        tenantId, paymentType, localInstrumentCode, clearingSystemCode,
+                        AdvancedPayloadMapping.Direction.SCHEME_RESPONSE, result);
+                
+                if (transformedResponse.isPresent()) {
+                    logger.debug("Using advanced mapping for scheme response transformation");
+                    return transformedResponse.get();
+                }
+                
+                return result;
                 
             } catch (Exception e) {
                 logger.error("Error sending message to clearing system: {}", e.getMessage());
@@ -1108,5 +1144,50 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
             logger.warn("Error extracting response status from clearing system response", e);
             return "UNKNOWN";
         }
+    }
+    
+    /**
+     * Extract tenant ID from message for advanced mapping
+     */
+    private String extractTenantIdFromMessage(Map<String, Object> message) {
+        // Try to extract tenant ID from various possible locations
+        if (message.containsKey("tenantId")) {
+            return (String) message.get("tenantId");
+        }
+        if (message.containsKey("tenant_id")) {
+            return (String) message.get("tenant_id");
+        }
+        // Default fallback
+        return "default-tenant";
+    }
+    
+    /**
+     * Extract payment type from message for advanced mapping
+     */
+    private String extractPaymentTypeFromMessage(Map<String, Object> message) {
+        // Try to extract payment type from various possible locations
+        if (message.containsKey("paymentType")) {
+            return (String) message.get("paymentType");
+        }
+        if (message.containsKey("payment_type")) {
+            return (String) message.get("payment_type");
+        }
+        // Default fallback
+        return "CREDIT_TRANSFER";
+    }
+    
+    /**
+     * Extract local instrumentation code from message for advanced mapping
+     */
+    private String extractLocalInstrumentCodeFromMessage(Map<String, Object> message) {
+        // Try to extract local instrumentation code from various possible locations
+        if (message.containsKey("localInstrumentCode")) {
+            return (String) message.get("localInstrumentCode");
+        }
+        if (message.containsKey("local_instrument_code")) {
+            return (String) message.get("local_instrument_code");
+        }
+        // Default fallback
+        return "WIRE";
     }
 }

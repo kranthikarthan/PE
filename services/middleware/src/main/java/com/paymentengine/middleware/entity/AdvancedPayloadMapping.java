@@ -466,6 +466,14 @@ public class AdvancedPayloadMapping {
     public enum Direction {
         REQUEST,
         RESPONSE,
-        BIDIRECTIONAL
+        BIDIRECTIONAL,
+        FRAUD_API_REQUEST,
+        FRAUD_API_RESPONSE,
+        CORE_BANKING_DEBIT_REQUEST,
+        CORE_BANKING_DEBIT_RESPONSE,
+        CORE_BANKING_CREDIT_REQUEST,
+        CORE_BANKING_CREDIT_RESPONSE,
+        SCHEME_REQUEST,
+        SCHEME_RESPONSE
     }
 }
