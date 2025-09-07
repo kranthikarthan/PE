@@ -40,7 +40,7 @@ public class GatewayApplication {
                                 .addRequestHeader("X-Gateway", "payment-engine-gateway")
                                 .addResponseHeader("X-Response-Time", "true")
                         )
-                        .uri("lb://middleware-service")
+                        .uri("lb://payment-processing-service")
                 )
                 
                 // Scheme Configuration API Routes
@@ -56,7 +56,7 @@ public class GatewayApplication {
                                         .setFallbackUri("forward:/fallback/scheme")
                                 )
                         )
-                        .uri("lb://middleware-service")
+                        .uri("lb://payment-processing-service")
                 )
                 
                 // Clearing System API Routes
@@ -72,7 +72,7 @@ public class GatewayApplication {
                                         .setFallbackUri("forward:/fallback/clearing-system")
                                 )
                         )
-                        .uri("lb://middleware-service")
+                        .uri("lb://payment-processing-service")
                 )
                 
                 // Health Check Routes
@@ -81,7 +81,7 @@ public class GatewayApplication {
                         .filters(f -> f
                                 .stripPrefix(1)
                         )
-                        .uri("lb://middleware-service")
+                        .uri("lb://payment-processing-service")
                 )
                 
                 // Metrics Routes
@@ -90,7 +90,7 @@ public class GatewayApplication {
                         .filters(f -> f
                                 .stripPrefix(1)
                         )
-                        .uri("lb://middleware-service")
+                        .uri("lb://payment-processing-service")
                 )
                 
                 .build();

@@ -35,7 +35,7 @@ A comprehensive payment processing system built with Spring Boot and React, supp
 ```
 payment-engine/
 ├── services/                    # Backend microservices
-│   ├── middleware/             # API Gateway and middleware services
+│   ├── payment-processing/             # API Gateway and payment-processing services
 │   ├── payment-engine/         # Core payment processing service
 │   ├── auth-service/           # Authentication and authorization
 │   ├── config-service/         # Configuration management
@@ -77,7 +77,7 @@ payment-engine/
 3. **Run backend services**
    ```bash
    cd services
-   mvn spring-boot:run -pl middleware
+   mvn spring-boot:run -pl payment-processing
    mvn spring-boot:run -pl payment-engine
    ```
 

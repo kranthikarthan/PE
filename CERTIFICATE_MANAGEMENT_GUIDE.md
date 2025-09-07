@@ -53,7 +53,7 @@ The Certificate Management System provides comprehensive automated certificate a
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                 Middleware Service                          │
+│              Payment Processing Service                     │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
 │  │   Certificate   │  │   Certificate   │  │   Trusted    │ │
 │  │   Management    │  │      Info       │  │ Certificate  │ │
@@ -296,7 +296,7 @@ Content-Type: application/json
 POST /api/v1/core-banking/certificates/{certificateId}/rollback
 ```
 
-#### **Middleware Service Endpoints**
+#### **Payment Processing Service Endpoints**
 
 **Certificate Generation**
 ```http
@@ -304,13 +304,13 @@ POST /api/v1/certificates/generate
 Content-Type: application/json
 
 {
-  "subjectDN": "CN=middleware.example.com, O=Organization, C=US",
+  "subjectDN": "CN=payment-processing.example.com, O=Organization, C=US",
   "tenantId": "tenant-123",
   "certificateType": "GENERATED",
   "validityDays": 365,
   "keyUsage": ["digitalSignature", "keyEncipherment"],
   "extendedKeyUsage": ["serverAuth", "clientAuth"],
-  "description": "Middleware Certificate"
+  "description": "Payment Processing Certificate"
 }
 ```
 
@@ -337,7 +337,7 @@ POST /api/v1/certificates/{certificateId}/renew
 Content-Type: application/json
 
 {
-  "subjectDN": "CN=middleware.example.com, O=Organization, C=US",
+  "subjectDN": "CN=payment-processing.example.com, O=Organization, C=US",
   "tenantId": "tenant-123",
   "certificateType": "GENERATED",
   "validityDays": 365
@@ -355,7 +355,7 @@ POST /api/v1/certificates/{certificateId}/rotate
 Content-Type: application/json
 
 {
-  "subjectDN": "CN=middleware.example.com, O=Organization, C=US",
+  "subjectDN": "CN=payment-processing.example.com, O=Organization, C=US",
   "tenantId": "tenant-123",
   "certificateType": "GENERATED",
   "validityDays": 365
@@ -388,8 +388,8 @@ Content-Type: application/json
   - Certificate renewal and rollback
   - Banking compliance features
 
-#### **Middleware Service**
-- **Purpose**: Centralized certificate management and coordination
+#### **Payment Processing Service**
+- **Purpose**: Centralized certificate management and coordination for payment processing
 - **Certificate Types**: `GENERATED`, `PFX_IMPORTED`, `CLIENT`, `SERVER`, `CA`
 - **Storage Path**: `/app/certificates`
 - **Key Features**:
@@ -407,7 +407,7 @@ Content-Type: application/json
 - **Validation**: All services support certificate validation against trusted CAs
 - **Renewal**: All services support certificate renewal with zero downtime
 - **Rollback**: All services support certificate rollback for disaster recovery
-- **Rotation**: Middleware service provides centralized rotation capabilities
+- **Rotation**: Payment Processing service provides centralized rotation capabilities
 
 #### **Security Features**
 - **Encrypted Storage**: All services use encrypted file storage for certificates

@@ -87,9 +87,9 @@ services:
       retries: 5
 
   # Test Middleware Service
-  middleware-test:
+  payment-processing-test:
     build:
-      context: ./services/middleware
+      context: ./services/payment-processing
       dockerfile: Dockerfile
     environment:
       SPRING_PROFILES_ACTIVE: test
@@ -124,10 +124,10 @@ services:
       dockerfile: Dockerfile
     environment:
       SPRING_PROFILES_ACTIVE: test
-      MIDDLEWARE_SERVICE_URL: http://middleware-test:8080
+      MIDDLEWARE_SERVICE_URL: http://payment-processing-test:8080
       CORE_BANKING_SERVICE_URL: http://core-banking-test:8081
     depends_on:
-      middleware-test:
+      payment-processing-test:
         condition: service_healthy
       core-banking-test:
         condition: service_healthy

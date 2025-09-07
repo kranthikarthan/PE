@@ -18,7 +18,7 @@ public class AdvancedPayloadMappingService {
     
     private static final Logger logger = LoggerFactory.getLogger(AdvancedPayloadMappingService.class);
     
-    // Note: In a real implementation, this would be injected from the middleware service
+    // Note: In a real implementation, this would be injected from the payment-processing service
     // For now, we'll create a placeholder that can be extended
     
     /**
@@ -48,7 +48,7 @@ public class AdvancedPayloadMappingService {
             );
             
             // In a real implementation, this would call the AdvancedPayloadTransformationService
-            // from the middleware service via REST API or message queue
+            // from the payment-processing service via REST API or message queue
             
             logger.info("Transaction request transformation completed for tenant: {}", tenantId);
             return Optional.of(requestMap);
@@ -88,7 +88,7 @@ public class AdvancedPayloadMappingService {
             );
             
             // In a real implementation, this would call the AdvancedPayloadTransformationService
-            // from the middleware service via REST API or message queue
+            // from the payment-processing service via REST API or message queue
             
             logger.info("Transaction response transformation completed for tenant: {}", tenantId);
             return Optional.of(responseMap);

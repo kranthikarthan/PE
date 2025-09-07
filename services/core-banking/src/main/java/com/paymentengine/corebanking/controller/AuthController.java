@@ -30,7 +30,7 @@ public class AuthController {
     }
     
     /**
-     * Validate user credentials (internal endpoint for middleware)
+     * Validate user credentials (internal endpoint for payment-processing)
      */
     @PostMapping("/validate-credentials")
     public ResponseEntity<Map<String, Object>> validateCredentials(
