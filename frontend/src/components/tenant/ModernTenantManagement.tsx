@@ -47,7 +47,9 @@ import HelpTooltip from '../common/HelpTooltip';
 import HelpSystem from '../common/HelpSystem';
 import ThemeSelector from '../common/ThemeSelector';
 import TenantSetupWizard from './TenantSetupWizard';
+import EnhancedTenantSetupWizard from './EnhancedTenantSetupWizard';
 import TenantTodoList from './TenantTodoList';
+import MultiLevelAuthConfigurationManager from '../multiLevelAuth/MultiLevelAuthConfigurationManager';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -76,9 +78,21 @@ const ModernTenantManagement: React.FC = () => {
   const speedDialActions = [
     {
       icon: <AddIcon />,
-      name: 'New Tenant',
-      tooltip: 'Set up a new tenant from scratch',
-      onClick: () => setSelectedTab(1), // Setup Wizard tab
+      name: 'New Tenant (Enhanced)',
+      tooltip: 'Set up a new tenant with multi-level authentication',
+      onClick: () => setSelectedTab(1), // Enhanced Setup Wizard tab
+    },
+    {
+      icon: <AddIcon />,
+      name: 'New Tenant (Basic)',
+      tooltip: 'Set up a new tenant with basic configuration',
+      onClick: () => setSelectedTab(2), // Basic Setup Wizard tab
+    },
+    {
+      icon: <SecurityIcon />,
+      name: 'Multi-Level Auth',
+      tooltip: 'Manage multi-level authentication configuration',
+      onClick: () => setSelectedTab(3), // Multi-Level Auth tab
     },
     {
       icon: <CloneIcon />,
@@ -310,9 +324,6 @@ const ModernTenantManagement: React.FC = () => {
     </Box>
   );
 
-  const renderSetupWizard = () => (
-    <TenantSetupWizard />
-  );
 
   const renderTodoList = () => (
     <TenantTodoList />
@@ -439,7 +450,17 @@ const ModernTenantManagement: React.FC = () => {
             />
             <Tab
               icon={<AddIcon />}
-              label="Setup Wizard"
+              label="Enhanced Setup"
+              iconPosition="start"
+            />
+            <Tab
+              icon={<SettingsIcon />}
+              label="Basic Setup"
+              iconPosition="start"
+            />
+            <Tab
+              icon={<SecurityIcon />}
+              label="Multi-Level Auth"
               iconPosition="start"
             />
             <Tab
@@ -461,12 +482,18 @@ const ModernTenantManagement: React.FC = () => {
             {renderDashboard()}
           </TabPanel>
           <TabPanel value={selectedTab} index={1}>
-            {renderSetupWizard()}
+            <EnhancedTenantSetupWizard />
           </TabPanel>
           <TabPanel value={selectedTab} index={2}>
-            {renderTodoList()}
+            <TenantSetupWizard />
           </TabPanel>
           <TabPanel value={selectedTab} index={3}>
+            <MultiLevelAuthConfigurationManager />
+          </TabPanel>
+          <TabPanel value={selectedTab} index={4}>
+            {renderTodoList()}
+          </TabPanel>
+          <TabPanel value={selectedTab} index={5}>
             {renderAnalytics()}
           </TabPanel>
         </Box>
