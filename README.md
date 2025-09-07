@@ -12,12 +12,13 @@ A comprehensive payment processing system built with Spring Boot and React, supp
 - **Fraud & Risk Monitoring**: Configurable integration with external fraud APIs
 - **Core Banking Integration**: REST API and gRPC support for external core banking systems
 - **Tenant Cloning & Migration**: Complete tenant configuration management with versioning, cloning, and environment migration capabilities
+- **Advanced Authentication**: JWS (JSON Web Signature) support as alternative to JWT with configurable client headers for outgoing requests
 
 ### Architecture & Infrastructure
 - **Microservices Architecture**: Service mesh with Istio, dedicated services for auth, config, and monitoring
 - **Event Sourcing & CQRS**: Event-driven architecture with event store and projections
 - **Resiliency & Self-Healing**: Circuit breakers, retry mechanisms, bulkhead patterns, and automated recovery
-- **Security**: OAuth2/JWT, message encryption, digital signatures, and comprehensive audit logging
+- **Security**: OAuth2/JWT/JWS, message encryption, digital signatures, configurable client headers, and comprehensive audit logging
 - **Monitoring & Observability**: Prometheus, Grafana, Jaeger, ELK Stack with custom metrics and alerting
 - **Air-Gapped Deployment**: Complete offline build and deployment capabilities
 
@@ -135,6 +136,7 @@ sudo ./infrastructure/air-gapped/offline-deploy.sh
 - [Core Banking Integration](docs/CORE_BANKING_INTEGRATION.md) - External system integration patterns
 - [Fraud & Risk Integration](docs/FRAUD_RISK_INTEGRATION.md) - Fraud detection and risk management
 - [Tenant Cloning and Migration Guide](TENANT_CLONING_AND_MIGRATION_GUIDE.md) - Complete tenant configuration management
+- [JWS and Client Headers Implementation Guide](JWS_AND_CLIENT_HEADERS_IMPLEMENTATION_GUIDE.md) - Advanced authentication and client header configuration
 
 ### Configuration & Customization
 - [Configuration Management](docs/CONFIGURATION_GUIDE.md) - Environment-specific configurations
@@ -163,6 +165,8 @@ KAFKA_SCHEMA_REGISTRY_URL=http://localhost:8081
 
 # Security Configuration
 JWT_SECRET=your-super-secret-jwt-key
+JWS_SECRET=your-super-secret-jws-key
+JWS_ALGORITHM=HS256
 ENCRYPTION_KEY=your-encryption-key
 
 # External Services
@@ -221,6 +225,40 @@ k6 run tests/load/payment-processing-load-test.js
 # Run security scans
 mvn org.owasp:dependency-check-maven:check
 npm audit
+```
+
+## 🔐 Advanced Authentication & Security
+
+### JWS (JSON Web Signature) Support
+- **Enhanced Security**: JWS provides stronger cryptographic signatures compared to standard JWT
+- **Algorithm Flexibility**: Support for HMAC (HS256/HS384/HS512) and RSA (RS256/RS384/RS512) algorithms
+- **Public Key Verification**: External systems can verify tokens without shared secrets
+- **Auto-Detection**: Automatic token type detection for seamless integration
+
+### Configurable Client Headers
+- **Tenant-Specific Configuration**: Per-tenant authentication and header configuration
+- **Custom Header Names**: Configurable client ID and secret header names
+- **Outgoing Request Enhancement**: Automatic inclusion of client credentials in HTTP requests
+- **Multiple Auth Methods**: Support for JWT, JWS, OAuth2, API Key, and Basic Authentication
+
+### Authentication Configuration Management
+- **Frontend Interface**: React-based configuration management UI
+- **Real-time Updates**: Dynamic configuration changes without service restart
+- **Audit Trail**: Complete audit logging of configuration changes
+- **Role-based Access**: Secure access control for configuration management
+
+### Example Configuration
+```json
+{
+  "tenantId": "tenant-001",
+  "authMethod": "JWS",
+  "jwsAlgorithm": "RS256",
+  "includeClientHeaders": true,
+  "clientId": "client-123",
+  "clientSecret": "secret-456",
+  "clientIdHeaderName": "X-Client-ID",
+  "clientSecretHeaderName": "X-Client-Secret"
+}
 ```
 
 ## 📊 Monitoring & Observability

@@ -27,6 +27,9 @@ public class AuthService {
     private JwtTokenService jwtTokenService;
     
     @Autowired
+    private UnifiedTokenService unifiedTokenService;
+    
+    @Autowired
     private OAuthTokenRepository oAuthTokenRepository;
     
     public LoginResponse authenticate(String username, String password) {
@@ -59,10 +62,10 @@ public class AuthService {
                 .map(permission -> permission.getName())
                 .collect(Collectors.toSet());
         
-        String accessToken = jwtTokenService.generateAccessToken(
+        String accessToken = unifiedTokenService.generateAccessToken(
                 user.getId(), user.getUsername(), user.getEmail(), roles, permissions);
         
-        String refreshToken = jwtTokenService.generateRefreshToken(user.getId(), user.getUsername());
+        String refreshToken = unifiedTokenService.generateRefreshToken(user.getId(), user.getUsername());
         
         // Store tokens in database
         OAuthToken oAuthToken = new OAuthToken(
