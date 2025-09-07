@@ -15,16 +15,6 @@ import {
   Paper,
   Button,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Alert,
   LinearProgress,
   Tooltip,
   Badge,
@@ -60,26 +50,15 @@ import {
   Queue as QueueIcon,
   AutoFixHigh as AutoFixHighIcon
 } from '@mui/icons-material';
-import { useForm, Controller } from 'react-hook-form';
 import axios from 'axios';
 
-interface ResiliencyConfiguration {
-  id: string;
+interface ResiliencyService {
   serviceName: string;
-  tenantId: string;
-  endpointPattern?: string;
-  circuitBreakerConfig: any;
-  retryConfig: any;
-  bulkheadConfig: any;
-  timeoutConfig: any;
-  fallbackConfig: any;
-  healthCheckConfig: any;
-  monitoringConfig: any;
-  isActive: boolean;
-  priority: number;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
+  circuitBreakerState: string;
+  bulkheadAvailableCalls: number;
+  retryMetrics: any;
+  timeLimiterMetrics: any;
+  lastUpdated: string;
 }
 
 interface QueuedMessage {
@@ -132,18 +111,14 @@ interface QueueStatistics {
 }
 
 const ResiliencyMonitoring: React.FC = () => {
-  const [configurations, setConfigurations] = useState<ResiliencyConfiguration[]>([]);
+  const [resilientServices, setResilientServices] = useState<ResiliencyService[]>([]);
   const [queuedMessages, setQueuedMessages] = useState<QueuedMessage[]>([]);
   const [systemHealth, setSystemHealth] = useState<SystemHealthStatus | null>(null);
   const [queueStats, setQueueStats] = useState<QueueStatistics | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<string>('tenant-001');
   const [selectedTab, setSelectedTab] = useState(0);
-  const [configDialogOpen, setConfigDialogOpen] = useState(false);
-  const [selectedConfig, setSelectedConfig] = useState<ResiliencyConfiguration | null>(null);
   const [monitoringActive, setMonitoringActive] = useState(true);
-
-  const { control, handleSubmit, reset, watch } = useForm<ResiliencyConfiguration>();
 
   useEffect(() => {
     loadData();
@@ -157,7 +132,7 @@ const ResiliencyMonitoring: React.FC = () => {
     setLoading(true);
     try {
       await Promise.all([
-        loadConfigurations(),
+        loadResilientServices(),
         loadQueuedMessages(),
         loadSystemHealth(),
         loadQueueStatistics()
@@ -169,12 +144,12 @@ const ResiliencyMonitoring: React.FC = () => {
     }
   };
 
-  const loadConfigurations = async () => {
+  const loadResilientServices = async () => {
     try {
-      const response = await axios.get(`/api/resiliency/configurations?tenantId=${selectedTenant}`);
-      setConfigurations(response.data);
+      const response = await axios.get(`/api/resiliency/services?tenantId=${selectedTenant}`);
+      setResilientServices(response.data);
     } catch (error) {
-      console.error('Error loading configurations:', error);
+      console.error('Error loading resilient services:', error);
     }
   };
 
@@ -205,35 +180,12 @@ const ResiliencyMonitoring: React.FC = () => {
     }
   };
 
-  const handleCreateConfiguration = async (data: ResiliencyConfiguration) => {
+  const handleResetCircuitBreaker = async (serviceName: string) => {
     try {
-      await axios.post('/api/resiliency/configurations', data);
-      setConfigDialogOpen(false);
-      reset();
-      loadConfigurations();
+      await axios.post(`/api/resiliency/services/${serviceName}/reset-circuit-breaker`);
+      loadResilientServices();
     } catch (error) {
-      console.error('Error creating configuration:', error);
-    }
-  };
-
-  const handleUpdateConfiguration = async (data: ResiliencyConfiguration) => {
-    try {
-      await axios.put(`/api/resiliency/configurations/${data.id}`, data);
-      setConfigDialogOpen(false);
-      setSelectedConfig(null);
-      reset();
-      loadConfigurations();
-    } catch (error) {
-      console.error('Error updating configuration:', error);
-    }
-  };
-
-  const handleDeleteConfiguration = async (id: string) => {
-    try {
-      await axios.delete(`/api/resiliency/configurations/${id}`);
-      loadConfigurations();
-    } catch (error) {
-      console.error('Error deleting configuration:', error);
+      console.error('Error resetting circuit breaker:', error);
     }
   };
 
@@ -369,7 +321,7 @@ const ResiliencyMonitoring: React.FC = () => {
 
       <Tabs value={selectedTab} onChange={(e, newValue) => setSelectedTab(newValue)} sx={{ mb: 3 }}>
         <Tab label="System Health" icon={<HealthIcon />} />
-        <Tab label="Configurations" icon={<SettingsIcon />} />
+        <Tab label="Resilient Services" icon={<SettingsIcon />} />
         <Tab label="Queued Messages" icon={<QueueIcon />} />
         <Tab label="Statistics" icon={<MonitorIcon />} />
       </Tabs>
@@ -489,113 +441,107 @@ const ResiliencyMonitoring: React.FC = () => {
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">Resiliency Configurations</Typography>
+              <Typography variant="h6">Resilient Services</Typography>
               <Button
                 variant="contained"
-                startIcon={<SettingsIcon />}
-                onClick={() => {
-                  setSelectedConfig(null);
-                  setConfigDialogOpen(true);
-                }}
+                startIcon={<RefreshIcon />}
+                onClick={loadResilientServices}
+                disabled={loading}
               >
-                Add Configuration
+                Refresh Services
               </Button>
             </Box>
           </Grid>
 
-          {configurations.map((config) => (
-            <Grid item xs={12} md={6} key={config.id}>
+          {resilientServices.map((service) => (
+            <Grid item xs={12} md={6} key={service.serviceName}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                     <Box>
-                      <Typography variant="h6">{config.serviceName}</Typography>
+                      <Typography variant="h6">{service.serviceName}</Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {config.tenantId} • Priority: {config.priority}
+                        Last Updated: {formatDateTime(service.lastUpdated)}
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>
                       <Chip
-                        label={config.isActive ? 'ACTIVE' : 'INACTIVE'}
-                        color={config.isActive ? 'success' : 'default'}
+                        label={service.circuitBreakerState}
+                        color={getStatusColor(service.circuitBreakerState)}
                         size="small"
                       />
                       <IconButton
                         size="small"
-                        onClick={() => {
-                          setSelectedConfig(config);
-                          reset(config);
-                          setConfigDialogOpen(true);
-                        }}
+                        onClick={() => handleResetCircuitBreaker(service.serviceName)}
+                        color="warning"
+                        title="Reset Circuit Breaker"
                       >
-                        <SettingsIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleDeleteConfiguration(config.id)}
-                        color="error"
-                      >
-                        <ErrorIcon />
+                        <RefreshIcon />
                       </IconButton>
                     </Box>
                   </Box>
 
                   <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Typography variant="subtitle2">Circuit Breaker</Typography>
+                      <Typography variant="subtitle2">Circuit Breaker Status</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                       <Typography variant="body2">
-                        Failure Threshold: {config.circuitBreakerConfig?.failureThreshold || 'N/A'}<br />
-                        Wait Duration: {config.circuitBreakerConfig?.waitDurationSeconds || 'N/A'}s<br />
-                        Success Threshold: {config.circuitBreakerConfig?.successThreshold || 'N/A'}
+                        State: {service.circuitBreakerState}<br />
+                        Available Calls: {service.bulkheadAvailableCalls}<br />
+                        Last Updated: {formatDateTime(service.lastUpdated)}
                       </Typography>
                     </AccordionDetails>
                   </Accordion>
 
                   <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Typography variant="subtitle2">Retry Configuration</Typography>
+                      <Typography variant="subtitle2">Retry Metrics</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                       <Typography variant="body2">
-                        Max Attempts: {config.retryConfig?.maxAttempts || 'N/A'}<br />
-                        Wait Duration: {config.retryConfig?.waitDurationSeconds || 'N/A'}s<br />
-                        Backoff Multiplier: {config.retryConfig?.exponentialBackoffMultiplier || 'N/A'}
+                        {service.retryMetrics ? (
+                          <>
+                            Successful Calls: {service.retryMetrics.numberOfSuccessfulCallsWithRetryAttempt}<br />
+                            Failed Calls: {service.retryMetrics.numberOfFailedCallsWithRetryAttempt}<br />
+                            Total Retries: {service.retryMetrics.numberOfSuccessfulCallsWithRetryAttempt + service.retryMetrics.numberOfFailedCallsWithRetryAttempt}
+                          </>
+                        ) : (
+                          'No retry metrics available'
+                        )}
                       </Typography>
                     </AccordionDetails>
                   </Accordion>
 
                   <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Typography variant="subtitle2">Bulkhead Configuration</Typography>
+                      <Typography variant="subtitle2">Bulkhead Metrics</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                       <Typography variant="body2">
-                        Max Concurrent Calls: {config.bulkheadConfig?.maxConcurrentCalls || 'N/A'}<br />
-                        Thread Pool Size: {config.bulkheadConfig?.threadPoolSize || 'N/A'}<br />
-                        Queue Capacity: {config.bulkheadConfig?.queueCapacity || 'N/A'}
+                        Available Concurrent Calls: {service.bulkheadAvailableCalls}<br />
+                        Max Concurrent Calls: {service.bulkheadAvailableCalls + ' (configured)'}
                       </Typography>
                     </AccordionDetails>
                   </Accordion>
 
                   <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Typography variant="subtitle2">Timeout Configuration</Typography>
+                      <Typography variant="subtitle2">Time Limiter Metrics</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                       <Typography variant="body2">
-                        Timeout Duration: {config.timeoutConfig?.timeoutDurationSeconds || 'N/A'}s<br />
-                        Cancel Running Future: {config.timeoutConfig?.cancelRunningFuture ? 'Yes' : 'No'}
+                        {service.timeLimiterMetrics ? (
+                          <>
+                            Successful Calls: {service.timeLimiterMetrics.numberOfSuccessfulCalls}<br />
+                            Timeout Calls: {service.timeLimiterMetrics.numberOfFailedCalls}
+                          </>
+                        ) : (
+                          'No time limiter metrics available'
+                        )}
                       </Typography>
                     </AccordionDetails>
                   </Accordion>
-
-                  {config.description && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                      {config.description}
-                    </Typography>
-                  )}
                 </CardContent>
               </Card>
             </Grid>
@@ -825,121 +771,6 @@ const ResiliencyMonitoring: React.FC = () => {
           </Grid>
         </Grid>
       )}
-
-      {/* Configuration Dialog */}
-      <Dialog open={configDialogOpen} onClose={() => setConfigDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {selectedConfig ? 'Edit Configuration' : 'Add Configuration'}
-        </DialogTitle>
-        <form onSubmit={handleSubmit(selectedConfig ? handleUpdateConfiguration : handleCreateConfiguration)}>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="serviceName"
-                  control={control}
-                  defaultValue=""
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Service Name"
-                      fullWidth
-                      required
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="tenantId"
-                  control={control}
-                  defaultValue={selectedTenant}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Tenant ID"
-                      fullWidth
-                      required
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Controller
-                  name="endpointPattern"
-                  control={control}
-                  defaultValue=""
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Endpoint Pattern"
-                      fullWidth
-                      placeholder="/api/v1/**"
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="priority"
-                  control={control}
-                  defaultValue={1}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Priority"
-                      type="number"
-                      fullWidth
-                      inputProps={{ min: 1, max: 100 }}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Controller
-                  name="isActive"
-                  control={control}
-                  defaultValue={true}
-                  render={({ field }) => (
-                    <FormControl fullWidth>
-                      <InputLabel>Status</InputLabel>
-                      <Select
-                        {...field}
-                        label="Status"
-                      >
-                        <MenuItem value={true}>Active</MenuItem>
-                        <MenuItem value={false}>Inactive</MenuItem>
-                      </Select>
-                    </FormControl>
-                  )}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Controller
-                  name="description"
-                  control={control}
-                  defaultValue=""
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Description"
-                      fullWidth
-                      multiline
-                      rows={3}
-                    />
-                  )}
-                />
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setConfigDialogOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="contained">
-              {selectedConfig ? 'Update' : 'Create'}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
     </Box>
   );
 };

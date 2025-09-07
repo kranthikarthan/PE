@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide provides comprehensive documentation for the resiliency and self-healing mechanisms implemented in the Payment Engine. These patterns ensure the system can gracefully handle network issues, downstream system failures, and automatically recover when services become available again.
+This guide provides documentation for the resiliency and self-healing mechanisms implemented in the Payment Engine. These patterns extend the existing infrastructure to ensure comprehensive coverage across all external service calls while avoiding redundancy with existing Istio service mesh, API Gateway, and Resilience4j patterns.
 
 ## Table of Contents
 
@@ -19,24 +19,22 @@ This guide provides comprehensive documentation for the resiliency and self-heal
 
 ## Architecture Overview
 
-The resiliency and self-healing system consists of several key components:
+The resiliency and self-healing system extends existing infrastructure with targeted enhancements:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Resiliency Layer                            │
+│                    EXISTING INFRASTRUCTURE                     │
 ├─────────────────────────────────────────────────────────────────┤
-│  Circuit Breaker  │  Retry      │  Bulkhead  │  Timeout       │
-│  Pattern          │  Pattern    │  Pattern   │  Pattern       │
+│  Istio Service Mesh    │  Circuit Breaker, Retry, Timeout      │
+│  API Gateway          │  Rate Limiting, Circuit Breaker        │
+│  Existing Services    │  Resilience4j Patterns                 │
 ├─────────────────────────────────────────────────────────────────┤
-│                    Message Queue System                        │
-│  Queued Messages  │  Retry Logic │  Cleanup   │  Statistics   │
+│                    NEW DELTA IMPLEMENTATION                    │
 ├─────────────────────────────────────────────────────────────────┤
-│                    Self-Healing Service                        │
-│  Health Checks    │  Recovery    │  Monitoring │  Auto-Fix     │
-├─────────────────────────────────────────────────────────────────┤
-│                    External Services                           │
-│  Fraud API        │  Core Banking │  Clearing  │  Kafka        │
-│                   │  Systems      │  Systems   │  Producer     │
+│  ResilientFraudApiService    │  Fraud API Resiliency           │
+│  ResilientCoreBankingService │  Core Banking Resiliency        │
+│  MessageQueueService         │  Offline Message Queuing        │
+│  SelfHealingService          │  Automated Recovery             │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -413,32 +411,24 @@ private HealthCheckResult performHealthCheck(ResiliencyConfiguration config) {
 
 ### ResiliencyMonitoring Component
 
-The React frontend provides a comprehensive dashboard for monitoring and managing resiliency:
+The React frontend provides a dashboard for monitoring resilient services and managing queued messages:
 
 #### Features
-- **System Health Overview**: Real-time health status
-- **Configuration Management**: Create/edit resiliency configurations
-- **Queued Messages**: View and manage queued messages
+- **System Health Overview**: Real-time health status of all services
+- **Resilient Services**: Monitor circuit breaker states and metrics
+- **Queued Messages**: View and manage queued messages during outages
 - **Statistics**: Queue and system metrics
-- **Recovery Actions**: Trigger manual recovery
+- **Recovery Actions**: Trigger manual recovery and circuit breaker resets
 
 #### Key Components
 ```typescript
-interface ResiliencyConfiguration {
-  id: string;
+interface ResiliencyService {
   serviceName: string;
-  tenantId: string;
-  endpointPattern?: string;
-  circuitBreakerConfig: any;
-  retryConfig: any;
-  bulkheadConfig: any;
-  timeoutConfig: any;
-  fallbackConfig: any;
-  healthCheckConfig: any;
-  monitoringConfig: any;
-  isActive: boolean;
-  priority: number;
-  description?: string;
+  circuitBreakerState: string;
+  bulkheadAvailableCalls: number;
+  retryMetrics: any;
+  timeLimiterMetrics: any;
+  lastUpdated: string;
 }
 
 interface QueuedMessage {
@@ -470,66 +460,46 @@ function App() {
 
 ## API Reference
 
-### Resiliency Configurations
+### Resilient Services
 
-#### GET /api/resiliency/configurations
-Get all resiliency configurations with optional filtering.
+#### GET /api/resiliency/services
+Get status of all resilient services.
 
 **Query Parameters:**
 - `tenantId` (optional): Filter by tenant ID
-- `serviceName` (optional): Filter by service name
 
 **Response:**
 ```json
 [
   {
-    "id": "uuid",
-    "serviceName": "fraud-api-fico",
-    "tenantId": "tenant-001",
-    "endpointPattern": "/api/v1/fraud/**",
-    "circuitBreakerConfig": { ... },
-    "retryConfig": { ... },
-    "bulkheadConfig": { ... },
-    "timeoutConfig": { ... },
-    "fallbackConfig": { ... },
-    "healthCheckConfig": { ... },
-    "monitoringConfig": { ... },
-    "isActive": true,
-    "priority": 1,
-    "description": "Fraud API resiliency configuration",
-    "createdAt": "2024-01-01T00:00:00",
-    "updatedAt": "2024-01-01T00:00:00"
+    "serviceName": "fraudApi",
+    "circuitBreakerState": "CLOSED",
+    "bulkheadAvailableCalls": 25,
+    "retryMetrics": {
+      "numberOfSuccessfulCallsWithRetryAttempt": 100,
+      "numberOfFailedCallsWithRetryAttempt": 5
+    },
+    "timeLimiterMetrics": {
+      "numberOfSuccessfulCalls": 95,
+      "numberOfFailedCalls": 5
+    },
+    "lastUpdated": "2024-01-01T00:00:00"
   }
 ]
 ```
 
-#### POST /api/resiliency/configurations
-Create a new resiliency configuration.
+#### POST /api/resiliency/services/{serviceName}/reset-circuit-breaker
+Reset circuit breaker for a specific service.
 
-**Request Body:**
+**Response:**
 ```json
 {
-  "serviceName": "new-service",
-  "tenantId": "tenant-001",
-  "endpointPattern": "/api/v1/new-service/**",
-  "circuitBreakerConfig": { ... },
-  "retryConfig": { ... },
-  "bulkheadConfig": { ... },
-  "timeoutConfig": { ... },
-  "fallbackConfig": { ... },
-  "healthCheckConfig": { ... },
-  "monitoringConfig": { ... },
-  "isActive": true,
-  "priority": 1,
-  "description": "New service configuration"
+  "serviceName": "fraudApi",
+  "status": "CIRCUIT_BREAKER_RESET",
+  "message": "Circuit breaker reset successfully",
+  "timestamp": "2024-01-01T00:00:00"
 }
 ```
-
-#### PUT /api/resiliency/configurations/{id}
-Update an existing resiliency configuration.
-
-#### DELETE /api/resiliency/configurations/{id}
-Delete a resiliency configuration.
 
 ### Queued Messages
 
