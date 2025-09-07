@@ -11,6 +11,7 @@ A comprehensive payment processing system built with Spring Boot and React, supp
 - **Advanced Payload Mapping**: Flexible value assignment with static, derived, and auto-generated values
 - **Fraud & Risk Monitoring**: Configurable integration with external fraud APIs
 - **Core Banking Integration**: REST API and gRPC support for external core banking systems
+- **Tenant Cloning & Migration**: Complete tenant configuration management with versioning, cloning, and environment migration capabilities
 
 ### Architecture & Infrastructure
 - **Microservices Architecture**: Service mesh with Istio, dedicated services for auth, config, and monitoring
@@ -133,6 +134,7 @@ sudo ./infrastructure/air-gapped/offline-deploy.sh
 - [ISO 20022 Message Formats](docs/ISO_20022_MESSAGES.md) - Supported message types and schemas
 - [Core Banking Integration](docs/CORE_BANKING_INTEGRATION.md) - External system integration patterns
 - [Fraud & Risk Integration](docs/FRAUD_RISK_INTEGRATION.md) - Fraud detection and risk management
+- [Tenant Cloning and Migration Guide](TENANT_CLONING_AND_MIGRATION_GUIDE.md) - Complete tenant configuration management
 
 ### Configuration & Customization
 - [Configuration Management](docs/CONFIGURATION_GUIDE.md) - Environment-specific configurations

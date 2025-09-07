@@ -30,6 +30,7 @@ import {
   AccountCircle as AccountCircleIcon,
   Logout as LogoutIcon,
   ChevronLeft as ChevronLeftIcon,
+  Business as BusinessIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store';
@@ -86,6 +87,13 @@ const navigationItems: NavItem[] = [
     path: '/configuration',
     icon: <ConfigIcon />,
     permissions: ['tenant:config:read'],
+  },
+  {
+    id: 'tenant-management',
+    label: 'Tenant Management',
+    path: '/tenant-management',
+    icon: <BusinessIcon />,
+    permissions: ['tenant:manage'],
   },
   {
     id: 'settings',

@@ -141,7 +141,7 @@ interface TenantImportRequest {
   additionalMetadata?: Record<string, string>;
 }
 
-const TenantManagement: React.FC = () => {
+const TenantCloningManagement: React.FC = () => {
   const [tenants, setTenants] = useState<string[]>([]);
   const [selectedTenant, setSelectedTenant] = useState<string>('');
   const [tenantVersions, setTenantVersions] = useState<string[]>([]);
@@ -909,4 +909,4 @@ const TenantManagement: React.FC = () => {
   );
 };
 
-export default TenantManagement;
+export default TenantCloningManagement;

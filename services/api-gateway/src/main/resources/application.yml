@@ -88,6 +88,16 @@ spring:
               args:
                 excluded-paths: []
         
+        # Tenant Management routes
+        - id: tenant-management
+          uri: lb://middleware-service
+          predicates:
+            - Path=/api/tenant-management/**
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+        
         # Configuration Management routes
         - id: config-tenants-list
           uri: lb://core-banking-service
