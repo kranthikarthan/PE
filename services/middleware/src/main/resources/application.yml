@@ -253,6 +253,113 @@ payment-engine:
     retry-attempts: 3
     circuit-breaker-enabled: true
 
+# Security Configuration
+app:
+  security:
+    encryption:
+      key: ${ENCRYPTION_KEY:aes-256-key-for-iso20022-messages}
+    signature:
+      private-key: ${SIGNATURE_PRIVATE_KEY:}
+      public-key: ${SIGNATURE_PUBLIC_KEY:}
+  
+  audit:
+    enabled: ${AUDIT_ENABLED:true}
+    kafka:
+      enabled: ${AUDIT_KAFKA_ENABLED:true}
+
+# Circuit Breaker Configuration for ISO 20022
+resilience4j:
+  circuitbreaker:
+    instances:
+      clearing-system:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        record-exceptions:
+          - java.lang.Exception
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+      
+      webhook:
+        register-health-indicator: true
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 60
+        wait-duration-in-open-state: 60s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+        record-exceptions:
+          - java.lang.Exception
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+      
+      kafka:
+        register-health-indicator: true
+        sliding-window-size: 15
+        minimum-number-of-calls: 8
+        failure-rate-threshold: 40
+        wait-duration-in-open-state: 45s
+        permitted-number-of-calls-in-half-open-state: 4
+        automatic-transition-from-open-to-half-open-enabled: true
+        record-exceptions:
+          - java.lang.Exception
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+
+  retry:
+    instances:
+      clearing-system:
+        max-attempts: 3
+        wait-duration: 1s
+        retry-exceptions:
+          - java.lang.Exception
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+      
+      webhook:
+        max-attempts: 5
+        wait-duration: 2s
+        retry-exceptions:
+          - java.lang.Exception
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+
+  timelimiter:
+    instances:
+      clearing-system:
+        timeout-duration: 30s
+        cancel-running-future: true
+      
+      webhook:
+        timeout-duration: 10s
+        cancel-running-future: true
+
+  bulkhead:
+    instances:
+      clearing-system:
+        max-concurrent-calls: 10
+        max-wait-duration: 1s
+      
+      webhook:
+        max-concurrent-calls: 20
+        max-wait-duration: 500ms
+
+  ratelimiter:
+    instances:
+      api:
+        limit-for-period: 100
+        limit-refresh-period: 1s
+        timeout-duration: 1s
+      
+      clearing-system:
+        limit-for-period: 50
+        limit-refresh-period: 1s
+        timeout-duration: 2s
+
 # Environment Specific Configurations
 ---
 spring:

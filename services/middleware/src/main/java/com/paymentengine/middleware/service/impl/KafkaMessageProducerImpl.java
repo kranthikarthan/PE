@@ -4,10 +4,15 @@ import com.paymentengine.middleware.service.KafkaMessageProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,8 +38,10 @@ public class KafkaMessageProducerImpl implements KafkaMessageProducer {
     
     private final Map<String, KafkaProducerStatus> producerStatuses;
     private final Map<String, Object> topicInfo;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     
-    public KafkaMessageProducerImpl() {
+    public KafkaMessageProducerImpl(KafkaTemplate<String, Object> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
         this.producerStatuses = new ConcurrentHashMap<>();
         this.topicInfo = new ConcurrentHashMap<>();
         
