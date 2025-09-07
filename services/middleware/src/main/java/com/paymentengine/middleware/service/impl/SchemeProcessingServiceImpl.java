@@ -3,6 +3,7 @@ package com.paymentengine.middleware.service.impl;
 import com.paymentengine.middleware.service.*;
 import com.paymentengine.middleware.dto.corebanking.*;
 import com.paymentengine.middleware.entity.CoreBankingConfiguration;
+import com.paymentengine.middleware.entity.AdvancedPayloadMapping;
 import com.paymentengine.middleware.repository.CoreBankingConfigurationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
     private final Iso20022FormatService iso20022FormatService;
     private final PaymentRoutingService paymentRoutingService;
     private final CoreBankingConfigurationRepository coreBankingConfigRepository;
+    private final AdvancedPayloadTransformationService advancedPayloadTransformationService;
     
     @Autowired
     public SchemeProcessingServiceImpl(
@@ -38,13 +40,15 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
             SchemeMessageService schemeMessageService,
             Iso20022FormatService iso20022FormatService,
             PaymentRoutingService paymentRoutingService,
-            CoreBankingConfigurationRepository coreBankingConfigRepository) {
+            CoreBankingConfigurationRepository coreBankingConfigRepository,
+            AdvancedPayloadTransformationService advancedPayloadTransformationService) {
         this.clearingSystemRoutingService = clearingSystemRoutingService;
         this.transformationService = transformationService;
         this.schemeMessageService = schemeMessageService;
         this.iso20022FormatService = iso20022FormatService;
         this.paymentRoutingService = paymentRoutingService;
         this.coreBankingConfigRepository = coreBankingConfigRepository;
+        this.advancedPayloadTransformationService = advancedPayloadTransformationService;
     }
     
     @Override
@@ -79,9 +83,9 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 
                 logger.info("Routing PAIN.001 to clearing system: {} for messageId: {}", clearingSystemCode, messageId);
                 
-                // 3. Transform PAIN.001 to PACS.008
-                Map<String, Object> pacs008Message = transformationService.transformPain001ToPacs008(
-                        pain001Message, tenantId, paymentType, localInstrumentCode);
+                // 3. Transform PAIN.001 to PACS.008 using advanced payload mapping
+                Map<String, Object> pacs008Message = transformPain001ToPacs008WithAdvancedMapping(
+                        pain001Message, tenantId, paymentType, localInstrumentCode, clearingSystemCode);
                 
                 // 4. Send PACS.008 to clearing system
                 CompletableFuture<Map<String, Object>> clearingSystemResponse = sendMessageToClearingSystem(
@@ -95,9 +99,10 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 Map<String, Object> pacs002Response = generatePacs002Response(
                         messageId, transactionId, "ACSC", "G000"); // Accepted Settlement Completed
                 
-                // 7. Generate PAIN.002 response to client
-                Map<String, Object> pain002Response = generatePain002Response(
-                        messageId, transactionId, "ACSC", "G000", responseMode);
+                // 7. Generate PAIN.002 response to client using advanced payload mapping
+                Map<String, Object> pain002Response = generatePain002ResponseWithAdvancedMapping(
+                        messageId, transactionId, "ACSC", "G000", responseMode, 
+                        tenantId, paymentType, localInstrumentCode, clearingSystemCode);
                 
                 long processingTime = System.currentTimeMillis() - startTime;
                 
@@ -115,8 +120,9 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 // Generate error responses
                 Map<String, Object> pacs002Error = generatePacs002Response(
                         messageId, transactionId, "RJCT", "NARR"); // Rejected
-                Map<String, Object> pain002Error = generatePain002Response(
-                        messageId, transactionId, "RJCT", "NARR", responseMode);
+                Map<String, Object> pain002Error = generatePain002ResponseWithAdvancedMapping(
+                        messageId, transactionId, "RJCT", "NARR", responseMode,
+                        tenantId, paymentType, localInstrumentCode, clearingSystemCode);
                 
                 return new SchemeProcessingResult(
                         messageId, correlationId, "ERROR", clearingSystemCode, transactionId,
@@ -536,5 +542,134 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
         isoRequest.setTenantId(tenantId);
         
         return paymentRoutingService.processIncomingClearingPayment(isoRequest);
+    }
+    
+    /**
+     * Transform PAIN.001 to PACS.008 using advanced payload mapping
+     */
+    private Map<String, Object> transformPain001ToPacs008WithAdvancedMapping(
+            Map<String, Object> pain001Message,
+            String tenantId,
+            String paymentType,
+            String localInstrumentCode,
+            String clearingSystemCode) {
+        
+        logger.info("Transforming PAIN.001 to PACS.008 with advanced payload mapping for tenant: {}, paymentType: {}, localInstrument: {}, clearingSystem: {}", 
+                   tenantId, paymentType, localInstrumentCode, clearingSystemCode);
+        
+        try {
+            // First, use the standard transformation as a base
+            Map<String, Object> basePacs008Message = transformationService.transformPain001ToPacs008(
+                    pain001Message, tenantId, paymentType, localInstrumentCode);
+            
+            // Apply advanced payload mapping for REQUEST direction
+            Optional<Map<String, Object>> transformedMessage = advancedPayloadTransformationService.transformPayload(
+                    tenantId,
+                    paymentType,
+                    localInstrumentCode,
+                    clearingSystemCode,
+                    AdvancedPayloadMapping.Direction.REQUEST,
+                    basePacs008Message
+            );
+            
+            if (transformedMessage.isPresent()) {
+                logger.info("Successfully applied advanced payload mapping for PAIN.001 to PACS.008 transformation");
+                return transformedMessage.get();
+            } else {
+                logger.warn("No advanced payload mapping found, using standard transformation");
+                return basePacs008Message;
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error applying advanced payload mapping for PAIN.001 to PACS.008: {}", e.getMessage());
+            // Fallback to standard transformation
+            return transformationService.transformPain001ToPacs008(
+                    pain001Message, tenantId, paymentType, localInstrumentCode);
+        }
+    }
+    
+    /**
+     * Transform PACS.002 to PAIN.002 using advanced payload mapping
+     */
+    private Map<String, Object> transformPacs002ToPain002WithAdvancedMapping(
+            Map<String, Object> pacs002Message,
+            String tenantId,
+            String paymentType,
+            String localInstrumentCode,
+            String clearingSystemCode) {
+        
+        logger.info("Transforming PACS.002 to PAIN.002 with advanced payload mapping for tenant: {}, paymentType: {}, localInstrument: {}, clearingSystem: {}", 
+                   tenantId, paymentType, localInstrumentCode, clearingSystemCode);
+        
+        try {
+            // Apply advanced payload mapping for RESPONSE direction
+            Optional<Map<String, Object>> transformedMessage = advancedPayloadTransformationService.transformPayload(
+                    tenantId,
+                    paymentType,
+                    localInstrumentCode,
+                    clearingSystemCode,
+                    AdvancedPayloadMapping.Direction.RESPONSE,
+                    pacs002Message
+            );
+            
+            if (transformedMessage.isPresent()) {
+                logger.info("Successfully applied advanced payload mapping for PACS.002 to PAIN.002 transformation");
+                return transformedMessage.get();
+            } else {
+                logger.warn("No advanced payload mapping found, using standard transformation");
+                return pacs002Message;
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error applying advanced payload mapping for PACS.002 to PAIN.002: {}", e.getMessage());
+            // Fallback to original message
+            return pacs002Message;
+        }
+    }
+    
+    /**
+     * Generate PAIN.002 response with advanced payload mapping
+     */
+    private Map<String, Object> generatePain002ResponseWithAdvancedMapping(
+            String originalMessageId, 
+            String transactionId, 
+            String status, 
+            String reasonCode, 
+            String responseMode,
+            String tenantId,
+            String paymentType,
+            String localInstrumentCode,
+            String clearingSystemCode) {
+        
+        logger.debug("Generating PAIN.002 response with advanced payload mapping for messageId: {}, status: {}", originalMessageId, status);
+        
+        try {
+            // First, generate the standard PAIN.002 response
+            Map<String, Object> basePain002Response = generatePain002Response(
+                    originalMessageId, transactionId, status, reasonCode, responseMode);
+            
+            // Apply advanced payload mapping for RESPONSE direction
+            Optional<Map<String, Object>> transformedResponse = advancedPayloadTransformationService.transformPayload(
+                    tenantId,
+                    paymentType,
+                    localInstrumentCode,
+                    clearingSystemCode,
+                    AdvancedPayloadMapping.Direction.RESPONSE,
+                    basePain002Response
+            );
+            
+            if (transformedResponse.isPresent()) {
+                logger.info("Successfully applied advanced payload mapping for PAIN.002 response generation");
+                return transformedResponse.get();
+            } else {
+                logger.warn("No advanced payload mapping found for PAIN.002, using standard response");
+                return basePain002Response;
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error applying advanced payload mapping for PAIN.002 response: {}", e.getMessage());
+            // Fallback to standard response
+            return generatePain002Response(originalMessageId, transactionId, status, reasonCode, responseMode);
+        }
     }
 }

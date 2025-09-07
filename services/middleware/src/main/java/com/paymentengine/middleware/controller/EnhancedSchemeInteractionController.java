@@ -5,6 +5,8 @@ import com.paymentengine.middleware.dto.SchemeMessageResponse;
 import com.paymentengine.middleware.service.SchemeProcessingService;
 import com.paymentengine.middleware.service.ClearingSystemRoutingService;
 import com.paymentengine.middleware.service.Pain001ToPacs008TransformationService;
+import com.paymentengine.middleware.service.AdvancedPayloadTransformationService;
+import com.paymentengine.middleware.entity.AdvancedPayloadMapping;
 import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -32,15 +34,18 @@ public class EnhancedSchemeInteractionController {
     private final SchemeProcessingService schemeProcessingService;
     private final ClearingSystemRoutingService clearingSystemRoutingService;
     private final Pain001ToPacs008TransformationService transformationService;
+    private final AdvancedPayloadTransformationService advancedPayloadTransformationService;
     
     @Autowired
     public EnhancedSchemeInteractionController(
             SchemeProcessingService schemeProcessingService,
             ClearingSystemRoutingService clearingSystemRoutingService,
-            Pain001ToPacs008TransformationService transformationService) {
+            Pain001ToPacs008TransformationService transformationService,
+            AdvancedPayloadTransformationService advancedPayloadTransformationService) {
         this.schemeProcessingService = schemeProcessingService;
         this.clearingSystemRoutingService = clearingSystemRoutingService;
         this.transformationService = transformationService;
+        this.advancedPayloadTransformationService = advancedPayloadTransformationService;
     }
     
     // ============================================================================
@@ -391,6 +396,86 @@ public class EnhancedSchemeInteractionController {
             logger.error("Error transforming PAIN.001 to PACS.008: {}", e.getMessage());
             return ResponseEntity.internalServerError().body(Map.of(
                     "error", "Failed to transform PAIN.001 to PACS.008: " + e.getMessage(),
+                    "timestamp", Instant.now().toString()
+            ));
+        }
+    }
+    
+    // ============================================================================
+    // ADVANCED PAYLOAD TRANSFORMATION ENDPOINTS
+    // ============================================================================
+    
+    /**
+     * Test advanced payload transformation
+     */
+    @PostMapping(value = "/transform/advanced", 
+                 consumes = MediaType.APPLICATION_JSON_VALUE,
+                 produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('scheme:transform')")
+    @Timed(value = "scheme.enhanced.transform.advanced", description = "Time taken to apply advanced payload transformation")
+    public ResponseEntity<Map<String, Object>> testAdvancedPayloadTransformation(
+            @Valid @RequestBody Map<String, Object> sourcePayload,
+            @RequestParam String tenantId,
+            @RequestParam String paymentType,
+            @RequestParam String localInstrumentCode,
+            @RequestParam String clearingSystemCode,
+            @RequestParam(defaultValue = "REQUEST") String direction) {
+        
+        logger.info("Testing advanced payload transformation for tenant: {}, paymentType: {}, localInstrument: {}, clearingSystem: {}, direction: {}", 
+                   tenantId, paymentType, localInstrumentCode, clearingSystemCode, direction);
+        
+        try {
+            // Convert direction string to enum
+            AdvancedPayloadMapping.Direction directionEnum;
+            switch (direction.toUpperCase()) {
+                case "REQUEST":
+                    directionEnum = AdvancedPayloadMapping.Direction.REQUEST;
+                    break;
+                case "RESPONSE":
+                    directionEnum = AdvancedPayloadMapping.Direction.RESPONSE;
+                    break;
+                case "BIDIRECTIONAL":
+                    directionEnum = AdvancedPayloadMapping.Direction.BIDIRECTIONAL;
+                    break;
+                default:
+                    directionEnum = AdvancedPayloadMapping.Direction.REQUEST;
+            }
+            
+            // Apply advanced payload transformation
+            Optional<Map<String, Object>> transformedPayload = advancedPayloadTransformationService.transformPayload(
+                    tenantId,
+                    paymentType,
+                    localInstrumentCode,
+                    clearingSystemCode,
+                    directionEnum,
+                    sourcePayload
+            );
+            
+            Map<String, Object> response = Map.of(
+                    "sourcePayload", sourcePayload,
+                    "transformedPayload", transformedPayload.orElse(null),
+                    "transformationApplied", transformedPayload.isPresent(),
+                    "tenantId", tenantId,
+                    "paymentType", paymentType,
+                    "localInstrumentCode", localInstrumentCode,
+                    "clearingSystemCode", clearingSystemCode,
+                    "direction", direction,
+                    "timestamp", Instant.now().toString()
+            );
+            
+            if (transformedPayload.isPresent()) {
+                logger.info("Successfully applied advanced payload transformation for tenant: {}", tenantId);
+                return ResponseEntity.ok(response);
+            } else {
+                logger.warn("No advanced payload mapping found for tenant: {}, paymentType: {}, localInstrument: {}, clearingSystem: {}, direction: {}", 
+                           tenantId, paymentType, localInstrumentCode, clearingSystemCode, direction);
+                return ResponseEntity.ok(response);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error applying advanced payload transformation: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "error", "Failed to apply advanced payload transformation: " + e.getMessage(),
                     "timestamp", Instant.now().toString()
             ));
         }
