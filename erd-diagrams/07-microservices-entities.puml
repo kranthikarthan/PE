@@ -1,0 +1,300 @@
+@startuml MICROSERVICES_ENTITIES
+!theme plain
+title Microservices Entities
+
+package "Authentication Service Entities" {
+    entity "User" {
+        * id : UUID
+        --
+        * username : VARCHAR(50)
+        * email : VARCHAR(100)
+        * password_hash : VARCHAR(255)
+        * first_name : VARCHAR(100)
+        * last_name : VARCHAR(100)
+        * is_active : BOOLEAN
+        * is_locked : BOOLEAN
+        * failed_login_attempts : INTEGER
+        * last_login_at : TIMESTAMP
+        * created_at : TIMESTAMP
+        * updated_at : TIMESTAMP
+    }
+
+    entity "Role" {
+        * id : UUID
+        --
+        * name : VARCHAR(50)
+        * description : VARCHAR(255)
+        * is_active : BOOLEAN
+        * created_at : TIMESTAMP
+        * updated_at : TIMESTAMP
+    }
+
+    entity "Permission" {
+        * id : UUID
+        --
+        * name : VARCHAR(100)
+        * resource : VARCHAR(100)
+        * action : VARCHAR(50)
+        * description : VARCHAR(255)
+        * is_active : BOOLEAN
+        * created_at : TIMESTAMP
+        * updated_at : TIMESTAMP
+    }
+
+    entity "UserRole" {
+        * id : UUID
+        --
+        * user_id : UUID
+        * role_id : UUID
+        * assigned_at : TIMESTAMP
+        * assigned_by : UUID
+        * is_active : BOOLEAN
+    }
+
+    entity "RolePermission" {
+        * id : UUID
+        --
+        * role_id : UUID
+        * permission_id : UUID
+        * granted_at : TIMESTAMP
+        * granted_by : UUID
+        * is_active : BOOLEAN
+    }
+
+    entity "OAuthClient" {
+        * id : UUID
+        --
+        * client_id : VARCHAR(100)
+        * client_secret : VARCHAR(255)
+        * client_name : VARCHAR(100)
+        * redirect_uris : TEXT[]
+        * grant_types : VARCHAR(50)[]
+        * scopes : VARCHAR(100)[]
+        * is_active : BOOLEAN
+        * created_at : TIMESTAMP
+        * updated_at : TIMESTAMP
+    }
+
+    entity "OAuthToken" {
+        * id : UUID
+        --
+        * client_id : UUID
+        * user_id : UUID
+        * token_type : VARCHAR(20)
+        * access_token : TEXT
+        * refresh_token : TEXT
+        * expires_at : TIMESTAMP
+        * issued_at : TIMESTAMP
+        * is_revoked : BOOLEAN
+        * revoked_at : TIMESTAMP
+    }
+}
+
+package "Configuration Service Entities" {
+    entity "Tenant" {
+        * id : UUID
+        --
+        * name : VARCHAR(100)
+        * code : VARCHAR(50)
+        * description : VARCHAR(255)
+        * parent_tenant_id : UUID
+        * is_active : BOOLEAN
+        * created_at : TIMESTAMP
+        * updated_at : TIMESTAMP
+    }
+
+    entity "TenantConfiguration" {
+        * id : UUID
+        --
+        * tenant_id : UUID
+        * configuration_key : VARCHAR(100)
+        * configuration_value : TEXT
+        * configuration_type : VARCHAR(50)
+        * is_encrypted : BOOLEAN
+        * is_active : BOOLEAN
+        * created_at : TIMESTAMP
+        * updated_at : TIMESTAMP
+    }
+
+    entity "FeatureFlag" {
+        * id : UUID
+        --
+        * name : VARCHAR(100)
+        * description : VARCHAR(255)
+        * is_enabled : BOOLEAN
+        * tenant_id : UUID
+        * environment : VARCHAR(50)
+        * created_at : TIMESTAMP
+        * updated_at : TIMESTAMP
+    }
+
+    entity "ConfigurationHistory" {
+        * id : UUID
+        --
+        * tenant_id : UUID
+        * configuration_key : VARCHAR(100)
+        * old_value : TEXT
+        * new_value : TEXT
+        * changed_by : UUID
+        * change_reason : VARCHAR(255)
+        * changed_at : TIMESTAMP
+    }
+}
+
+package "Middleware Service Entities" {
+    entity "MessageTransaction" {
+        * id : UUID
+        --
+        * tenant_id : UUID
+        * message_type : VARCHAR(50)
+        * message_id : VARCHAR(100)
+        * correlation_id : VARCHAR(100)
+        * status : VARCHAR(50)
+        * direction : VARCHAR(30)
+        * created_at : TIMESTAMP
+        * updated_at : TIMESTAMP
+    }
+
+    entity "MessagePayload" {
+        * id : UUID
+        --
+        * transaction_id : UUID
+        * payload_type : VARCHAR(20)
+        * payload_data : TEXT
+        * is_encrypted : BOOLEAN
+        * created_at : TIMESTAMP
+    }
+
+    entity "ClearingSystemInteraction" {
+        * id : UUID
+        --
+        * transaction_id : UUID
+        * clearing_system_id : UUID
+        * endpoint_id : UUID
+        * request_payload : TEXT
+        * response_payload : TEXT
+        * status : VARCHAR(50)
+        * response_time_ms : INTEGER
+        * created_at : TIMESTAMP
+        * updated_at : TIMESTAMP
+    }
+}
+
+package "Monitoring Service Entities" {
+    entity "SystemMetrics" {
+        * id : UUID
+        --
+        * service_name : VARCHAR(100)
+        * metric_name : VARCHAR(100)
+        * metric_value : DECIMAL
+        * metric_unit : VARCHAR(20)
+        * tags : JSON
+        * timestamp : TIMESTAMP
+    }
+
+    entity "BusinessMetrics" {
+        * id : UUID
+        --
+        * tenant_id : UUID
+        * metric_name : VARCHAR(100)
+        * metric_value : DECIMAL
+        * metric_unit : VARCHAR(20)
+        * tags : JSON
+        * timestamp : TIMESTAMP
+    }
+
+    entity "AlertRule" {
+        * id : UUID
+        --
+        * name : VARCHAR(100)
+        * description : VARCHAR(255)
+        * metric_name : VARCHAR(100)
+        * threshold_value : DECIMAL
+        * comparison_operator : VARCHAR(10)
+        * severity : VARCHAR(20)
+        * is_active : BOOLEAN
+        * created_at : TIMESTAMP
+        * updated_at : TIMESTAMP
+    }
+
+    entity "AlertInstance" {
+        * id : UUID
+        --
+        * alert_rule_id : UUID
+        * metric_value : DECIMAL
+        * threshold_value : DECIMAL
+        * severity : VARCHAR(20)
+        * status : VARCHAR(20)
+        * triggered_at : TIMESTAMP
+        * resolved_at : TIMESTAMP
+    }
+}
+
+' Relationships
+User ||--o{ UserRole : "has"
+Role ||--o{ UserRole : "assigned to"
+Role ||--o{ RolePermission : "has"
+Permission ||--o{ RolePermission : "granted to"
+
+OAuthClient ||--o{ OAuthToken : "issues"
+User ||--o{ OAuthToken : "owns"
+
+Tenant ||--o{ TenantConfiguration : "has"
+Tenant ||--o{ FeatureFlag : "has"
+Tenant ||--o{ ConfigurationHistory : "tracks"
+
+MessageTransaction ||--o{ MessagePayload : "contains"
+MessageTransaction ||--o{ ClearingSystemInteraction : "triggers"
+
+AlertRule ||--o{ AlertInstance : "triggers"
+
+' Microservices benefits
+note right of User
+Microservices Benefits:
+- Service isolation
+- Independent scaling
+- Technology diversity
+- Fault isolation
+- Team autonomy
+- Continuous deployment
+- Service mesh integration
+- Observability
+end note
+
+note right of Tenant
+Configuration Management:
+- Dynamic configuration
+- Feature flags
+- Tenant isolation
+- Configuration history
+- Rollback capability
+- A/B testing
+- Environment-specific configs
+- Security policies
+end note
+
+note right of MessageTransaction
+Message Processing:
+- Transaction tracking
+- Payload management
+- Clearing system integration
+- Status monitoring
+- Error handling
+- Retry logic
+- Audit trail
+- Performance metrics
+end note
+
+note right of SystemMetrics
+Monitoring & Observability:
+- System metrics
+- Business metrics
+- Alert management
+- Performance tracking
+- Error monitoring
+- SLA monitoring
+- Capacity planning
+- Troubleshooting
+end note
+
+@enduml

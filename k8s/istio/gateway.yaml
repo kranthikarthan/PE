@@ -1,0 +1,81 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: payment-engine-gateway
+  namespace: payment-engine
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "payment-engine.local"
+    - "api.payment-engine.local"
+    tls:
+      httpsRedirect: true
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    hosts:
+    - "payment-engine.local"
+    - "api.payment-engine.local"
+    tls:
+      mode: SIMPLE
+      credentialName: payment-engine-tls
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: payment-engine-vs
+  namespace: payment-engine
+spec:
+  hosts:
+  - "payment-engine.local"
+  - "api.payment-engine.local"
+  gateways:
+  - payment-engine-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api/v1/auth
+    route:
+    - destination:
+        host: auth-service
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /api/v1/config
+    route:
+    - destination:
+        host: config-service
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /api/v1/iso20022
+    route:
+    - destination:
+        host: middleware-service
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /api/v1/banking
+    route:
+    - destination:
+        host: core-banking-service
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: frontend-service
+        port:
+          number: 3000

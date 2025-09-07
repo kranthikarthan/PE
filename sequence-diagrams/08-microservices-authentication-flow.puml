@@ -1,0 +1,192 @@
+@startuml MICROSERVICES_AUTHENTICATION_FLOW
+!theme plain
+title Microservices Authentication Flow
+
+actor "Client" as C
+participant "API Gateway" as AG
+participant "Auth Service" as AS
+participant "Config Service" as CS
+participant "Middleware Service" as MS
+participant "Database" as DB
+participant "Redis Cache" as RC
+
+== User Login Flow ==
+
+C -> AG: POST /api/v1/auth/login
+note right: {username, password}
+
+AG -> AG: Validate request format
+AG -> AG: Apply rate limiting
+AG -> AG: Check circuit breaker
+
+AG -> AS: POST /api/v1/auth/login
+note right: Forward to Auth Service
+
+AS -> DB: Query user by username/email
+DB --> AS: User details
+
+alt User found and active
+    AS -> AS: Verify password hash
+    AS -> AS: Check account status
+    AS -> AS: Generate JWT tokens
+    
+    AS -> DB: Store OAuth token
+    AS -> RC: Cache user session
+    
+    AS --> AG: LoginResponse
+    note right: {accessToken, refreshToken, user, roles, permissions}
+    
+    AG --> C: LoginResponse
+    
+    C -> C: Store tokens in localStorage
+    
+else User not found or inactive
+    AS -> AS: Record failed login attempt
+    AS -> DB: Update failed login count
+    
+    alt Failed attempts >= 5
+        AS -> DB: Lock user account
+        AS --> AG: Account locked error
+    else Failed attempts < 5
+        AS --> AG: Invalid credentials error
+    end
+    
+    AG --> C: Authentication error
+end
+
+== Token Validation Flow ==
+
+C -> AG: GET /api/v1/iso20022/...
+note right: Include Authorization header
+
+AG -> AG: Extract JWT token
+AG -> AS: GET /api/v1/auth/validate
+note right: Validate token
+
+AS -> RC: Check token cache
+alt Token in cache
+    RC --> AS: Token valid
+else Token not in cache
+    AS -> AS: Validate JWT signature
+    AS -> AS: Check token expiration
+    AS -> DB: Check token revocation status
+    
+    alt Token valid
+        AS -> RC: Cache token validation
+        AS --> AG: Token valid
+    else Token invalid
+        AS --> AG: Token invalid
+    end
+end
+
+alt Token valid
+    AG -> MS: Forward request with user context
+    MS --> AG: Response
+    AG --> C: Response
+else Token invalid
+    AG --> C: 401 Unauthorized
+end
+
+== Token Refresh Flow ==
+
+C -> AG: POST /api/v1/auth/refresh
+note right: {refreshToken}
+
+AG -> AS: POST /api/v1/auth/refresh
+
+AS -> AS: Validate refresh token
+AS -> DB: Check refresh token status
+
+alt Refresh token valid
+    AS -> AS: Generate new access token
+    AS -> AS: Generate new refresh token
+    
+    AS -> DB: Revoke old tokens
+    AS -> DB: Store new tokens
+    AS -> RC: Update token cache
+    
+    AS --> AG: New tokens
+    AG --> C: New tokens
+    
+    C -> C: Update stored tokens
+else Refresh token invalid
+    AS --> AG: Refresh token invalid
+    AG --> C: 401 Unauthorized
+    C -> C: Clear stored tokens
+    C -> C: Redirect to login
+end
+
+== User Management Flow ==
+
+C -> AG: GET /api/v1/auth/users
+note right: Admin request
+
+AG -> AS: GET /api/v1/auth/users
+
+AS -> AS: Check user permissions
+alt User has admin role
+    AS -> DB: Query all users
+    DB --> AS: User list
+    AS --> AG: User list
+    AG --> C: User list
+else User lacks admin role
+    AS --> AG: 403 Forbidden
+    AG --> C: 403 Forbidden
+end
+
+== Logout Flow ==
+
+C -> AG: POST /api/v1/auth/logout
+note right: Include Authorization header
+
+AG -> AS: POST /api/v1/auth/logout
+
+AS -> AS: Extract token from request
+AS -> DB: Revoke token
+AS -> RC: Remove from cache
+
+AS --> AG: Logout successful
+AG --> C: Logout successful
+
+C -> C: Clear stored tokens
+C -> C: Redirect to login
+
+== Error Handling ==
+
+note over C, RC
+Error Scenarios:
+1. Network timeout
+2. Service unavailable
+3. Invalid credentials
+4. Account locked
+5. Token expired
+6. Insufficient permissions
+end note
+
+alt Service unavailable
+    AG -> AG: Circuit breaker open
+    AG --> C: Service temporarily unavailable
+else Network timeout
+    AG -> AG: Timeout after 30s
+    AG --> C: Request timeout
+else Database error
+    AS -> AS: Log error
+    AS --> AG: Internal server error
+    AG --> C: 500 Internal Server Error
+end
+
+== Security Measures ==
+
+note over C, RC
+Security Features:
+1. JWT token expiration
+2. Refresh token rotation
+3. Account lockout after failed attempts
+4. Rate limiting
+5. Circuit breaker protection
+6. Token revocation
+7. Session caching
+8. Audit logging
+end note
+
+@enduml
