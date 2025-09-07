@@ -12,13 +12,10 @@ package "Development Environment" {
 }
 
 package "CI/CD Pipeline" {
-    [GitHub Actions] as GHA
     [Maven Build] as MB
     [Docker Build] as DB
-    [Security Scan] as SS
-    [Quality Gate] as QG
-    [Docker Registry] as DR
-    [ArgoCD] as ArgoCD
+    [Docker Compose] as DC
+    [Manual Deployment] as MD
 }
 
 package "Testing Environments" {
@@ -71,10 +68,10 @@ package "Production Environment" {
     }
     
     package "Production Security" {
-        [Production Vault] as PV
-        [Production Certificates] as PCert
-        [Production Secrets] as PS
-        [Production Policies] as PP
+        [Production OAuth2] as POAuth2
+        [Production JWT] as PJWT
+        [Production Encryption] as PE
+        [Production Audit] as PAudit
     }
 }
 
@@ -103,16 +100,13 @@ MK --> DevDB : "Development Database"
 MK --> DevKafka : "Development Kafka"
 
 ' CI/CD flow
-GH --> GHA : "Code Push"
-GHA --> MB : "Maven Build"
+LD --> MB : "Maven Build"
 MB --> DB : "Docker Build"
-DB --> SS : "Security Scan"
-SS --> QG : "Quality Gate"
-QG --> DR : "Image Push"
-DR --> ArgoCD : "GitOps Sync"
+DB --> DC : "Docker Compose"
+DC --> MD : "Manual Deployment"
 
 ' Testing flow
-GHA --> JUnit : "Unit Tests"
+LD --> JUnit : "Unit Tests"
 JUnit --> Mockito : "Mocking"
 JUnit --> TC : "Test Containers"
 TC --> IT : "Integration Tests"
@@ -122,13 +116,13 @@ TE --> TestKafka : "Test Kafka"
 TE --> TestRedis : "Test Redis"
 TE --> AT : "API Testing"
 
-GHA --> JMeter : "Performance Tests"
+LD --> JMeter : "Performance Tests"
 JMeter --> Gatling : "Load Tests"
 Gatling --> PE : "Performance Environment"
 PE --> LT : "Load Testing"
 
 ' Staging flow
-ArgoCD --> SK : "Staging Deployment"
+MD --> SK : "Staging Deployment"
 SK --> StagingDB : "Staging Database"
 SK --> StagingKafka : "Staging Kafka"
 SK --> StagingRedis : "Staging Redis"
@@ -136,7 +130,7 @@ SK --> SM : "Staging Monitoring"
 SK --> UAT : "User Acceptance Testing"
 
 ' Production flow
-ArgoCD --> PC : "Production Deployment"
+MD --> PC : "Production Deployment"
 PC --> PG : "Production Gateway"
 PC --> PM : "Production Middleware"
 PC --> PCB : "Production Core Banking"
@@ -147,10 +141,10 @@ PC --> PR : "Production Redis"
 PC --> PK : "Production Kafka"
 PC --> PB : "Production Backup"
 
-PC --> PV : "Production Vault"
-PC --> PCert : "Production Certificates"
-PC --> PS : "Production Secrets"
-PC --> PP : "Production Policies"
+PC --> POAuth2 : "Production OAuth2"
+PC --> PJWT : "Production JWT"
+PC --> PE : "Production Encryption"
+PC --> PAudit : "Production Audit"
 
 ' Disaster recovery flow
 PC --> DRS : "DR Replication"
@@ -178,15 +172,13 @@ Development Workflow:
 - Code review process
 end note
 
-note right of GHA
+note right of MB
 CI/CD Pipeline:
-- GitHub Actions for automation
 - Maven for building
 - Docker for containerization
-- Security scanning with Trivy
-- Quality gates with SonarQube
-- Automated testing
-- GitOps with ArgoCD
+- Docker Compose for local development
+- Manual deployment process
+- Local testing and validation
 end note
 
 note right of JUnit
@@ -235,15 +227,14 @@ Production Data:
 - Audit logging
 end note
 
-note right of PV
+note right of POAuth2
 Production Security:
-- Vault for secret management
-- Certificate management
-- Encryption at rest and in transit
-- Network policies
-- Pod security policies
-- RBAC
+- OAuth2/JWT authentication
+- Spring Security
+- Message encryption (AES)
+- Digital signatures (RSA)
 - Audit logging
+- RBAC
 - Compliance monitoring
 end note
 

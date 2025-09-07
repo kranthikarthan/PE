@@ -2,131 +2,105 @@
 !theme plain
 title ISO 20022 Payment Engine - Infrastructure Architecture
 
-package "Load Balancer & CDN" {
-    [CloudFlare CDN] as CF
-    [AWS Application Load Balancer] as ALB
-    [NGINX Ingress Controller] as NGINX
+package "Load Balancer & Gateway" {
+    [Spring Cloud Gateway] as SCG
     [SSL/TLS Termination] as SSL
+    [Rate Limiting] as RL
+    [Circuit Breaker] as CB
 }
 
-package "Kubernetes Cluster" {
-    package "Control Plane" {
-        [API Server] as APIServer
-        [etcd] as etcd
-        [Scheduler] as Scheduler
-        [Controller Manager] as CM
-        [Cloud Controller Manager] as CCM
+package "Application Services" {
+    node "Service Instance 1" {
+        [Gateway Service] as GS1
+        [Auth Service] as AS1
+        [Config Service] as CS1
+        [Middleware Service] as MS1
+        [Discovery Service] as DS1
     }
     
-    package "Worker Nodes" {
-        node "Worker Node 1" {
-            [kubelet] as kubelet1
-            [kube-proxy] as kube-proxy1
-            [Container Runtime] as CR1
-            [Gateway Pod] as GP1
-            [Middleware Pod] as MP1
-            [Core Banking Pod] as CBP1
-        }
-        
-        node "Worker Node 2" {
-            [kubelet] as kubelet2
-            [kube-proxy] as kube-proxy2
-            [Container Runtime] as CR2
-            [Gateway Pod] as GP2
-            [Middleware Pod] as MP2
-            [Core Banking Pod] as CBP2
-        }
-        
-        node "Worker Node 3" {
-            [kubelet] as kubelet3
-            [kube-proxy] as kube-proxy3
-            [Container Runtime] as CR3
-            [Gateway Pod] as GP3
-            [Middleware Pod] as MP3
-            [Core Banking Pod] as CBP3
-        }
+    node "Service Instance 2" {
+        [Gateway Service] as GS2
+        [Auth Service] as AS2
+        [Config Service] as CS2
+        [Middleware Service] as MS2
+        [Discovery Service] as DS2
+    }
+    
+    node "Service Instance 3" {
+        [Gateway Service] as GS3
+        [Auth Service] as AS3
+        [Config Service] as CS3
+        [Middleware Service] as MS3
+        [Discovery Service] as DS3
     }
 }
 
-package "Service Mesh (Istio)" {
-    [Istio Control Plane] as ICP
-    [Envoy Sidecar Proxies] as ESP
-    [Istio Gateway] as IG
-    [Virtual Services] as VS
-    [Destination Rules] as DR
-    [Service Entries] as SE
+package "Service Discovery" {
+    [Eureka Server] as ES
+    [Service Registry] as SR
+    [Load Balancer] as LB
+    [Health Checks] as HC
+    [Service Discovery Client] as SDC
 }
 
 package "Data Layer" {
-    package "PostgreSQL Cluster" {
+    package "PostgreSQL Database" {
         [PostgreSQL Primary] as PGP
-        [PostgreSQL Replica 1] as PGR1
-        [PostgreSQL Replica 2] as PGR2
-        [PostgreSQL Replica 3] as PGR3
-        [Connection Pooler] as CP
+        [Connection Pool] as CP
+        [HikariCP] as HCP
     }
     
-    package "Redis Cluster" {
-        [Redis Master 1] as RM1
-        [Redis Replica 1] as RR1
-        [Redis Master 2] as RM2
-        [Redis Replica 2] as RR2
-        [Redis Master 3] as RM3
-        [Redis Replica 3] as RR3
-        [Redis Sentinel] as RS
+    package "Redis Cache" {
+        [Redis Instance] as RI
+        [Redis Cache Manager] as RCM
     }
     
-    package "Kafka Cluster" {
-        [Kafka Broker 1] as KB1
-        [Kafka Broker 2] as KB2
-        [Kafka Broker 3] as KB3
-        [Zookeeper Ensemble] as ZE
-        [Schema Registry] as SR
-        [Kafka Connect] as KC
+    package "Kafka Messaging" {
+        [Kafka Broker] as KB
+        [Kafka Producer] as KP
+        [Kafka Consumer] as KC
+        [Dead Letter Queue] as DLQ
     }
 }
 
 package "Monitoring & Observability" {
     package "Metrics & Monitoring" {
-        [Prometheus] as Prometheus
-        [Grafana] as Grafana
-        [Alert Manager] as AM
-        [Node Exporter] as NE
-        [cAdvisor] as cAdvisor
+        [Spring Boot Actuator] as SBA
+        [Micrometer] as Micrometer
+        [Custom Metrics] as CM
+        [Health Checks] as HC2
     }
     
     package "Logging" {
-        [Elasticsearch] as ES
-        [Logstash] as LS
-        [Kibana] as Kibana
-        [Filebeat] as FB
-        [Fluentd] as Fluentd
+        [Structured Logging] as SL
+        [JSON Logging] as JL
+        [Audit Logging] as AL
+        [Log Aggregation] as LA
     }
     
     package "Tracing" {
-        [Jaeger] as Jaeger
-        [Jaeger Collector] as JC
-        [Jaeger Query] as JQ
-        [Jaeger UI] as JUI
+        [Distributed Tracing] as DT
+        [Trace Context] as TC
+        [Span Management] as SM
+        [Trace Analytics] as TA
     }
 }
 
 package "Security & Compliance" {
-    [Vault] as Vault
-    [Cert-Manager] as CM2
-    [Falco] as Falco
-    [OPA Gatekeeper] as OPA
-    [Network Policies] as NP
-    [Pod Security Policies] as PSP
+    [OAuth2 Server] as OAuth2S
+    [JWT Token Management] as JWT
+    [AES Encryption] as AES
+    [RSA Digital Signatures] as RSA
+    [Spring Security] as SS
+    [Audit Logging] as AL2
 }
 
-package "CI/CD Pipeline" {
-    [GitHub Actions] as GHA
-    [Docker Registry] as DR
-    [ArgoCD] as ArgoCD
-    [Helm Charts] as HC
-    [SonarQube] as SQ
-    [Trivy Scanner] as TS
+package "Development & Deployment" {
+    [Maven Build] as MB
+    [Docker Build] as DB
+    [Docker Compose] as DC
+    [Local Development] as LD
+    [Manual Deployment] as MD
 }
 
 package "External Services" {
@@ -138,122 +112,113 @@ package "External Services" {
 }
 
 ' Load balancer connections
-CF --> ALB : "Traffic Routing"
-ALB --> NGINX : "Ingress"
-NGINX --> SSL : "SSL Termination"
-SSL --> IG : "Istio Gateway"
+SCG --> SSL : "SSL Termination"
+SCG --> RL : "Rate Limiting"
+SCG --> CB : "Circuit Breaker"
 
-' Kubernetes cluster connections
-APIServer --> etcd : "State Storage"
-APIServer --> Scheduler : "Pod Scheduling"
-APIServer --> CM : "Controller Management"
-APIServer --> CCM : "Cloud Integration"
+' Application services connections
+SCG --> GS1 : "Route Requests"
+SCG --> GS2 : "Route Requests"
+SCG --> GS3 : "Route Requests"
 
-kubelet1 --> APIServer : "Node Registration"
-kubelet2 --> APIServer : "Node Registration"
-kubelet3 --> APIServer : "Node Registration"
+GS1 --> AS1 : "Authentication"
+GS1 --> CS1 : "Configuration"
+GS1 --> MS1 : "Business Logic"
+GS1 --> DS1 : "Service Discovery"
 
-kube-proxy1 --> APIServer : "Service Proxy"
-kube-proxy2 --> APIServer : "Service Proxy"
-kube-proxy3 --> APIServer : "Service Proxy"
+GS2 --> AS2 : "Authentication"
+GS2 --> CS2 : "Configuration"
+GS2 --> MS2 : "Business Logic"
+GS2 --> DS2 : "Service Discovery"
 
-' Service mesh connections
-ICP --> ESP : "Configuration"
-ESP --> GP1 : "Sidecar Proxy"
-ESP --> MP1 : "Sidecar Proxy"
-ESP --> CBP1 : "Sidecar Proxy"
-ESP --> GP2 : "Sidecar Proxy"
-ESP --> MP2 : "Sidecar Proxy"
-ESP --> CBP2 : "Sidecar Proxy"
-ESP --> GP3 : "Sidecar Proxy"
-ESP --> MP3 : "Sidecar Proxy"
-ESP --> CBP3 : "Sidecar Proxy"
+GS3 --> AS3 : "Authentication"
+GS3 --> CS3 : "Configuration"
+GS3 --> MS3 : "Business Logic"
+GS3 --> DS3 : "Service Discovery"
 
-IG --> VS : "Virtual Service"
-VS --> DR : "Destination Rules"
-DR --> SE : "Service Entries"
+' Service discovery connections
+ES --> SR : "Service Registry"
+SR --> LB : "Load Balancing"
+LB --> HC : "Health Checks"
+HC --> SDC : "Service Discovery Client"
+
+DS1 --> ES : "Service Registration"
+DS2 --> ES : "Service Registration"
+DS3 --> ES : "Service Registration"
 
 ' Data layer connections
-PGP --> PGR1 : "Streaming Replication"
-PGP --> PGR2 : "Streaming Replication"
-PGP --> PGR3 : "Streaming Replication"
-CP --> PGP : "Primary Connections"
-CP --> PGR1 : "Read Connections"
-CP --> PGR2 : "Read Connections"
-CP --> PGR3 : "Read Connections"
+MS1 --> CP : "Database Connection"
+MS2 --> CP : "Database Connection"
+MS3 --> CP : "Database Connection"
+CP --> PGP : "Primary Database"
+CP --> HCP : "Connection Pooling"
 
-RM1 --> RR1 : "Replication"
-RM2 --> RR2 : "Replication"
-RM3 --> RR3 : "Replication"
-RS --> RM1 : "Sentinel"
-RS --> RM2 : "Sentinel"
-RS --> RM3 : "Sentinel"
+MS1 --> RI : "Cache Operations"
+MS2 --> RI : "Cache Operations"
+MS3 --> RI : "Cache Operations"
+RI --> RCM : "Cache Management"
 
-KB1 --> ZE : "Coordination"
-KB2 --> ZE : "Coordination"
-KB3 --> ZE : "Coordination"
-SR --> KB1 : "Schema Storage"
-KC --> KB1 : "Data Integration"
+MS1 --> KB : "Message Production"
+MS2 --> KB : "Message Production"
+MS3 --> KB : "Message Production"
+KB --> KP : "Message Producer"
+KB --> KC : "Message Consumer"
+KB --> DLQ : "Error Handling"
 
 ' Monitoring connections
-Prometheus --> NE : "Node Metrics"
-Prometheus --> cAdvisor : "Container Metrics"
-Prometheus --> GP1 : "Application Metrics"
-Prometheus --> MP1 : "Application Metrics"
-Prometheus --> CBP1 : "Application Metrics"
-Prometheus --> AM : "Alert Rules"
+MS1 --> SBA : "Health Metrics"
+MS2 --> SBA : "Health Metrics"
+MS3 --> SBA : "Health Metrics"
+SBA --> Micrometer : "Metrics Collection"
+Micrometer --> CM : "Custom Metrics"
+SBA --> HC2 : "Health Checks"
 
-Grafana --> Prometheus : "Metrics Query"
-Grafana --> ES : "Log Query"
-Grafana --> Jaeger : "Trace Query"
+MS1 --> SL : "Structured Logging"
+MS2 --> SL : "Structured Logging"
+MS3 --> SL : "Structured Logging"
+SL --> JL : "JSON Logging"
+SL --> AL : "Audit Logging"
+SL --> LA : "Log Aggregation"
 
-FB --> ES : "Log Shipping"
-Fluentd --> ES : "Log Aggregation"
-LS --> ES : "Log Processing"
-ES --> Kibana : "Log Visualization"
-
-JC --> Jaeger : "Trace Storage"
-JQ --> Jaeger : "Trace Query"
-JUI --> JQ : "Trace Visualization"
+MS1 --> DT : "Distributed Tracing"
+MS2 --> DT : "Distributed Tracing"
+MS3 --> DT : "Distributed Tracing"
+DT --> TC : "Trace Context"
+DT --> SM : "Span Management"
+DT --> TA : "Trace Analytics"
 
 ' Security connections
-Vault --> GP1 : "Secret Management"
-Vault --> MP1 : "Secret Management"
-Vault --> CBP1 : "Secret Management"
-CM2 --> GP1 : "Certificate Management"
-CM2 --> MP1 : "Certificate Management"
-CM2 --> CBP1 : "Certificate Management"
-
-Falco --> APIServer : "Security Monitoring"
-OPA --> APIServer : "Policy Enforcement"
-NP --> kube-proxy1 : "Network Policies"
-PSP --> kubelet1 : "Pod Security"
+GS1 --> OAuth2S : "Token Validation"
+GS2 --> OAuth2S : "Token Validation"
+GS3 --> OAuth2S : "Token Validation"
+OAuth2S --> JWT : "Token Management"
+OAuth2S --> AES : "Message Encryption"
+OAuth2S --> RSA : "Digital Signatures"
+OAuth2S --> SS : "Spring Security"
+OAuth2S --> AL2 : "Audit Logging"
 
 ' CI/CD connections
-GHA --> DR : "Image Push"
-GHA --> SQ : "Code Quality"
-GHA --> TS : "Security Scan"
-ArgoCD --> DR : "Image Pull"
-ArgoCD --> HC : "Helm Deployment"
-ArgoCD --> APIServer : "GitOps Sync"
+MB --> DB : "Build Images"
+DB --> DC : "Local Development"
+DC --> MD : "Manual Deployment"
+MD --> APIServer : "Deploy Services"
 
 ' External service connections
-GP1 --> CS : "Clearing System APIs"
-MP1 --> CS : "Clearing System APIs"
-CBP1 --> CS : "Clearing System APIs"
-MP1 --> SMTP : "Email Notifications"
-MP1 --> SMS : "SMS Notifications"
-MP1 --> WE : "Webhook Delivery"
-MP1 --> TPA : "Third Party APIs"
+GS1 --> CS : "Clearing System APIs"
+GS2 --> CS : "Clearing System APIs"
+GS3 --> CS : "Clearing System APIs"
+GS1 --> SMTP : "Email Notifications"
+GS1 --> SMS : "SMS Notifications"
+GS1 --> WE : "Webhook Delivery"
+GS1 --> TPA : "Third Party APIs"
 
-note right of CF
-CDN & Load Balancing:
-- CloudFlare for global CDN
-- AWS ALB for load balancing
-- NGINX for ingress control
-- SSL/TLS termination
-- DDoS protection
-- Global edge caching
+note right of GS1
+API Gateway Features:
+- Spring Cloud Gateway
+- Rate limiting with Redis
+- Circuit breaker with Resilience4j
+- OAuth2/JWT authentication
+- CORS handling
 end note
 
 note right of APIServer
@@ -262,7 +227,6 @@ Kubernetes Control Plane:
 - etcd for state storage
 - Scheduler for pod placement
 - Controller Manager for automation
-- Cloud Controller Manager for cloud integration
 end note
 
 note right of ICP
@@ -271,68 +235,57 @@ Istio Service Mesh:
 - Traffic management and routing
 - Security policies and mTLS
 - Observability and monitoring
-- Circuit breaking and retry logic
-- Rate limiting and quotas
 end note
 
 note right of PGP
-PostgreSQL Cluster:
+PostgreSQL Database:
 - Primary-replica architecture
 - Streaming replication
-- Connection pooling
-- High availability
-- Automated failover
-- Backup and recovery
+- Connection pooling with HikariCP
+- Flyway migrations
 end note
 
 note right of RM1
-Redis Cluster:
+Redis Cache:
 - Master-replica architecture
 - Sentinel for high availability
-- Clustering for scalability
-- Persistence options
-- Memory optimization
-- Pub/Sub messaging
+- Caching and session storage
+- Rate limiting support
 end note
 
 note right of KB1
-Kafka Cluster:
+Kafka Message Queue:
 - Multi-broker cluster
 - Zookeeper coordination
 - Schema registry
-- Kafka Connect
 - High throughput
 - Durability and replication
 end note
 
-note right of Prometheus
-Monitoring Stack:
-- Prometheus for metrics collection
-- Grafana for visualization
-- Alert Manager for alerting
-- Node Exporter for system metrics
-- cAdvisor for container metrics
-- Custom application metrics
+note right of SBA
+Monitoring & Observability:
+- Spring Boot Actuator
+- Micrometer metrics
+- Custom metrics
+- Health checks
+- Audit logging
 end note
 
-note right of Vault
+note right of OAuth2S
 Security Stack:
-- Vault for secret management
-- Cert-Manager for certificates
-- Falco for security monitoring
-- OPA Gatekeeper for policies
-- Network Policies for isolation
-- Pod Security Policies
+- OAuth2/JWT authentication
+- Spring Security
+- Message encryption (AES)
+- Digital signatures (RSA)
+- Audit logging
 end note
 
-note right of GHA
+note right of MB
 CI/CD Pipeline:
-- GitHub Actions for automation
-- Docker Registry for images
-- ArgoCD for GitOps
-- Helm for package management
-- SonarQube for quality
-- Trivy for security scanning
+- Maven for building
+- Docker for containerization
+- Docker Compose for local development
+- Manual deployment process
 end note
 
 @enduml

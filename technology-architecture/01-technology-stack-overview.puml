@@ -62,30 +62,26 @@ package "Security Layer" {
 }
 
 package "Monitoring & Observability" {
-    [Prometheus] as Prometheus
-    [Grafana] as Grafana
-    [Jaeger] as Jaeger
-    [ELK Stack] as ELK
-    [Alert Manager] as AM
     [Micrometer] as Micrometer2
+    [Spring Boot Actuator] as SBA
+    [Custom Metrics] as CM2
+    [Health Checks] as HC
+    [Audit Logging] as AL
 }
 
 package "Infrastructure Layer" {
     [Docker] as Docker
-    [Kubernetes] as K8s
-    [Helm] as Helm
-    [Istio Service Mesh] as Istio
-    [NGINX Ingress] as NGINX
-    [Cert-Manager] as CM
+    [Docker Compose] as DC2
+    [Local Development] as LD2
+    [Spring Cloud Gateway] as SCG2
+    [Service Discovery] as SD
 }
 
 package "CI/CD Pipeline" {
-    [GitHub Actions] as GHA
     [Maven] as Maven
-    [Docker Registry] as DR
-    [ArgoCD] as ArgoCD
-    [SonarQube] as SQ
-    [Trivy] as Trivy
+    [Docker] as Docker
+    [Docker Compose] as DC
+    [Local Development] as LD
 }
 
 package "External Integrations" {
@@ -143,25 +139,21 @@ JWT --> RSA : "Digital Signatures"
 SS3 --> BCrypt : "Password Hashing"
 
 ' Monitoring connections
-Micrometer2 --> Prometheus : "Metrics Collection"
-Prometheus --> Grafana : "Visualization"
-SCS --> Jaeger : "Distributed Tracing"
-SB --> ELK : "Log Aggregation"
-Prometheus --> AM : "Alerting"
+Micrometer2 --> SBA : "Metrics Collection"
+SBA --> CM2 : "Custom Metrics"
+SBA --> HC : "Health Checks"
+SBA --> AL : "Audit Logging"
 
 ' Infrastructure connections
-Docker --> K8s : "Container Orchestration"
-K8s --> Helm : "Package Management"
-K8s --> Istio : "Service Mesh"
-K8s --> NGINX : "Ingress Controller"
-K8s --> CM : "Certificate Management"
+Docker --> DC2 : "Container Orchestration"
+DC2 --> LD2 : "Local Development"
+LD2 --> SCG2 : "API Gateway"
+SCG2 --> SD : "Service Discovery"
 
 ' CI/CD connections
-GHA --> Maven : "Build Process"
-Maven --> DR : "Image Registry"
-DR --> ArgoCD : "GitOps Deployment"
-GHA --> SQ : "Code Quality"
-GHA --> Trivy : "Security Scanning"
+Maven --> Docker : "Build Process"
+Docker --> DC : "Local Development"
+DC --> LD : "Development Environment"
 
 ' External integrations
 SB --> CSA : "Clearing System APIs"
@@ -221,34 +213,34 @@ Data Technology Stack:
 - JPA/Hibernate for ORM
 end note
 
-note right of Prometheus
+note right of SBA
 Monitoring Technology:
-- Prometheus for metrics
-- Grafana for visualization
-- Jaeger for tracing
-- ELK Stack for logging
-- Alert Manager for alerts
-- Micrometer for metrics
+- Spring Boot Actuator for health checks
+- Micrometer for metrics collection
+- Custom metrics for business logic
+- Health checks for service monitoring
+- Audit logging for compliance
+- Structured logging with JSON
 end note
 
-note right of K8s
+note right of DC2
 Infrastructure Technology:
 - Docker for containerization
-- Kubernetes for orchestration
-- Helm for package management
-- Istio for service mesh
-- NGINX for ingress
-- Cert-Manager for certificates
+- Docker Compose for local orchestration
+- Local development environment
+- Spring Cloud Gateway for API routing
+- Service discovery for microservices
+- Redis for caching and session management
 end note
 
-note right of GHA
+note right of Maven
 CI/CD Technology:
-- GitHub Actions for CI/CD
-- Maven for building
-- Docker Registry for images
-- ArgoCD for GitOps
-- SonarQube for quality
-- Trivy for security
+- Maven for building and dependency management
+- Docker for containerization
+- Docker Compose for local development
+- Local development environment
+- Manual deployment process
+- Unit and integration testing
 end note
 
 @enduml
