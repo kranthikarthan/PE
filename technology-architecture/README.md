@@ -16,7 +16,7 @@ This directory contains comprehensive PlantUML technology architecture diagrams 
 - 📊 **Monitoring & Observability**: Prometheus, Grafana, Jaeger, ELK Stack, Alert Manager
 - 🏗️ **Infrastructure Layer**: Docker, Kubernetes, Helm, Istio Service Mesh, NGINX Ingress
 - 🚀 **CI/CD Pipeline**: GitHub Actions, Maven, Docker Registry, ArgoCD, SonarQube, Trivy
-- 🔌 **External Integrations**: Clearing Systems APIs, Third Party APIs, Webhook Endpoints
+- 🔌 **External Integrations**: Clearing Systems APIs, Third Party APIs, Webhook Endpoints, Bank's Fraud/Risk Monitoring Engine
 
 **Key Features**:
 - Modern technology stack with latest versions
@@ -37,7 +37,7 @@ This directory contains comprehensive PlantUML technology architecture diagrams 
 - 📊 **Monitoring & Observability**: Prometheus, Grafana, Jaeger, ELK Stack with complete monitoring
 - 🔒 **Security & Compliance**: Vault, Cert-Manager, Falco, OPA Gatekeeper, Network Policies
 - 🚀 **CI/CD Pipeline**: GitHub Actions, Docker Registry, ArgoCD, Helm Charts, Security Scanning
-- 🌍 **External Services**: Clearing Systems, SMTP Server, SMS Gateway, Webhook Endpoints
+- 🌍 **External Services**: Clearing Systems, SMTP Server, SMS Gateway, Webhook Endpoints, Bank's Fraud/Risk Monitoring Engine
 
 **Key Features**:
 - High-availability Kubernetes cluster
@@ -57,7 +57,7 @@ This directory contains comprehensive PlantUML technology architecture diagrams 
 - 🎭 **Staging Environment**: Staging Kubernetes, Full Data Replication, UAT Testing
 - 🏭 **Production Environment**: Production Kubernetes, High Availability, Security, Monitoring
 - 🚨 **Disaster Recovery**: DR Site, Data Replication, Backup & Recovery, Failover Procedures
-- 🌍 **External Systems**: Clearing Systems, Third Party APIs, Webhook Endpoints, Notifications
+- 🌍 **External Systems**: Clearing Systems, Third Party APIs, Webhook Endpoints, Notifications, Bank's Fraud/Risk Monitoring Engine
 
 **Key Features**:
 - Complete CI/CD pipeline with automation
@@ -77,7 +77,7 @@ This directory contains comprehensive PlantUML technology architecture diagrams 
 - 📨 **Message Security**: Message Encryption, Digital Signatures, Message Integrity, Non-Repudiation
 - 🏗️ **Infrastructure Security**: Container Security, Image Scanning, Runtime Security, Secrets Management
 - 📊 **Monitoring & Compliance**: Security Monitoring, Threat Detection, Incident Response, Compliance
-- 🌍 **External Security**: Clearing System Security, Third Party Security, Webhook Security
+- 🌍 **External Security**: Clearing System Security, Third Party Security, Webhook Security, Bank's Fraud Engine Security
 
 **Key Features**:
 - Defense-in-depth security strategy
@@ -99,7 +99,7 @@ This directory contains comprehensive PlantUML technology architecture diagrams 
 - 📈 **Visualization**: Grafana, Dashboards, Alerts, Custom Dashboards, Business Dashboards
 - 🚨 **Alerting**: Alert Manager, Alert Rules, Alert Routing, Alert Grouping, Notifications
 - 📢 **Notification**: Email, Slack, PagerDuty, Webhook, SMS, Teams Notifications
-- 🌍 **External Monitoring**: Uptime Monitoring, Synthetic Monitoring, Performance Monitoring
+- 🌍 **External Monitoring**: Uptime Monitoring, Synthetic Monitoring, Performance Monitoring, Bank's Fraud Engine Monitoring
 
 **Key Features**:
 - Complete observability stack
@@ -136,7 +136,7 @@ This directory contains comprehensive PlantUML technology architecture diagrams 
 - 🌐 **API Gateway Layer**: Spring Cloud Gateway, Rate Limiting, Authentication, Authorization
 - 🔧 **Service Layer**: Middleware Service, Core Banking Service, Notification Service, Configuration
 - 📨 **Message Processing**: Kafka Producer, Consumer, Message Router, Transformer, Validator
-- 🌍 **External System Integration**: Clearing System Adapter, Third Party Adapter, Webhook Adapter
+- 🌍 **External System Integration**: Clearing System Adapter, Third Party Adapter, Webhook Adapter, Bank's Fraud Engine Adapter
 - 🔄 **Protocol Adapters**: REST API, SOAP API, FTP/SFTP, Message Queue, Database, File Adapters
 - 🔄 **Data Transformation**: JSON, XML, CSV, ISO 20022, Custom Transformers, Schema Validation
 - 🎯 **Integration Patterns**: Request-Response, Publish-Subscribe, Message Queue, Event Sourcing

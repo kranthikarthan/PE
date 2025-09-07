@@ -129,6 +129,8 @@ plantuml -tsvg *.puml
 - ISO 20022 Service
 - Message Processing Service
 - Routing Service
+- Fraud Risk Monitoring Service
+- Fraud API Toggle Service
 
 ### Authentication Services
 - Auth Service
@@ -147,6 +149,8 @@ plantuml -tsvg *.puml
 - Webhook Service
 - Kafka Producer
 - Kafka Consumer
+- External Fraud API Service
+- Bank's Fraud Engine Integration
 
 ### Infrastructure Services
 - Database Service
@@ -177,6 +181,7 @@ plantuml -tsvg *.puml
 - Payment Schemes
 - Regulatory Systems
 - Third-party APIs
+- Bank's Fraud/Risk Monitoring Engine
 
 ## Key Features Illustrated
 

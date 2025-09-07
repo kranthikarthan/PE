@@ -91,6 +91,8 @@ plantuml -tsvg *.puml
 - Payment processing (PAIN.001 to PAIN.002)
 - ISO 20022 message handling
 - Clearing system integration
+- Fraud risk assessment and monitoring
+- Dynamic fraud API toggle management
 
 ### Security Flows
 - Authentication and authorization
@@ -141,6 +143,8 @@ plantuml -tsvg *.puml
 - Webhook delivery
 - Kafka message queuing
 - Error handling and retry
+- Fraud risk assessment integration
+- Dynamic fraud API toggle checks
 
 ## Customization
 

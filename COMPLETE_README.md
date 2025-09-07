@@ -33,6 +33,8 @@ The Payment Engine is a **complete, enterprise-grade, multi-tenant banking platf
 - **Role-Based Access Control**: Granular permission management
 - **Audit Trails**: Comprehensive logging and compliance tracking
 - **Azure Key Vault**: Secure secrets management
+- **Real-Time Fraud Detection**: Integration with bank's fraud/risk monitoring engine
+- **Dynamic Fraud API Control**: Enable/disable fraud checks at multiple levels
 
 ### **📊 Comprehensive Monitoring**
 - **Multi-Tenant Dashboards**: Per-tenant monitoring and alerting
@@ -40,6 +42,8 @@ The Payment Engine is a **complete, enterprise-grade, multi-tenant banking platf
 - **Performance Metrics**: Real-time performance and resource usage
 - **Security Monitoring**: Fraud detection and security event correlation
 - **Cost Tracking**: Per-tenant resource usage for billing
+- **Fraud Risk Monitoring**: Real-time fraud assessment and decision tracking
+- **Fraud API Toggle Monitoring**: Dynamic fraud API control monitoring
 
 ## 🏗️ **Architecture**
 

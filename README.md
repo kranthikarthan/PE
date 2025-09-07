@@ -30,6 +30,7 @@ A comprehensive payment engine designed for seamless integration within a bank's
 - **Purpose**: Transaction processing, account management
 - **Features**: Multi-account support, transaction validation, balance management
 - **Integration**: PostgreSQL persistence, Kafka messaging
+- **Fraud Detection**: Real-time fraud risk assessment and monitoring
 
 ### API Gateway
 - **Technology**: Spring Boot Gateway
@@ -59,6 +60,8 @@ A comprehensive payment engine designed for seamless integration within a bank's
 - TLS/SSL encryption
 - Role-Based Access Control (RBAC)
 - Regular security audits
+- Real-time fraud detection and risk assessment
+- Dynamic fraud API toggle management
 
 ### Monitoring & Observability
 - Azure Monitor and Application Insights

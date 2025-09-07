@@ -116,7 +116,25 @@ This directory contains comprehensive PlantUML Entity Relationship Diagrams (ERD
 - Approval workflows
 - Environment-specific configurations
 
-### **6. Complete Database Schema** (`06-complete-database-schema.puml`)
+### **6. Fraud Risk Monitoring** (`06-fraud-risk-monitoring.puml`)
+**Purpose**: Fraud risk monitoring and assessment entities
+**Coverage**:
+- 🛡️ **Fraud Risk Configurations**: Fraud monitoring configuration management
+- 📊 **Fraud Risk Assessments**: Fraud assessment results and decisions
+- 🔄 **Fraud API Toggle Configurations**: Dynamic fraud API enable/disable settings
+- 🎯 **Risk Rules**: Risk assessment rules and criteria
+- 📋 **Decision Criteria**: Fraud decision making criteria
+- 🚨 **Alerting Configurations**: Fraud alerting and notification settings
+
+**Key Features**:
+- Multi-level fraud configuration (tenant, payment type, local instrument, clearing system)
+- Real-time fraud risk assessment
+- Dynamic fraud API toggle management
+- Priority-based configuration resolution
+- Comprehensive audit trails
+- Integration with bank's fraud engine
+
+### **7. Complete Database Schema** (`07-complete-database-schema.puml`)
 **Purpose**: Complete database schema overview with all entities
 **Coverage**:
 - 🏗️ **Complete Entity Model**: All database entities in one view
@@ -232,6 +250,12 @@ This directory contains comprehensive PlantUML Entity Relationship Diagrams (ERD
 - **Feature Flags**: Feature management
 - **Templates**: Reusable configurations
 - **History**: Change tracking
+
+### **Fraud Risk Entities**
+- **Fraud Risk Configurations**: Fraud monitoring settings
+- **Fraud Risk Assessments**: Assessment results and decisions
+- **Fraud API Toggle Configurations**: Dynamic fraud API control
+- **Risk Rules**: Risk assessment criteria
 
 ## 🚀 **Usage Instructions**
 
