@@ -1,8 +1,8 @@
 -- Migration for Tenant Configuration Tables
 -- This migration creates tables for tenant configuration versioning and cloning
 
--- Create tenant_configurations table
-CREATE TABLE tenant_configurations (
+-- Create tenant_configuration_versions table
+CREATE TABLE tenant_configuration_versions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id VARCHAR(50) NOT NULL,
     version VARCHAR(20) NOT NULL,
@@ -26,13 +26,13 @@ CREATE TABLE tenant_configurations (
     CONSTRAINT chk_tenant_config_environment CHECK (environment IN ('DEVELOPMENT', 'INTEGRATION', 'USER_ACCEPTANCE', 'PRODUCTION'))
 );
 
--- Create indexes for tenant_configurations
-CREATE INDEX idx_tenant_config_tenant_id ON tenant_configurations(tenant_id);
-CREATE INDEX idx_tenant_config_version ON tenant_configurations(version);
-CREATE INDEX idx_tenant_config_active ON tenant_configurations(is_active);
-CREATE INDEX idx_tenant_config_created_at ON tenant_configurations(created_at);
-CREATE INDEX idx_tenant_config_environment ON tenant_configurations(environment);
-CREATE INDEX idx_tenant_config_source_tenant ON tenant_configurations(source_tenant_id);
+-- Create indexes for tenant_configuration_versions
+CREATE INDEX idx_tenant_config_tenant_id ON tenant_configuration_versions(tenant_id);
+CREATE INDEX idx_tenant_config_version ON tenant_configuration_versions(version);
+CREATE INDEX idx_tenant_config_active ON tenant_configuration_versions(is_active);
+CREATE INDEX idx_tenant_config_created_at ON tenant_configuration_versions(created_at);
+CREATE INDEX idx_tenant_config_environment ON tenant_configuration_versions(environment);
+CREATE INDEX idx_tenant_config_source_tenant ON tenant_configuration_versions(source_tenant_id);
 
 -- Create tenant_configuration_data table for storing configuration key-value pairs
 CREATE TABLE tenant_configuration_data (
@@ -41,7 +41,7 @@ CREATE TABLE tenant_configuration_data (
     config_value TEXT,
     
     PRIMARY KEY (tenant_configuration_id, config_key),
-    FOREIGN KEY (tenant_configuration_id) REFERENCES tenant_configurations(id) ON DELETE CASCADE
+    FOREIGN KEY (tenant_configuration_id) REFERENCES tenant_configuration_versions(id) ON DELETE CASCADE
 );
 
 -- Create index for tenant_configuration_data
@@ -54,7 +54,7 @@ CREATE TABLE tenant_configuration_metadata (
     metadata_value TEXT,
     
     PRIMARY KEY (tenant_configuration_id, metadata_key),
-    FOREIGN KEY (tenant_configuration_id) REFERENCES tenant_configurations(id) ON DELETE CASCADE
+    FOREIGN KEY (tenant_configuration_id) REFERENCES tenant_configuration_versions(id) ON DELETE CASCADE
 );
 
 -- Create index for tenant_configuration_metadata
@@ -194,7 +194,7 @@ CREATE TRIGGER update_tenant_templates_updated_at
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert sample data for testing
-INSERT INTO tenant_configurations (
+INSERT INTO tenant_configuration_versions (
     tenant_id, version, name, description, is_active, environment, 
     created_by, updated_by, change_log
 ) VALUES 
@@ -221,7 +221,7 @@ SELECT
     tc.id,
     config_data.key,
     config_data.value
-FROM tenant_configurations tc
+FROM tenant_configuration_versions tc
 CROSS JOIN (
     VALUES 
         ('tenant.id', 'tenant-001'),
@@ -241,7 +241,7 @@ SELECT
     tc.id,
     metadata_data.key,
     metadata_data.value
-FROM tenant_configurations tc
+FROM tenant_configuration_versions tc
 CROSS JOIN (
     VALUES 
         ('created.from', 'manual'),
@@ -284,7 +284,7 @@ SELECT
     tc.updated_at,
     COUNT(tcd.config_key) as configuration_data_count,
     COUNT(tcm.metadata_key) as metadata_count
-FROM tenant_configurations tc
+FROM tenant_configuration_versions tc
 LEFT JOIN tenant_configuration_data tcd ON tc.id = tcd.tenant_configuration_id
 LEFT JOIN tenant_configuration_metadata tcm ON tc.id = tcm.tenant_configuration_id
 GROUP BY tc.id, tc.tenant_id, tc.version, tc.name, tc.description, tc.is_active, 
@@ -306,7 +306,7 @@ GROUP BY DATE_TRUNC('day', cloned_at), operation_type
 ORDER BY date DESC, operation_type;
 
 -- Add comments for documentation
-COMMENT ON TABLE tenant_configurations IS 'Stores tenant configuration versions with full versioning support';
+COMMENT ON TABLE tenant_configuration_versions IS 'Stores tenant configuration versions with full versioning support';
 COMMENT ON TABLE tenant_configuration_data IS 'Stores configuration key-value pairs for each tenant configuration';
 COMMENT ON TABLE tenant_configuration_metadata IS 'Stores metadata key-value pairs for each tenant configuration';
 COMMENT ON TABLE tenant_cloning_history IS 'Tracks all tenant cloning operations for audit and analytics';
@@ -315,7 +315,7 @@ COMMENT ON TABLE tenant_import_history IS 'Tracks tenant configuration import op
 COMMENT ON TABLE tenant_templates IS 'Stores reusable tenant configuration templates';
 COMMENT ON TABLE tenant_template_usage IS 'Tracks template usage for analytics and monitoring';
 
-COMMENT ON COLUMN tenant_configurations.environment IS 'Environment type: DEVELOPMENT, INTEGRATION, USER_ACCEPTANCE, PRODUCTION';
-COMMENT ON COLUMN tenant_configurations.source_tenant_id IS 'Source tenant ID for cloned configurations';
-COMMENT ON COLUMN tenant_configurations.source_version IS 'Source version for cloned configurations';
+COMMENT ON COLUMN tenant_configuration_versions.environment IS 'Environment type: DEVELOPMENT, INTEGRATION, USER_ACCEPTANCE, PRODUCTION';
+COMMENT ON COLUMN tenant_configuration_versions.source_tenant_id IS 'Source tenant ID for cloned configurations';
+COMMENT ON COLUMN tenant_configuration_versions.source_version IS 'Source version for cloned configurations';
 COMMENT ON COLUMN tenant_cloning_history.operation_type IS 'Type of operation: CLONE, ROLLBACK, TEMPLATE_CREATE, TEMPLATE_APPLY';

@@ -13,7 +13,7 @@ import java.util.UUID;
  * Supports versioning and migration of tenant configurations
  */
 @Entity
-@Table(name = "tenant_configurations", indexes = {
+@Table(name = "tenant_configuration_versions", indexes = {
     @Index(name = "idx_tenant_config_tenant_id", columnList = "tenantId"),
     @Index(name = "idx_tenant_config_version", columnList = "version"),
     @Index(name = "idx_tenant_config_active", columnList = "isActive"),
