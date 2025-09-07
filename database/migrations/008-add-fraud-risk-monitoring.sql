@@ -1,5 +1,6 @@
 -- Migration: Add Fraud/Risk Monitoring System
 -- Description: Creates tables for fraud/risk monitoring configurations and assessments
+--              Integrates with bank's own fraud/risk monitoring engine
 -- Version: 008
 -- Date: 2024-01-15
 
@@ -13,7 +14,7 @@ CREATE TABLE IF NOT EXISTS payment_engine.fraud_risk_configurations (
     clearing_system_code VARCHAR(50),
     payment_source VARCHAR(20) NOT NULL CHECK (payment_source IN ('BANK_CLIENT', 'CLEARING_SYSTEM', 'BOTH')),
     risk_assessment_type VARCHAR(50) NOT NULL CHECK (risk_assessment_type IN ('REAL_TIME', 'BATCH', 'HYBRID', 'CUSTOM')),
-    external_api_config JSONB,
+    bank_fraud_api_config JSONB,
     risk_rules JSONB,
     decision_criteria JSONB,
     thresholds JSONB,
@@ -156,7 +157,7 @@ INSERT INTO payment_engine.fraud_risk_configurations (
     local_instrumentation_code,
     payment_source,
     risk_assessment_type,
-    external_api_config,
+    bank_fraud_api_config,
     risk_rules,
     decision_criteria,
     thresholds,
@@ -181,24 +182,28 @@ INSERT INTO payment_engine.fraud_risk_configurations (
     'BANK_CLIENT',
     'REAL_TIME',
     '{
-        "apiName": "FICO_FALCON",
-        "apiUrl": "https://api.fico.com/falcon/v1/assess",
+        "apiName": "BANK_FRAUD_ENGINE",
+        "apiUrl": "https://bank-fraud-engine.internal.com/api/v1/assess",
         "httpMethod": "POST",
         "headers": {
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            "Accept": "application/json",
+            "X-Service-Name": "PaymentEngine"
         },
         "authentication": {
             "type": "API_KEY",
-            "apiKey": "fico-api-key-123",
+            "apiKey": "bank-fraud-api-key-123",
             "apiKeyHeader": "X-API-Key"
         },
         "requestTemplate": {
             "transactionId": "${transactionReference}",
             "amount": "${amount}",
             "currency": "${currency}",
-            "accountNumber": "${fromAccountNumber}",
-            "beneficiaryAccount": "${toAccountNumber}"
+            "fromAccount": "${fromAccountNumber}",
+            "toAccount": "${toAccountNumber}",
+            "customerId": "${customerId}",
+            "paymentType": "${paymentType}",
+            "tenantId": "${tenantId}"
         }
     }',
     '{
@@ -273,7 +278,7 @@ INSERT INTO payment_engine.fraud_risk_configurations (
     '{
         "decision": "MANUAL_REVIEW",
         "riskLevel": "MEDIUM",
-        "reason": "External API unavailable"
+        "reason": "Bank''s fraud engine unavailable"
     }',
     '{
         "enabled": true,
@@ -284,12 +289,13 @@ INSERT INTO payment_engine.fraud_risk_configurations (
         "enabled": true,
         "highRiskAlerts": true,
         "criticalRiskAlerts": true,
-        "apiFailureAlerts": true
+        "apiFailureAlerts": true,
+        "bankFraudEngineAlerts": true
     }',
     true,
     1,
     '1.0',
-    'Default fraud/risk assessment configuration for bank client payments',
+    'Default fraud/risk assessment configuration for bank client payments using bank''s own fraud engine',
     'system',
     'system'
 ),
@@ -301,26 +307,29 @@ INSERT INTO payment_engine.fraud_risk_configurations (
     'CLEARING_SYSTEM',
     'REAL_TIME',
     '{
-        "apiName": "SAS_FRAUD_MANAGEMENT",
-        "apiUrl": "https://api.sas.com/fraud/v1/assess",
+        "apiName": "BANK_FRAUD_ENGINE",
+        "apiUrl": "https://bank-fraud-engine.internal.com/api/v1/assess",
         "httpMethod": "POST",
         "headers": {
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            "Accept": "application/json",
+            "X-Service-Name": "PaymentEngine"
         },
         "authentication": {
-            "type": "BEARER_TOKEN",
-            "bearerToken": "sas-bearer-token-456"
+            "type": "API_KEY",
+            "apiKey": "bank-fraud-api-key-123",
+            "apiKeyHeader": "X-API-Key"
         },
         "requestTemplate": {
             "transactionId": "${transactionReference}",
             "amount": "${amount}",
             "currency": "${currency}",
+            "fromAccount": "${fromAccountNumber}",
+            "toAccount": "${toAccountNumber}",
             "customerId": "${customerId}",
-            "accountNumber": "${fromAccountNumber}",
-            "beneficiaryAccount": "${toAccountNumber}",
             "paymentType": "${paymentType}",
-            "clearingSystem": "${clearingSystemCode}"
+            "tenantId": "${tenantId}",
+            "clearingSystemCode": "${clearingSystemCode}"
         }
     }',
     '{
@@ -395,7 +404,7 @@ INSERT INTO payment_engine.fraud_risk_configurations (
     '{
         "decision": "MANUAL_REVIEW",
         "riskLevel": "HIGH",
-        "reason": "External API unavailable"
+        "reason": "Bank''s fraud engine unavailable"
     }',
     '{
         "enabled": true,
@@ -406,12 +415,13 @@ INSERT INTO payment_engine.fraud_risk_configurations (
         "enabled": true,
         "highRiskAlerts": true,
         "criticalRiskAlerts": true,
-        "apiFailureAlerts": true
+        "apiFailureAlerts": true,
+        "bankFraudEngineAlerts": true
     }',
     true,
     1,
     '1.0',
-    'Default fraud/risk assessment configuration for clearing system payments',
+    'Default fraud/risk assessment configuration for clearing system payments using bank''s own fraud engine',
     'system',
     'system'
 );
@@ -513,14 +523,14 @@ GRANT SELECT ON payment_engine.fraud_risk_assessments_pending_review TO payment_
 GRANT SELECT ON payment_engine.fraud_risk_assessments_high_risk TO payment_engine_user;
 
 -- Add comments
-COMMENT ON TABLE payment_engine.fraud_risk_configurations IS 'Configuration for fraud/risk monitoring and assessment';
-COMMENT ON TABLE payment_engine.fraud_risk_assessments IS 'Results of fraud/risk assessments performed on payments';
+COMMENT ON TABLE payment_engine.fraud_risk_configurations IS 'Configuration for fraud/risk monitoring and assessment with bank''s own fraud engine integration';
+COMMENT ON TABLE payment_engine.fraud_risk_assessments IS 'Results of fraud/risk assessments performed on payments using bank''s fraud engine';
 
 COMMENT ON COLUMN payment_engine.fraud_risk_configurations.configuration_name IS 'Unique name for the fraud/risk configuration';
 COMMENT ON COLUMN payment_engine.fraud_risk_configurations.tenant_id IS 'Tenant identifier for multi-tenancy';
 COMMENT ON COLUMN payment_engine.fraud_risk_configurations.payment_source IS 'Source of payment: BANK_CLIENT, CLEARING_SYSTEM, or BOTH';
 COMMENT ON COLUMN payment_engine.fraud_risk_configurations.risk_assessment_type IS 'Type of risk assessment: REAL_TIME, BATCH, HYBRID, or CUSTOM';
-COMMENT ON COLUMN payment_engine.fraud_risk_configurations.external_api_config IS 'Configuration for external fraud API integration';
+COMMENT ON COLUMN payment_engine.fraud_risk_configurations.bank_fraud_api_config IS 'Configuration for bank''s own fraud/risk monitoring engine integration';
 COMMENT ON COLUMN payment_engine.fraud_risk_configurations.risk_rules IS 'Rules for risk evaluation and scoring';
 COMMENT ON COLUMN payment_engine.fraud_risk_configurations.decision_criteria IS 'Criteria for automatic decision making';
 COMMENT ON COLUMN payment_engine.fraud_risk_configurations.thresholds IS 'Risk score thresholds for different decisions';
@@ -531,10 +541,10 @@ COMMENT ON COLUMN payment_engine.fraud_risk_assessments.transaction_reference IS
 COMMENT ON COLUMN payment_engine.fraud_risk_assessments.risk_score IS 'Calculated risk score (0.0 to 1.0)';
 COMMENT ON COLUMN payment_engine.fraud_risk_assessments.risk_level IS 'Risk level: LOW, MEDIUM, HIGH, or CRITICAL';
 COMMENT ON COLUMN payment_engine.fraud_risk_assessments.decision IS 'Final decision: APPROVE, REJECT, MANUAL_REVIEW, HOLD, or ESCALATE';
-COMMENT ON COLUMN payment_engine.fraud_risk_assessments.external_api_request IS 'Request sent to external fraud API';
-COMMENT ON COLUMN payment_engine.fraud_risk_assessments.external_api_response IS 'Response received from external fraud API';
+COMMENT ON COLUMN payment_engine.fraud_risk_assessments.external_api_request IS 'Request sent to bank''s fraud/risk monitoring engine';
+COMMENT ON COLUMN payment_engine.fraud_risk_assessments.external_api_response IS 'Response received from bank''s fraud/risk monitoring engine';
 COMMENT ON COLUMN payment_engine.fraud_risk_assessments.risk_factors IS 'Individual risk factors and their scores';
 COMMENT ON COLUMN payment_engine.fraud_risk_assessments.processing_time_ms IS 'Total time taken to complete the assessment';
-COMMENT ON COLUMN payment_engine.fraud_risk_assessments.external_api_response_time_ms IS 'Time taken for external API call';
+COMMENT ON COLUMN payment_engine.fraud_risk_assessments.external_api_response_time_ms IS 'Time taken for bank''s fraud/risk monitoring engine API call';
 COMMENT ON COLUMN payment_engine.fraud_risk_assessments.status IS 'Assessment status: PENDING, IN_PROGRESS, COMPLETED, FAILED, ERROR, TIMEOUT, or CANCELLED';
 COMMENT ON COLUMN payment_engine.fraud_risk_assessments.expires_at IS 'When the assessment expires (for caching)';

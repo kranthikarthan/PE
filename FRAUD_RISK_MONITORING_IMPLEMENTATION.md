@@ -1,8 +1,8 @@
-# Fraud/Risk Monitoring System Implementation
+# Bank's Fraud/Risk Monitoring System Integration
 
 ## Overview
 
-This document describes the comprehensive fraud/risk monitoring system that has been implemented to provide real-time fraud detection and risk assessment capabilities for the payment engine. The system integrates with external fraud APIs and provides configurable risk assessment rules, decision criteria, and alerting mechanisms.
+This document describes the comprehensive fraud/risk monitoring system that has been implemented to integrate with the bank's own fraud/risk monitoring engine. The system provides real-time fraud detection and risk assessment capabilities for the payment engine by calling the bank's internal fraud engine API and enforcing decisions based on its responses.
 
 ## Key Features
 
@@ -12,17 +12,16 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - **Multiple risk assessment types** (Real-time, Batch, Hybrid, Custom)
 - **Priority-based configuration application** for complex scenarios
 
-### 2. **External Fraud API Integration**
-- **Multiple fraud API providers** supported:
-  - FICO Falcon Fraud Manager
-  - SAS Fraud Management
-  - Experian Fraud Detection
-  - ThreatMetrix Digital Identity
-  - Forter Fraud Prevention
-  - Signifyd Fraud Protection
-- **Configurable authentication** (API Key, Bearer Token, Basic Auth, Custom)
-- **Request/response transformation** for different API formats
+### 2. **Bank's Fraud Engine Integration**
+- **Single, configurable integration** with the bank's own fraud/risk monitoring engine
+- **Dynamic API configuration** including:
+  - API endpoint URL and HTTP method
+  - Authentication mechanisms (API Key, Basic Auth, Bearer Token, Custom Headers)
+  - Custom request headers and payload templates
+  - Timeout and retry configurations
+- **Request/response transformation** for the bank's API format
 - **Circuit breaker and retry mechanisms** for resilience
+- **Connectivity testing** and health monitoring
 
 ### 3. **Advanced Risk Assessment Engine**
 - **Comprehensive risk rules**:
@@ -35,7 +34,7 @@ This document describes the comprehensive fraud/risk monitoring system that has 
   - Pattern-based rules (suspicious references, descriptions)
 - **Dynamic risk scoring** with configurable thresholds
 - **Decision criteria evaluation** for automatic decisions
-- **Fallback mechanisms** when external APIs fail
+- **Fallback mechanisms** when the bank's fraud engine is unavailable
 
 ### 4. **Real-time Monitoring and Alerting**
 - **Pattern detection** for various fraud types:
@@ -88,10 +87,10 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - Statistics and metrics
 
 #### ExternalFraudApiService
-- External fraud API integration
-- Request/response transformation
-- API connectivity testing
-- Multiple provider support
+- Bank's fraud/risk monitoring engine integration
+- Request/response transformation for the bank's API
+- API connectivity testing and health monitoring
+- Authentication and security handling
 
 #### RiskAssessmentEngine
 - Risk rule evaluation
@@ -141,7 +140,7 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - clearing_system_code (VARCHAR(50))
 - payment_source (ENUM: BANK_CLIENT, CLEARING_SYSTEM, BOTH)
 - risk_assessment_type (ENUM: REAL_TIME, BATCH, HYBRID, CUSTOM)
-- external_api_config (JSONB)
+- bank_fraud_api_config (JSONB)
 - risk_rules (JSONB)
 - decision_criteria (JSONB)
 - thresholds (JSONB)
@@ -212,7 +211,7 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - `POST /api/v1/fraud-risk/configurations` - Create configuration
 - `PUT /api/v1/fraud-risk/configurations/{id}` - Update configuration
 - `DELETE /api/v1/fraud-risk/configurations/{id}` - Delete configuration
-- `POST /api/v1/fraud-risk/configurations/{id}/test-api` - Test API connectivity
+- `POST /api/v1/fraud-risk/configurations/{id}/test-api` - Test bank's fraud API connectivity
 
 ### Assessment Management
 - `GET /api/v1/fraud-risk/assessments` - List assessments
@@ -235,9 +234,13 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 ### FraudRiskConfiguration Component
 - **Tabbed interface** for configurations, assessments, and statistics
 - **Configuration management** with form validation
+- **Bank's fraud API configuration** with dedicated dialog for:
+  - API endpoint and authentication settings
+  - Custom headers and request templates
+  - Timeout and retry configurations
 - **Real-time assessment monitoring** with status indicators
 - **Statistics dashboard** with key metrics
-- **API testing capabilities** for external fraud APIs
+- **API testing capabilities** for the bank's fraud engine
 - **Alert management** and manual review workflows
 
 ### Key Features
@@ -255,11 +258,12 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - Automatic decision enforcement based on assessment results
 - Transaction repair system for failed assessments
 
-### 2. **External Fraud APIs**
-- Configurable integration with multiple providers
-- Request/response transformation for different formats
+### 2. **Bank's Fraud Engine API**
+- Configurable integration with the bank's own fraud/risk monitoring engine
+- Request/response transformation for the bank's API format
 - Circuit breaker and retry mechanisms
 - Fallback configurations for API failures
+- Dynamic authentication and header management
 
 ### 3. **Monitoring and Alerting**
 - Real-time pattern detection
@@ -278,12 +282,12 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 ### 1. **Authentication and Authorization**
 - Role-based access control for all endpoints
 - Tenant isolation for multi-tenant environments
-- API key management for external fraud APIs
-- Secure credential storage
+- API key management for the bank's fraud engine
+- Secure credential storage for authentication details
 
 ### 2. **Data Protection**
-- Encryption of sensitive data
-- Audit logging for all operations
+- Encryption of sensitive data including bank's fraud API credentials
+- Audit logging for all operations and API calls
 - Data retention policies
 - GDPR compliance considerations
 
@@ -316,7 +320,7 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 ## Deployment Considerations
 
 ### 1. **Environment Configuration**
-- External fraud API credentials
+- Bank's fraud engine API credentials and endpoints
 - Database connection settings
 - Alerting channel configurations
 - Monitoring and logging settings
@@ -348,15 +352,15 @@ This document describes the comprehensive fraud/risk monitoring system that has 
 - Business intelligence integration
 
 ### 3. **Enhanced Integration**
-- Additional fraud API providers
-- Real-time data feeds
-- Third-party data sources
-- Blockchain integration
+- Enhanced bank's fraud engine API features
+- Real-time data feeds from internal systems
+- Additional internal data sources
+- Advanced fraud detection algorithms
 
 ## Conclusion
 
-The fraud/risk monitoring system provides a comprehensive solution for real-time fraud detection and risk assessment in the payment engine. With its configurable rules, external API integration, advanced monitoring capabilities, and seamless payment processing integration, it offers a robust foundation for fraud prevention and risk management.
+The bank's fraud/risk monitoring system integration provides a comprehensive solution for real-time fraud detection and risk assessment in the payment engine by leveraging the bank's own fraud/risk monitoring engine. With its configurable API integration, advanced monitoring capabilities, and seamless payment processing integration, it offers a robust foundation for fraud prevention and risk management that aligns with the bank's existing fraud detection infrastructure.
 
-The system is designed to be scalable, maintainable, and extensible, with proper security considerations and performance optimizations. The React frontend provides an intuitive interface for configuration management and monitoring, while the backend services ensure reliable and efficient fraud assessment operations.
+The system is designed to be scalable, maintainable, and extensible, with proper security considerations and performance optimizations. The React frontend provides an intuitive interface for configuring the bank's fraud API settings and monitoring assessment results, while the backend services ensure reliable and efficient fraud assessment operations by calling the bank's internal fraud engine.
 
-This implementation establishes a solid foundation for fraud prevention and risk management, with the flexibility to adapt to changing fraud patterns and business requirements.
+This implementation establishes a solid foundation for fraud prevention and risk management that integrates seamlessly with the bank's existing fraud detection capabilities, providing the flexibility to adapt to changing fraud patterns and business requirements while maintaining consistency with the bank's fraud detection policies and procedures.

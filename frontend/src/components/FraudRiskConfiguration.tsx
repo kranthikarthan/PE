@@ -73,7 +73,7 @@ interface FraudRiskConfiguration {
   clearingSystemCode?: string;
   paymentSource: 'BANK_CLIENT' | 'CLEARING_SYSTEM' | 'BOTH';
   riskAssessmentType: 'REAL_TIME' | 'BATCH' | 'HYBRID' | 'CUSTOM';
-  externalApiConfig?: any;
+  bankFraudApiConfig?: BankFraudApiConfig;
   riskRules?: any;
   decisionCriteria?: any;
   thresholds?: any;
@@ -91,6 +91,26 @@ interface FraudRiskConfiguration {
   updatedAt?: string;
   createdBy?: string;
   updatedBy?: string;
+}
+
+interface BankFraudApiConfig {
+  apiName: string;
+  apiUrl: string;
+  httpMethod?: string;
+  headers?: { [key: string]: string };
+  authentication?: {
+    type: 'API_KEY' | 'BASIC' | 'BEARER_TOKEN' | 'CUSTOM';
+    apiKey?: string;
+    apiKeyHeader?: string;
+    username?: string;
+    password?: string;
+    bearerToken?: string;
+    headers?: { [key: string]: string };
+  };
+  requestTemplate?: { [key: string]: any };
+  timeout?: number;
+  retries?: number;
+  enabled?: boolean;
 }
 
 interface FraudRiskAssessment {
@@ -164,6 +184,9 @@ const FraudRiskConfiguration: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
   const [expandedConfig, setExpandedConfig] = useState<string | false>(false);
   const [testingApi, setTestingApi] = useState<string | null>(null);
+  const [bankApiDialogOpen, setBankApiDialogOpen] = useState(false);
+  const [currentBankApiConfig, setCurrentBankApiConfig] = useState<BankFraudApiConfig | null>(null);
+  const [editingConfigId, setEditingConfigId] = useState<string | null>(null);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<FraudRiskConfiguration>({
     resolver: yupResolver(configurationSchema),
@@ -286,14 +309,64 @@ const FraudRiskConfiguration: React.FC = () => {
         method: 'POST'
       });
 
-      if (!response.ok) throw new Error('API test failed');
+      if (!response.ok) throw new Error('Bank\'s fraud API test failed');
 
       const result = await response.json();
-      setSuccess(`API test successful: ${result.message}`);
+      setSuccess(`Bank's fraud API test successful: ${result.message}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'API test failed');
+      setError(err instanceof Error ? err.message : 'Bank\'s fraud API test failed');
     } finally {
       setTestingApi(null);
+    }
+  };
+
+  // Handle configure bank API
+  const handleConfigureBankApi = (config: FraudRiskConfiguration) => {
+    setEditingConfigId(config.id || null);
+    setCurrentBankApiConfig(config.bankFraudApiConfig || {
+      apiName: '',
+      apiUrl: '',
+      httpMethod: 'POST',
+      headers: {},
+      authentication: {
+        type: 'API_KEY'
+      },
+      enabled: true
+    });
+    setBankApiDialogOpen(true);
+  };
+
+  // Handle save bank API config
+  const handleSaveBankApiConfig = async () => {
+    if (!editingConfigId || !currentBankApiConfig) return;
+
+    setLoading(true);
+    try {
+      const config = configurations.find(c => c.id === editingConfigId);
+      if (!config) throw new Error('Configuration not found');
+
+      const updatedConfig = {
+        ...config,
+        bankFraudApiConfig: currentBankApiConfig
+      };
+
+      const response = await fetch(`/api/v1/fraud-risk/configurations/${editingConfigId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedConfig)
+      });
+
+      if (!response.ok) throw new Error('Failed to update bank fraud API configuration');
+
+      setSuccess('Bank fraud API configuration updated successfully');
+      setBankApiDialogOpen(false);
+      setCurrentBankApiConfig(null);
+      setEditingConfigId(null);
+      loadConfigurations();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update bank fraud API configuration');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -357,7 +430,7 @@ const FraudRiskConfiguration: React.FC = () => {
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
         <SecurityIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-        Fraud/Risk Monitoring Configuration
+        Bank's Fraud/Risk Monitoring Configuration
       </Typography>
 
       <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} sx={{ mb: 3 }}>
@@ -369,7 +442,7 @@ const FraudRiskConfiguration: React.FC = () => {
       {/* Configurations Tab */}
       <TabPanel value={tabValue} index={0}>
         <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">Fraud/Risk Configurations</Typography>
+          <Typography variant="h6">Bank's Fraud/Risk Configurations</Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -427,10 +500,15 @@ const FraudRiskConfiguration: React.FC = () => {
                       <ViewIcon />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Test API">
+                  <Tooltip title="Configure Bank's Fraud API">
+                    <IconButton onClick={(e) => { e.stopPropagation(); handleConfigureBankApi(config); }}>
+                      <ApiIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Test Bank's Fraud API">
                     <IconButton 
                       onClick={(e) => { e.stopPropagation(); handleTestApi(config); }}
-                      disabled={testingApi === config.id}
+                      disabled={testingApi === config.id || !config.bankFraudApiConfig}
                     >
                       {testingApi === config.id ? <CircularProgress size={20} /> : <TestIcon />}
                     </IconButton>
@@ -471,7 +549,7 @@ const FraudRiskConfiguration: React.FC = () => {
                 <Grid item xs={12} md={6}>
                   <Typography variant="subtitle2" gutterBottom>Configuration Details</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    <strong>External API:</strong> {config.externalApiConfig?.apiName || 'None'}
+                    <strong>Bank's Fraud API:</strong> {config.bankFraudApiConfig?.apiName || 'Not Configured'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     <strong>Risk Rules:</strong> {config.riskRules ? 'Configured' : 'None'}
@@ -588,7 +666,7 @@ const FraudRiskConfiguration: React.FC = () => {
 
       {/* Statistics Tab */}
       <TabPanel value={tabValue} index={2}>
-        <Typography variant="h6" gutterBottom>Fraud/Risk Assessment Statistics</Typography>
+        <Typography variant="h6" gutterBottom>Bank's Fraud/Risk Assessment Statistics</Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} md={3}>
             <Card>
@@ -819,10 +897,10 @@ const FraudRiskConfiguration: React.FC = () => {
               
               <Divider sx={{ my: 2 }} />
               
-              <Typography variant="h6" gutterBottom>External API Configuration</Typography>
+              <Typography variant="h6" gutterBottom>Bank's Fraud API Configuration</Typography>
               <Box sx={{ bgcolor: 'grey.100', p: 2, borderRadius: 1 }}>
                 <pre style={{ margin: 0, fontSize: '12px' }}>
-                  {JSON.stringify(viewingConfig.externalApiConfig, null, 2)}
+                  {JSON.stringify(viewingConfig.bankFraudApiConfig, null, 2)}
                 </pre>
               </Box>
               
@@ -872,6 +950,263 @@ const FraudRiskConfiguration: React.FC = () => {
           {success}
         </Alert>
       </Snackbar>
+
+      {/* Bank Fraud API Configuration Dialog */}
+      <Dialog open={bankApiDialogOpen} onClose={() => setBankApiDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <ApiIcon sx={{ mr: 1 }} />
+            Configure Bank's Fraud/Risk Monitoring Engine
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {currentBankApiConfig && (
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="API Name"
+                  fullWidth
+                  value={currentBankApiConfig.apiName || ''}
+                  onChange={(e) => setCurrentBankApiConfig({
+                    ...currentBankApiConfig,
+                    apiName: e.target.value
+                  })}
+                  helperText="Name of your bank's fraud/risk monitoring engine"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="API URL"
+                  fullWidth
+                  value={currentBankApiConfig.apiUrl || ''}
+                  onChange={(e) => setCurrentBankApiConfig({
+                    ...currentBankApiConfig,
+                    apiUrl: e.target.value
+                  })}
+                  helperText="Base URL of your bank's fraud API"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>HTTP Method</InputLabel>
+                  <Select
+                    value={currentBankApiConfig.httpMethod || 'POST'}
+                    onChange={(e) => setCurrentBankApiConfig({
+                      ...currentBankApiConfig,
+                      httpMethod: e.target.value
+                    })}
+                    label="HTTP Method"
+                  >
+                    <MenuItem value="GET">GET</MenuItem>
+                    <MenuItem value="POST">POST</MenuItem>
+                    <MenuItem value="PUT">PUT</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Authentication Type</InputLabel>
+                  <Select
+                    value={currentBankApiConfig.authentication?.type || 'API_KEY'}
+                    onChange={(e) => setCurrentBankApiConfig({
+                      ...currentBankApiConfig,
+                      authentication: {
+                        ...currentBankApiConfig.authentication,
+                        type: e.target.value as 'API_KEY' | 'BASIC' | 'BEARER_TOKEN' | 'CUSTOM'
+                      }
+                    })}
+                    label="Authentication Type"
+                  >
+                    <MenuItem value="API_KEY">API Key</MenuItem>
+                    <MenuItem value="BASIC">Basic Auth</MenuItem>
+                    <MenuItem value="BEARER_TOKEN">Bearer Token</MenuItem>
+                    <MenuItem value="CUSTOM">Custom Headers</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Authentication Configuration */}
+              {currentBankApiConfig.authentication?.type === 'API_KEY' && (
+                <>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="API Key"
+                      fullWidth
+                      type="password"
+                      value={currentBankApiConfig.authentication.apiKey || ''}
+                      onChange={(e) => setCurrentBankApiConfig({
+                        ...currentBankApiConfig,
+                        authentication: {
+                          ...currentBankApiConfig.authentication!,
+                          apiKey: e.target.value
+                        }
+                      })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="API Key Header Name"
+                      fullWidth
+                      value={currentBankApiConfig.authentication.apiKeyHeader || 'X-API-Key'}
+                      onChange={(e) => setCurrentBankApiConfig({
+                        ...currentBankApiConfig,
+                        authentication: {
+                          ...currentBankApiConfig.authentication!,
+                          apiKeyHeader: e.target.value
+                        }
+                      })}
+                    />
+                  </Grid>
+                </>
+              )}
+
+              {currentBankApiConfig.authentication?.type === 'BASIC' && (
+                <>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Username"
+                      fullWidth
+                      value={currentBankApiConfig.authentication.username || ''}
+                      onChange={(e) => setCurrentBankApiConfig({
+                        ...currentBankApiConfig,
+                        authentication: {
+                          ...currentBankApiConfig.authentication!,
+                          username: e.target.value
+                        }
+                      })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Password"
+                      fullWidth
+                      type="password"
+                      value={currentBankApiConfig.authentication.password || ''}
+                      onChange={(e) => setCurrentBankApiConfig({
+                        ...currentBankApiConfig,
+                        authentication: {
+                          ...currentBankApiConfig.authentication!,
+                          password: e.target.value
+                        }
+                      })}
+                    />
+                  </Grid>
+                </>
+              )}
+
+              {currentBankApiConfig.authentication?.type === 'BEARER_TOKEN' && (
+                <Grid item xs={12}>
+                  <TextField
+                    label="Bearer Token"
+                    fullWidth
+                    type="password"
+                    value={currentBankApiConfig.authentication.bearerToken || ''}
+                    onChange={(e) => setCurrentBankApiConfig({
+                      ...currentBankApiConfig,
+                      authentication: {
+                        ...currentBankApiConfig.authentication!,
+                        bearerToken: e.target.value
+                      }
+                    })}
+                  />
+                </Grid>
+              )}
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Timeout (seconds)"
+                  fullWidth
+                  type="number"
+                  value={currentBankApiConfig.timeout || 30}
+                  onChange={(e) => setCurrentBankApiConfig({
+                    ...currentBankApiConfig,
+                    timeout: parseInt(e.target.value) || 30
+                  })}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Max Retries"
+                  fullWidth
+                  type="number"
+                  value={currentBankApiConfig.retries || 3}
+                  onChange={(e) => setCurrentBankApiConfig({
+                    ...currentBankApiConfig,
+                    retries: parseInt(e.target.value) || 3
+                  })}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>Custom Headers</Typography>
+                <TextField
+                  label="Headers (JSON format)"
+                  fullWidth
+                  multiline
+                  rows={3}
+                  value={JSON.stringify(currentBankApiConfig.headers || {}, null, 2)}
+                  onChange={(e) => {
+                    try {
+                      const headers = JSON.parse(e.target.value);
+                      setCurrentBankApiConfig({
+                        ...currentBankApiConfig,
+                        headers
+                      });
+                    } catch (err) {
+                      // Invalid JSON, ignore
+                    }
+                  }}
+                  helperText='Example: {"Content-Type": "application/json", "X-Custom-Header": "value"}'
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>Request Template</Typography>
+                <TextField
+                  label="Request Template (JSON format)"
+                  fullWidth
+                  multiline
+                  rows={6}
+                  value={JSON.stringify(currentBankApiConfig.requestTemplate || {}, null, 2)}
+                  onChange={(e) => {
+                    try {
+                      const requestTemplate = JSON.parse(e.target.value);
+                      setCurrentBankApiConfig({
+                        ...currentBankApiConfig,
+                        requestTemplate
+                      });
+                    } catch (err) {
+                      // Invalid JSON, ignore
+                    }
+                  }}
+                  helperText='Use placeholders like ${transactionReference}, ${amount}, ${currency}, etc.'
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={currentBankApiConfig.enabled !== false}
+                      onChange={(e) => setCurrentBankApiConfig({
+                        ...currentBankApiConfig,
+                        enabled: e.target.checked
+                      })}
+                    />
+                  }
+                  label="Enable Bank's Fraud API Integration"
+                />
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBankApiDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleSaveBankApiConfig} variant="contained" disabled={loading}>
+            {loading ? 'Saving...' : 'Save Configuration'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

@@ -5,42 +5,37 @@ import com.paymentengine.middleware.entity.FraudRiskAssessment;
 import java.util.Map;
 
 /**
- * Service interface for external fraud API integration
+ * Service interface for bank's fraud/risk monitoring engine integration
  */
 public interface ExternalFraudApiService {
     
     /**
-     * Build API request for external fraud service
+     * Build API request for bank's fraud/risk monitoring engine
      */
-    Map<String, Object> buildApiRequest(
-            Map<String, Object> apiConfig,
+    Map<String, Object> buildBankFraudApiRequest(
+            Map<String, Object> bankFraudApiConfig,
             Map<String, Object> paymentData,
             FraudRiskAssessment assessment);
     
     /**
-     * Call external fraud API
+     * Call bank's fraud/risk monitoring engine
      */
-    Map<String, Object> callExternalApi(
-            Map<String, Object> apiConfig,
+    Map<String, Object> callBankFraudApi(
+            Map<String, Object> bankFraudApiConfig,
             Map<String, Object> apiRequest);
     
     /**
-     * Validate external fraud API configuration
+     * Validate bank's fraud API configuration
      */
-    boolean validateApiConfig(Map<String, Object> apiConfig);
+    boolean validateBankFraudApiConfig(Map<String, Object> bankFraudApiConfig);
     
     /**
-     * Test external fraud API connectivity
+     * Test bank's fraud API connectivity
      */
-    boolean testApiConnectivity(Map<String, Object> apiConfig);
+    boolean testBankFraudApiConnectivity(Map<String, Object> bankFraudApiConfig);
     
     /**
-     * Get supported external fraud APIs
+     * Get bank's fraud API health status
      */
-    Map<String, Object> getSupportedApis();
-    
-    /**
-     * Get API health status
-     */
-    Map<String, Object> getApiHealthStatus(String apiName);
+    Map<String, Object> getBankFraudApiHealthStatus();
 }

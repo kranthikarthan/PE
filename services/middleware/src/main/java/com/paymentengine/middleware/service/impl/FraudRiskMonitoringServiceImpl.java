@@ -156,35 +156,35 @@ public class FraudRiskMonitoringServiceImpl implements FraudRiskMonitoringServic
                 assessment.setRiskFactors(riskFactors);
             }
             
-            // Call external fraud API if configured
-            if (config.hasExternalApiConfig()) {
+            // Call bank's fraud/risk monitoring engine if configured
+            if (config.hasBankFraudApiConfig()) {
                 long apiStartTime = System.currentTimeMillis();
                 
                 try {
-                    Map<String, Object> apiRequest = externalFraudApiService.buildApiRequest(
-                            config.getExternalApiConfig(), paymentData, assessment);
+                    Map<String, Object> apiRequest = externalFraudApiService.buildBankFraudApiRequest(
+                            config.getBankFraudApiConfig(), paymentData, assessment);
                     assessment.setExternalApiRequest(apiRequest);
                     
-                    Map<String, Object> apiResponse = externalFraudApiService.callExternalApi(
-                            config.getExternalApiConfig(), apiRequest);
+                    Map<String, Object> apiResponse = externalFraudApiService.callBankFraudApi(
+                            config.getBankFraudApiConfig(), apiRequest);
                     assessment.setExternalApiResponse(apiResponse);
                     
                     assessment.setExternalApiResponseTimeMs(System.currentTimeMillis() - apiStartTime);
-                    assessment.setExternalApiUsed((String) config.getExternalApiConfig().get("apiName"));
+                    assessment.setExternalApiUsed((String) config.getBankFraudApiConfig().get("apiName"));
                     
-                    // Process external API response
-                    processExternalApiResponse(assessment, apiResponse, config);
+                    // Process bank's fraud API response
+                    processBankFraudApiResponse(assessment, apiResponse, config);
                     
                 } catch (Exception e) {
-                    logger.error("Error calling external fraud API: {}", e.getMessage());
-                    assessment.setErrorMessage("External API call failed: " + e.getMessage());
+                    logger.error("Error calling bank's fraud/risk monitoring engine: {}", e.getMessage());
+                    assessment.setErrorMessage("Bank's fraud API call failed: " + e.getMessage());
                     
                     // Apply fallback configuration if available
                     if (config.getFallbackConfig() != null) {
                         applyFallbackConfiguration(assessment, config.getFallbackConfig());
                     } else {
                         assessment.setDecision(FraudRiskAssessment.Decision.MANUAL_REVIEW);
-                        assessment.setDecisionReason("External API failed and no fallback configured");
+                        assessment.setDecisionReason("Bank's fraud API failed and no fallback configured");
                     }
                 }
             }
@@ -230,9 +230,9 @@ public class FraudRiskMonitoringServiceImpl implements FraudRiskMonitoringServic
     }
     
     /**
-     * Process external API response
+     * Process bank's fraud API response
      */
-    private void processExternalApiResponse(
+    private void processBankFraudApiResponse(
             FraudRiskAssessment assessment,
             Map<String, Object> apiResponse,
             FraudRiskConfiguration config) {
@@ -275,8 +275,8 @@ public class FraudRiskMonitoringServiceImpl implements FraudRiskMonitoringServic
             }
             
         } catch (Exception e) {
-            logger.error("Error processing external API response: {}", e.getMessage(), e);
-            assessment.setErrorMessage("Failed to process external API response: " + e.getMessage());
+            logger.error("Error processing bank's fraud API response: {}", e.getMessage(), e);
+            assessment.setErrorMessage("Failed to process bank's fraud API response: " + e.getMessage());
         }
     }
     

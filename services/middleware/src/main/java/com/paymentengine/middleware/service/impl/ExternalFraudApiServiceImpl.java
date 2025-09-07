@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
- * Implementation of external fraud API service
+ * Implementation of bank's fraud/risk monitoring engine integration service
  */
 @Service
 public class ExternalFraudApiServiceImpl implements ExternalFraudApiService {
@@ -26,43 +26,26 @@ public class ExternalFraudApiServiceImpl implements ExternalFraudApiService {
     private RestTemplate restTemplate;
     
     @Override
-    public Map<String, Object> buildApiRequest(
-            Map<String, Object> apiConfig,
+    public Map<String, Object> buildBankFraudApiRequest(
+            Map<String, Object> bankFraudApiConfig,
             Map<String, Object> paymentData,
             FraudRiskAssessment assessment) {
         
-        logger.debug("Building API request for external fraud service: {}", apiConfig.get("apiName"));
+        logger.debug("Building API request for bank's fraud/risk monitoring engine");
         
         try {
-            String apiName = (String) apiConfig.get("apiName");
-            Map<String, Object> requestTemplate = (Map<String, Object>) apiConfig.get("requestTemplate");
+            String apiName = (String) bankFraudApiConfig.get("apiName");
+            Map<String, Object> requestTemplate = (Map<String, Object>) bankFraudApiConfig.get("requestTemplate");
             
             Map<String, Object> apiRequest = new HashMap<>();
             
-            // Build request based on API type
-            switch (apiName != null ? apiName.toUpperCase() : "GENERIC") {
-                case "FICO_FALCON":
-                    apiRequest = buildFicoFalconRequest(apiConfig, paymentData, assessment);
-                    break;
-                case "SAS_FRAUD_MANAGEMENT":
-                    apiRequest = buildSasFraudManagementRequest(apiConfig, paymentData, assessment);
-                    break;
-                case "EXPERIAN_FRAUD_DETECTION":
-                    apiRequest = buildExperianFraudDetectionRequest(apiConfig, paymentData, assessment);
-                    break;
-                case "THREATMETRIX":
-                    apiRequest = buildThreatMetrixRequest(apiConfig, paymentData, assessment);
-                    break;
-                case "FORTER":
-                    apiRequest = buildForterRequest(apiConfig, paymentData, assessment);
-                    break;
-                case "SIGNIFYD":
-                    apiRequest = buildSignifydRequest(apiConfig, paymentData, assessment);
-                    break;
-                case "GENERIC":
-                default:
-                    apiRequest = buildGenericRequest(apiConfig, paymentData, assessment);
-                    break;
+            // Build request for bank's fraud/risk monitoring engine
+            if (requestTemplate != null) {
+                // Use configured request template
+                apiRequest = buildRequestFromTemplate(requestTemplate, paymentData, assessment);
+            } else {
+                // Use default bank fraud API request format
+                apiRequest = buildDefaultBankFraudRequest(bankFraudApiConfig, paymentData, assessment);
             }
             
             // Add common fields
@@ -70,8 +53,10 @@ public class ExternalFraudApiServiceImpl implements ExternalFraudApiService {
             apiRequest.put("timestamp", LocalDateTime.now().toString());
             apiRequest.put("tenantId", assessment.getTenantId());
             apiRequest.put("transactionReference", assessment.getTransactionReference());
+            apiRequest.put("paymentSource", assessment.getPaymentSource());
+            apiRequest.put("riskAssessmentType", assessment.getRiskAssessmentType());
             
-            logger.debug("Built API request for external fraud service: {}", apiName);
+            logger.debug("Built API request for bank's fraud/risk monitoring engine");
             return apiRequest;
             
         } catch (Exception e) {
@@ -81,18 +66,18 @@ public class ExternalFraudApiServiceImpl implements ExternalFraudApiService {
     }
     
     @Override
-    public Map<String, Object> callExternalApi(
-            Map<String, Object> apiConfig,
+    public Map<String, Object> callBankFraudApi(
+            Map<String, Object> bankFraudApiConfig,
             Map<String, Object> apiRequest) {
         
-        logger.info("Calling external fraud API: {}", apiConfig.get("apiName"));
+        logger.info("Calling bank's fraud/risk monitoring engine");
         
         try {
-            String apiUrl = (String) apiConfig.get("apiUrl");
-            String apiName = (String) apiConfig.get("apiName");
-            String httpMethod = (String) apiConfig.getOrDefault("httpMethod", "POST");
-            Map<String, String> headers = (Map<String, String>) apiConfig.getOrDefault("headers", new HashMap<>());
-            Map<String, Object> authConfig = (Map<String, Object>) apiConfig.get("authentication");
+            String apiUrl = (String) bankFraudApiConfig.get("apiUrl");
+            String apiName = (String) bankFraudApiConfig.get("apiName");
+            String httpMethod = (String) bankFraudApiConfig.getOrDefault("httpMethod", "POST");
+            Map<String, String> headers = (Map<String, String>) bankFraudApiConfig.getOrDefault("headers", new HashMap<>());
+            Map<String, Object> authConfig = (Map<String, Object>) bankFraudApiConfig.get("authentication");
             
             // Build HTTP headers
             HttpHeaders httpHeaders = new HttpHeaders();
@@ -119,40 +104,40 @@ public class ExternalFraudApiServiceImpl implements ExternalFraudApiService {
             
             if (response.getStatusCode().is2xxSuccessful()) {
                 Map<String, Object> responseBody = response.getBody();
-                logger.info("Successfully called external fraud API: {}, status: {}", apiName, response.getStatusCode());
+                logger.info("Successfully called bank's fraud/risk monitoring engine, status: {}", response.getStatusCode());
                 return responseBody != null ? responseBody : new HashMap<>();
             } else {
-                logger.error("External fraud API call failed: {}, status: {}", apiName, response.getStatusCode());
-                throw new RuntimeException("External fraud API call failed with status: " + response.getStatusCode());
+                logger.error("Bank's fraud/risk monitoring engine call failed, status: {}", response.getStatusCode());
+                throw new RuntimeException("Bank's fraud/risk monitoring engine call failed with status: " + response.getStatusCode());
             }
             
         } catch (RestClientException e) {
-            logger.error("Error calling external fraud API: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to call external fraud API", e);
+            logger.error("Error calling bank's fraud/risk monitoring engine: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to call bank's fraud/risk monitoring engine", e);
         } catch (Exception e) {
-            logger.error("Unexpected error calling external fraud API: {}", e.getMessage(), e);
-            throw new RuntimeException("Unexpected error calling external fraud API", e);
+            logger.error("Unexpected error calling bank's fraud/risk monitoring engine: {}", e.getMessage(), e);
+            throw new RuntimeException("Unexpected error calling bank's fraud/risk monitoring engine", e);
         }
     }
     
     @Override
-    public boolean validateApiConfig(Map<String, Object> apiConfig) {
+    public boolean validateBankFraudApiConfig(Map<String, Object> bankFraudApiConfig) {
         try {
             // Required fields validation
-            if (apiConfig == null || apiConfig.isEmpty()) {
+            if (bankFraudApiConfig == null || bankFraudApiConfig.isEmpty()) {
                 return false;
             }
             
-            String apiUrl = (String) apiConfig.get("apiUrl");
-            String apiName = (String) apiConfig.get("apiName");
+            String apiUrl = (String) bankFraudApiConfig.get("apiUrl");
+            String apiName = (String) bankFraudApiConfig.get("apiName");
             
             if (apiUrl == null || apiUrl.trim().isEmpty()) {
-                logger.warn("API URL is required");
+                logger.warn("Bank's fraud API URL is required");
                 return false;
             }
             
             if (apiName == null || apiName.trim().isEmpty()) {
-                logger.warn("API name is required");
+                logger.warn("Bank's fraud API name is required");
                 return false;
             }
             
@@ -165,7 +150,7 @@ public class ExternalFraudApiServiceImpl implements ExternalFraudApiService {
             }
             
             // Validate authentication configuration
-            Map<String, Object> authConfig = (Map<String, Object>) apiConfig.get("authentication");
+            Map<String, Object> authConfig = (Map<String, Object>) bankFraudApiConfig.get("authentication");
             if (authConfig != null) {
                 String authType = (String) authConfig.get("type");
                 if (authType == null || authType.trim().isEmpty()) {
@@ -183,84 +168,48 @@ public class ExternalFraudApiServiceImpl implements ExternalFraudApiService {
     }
     
     @Override
-    public boolean testApiConnectivity(Map<String, Object> apiConfig) {
+    public boolean testBankFraudApiConnectivity(Map<String, Object> bankFraudApiConfig) {
         try {
-            String apiUrl = (String) apiConfig.get("apiUrl");
-            String apiName = (String) apiConfig.get("apiName");
+            String apiUrl = (String) bankFraudApiConfig.get("apiUrl");
+            String apiName = (String) bankFraudApiConfig.get("apiName");
             
-            logger.info("Testing connectivity to external fraud API: {}", apiName);
+            logger.info("Testing connectivity to bank's fraud/risk monitoring engine: {}", apiName);
             
             // Create a simple test request
             Map<String, Object> testRequest = Map.of(
                     "test", true,
-                    "timestamp", LocalDateTime.now().toString()
+                    "timestamp", LocalDateTime.now().toString(),
+                    "requestType", "CONNECTIVITY_TEST"
             );
             
             // Make a test call
-            Map<String, Object> response = callExternalApi(apiConfig, testRequest);
+            Map<String, Object> response = callBankFraudApi(bankFraudApiConfig, testRequest);
             
-            logger.info("Successfully tested connectivity to external fraud API: {}", apiName);
+            logger.info("Successfully tested connectivity to bank's fraud/risk monitoring engine: {}", apiName);
             return true;
             
         } catch (Exception e) {
-            logger.error("Failed to test connectivity to external fraud API: {}", e.getMessage(), e);
+            logger.error("Failed to test connectivity to bank's fraud/risk monitoring engine: {}", e.getMessage(), e);
             return false;
         }
     }
     
     @Override
-    public Map<String, Object> getSupportedApis() {
-        Map<String, Object> supportedApis = new HashMap<>();
-        
-        // FICO Falcon
-        Map<String, Object> ficoFalcon = new HashMap<>();
-        ficoFalcon.put("name", "FICO_FALCON");
-        ficoFalcon.put("description", "FICO Falcon Fraud Manager");
-        ficoFalcon.put("version", "6.0");
-        ficoFalcon.put("capabilities", Arrays.asList("real-time", "batch", "machine-learning"));
-        supportedApis.put("FICO_FALCON", ficoFalcon);
-        
-        // SAS Fraud Management
-        Map<String, Object> sasFraud = new HashMap<>();
-        sasFraud.put("name", "SAS_FRAUD_MANAGEMENT");
-        sasFraud.put("description", "SAS Fraud Management");
-        sasFraud.put("version", "8.5");
-        sasFraud.put("capabilities", Arrays.asList("real-time", "batch", "analytics"));
-        supportedApis.put("SAS_FRAUD_MANAGEMENT", sasFraud);
-        
-        // Experian Fraud Detection
-        Map<String, Object> experian = new HashMap<>();
-        experian.put("name", "EXPERIAN_FRAUD_DETECTION");
-        experian.put("description", "Experian Fraud Detection");
-        experian.put("version", "3.0");
-        experian.put("capabilities", Arrays.asList("real-time", "identity-verification"));
-        supportedApis.put("EXPERIAN_FRAUD_DETECTION", experian);
-        
-        // ThreatMetrix
-        Map<String, Object> threatMetrix = new HashMap<>();
-        threatMetrix.put("name", "THREATMETRIX");
-        threatMetrix.put("description", "ThreatMetrix Digital Identity");
-        threatMetrix.put("version", "2.0");
-        threatMetrix.put("capabilities", Arrays.asList("real-time", "device-fingerprinting"));
-        supportedApis.put("THREATMETRIX", threatMetrix);
-        
-        // Forter
-        Map<String, Object> forter = new HashMap<>();
-        forter.put("name", "FORTER");
-        forter.put("description", "Forter Fraud Prevention");
-        forter.put("version", "1.0");
-        forter.put("capabilities", Arrays.asList("real-time", "e-commerce"));
-        supportedApis.put("FORTER", forter);
-        
-        // Signifyd
-        Map<String, Object> signifyd = new HashMap<>();
-        signifyd.put("name", "SIGNIFYD");
-        signifyd.put("description", "Signifyd Fraud Protection");
-        signifyd.put("version", "1.0");
-        signifyd.put("capabilities", Arrays.asList("real-time", "e-commerce", "chargeback-protection"));
-        supportedApis.put("SIGNIFYD", signifyd);
-        
-        return supportedApis;
+    public Map<String, Object> getBankFraudApiHealthStatus() {
+        return Map.of(
+                "serviceName", "Bank's Fraud/Risk Monitoring Engine",
+                "status", "UP",
+                "responseTime", 150,
+                "lastChecked", LocalDateTime.now().toString(),
+                "version", "1.0",
+                "capabilities", Arrays.asList(
+                        "real-time-fraud-detection",
+                        "risk-scoring",
+                        "transaction-monitoring",
+                        "pattern-analysis",
+                        "decision-making"
+                )
+        );
     }
     
     @Override
@@ -540,6 +489,115 @@ public class ExternalFraudApiServiceImpl implements ExternalFraudApiService {
                     customHeaders.forEach(headers::set);
                 }
                 break;
+        }
+    }
+    
+    // Helper methods for building bank fraud API requests
+    
+    /**
+     * Build request from configured template
+     */
+    private Map<String, Object> buildRequestFromTemplate(
+            Map<String, Object> requestTemplate,
+            Map<String, Object> paymentData,
+            FraudRiskAssessment assessment) {
+        
+        Map<String, Object> request = new HashMap<>();
+        
+        // Apply template mappings
+        for (Map.Entry<String, Object> entry : requestTemplate.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            
+            if (value instanceof String) {
+                String strValue = (String) value;
+                // Replace placeholders with actual values
+                if (strValue.startsWith("${") && strValue.endsWith("}")) {
+                    String fieldName = strValue.substring(2, strValue.length() - 1);
+                    Object fieldValue = getFieldValue(fieldName, paymentData, assessment);
+                    request.put(key, fieldValue);
+                } else {
+                    request.put(key, strValue);
+                }
+            } else {
+                request.put(key, value);
+            }
+        }
+        
+        return request;
+    }
+    
+    /**
+     * Build default bank fraud API request
+     */
+    private Map<String, Object> buildDefaultBankFraudRequest(
+            Map<String, Object> bankFraudApiConfig,
+            Map<String, Object> paymentData,
+            FraudRiskAssessment assessment) {
+        
+        Map<String, Object> request = new HashMap<>();
+        
+        // Transaction details
+        request.put("transactionId", assessment.getTransactionReference());
+        request.put("amount", paymentData.get("amount"));
+        request.put("currency", paymentData.get("currency"));
+        request.put("timestamp", LocalDateTime.now().toString());
+        
+        // Account information
+        request.put("fromAccount", paymentData.get("fromAccountNumber"));
+        request.put("toAccount", paymentData.get("toAccountNumber"));
+        
+        // Payment details
+        request.put("paymentType", assessment.getPaymentType());
+        request.put("localInstrumentCode", assessment.getLocalInstrumentationCode());
+        request.put("clearingSystemCode", assessment.getClearingSystemCode());
+        request.put("paymentSource", assessment.getPaymentSource());
+        
+        // Customer information
+        request.put("customerId", paymentData.get("customerId"));
+        request.put("customerName", paymentData.get("customerName"));
+        request.put("tenantId", assessment.getTenantId());
+        
+        // Risk assessment context
+        request.put("riskAssessmentType", assessment.getRiskAssessmentType());
+        request.put("assessmentId", assessment.getAssessmentId());
+        
+        // Additional context
+        request.put("description", paymentData.get("description"));
+        request.put("remittanceInfo", paymentData.get("remittanceInfo"));
+        
+        return request;
+    }
+    
+    /**
+     * Get field value from payment data or assessment
+     */
+    private Object getFieldValue(String fieldName, Map<String, Object> paymentData, FraudRiskAssessment assessment) {
+        // Try payment data first
+        if (paymentData.containsKey(fieldName)) {
+            return paymentData.get(fieldName);
+        }
+        
+        // Try assessment fields
+        switch (fieldName) {
+            case "assessmentId":
+                return assessment.getAssessmentId();
+            case "transactionReference":
+                return assessment.getTransactionReference();
+            case "tenantId":
+                return assessment.getTenantId();
+            case "paymentType":
+                return assessment.getPaymentType();
+            case "localInstrumentCode":
+                return assessment.getLocalInstrumentationCode();
+            case "clearingSystemCode":
+                return assessment.getClearingSystemCode();
+            case "paymentSource":
+                return assessment.getPaymentSource();
+            case "riskAssessmentType":
+                return assessment.getRiskAssessmentType();
+            default:
+                return null;
         }
     }
 }

@@ -55,8 +55,8 @@ public class FraudRiskConfiguration {
     @NotNull
     private RiskAssessmentType riskAssessmentType;
     
-    @Column(name = "external_api_config", columnDefinition = "jsonb")
-    private Map<String, Object> externalApiConfig;
+    @Column(name = "bank_fraud_api_config", columnDefinition = "jsonb")
+    private Map<String, Object> bankFraudApiConfig;
     
     @Column(name = "risk_rules", columnDefinition = "jsonb")
     private Map<String, Object> riskRules;
@@ -162,8 +162,8 @@ public class FraudRiskConfiguration {
         return this.riskAssessmentType == riskAssessmentType;
     }
     
-    public boolean hasExternalApiConfig() {
-        return externalApiConfig != null && !externalApiConfig.isEmpty();
+    public boolean hasBankFraudApiConfig() {
+        return bankFraudApiConfig != null && !bankFraudApiConfig.isEmpty();
     }
     
     public boolean hasRiskRules() {
@@ -243,12 +243,12 @@ public class FraudRiskConfiguration {
         this.riskAssessmentType = riskAssessmentType;
     }
     
-    public Map<String, Object> getExternalApiConfig() {
-        return externalApiConfig;
+    public Map<String, Object> getBankFraudApiConfig() {
+        return bankFraudApiConfig;
     }
     
-    public void setExternalApiConfig(Map<String, Object> externalApiConfig) {
-        this.externalApiConfig = externalApiConfig;
+    public void setBankFraudApiConfig(Map<String, Object> bankFraudApiConfig) {
+        this.bankFraudApiConfig = bankFraudApiConfig;
     }
     
     public Map<String, Object> getRiskRules() {
