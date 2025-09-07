@@ -190,4 +190,157 @@ public class ResilienceConfiguration {
 
         return RateLimiter.of("clearingSystem", config);
     }
+
+    // ============================================================================
+    // FRAUD API RESILIENCY PATTERNS (MISSING GAP)
+    // ============================================================================
+
+    /**
+     * Circuit Breaker for fraud API calls
+     */
+    @Bean
+    public CircuitBreaker fraudApiCircuitBreaker() {
+        CircuitBreakerConfig config = CircuitBreakerConfig.custom()
+                .slidingWindowSize(10)
+                .minimumNumberOfCalls(5)
+                .failureRateThreshold(50)
+                .waitDurationInOpenState(Duration.ofSeconds(60))
+                .permittedNumberOfCallsInHalfOpenState(3)
+                .automaticTransitionFromOpenToHalfOpenEnabled(true)
+                .recordExceptions(Exception.class)
+                .ignoreExceptions(IllegalArgumentException.class)
+                .build();
+
+        return CircuitBreaker.of("fraudApi", config);
+    }
+
+    /**
+     * Retry configuration for fraud API calls
+     */
+    @Bean
+    public Retry fraudApiRetry() {
+        RetryConfig config = RetryConfig.custom()
+                .maxAttempts(3)
+                .waitDuration(Duration.ofMillis(1000))
+                .exponentialBackoffMultiplier(2.0)
+                .maxWaitDuration(Duration.ofSeconds(30))
+                .retryOnException(throwable -> !(throwable instanceof IllegalArgumentException))
+                .retryExceptions(Exception.class)
+                .ignoreExceptions(IllegalArgumentException.class)
+                .build();
+
+        return Retry.of("fraudApi", config);
+    }
+
+    /**
+     * Time limiter for fraud API calls
+     */
+    @Bean
+    public TimeLimiter fraudApiTimeLimiter() {
+        TimeLimiterConfig config = TimeLimiterConfig.custom()
+                .timeoutDuration(Duration.ofSeconds(30))
+                .cancelRunningFuture(true)
+                .build();
+
+        return TimeLimiter.of("fraudApi", config);
+    }
+
+    /**
+     * Bulkhead for fraud API calls
+     */
+    @Bean
+    public Bulkhead fraudApiBulkhead() {
+        BulkheadConfig config = BulkheadConfig.custom()
+                .maxConcurrentCalls(25)
+                .maxWaitDuration(Duration.ofMillis(1000))
+                .build();
+
+        return Bulkhead.of("fraudApi", config);
+    }
+
+    // ============================================================================
+    // CORE BANKING RESILIENCY PATTERNS (MISSING GAP)
+    // ============================================================================
+
+    /**
+     * Circuit Breaker for core banking debit operations
+     */
+    @Bean
+    public CircuitBreaker coreBankingDebitCircuitBreaker() {
+        CircuitBreakerConfig config = CircuitBreakerConfig.custom()
+                .slidingWindowSize(10)
+                .minimumNumberOfCalls(5)
+                .failureRateThreshold(30)
+                .waitDurationInOpenState(Duration.ofSeconds(30))
+                .permittedNumberOfCallsInHalfOpenState(2)
+                .automaticTransitionFromOpenToHalfOpenEnabled(true)
+                .recordExceptions(Exception.class)
+                .ignoreExceptions(IllegalArgumentException.class)
+                .build();
+
+        return CircuitBreaker.of("coreBankingDebit", config);
+    }
+
+    /**
+     * Circuit Breaker for core banking credit operations
+     */
+    @Bean
+    public CircuitBreaker coreBankingCreditCircuitBreaker() {
+        CircuitBreakerConfig config = CircuitBreakerConfig.custom()
+                .slidingWindowSize(10)
+                .minimumNumberOfCalls(5)
+                .failureRateThreshold(30)
+                .waitDurationInOpenState(Duration.ofSeconds(30))
+                .permittedNumberOfCallsInHalfOpenState(2)
+                .automaticTransitionFromOpenToHalfOpenEnabled(true)
+                .recordExceptions(Exception.class)
+                .ignoreExceptions(IllegalArgumentException.class)
+                .build();
+
+        return CircuitBreaker.of("coreBankingCredit", config);
+    }
+
+    /**
+     * Retry configuration for core banking operations
+     */
+    @Bean
+    public Retry coreBankingRetry() {
+        RetryConfig config = RetryConfig.custom()
+                .maxAttempts(5)
+                .waitDuration(Duration.ofMillis(2000))
+                .exponentialBackoffMultiplier(1.5)
+                .maxWaitDuration(Duration.ofSeconds(60))
+                .retryOnException(throwable -> !(throwable instanceof IllegalArgumentException))
+                .retryExceptions(Exception.class)
+                .ignoreExceptions(IllegalArgumentException.class)
+                .build();
+
+        return Retry.of("coreBanking", config);
+    }
+
+    /**
+     * Time limiter for core banking operations
+     */
+    @Bean
+    public TimeLimiter coreBankingTimeLimiter() {
+        TimeLimiterConfig config = TimeLimiterConfig.custom()
+                .timeoutDuration(Duration.ofSeconds(60))
+                .cancelRunningFuture(true)
+                .build();
+
+        return TimeLimiter.of("coreBanking", config);
+    }
+
+    /**
+     * Bulkhead for core banking operations
+     */
+    @Bean
+    public Bulkhead coreBankingBulkhead() {
+        BulkheadConfig config = BulkheadConfig.custom()
+                .maxConcurrentCalls(50)
+                .maxWaitDuration(Duration.ofMillis(2000))
+                .build();
+
+        return Bulkhead.of("coreBanking", config);
+    }
 }
