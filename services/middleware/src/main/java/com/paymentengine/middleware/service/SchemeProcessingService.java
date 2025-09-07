@@ -61,6 +61,7 @@ public interface SchemeProcessingService {
         private String messageId;
         private String correlationId;
         private String status;
+        private String uetr;
         private String clearingSystemCode;
         private String transactionId;
         private Map<String, Object> pacs008Message;
@@ -73,13 +74,14 @@ public interface SchemeProcessingService {
         public SchemeProcessingResult() {}
         
         public SchemeProcessingResult(String messageId, String correlationId, String status,
-                                    String clearingSystemCode, String transactionId,
+                                    String uetr, String clearingSystemCode, String transactionId,
                                     Map<String, Object> pacs008Message, Map<String, Object> pacs002Response,
                                     Map<String, Object> pain002Response, String errorMessage,
                                     long processingTimeMs) {
             this.messageId = messageId;
             this.correlationId = correlationId;
             this.status = status;
+            this.uetr = uetr;
             this.clearingSystemCode = clearingSystemCode;
             this.transactionId = transactionId;
             this.pacs008Message = pacs008Message;
@@ -98,6 +100,9 @@ public interface SchemeProcessingService {
         
         public String getStatus() { return status; }
         public void setStatus(String status) { this.status = status; }
+        
+        public String getUetr() { return uetr; }
+        public void setUetr(String uetr) { this.uetr = uetr; }
         
         public String getClearingSystemCode() { return clearingSystemCode; }
         public void setClearingSystemCode(String clearingSystemCode) { this.clearingSystemCode = clearingSystemCode; }

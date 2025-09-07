@@ -239,7 +239,7 @@ public class Pain001ToPacs008TransformationServiceImpl implements Pain001ToPacs0
             }
             
             return new PaymentInfo(
-                    messageId, endToEndId, instructionId,
+                    messageId, endToEndId, instructionId, null, // UETR will be set later
                     debtorName, debtorAccountId, debtorBic,
                     creditorName, creditorAccountId, creditorBic,
                     amount, currency, requestedExecutionDate,
@@ -299,6 +299,10 @@ public class Pain001ToPacs008TransformationServiceImpl implements Pain001ToPacs0
             pmtId.put("InstrId", paymentInfo.getInstructionId());
             pmtId.put("EndToEndId", paymentInfo.getEndToEndId());
             pmtId.put("TxId", "TX-" + System.currentTimeMillis());
+            // Add UETR for end-to-end tracking
+            if (paymentInfo.getUetr() != null) {
+                pmtId.put("UETR", paymentInfo.getUetr());
+            }
             cdtTrfTxInf.put("PmtId", pmtId);
             
             // Interbank Settlement Amount

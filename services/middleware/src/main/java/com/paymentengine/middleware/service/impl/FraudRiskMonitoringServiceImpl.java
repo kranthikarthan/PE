@@ -53,10 +53,11 @@ public class FraudRiskMonitoringServiceImpl implements FraudRiskMonitoringServic
             String localInstrumentationCode,
             String clearingSystemCode,
             FraudRiskConfiguration.PaymentSource paymentSource,
-            Map<String, Object> paymentData) {
+            Map<String, Object> paymentData,
+            String uetr) {
         
-        logger.info("Starting fraud/risk assessment for transaction: {}, tenant: {}, paymentType: {}, paymentSource: {}", 
-                   transactionReference, tenantId, paymentType, paymentSource);
+        logger.info("Starting fraud/risk assessment for transaction: {}, UETR: {}, tenant: {}, paymentType: {}, paymentSource: {}", 
+                   transactionReference, uetr, tenantId, paymentType, paymentSource);
         
         return CompletableFuture.supplyAsync(() -> {
             long startTime = System.currentTimeMillis();

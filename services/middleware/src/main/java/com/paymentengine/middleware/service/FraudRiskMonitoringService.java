@@ -22,7 +22,8 @@ public interface FraudRiskMonitoringService {
             String localInstrumentationCode,
             String clearingSystemCode,
             FraudRiskConfiguration.PaymentSource paymentSource,
-            Map<String, Object> paymentData);
+            Map<String, Object> paymentData,
+            String uetr);
     
     /**
      * Get fraud/risk assessment by assessment ID

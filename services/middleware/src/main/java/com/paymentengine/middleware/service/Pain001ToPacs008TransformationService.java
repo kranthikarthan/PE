@@ -39,6 +39,7 @@ public interface Pain001ToPacs008TransformationService {
         private String messageId;
         private String endToEndId;
         private String instructionId;
+        private String uetr;
         private String debtorName;
         private String debtorAccountId;
         private String debtorBic;
@@ -62,7 +63,7 @@ public interface Pain001ToPacs008TransformationService {
         public PaymentInfo() {}
         
         public PaymentInfo(String messageId, String endToEndId, String instructionId,
-                          String debtorName, String debtorAccountId, String debtorBic,
+                          String uetr, String debtorName, String debtorAccountId, String debtorBic,
                           String creditorName, String creditorAccountId, String creditorBic,
                           String amount, String currency, String executionDate,
                           String remittanceInfo, String paymentType, String localInstrumentCode,
@@ -71,6 +72,7 @@ public interface Pain001ToPacs008TransformationService {
             this.messageId = messageId;
             this.endToEndId = endToEndId;
             this.instructionId = instructionId;
+            this.uetr = uetr;
             this.debtorName = debtorName;
             this.debtorAccountId = debtorAccountId;
             this.debtorBic = debtorBic;
@@ -100,6 +102,9 @@ public interface Pain001ToPacs008TransformationService {
         
         public String getInstructionId() { return instructionId; }
         public void setInstructionId(String instructionId) { this.instructionId = instructionId; }
+        
+        public String getUetr() { return uetr; }
+        public void setUetr(String uetr) { this.uetr = uetr; }
         
         public String getDebtorName() { return debtorName; }
         public void setDebtorName(String debtorName) { this.debtorName = debtorName; }

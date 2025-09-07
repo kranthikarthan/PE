@@ -7,6 +7,8 @@ import com.paymentengine.middleware.entity.AdvancedPayloadMapping;
 import com.paymentengine.middleware.entity.FraudRiskConfiguration;
 import com.paymentengine.middleware.entity.FraudRiskAssessment;
 import com.paymentengine.middleware.repository.CoreBankingConfigurationRepository;
+import com.paymentengine.shared.service.UetrGenerationService;
+import com.paymentengine.shared.service.UetrTrackingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,8 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
     private final CoreBankingConfigurationRepository coreBankingConfigRepository;
     private final AdvancedPayloadTransformationService advancedPayloadTransformationService;
     private final FraudRiskMonitoringService fraudRiskMonitoringService;
+    private final UetrGenerationService uetrGenerationService;
+    private final UetrTrackingService uetrTrackingService;
     
     @Autowired
     public SchemeProcessingServiceImpl(
@@ -45,7 +49,9 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
             PaymentRoutingService paymentRoutingService,
             CoreBankingConfigurationRepository coreBankingConfigRepository,
             AdvancedPayloadTransformationService advancedPayloadTransformationService,
-            FraudRiskMonitoringService fraudRiskMonitoringService) {
+            FraudRiskMonitoringService fraudRiskMonitoringService,
+            UetrGenerationService uetrGenerationService,
+            UetrTrackingService uetrTrackingService) {
         this.clearingSystemRoutingService = clearingSystemRoutingService;
         this.transformationService = transformationService;
         this.schemeMessageService = schemeMessageService;
@@ -54,6 +60,8 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
         this.coreBankingConfigRepository = coreBankingConfigRepository;
         this.advancedPayloadTransformationService = advancedPayloadTransformationService;
         this.fraudRiskMonitoringService = fraudRiskMonitoringService;
+        this.uetrGenerationService = uetrGenerationService;
+        this.uetrTrackingService = uetrTrackingService;
     }
     
     @Override
@@ -73,6 +81,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
             String correlationId = null;
             String clearingSystemCode = null;
             String transactionId = null;
+            String uetr = null;
             
             try {
                 // 1. Extract message information
@@ -81,14 +90,31 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                 messageId = paymentInfo.getMessageId();
                 correlationId = "CORR-" + System.currentTimeMillis();
                 
-                // 2. Perform fraud/risk assessment before processing
+                // 2. Generate UETR for end-to-end tracking
+                uetr = uetrGenerationService.generateUetr("PAIN001", tenantId);
+                logger.info("Generated UETR: {} for PAIN.001 messageId: {}, tenantId: {}", 
+                           uetr, messageId, tenantId);
+                
+                // 3. Set UETR in payment info for use in transformation
+                paymentInfo.setUetr(uetr);
+                
+                // 4. Track UETR in the system
+                uetrTrackingService.trackUetr(uetr, "PAIN001", tenantId, messageId, "INBOUND");
+                uetrTrackingService.updateUetrStatus(uetr, "RECEIVED", "PAIN.001 message received", "Middleware Service");
+                
+                // 5. Perform fraud/risk assessment before processing
                 FraudRiskAssessment fraudAssessment = performFraudRiskAssessment(
-                        pain001Message, tenantId, paymentType, localInstrumentCode, paymentInfo);
+                        pain001Message, tenantId, paymentType, localInstrumentCode, paymentInfo, uetr);
                 
                 // Check if fraud assessment requires rejection or manual review
                 if (fraudAssessment.getDecision() == FraudRiskAssessment.Decision.REJECT) {
-                    logger.warn("Payment rejected by fraud/risk assessment for messageId: {}, reason: {}", 
-                               messageId, fraudAssessment.getDecisionReason());
+                    logger.warn("Payment rejected by fraud/risk assessment for messageId: {}, UETR: {}, reason: {}", 
+                               messageId, uetr, fraudAssessment.getDecisionReason());
+                    
+                    // Update UETR status to rejected
+                    uetrTrackingService.updateUetrStatus(uetr, "REJECTED", 
+                        "Payment rejected by fraud/risk assessment: " + fraudAssessment.getDecisionReason(), 
+                        "Fraud Risk Monitoring Service");
                     
                     Map<String, Object> pacs002Reject = generatePacs002Response(
                             messageId, transactionId, "RJCT", "FRAUD"); // Rejected due to fraud
@@ -97,15 +123,20 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                             tenantId, paymentType, localInstrumentCode, null);
                     
                     return new SchemeProcessingResult(
-                            messageId, correlationId, "FRAUD_REJECTED", null, transactionId,
+                            messageId, correlationId, "FRAUD_REJECTED", uetr, transactionId,
                             null, pacs002Reject, pain002Reject, 
                             "Payment rejected by fraud/risk assessment: " + fraudAssessment.getDecisionReason(), 
                             System.currentTimeMillis() - startTime);
                 }
                 
                 if (fraudAssessment.getDecision() == FraudRiskAssessment.Decision.MANUAL_REVIEW) {
-                    logger.warn("Payment requires manual review due to fraud/risk assessment for messageId: {}, reason: {}", 
-                               messageId, fraudAssessment.getDecisionReason());
+                    logger.warn("Payment requires manual review due to fraud/risk assessment for messageId: {}, UETR: {}, reason: {}", 
+                               messageId, uetr, fraudAssessment.getDecisionReason());
+                    
+                    // Update UETR status to manual review
+                    uetrTrackingService.updateUetrStatus(uetr, "MANUAL_REVIEW", 
+                        "Payment requires manual review: " + fraudAssessment.getDecisionReason(), 
+                        "Fraud Risk Monitoring Service");
                     
                     Map<String, Object> pacs002Review = generatePacs002Response(
                             messageId, transactionId, "PDNG", "REVIEW"); // Pending manual review
@@ -120,49 +151,77 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                             System.currentTimeMillis() - startTime);
                 }
                 
-                logger.info("Fraud/risk assessment passed for messageId: {}, decision: {}, riskLevel: {}", 
-                           messageId, fraudAssessment.getDecision(), fraudAssessment.getRiskLevel());
+                logger.info("Fraud/risk assessment passed for messageId: {}, UETR: {}, decision: {}, riskLevel: {}", 
+                           messageId, uetr, fraudAssessment.getDecision(), fraudAssessment.getRiskLevel());
                 
-                // 3. Determine clearing system
+                // Update UETR status to approved
+                uetrTrackingService.updateUetrStatus(uetr, "APPROVED", 
+                    "Fraud/risk assessment passed", "Fraud Risk Monitoring Service");
+                
+                // 5. Determine clearing system
                 ClearingSystemRoutingService.ClearingSystemRoute route = 
                         clearingSystemRoutingService.routeMessage(tenantId, paymentType, localInstrumentCode, "pacs008");
                 clearingSystemCode = route.getClearingSystemCode();
                 
-                logger.info("Routing PAIN.001 to clearing system: {} for messageId: {}", clearingSystemCode, messageId);
+                logger.info("Routing PAIN.001 to clearing system: {} for messageId: {}, UETR: {}", clearingSystemCode, messageId, uetr);
                 
-                // 3. Transform PAIN.001 to PACS.008 using advanced payload mapping
+                // Update UETR status to processing
+                uetrTrackingService.updateUetrStatus(uetr, "PROCESSING", 
+                    "Routing to clearing system: " + clearingSystemCode, "Middleware Service");
+                
+                // 6. Transform PAIN.001 to PACS.008 using advanced payload mapping
                 Map<String, Object> pacs008Message = transformPain001ToPacs008WithAdvancedMapping(
                         pain001Message, tenantId, paymentType, localInstrumentCode, clearingSystemCode);
                 
-                // 4. Send PACS.008 to clearing system
+                // 7. Send PACS.008 to clearing system
                 CompletableFuture<Map<String, Object>> clearingSystemResponse = sendMessageToClearingSystem(
                         pacs008Message, clearingSystemCode, "pacs008", route.getSchemeConfigurationId());
                 
-                // 5. Process clearing system response
+                // Update UETR status to sent to clearing system
+                uetrTrackingService.updateUetrStatus(uetr, "SENT_TO_CLEARING", 
+                    "PACS.008 sent to clearing system: " + clearingSystemCode, "Middleware Service");
+                
+                // 8. Process clearing system response
                 Map<String, Object> response = clearingSystemResponse.get();
                 Map<String, Object> processedResponse = processClearingSystemResponse(response, "pacs002");
                 
-                // 6. Generate PACS.002 acknowledgment
+                // Update UETR status based on clearing system response
+                String responseStatus = extractResponseStatus(response);
+                uetrTrackingService.updateUetrStatus(uetr, responseStatus, 
+                    "Clearing system response received", clearingSystemCode);
+                
+                // 9. Generate PACS.002 acknowledgment
                 Map<String, Object> pacs002Response = generatePacs002Response(
                         messageId, transactionId, "ACSC", "G000"); // Accepted Settlement Completed
                 
-                // 7. Generate PAIN.002 response to client using advanced payload mapping
+                // 10. Generate PAIN.002 response to client using advanced payload mapping
                 Map<String, Object> pain002Response = generatePain002ResponseWithAdvancedMapping(
                         messageId, transactionId, "ACSC", "G000", responseMode, 
                         tenantId, paymentType, localInstrumentCode, clearingSystemCode);
                 
+                // Update UETR status to completed
+                uetrTrackingService.updateUetrStatus(uetr, "COMPLETED", 
+                    "Payment processing completed successfully", "Middleware Service");
+                
                 long processingTime = System.currentTimeMillis() - startTime;
                 
-                logger.info("Successfully processed PAIN.001 through scheme: {} in {}ms", messageId, processingTime);
+                logger.info("Successfully processed PAIN.001 through scheme: {} with UETR: {} in {}ms", 
+                           messageId, uetr, processingTime);
                 
                 return new SchemeProcessingResult(
-                        messageId, correlationId, "SUCCESS", clearingSystemCode, transactionId,
+                        messageId, correlationId, "SUCCESS", uetr, clearingSystemCode, transactionId,
                         pacs008Message, pacs002Response, pain002Response, null, processingTime
                 );
                 
             } catch (Exception e) {
                 long processingTime = System.currentTimeMillis() - startTime;
-                logger.error("Error processing PAIN.001 through scheme: {}", e.getMessage());
+                logger.error("Error processing PAIN.001 through scheme: {} with UETR: {}", e.getMessage(), uetr);
+                
+                // Update UETR status to failed
+                if (uetr != null) {
+                    uetrTrackingService.updateUetrStatus(uetr, "FAILED", 
+                        "Payment processing failed: " + e.getMessage(), "Middleware Service");
+                }
                 
                 // Generate error responses
                 Map<String, Object> pacs002Error = generatePacs002Response(
@@ -172,7 +231,7 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                         tenantId, paymentType, localInstrumentCode, clearingSystemCode);
                 
                 return new SchemeProcessingResult(
-                        messageId, correlationId, "ERROR", clearingSystemCode, transactionId,
+                        messageId, correlationId, "ERROR", uetr, clearingSystemCode, transactionId,
                         null, pacs002Error, pain002Error, e.getMessage(), processingTime
                 );
             }
@@ -728,10 +787,11 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
             String tenantId,
             String paymentType,
             String localInstrumentCode,
-            Pain001ToPacs008TransformationService.PaymentInfo paymentInfo) {
+            Pain001ToPacs008TransformationService.PaymentInfo paymentInfo,
+            String uetr) {
         
-        logger.info("Performing fraud/risk assessment for tenant: {}, paymentType: {}, localInstrument: {}", 
-                   tenantId, paymentType, localInstrumentCode);
+        logger.info("Performing fraud/risk assessment for tenant: {}, paymentType: {}, localInstrument: {}, UETR: {}", 
+                   tenantId, paymentType, localInstrumentCode, uetr);
         
         try {
             // Determine payment source based on the payment type and clearing system
@@ -748,7 +808,8 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
                     localInstrumentCode,
                     null, // clearingSystemCode will be determined later
                     paymentSource,
-                    paymentData
+                    paymentData,
+                    uetr
             );
             
             // Wait for assessment to complete (with timeout)
@@ -894,5 +955,43 @@ public class SchemeProcessingServiceImpl implements SchemeProcessingService {
         }
         
         return paymentData;
+    }
+    
+    /**
+     * Extract response status from clearing system response
+     * 
+     * @param response The clearing system response
+     * @return Response status
+     */
+    private String extractResponseStatus(Map<String, Object> response) {
+        try {
+            // Extract status from PACS.002 response
+            if (response.containsKey("Document") && response.get("Document") instanceof Map) {
+                Map<String, Object> document = (Map<String, Object>) response.get("Document");
+                if (document.containsKey("FIToFIPmtStsRpt") && document.get("FIToFIPmtStsRpt") instanceof Map) {
+                    Map<String, Object> statusReport = (Map<String, Object>) document.get("FIToFIPmtStsRpt");
+                    if (statusReport.containsKey("TxInfAndSts") && statusReport.get("TxInfAndSts") instanceof List) {
+                        List<Map<String, Object>> txInfList = (List<Map<String, Object>>) statusReport.get("TxInfAndSts");
+                        if (!txInfList.isEmpty()) {
+                            Map<String, Object> txInf = txInfList.get(0);
+                            if (txInf.containsKey("TxSts")) {
+                                String status = (String) txInf.get("TxSts");
+                                return switch (status) {
+                                    case "ACSC" -> "COMPLETED";
+                                    case "RJCT" -> "REJECTED";
+                                    case "PDNG" -> "PENDING";
+                                    case "ACCP" -> "ACCEPTED";
+                                    default -> "UNKNOWN";
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            return "UNKNOWN";
+        } catch (Exception e) {
+            logger.warn("Error extracting response status from clearing system response", e);
+            return "UNKNOWN";
+        }
     }
 }

@@ -76,6 +76,15 @@ public class AuditLoggingService {
     public void logMessageProcessingEvent(String messageId, String messageType, String tenantId,
                                         String action, boolean success, long processingTimeMs,
                                         Map<String, Object> metadata) {
+        logMessageProcessingEvent(messageId, messageType, tenantId, action, success, processingTimeMs, metadata, null);
+    }
+
+    /**
+     * Log message processing events with UETR
+     */
+    public void logMessageProcessingEvent(String messageId, String messageType, String tenantId,
+                                        String action, boolean success, long processingTimeMs,
+                                        Map<String, Object> metadata, String uetr) {
         AuditEvent event = AuditEvent.builder()
                 .eventId(UUID.randomUUID().toString())
                 .eventType("MESSAGE_PROCESSING")
@@ -85,6 +94,7 @@ public class AuditLoggingService {
                 .tenantId(tenantId)
                 .success(success)
                 .processingTimeMs(processingTimeMs)
+                .uetr(uetr)
                 .timestamp(Instant.now())
                 .metadata(metadata)
                 .build();
@@ -217,6 +227,29 @@ public class AuditLoggingService {
     }
 
     /**
+     * Log UETR tracking events
+     */
+    public void logUetrTrackingEvent(String uetr, String messageType, String tenantId,
+                                   String action, boolean success, String status,
+                                   String processingSystem, Map<String, Object> metadata) {
+        AuditEvent event = AuditEvent.builder()
+                .eventId(UUID.randomUUID().toString())
+                .eventType("UETR_TRACKING")
+                .action(action)
+                .uetr(uetr)
+                .messageType(messageType)
+                .tenantId(tenantId)
+                .success(success)
+                .component(processingSystem)
+                .reason(status)
+                .timestamp(Instant.now())
+                .metadata(metadata)
+                .build();
+        
+        logEvent(event);
+    }
+
+    /**
      * Log the audit event
      */
     private void logEvent(AuditEvent event) {
@@ -255,6 +288,7 @@ public class AuditLoggingService {
         private String messageId;
         private String messageType;
         private String tenantId;
+        private String uetr;
         private String clearingSystemId;
         private String resource;
         private String resourceType;
@@ -315,6 +349,11 @@ public class AuditLoggingService {
 
             public Builder tenantId(String tenantId) {
                 event.tenantId = tenantId;
+                return this;
+            }
+
+            public Builder uetr(String uetr) {
+                event.uetr = uetr;
                 return this;
             }
 
@@ -426,6 +465,7 @@ public class AuditLoggingService {
         public String getMessageId() { return messageId; }
         public String getMessageType() { return messageType; }
         public String getTenantId() { return tenantId; }
+        public String getUetr() { return uetr; }
         public String getClearingSystemId() { return clearingSystemId; }
         public String getResource() { return resource; }
         public String getResourceType() { return resourceType; }
