@@ -145,6 +145,51 @@ SELECT cs.id, 'pacs002', 'FI to FI Payment Status Report'
 FROM clearing_systems cs
 ON CONFLICT DO NOTHING;
 
+INSERT INTO clearing_system_supported_messages (clearing_system_id, message_type, message_description)
+SELECT cs.id, 'pacs004', 'Payment Return'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
+INSERT INTO clearing_system_supported_messages (clearing_system_id, message_type, message_description)
+SELECT cs.id, 'pacs007', 'Payment Cancellation Request'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
+INSERT INTO clearing_system_supported_messages (clearing_system_id, message_type, message_description)
+SELECT cs.id, 'pacs028', 'Payment Status Request'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
+INSERT INTO clearing_system_supported_messages (clearing_system_id, message_type, message_description)
+SELECT cs.id, 'camt054', 'Bank to Customer Debit Credit Notification'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
+INSERT INTO clearing_system_supported_messages (clearing_system_id, message_type, message_description)
+SELECT cs.id, 'camt029', 'Resolution of Investigation'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
+INSERT INTO clearing_system_supported_messages (clearing_system_id, message_type, message_description)
+SELECT cs.id, 'pain001', 'Customer Credit Transfer Initiation'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
+INSERT INTO clearing_system_supported_messages (clearing_system_id, message_type, message_description)
+SELECT cs.id, 'pain002', 'Customer Payment Status Report'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
+INSERT INTO clearing_system_supported_messages (clearing_system_id, message_type, message_description)
+SELECT cs.id, 'camt055', 'Financial Institution to Financial Institution Payment Cancellation Request'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
+INSERT INTO clearing_system_supported_messages (clearing_system_id, message_type, message_description)
+SELECT cs.id, 'camt056', 'Financial Institution to Financial Institution Payment Status Request'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
 -- Insert supported payment types
 INSERT INTO clearing_system_supported_payment_types (clearing_system_id, payment_type, payment_description)
 SELECT cs.id, 'WIRE_DOMESTIC', 'Domestic Wire Transfer'
@@ -251,6 +296,31 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
 SELECT cs.id, 'PACS002 Response Endpoint', 'WEBHOOK', 'pacs002', cs.endpoint_url || '/webhook/pacs002', 'POST', 30000, 3, cs.authentication_type, 1, 'PACS002 response webhook endpoint'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'PACS004 Return Endpoint', 'WEBHOOK', 'pacs004', cs.endpoint_url || '/webhook/pacs004', 'POST', 30000, 3, cs.authentication_type, 1, 'PACS004 return webhook endpoint'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'PACS007 Cancellation Endpoint', 'SYNC', 'pacs007', cs.endpoint_url || '/sync/pacs007', 'POST', cs.timeout_seconds * 1000, 3, cs.authentication_type, 1, 'PACS007 cancellation endpoint'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'PACS028 Status Request Endpoint', 'SYNC', 'pacs028', cs.endpoint_url || '/sync/pacs028', 'POST', cs.timeout_seconds * 1000, 3, cs.authentication_type, 1, 'PACS028 status request endpoint'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'CAMT054 Notification Endpoint', 'WEBHOOK', 'camt054', cs.endpoint_url || '/webhook/camt054', 'POST', 30000, 3, cs.authentication_type, 1, 'CAMT054 notification webhook endpoint'
+FROM clearing_systems cs
+ON CONFLICT DO NOTHING;
+
+INSERT INTO clearing_system_endpoints (clearing_system_id, name, endpoint_type, message_type, url, http_method, timeout_ms, retry_attempts, authentication_type, priority, description)
+SELECT cs.id, 'CAMT029 Resolution Endpoint', 'WEBHOOK', 'camt029', cs.endpoint_url || '/webhook/camt029', 'POST', 30000, 3, cs.authentication_type, 1, 'CAMT029 resolution webhook endpoint'
 FROM clearing_systems cs
 ON CONFLICT DO NOTHING;
 
