@@ -60,11 +60,11 @@ package "Infrastructure Layer" {
 }
 
 package "Monitoring & Observability" {
-    [Prometheus] as P
-    [Grafana] as G
-    [Jaeger] as J
-    [ELK Stack] as ELK
-    [Alert Manager] as AM
+    [Spring Boot Actuator] as SBA
+    [Micrometer] as M
+    [Custom Metrics] as CM
+    [Structured Logging] as SL
+    [Custom Dashboards] as CD
 }
 
 package "Security & Compliance" {
@@ -120,24 +120,19 @@ NS --> K : Message Consumption
 RC --> CM : Cache Management
 
 ' Monitoring connections
-MS --> P : Metrics Export
-CBS --> P : Metrics Export
-NS --> P : Metrics Export
-SCG --> P : Metrics Export
+MS --> SBA : Metrics Export
+CBS --> SBA : Metrics Export
+NS --> SBA : Metrics Export
+SCG --> SBA : Metrics Export
 
-P --> G : Metrics Query
-MS --> J : Trace Data
-CBS --> J : Trace Data
-NS --> J : Trace Data
-SCG --> J : Trace Data
+SBA --> M : Metrics Query
+MS --> SL : Log Data
+CBS --> SL : Log Data
+NS --> SL : Log Data
+SCG --> SL : Log Data
 
-MS --> ELK : Log Data
-CBS --> ELK : Log Data
-NS --> ELK : Log Data
-SCG --> ELK : Log Data
-
-P --> AM : Alert Rules
-AM --> NS : Notifications
+M --> CD : Dashboard Data
+SL --> CD : Dashboard Data
 
 ' Security connections
 SCG --> OAuth2S : Token Validation

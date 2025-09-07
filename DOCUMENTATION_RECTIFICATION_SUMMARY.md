@@ -64,6 +64,33 @@ This document summarizes the rectification of documentation and PlantUML diagram
    - Updated to use structured logging, custom dashboards, custom alerting
    - Simplified distributed tracing to custom implementation
 
+### Component Architecture Diagrams
+5. **`/workspace/component-diagrams/01-system-architecture-overview.puml`**
+   - Removed Prometheus, Grafana, Jaeger, ELK Stack, Alert Manager
+   - Replaced with Spring Boot Actuator, Micrometer, Custom Metrics, Structured Logging, Custom Dashboards
+   - Updated connection lines to reflect actual monitoring architecture
+
+6. **`/workspace/component-diagrams/04-monitoring-observability.puml`**
+   - Removed Prometheus, Grafana, Jaeger, ELK Stack, Alert Manager
+   - Replaced with Spring Boot Actuator, Micrometer, Custom Metrics, Structured Logging, Custom Dashboards
+   - Updated distributed tracing to custom implementation
+
+7. **`/workspace/component-diagrams/05-resilience-patterns.puml`**
+   - Removed Alert Manager, replaced with Custom Alerts
+
+8. **`/workspace/component-diagrams/07-deployment-architecture.puml`**
+   - Removed Prometheus, Grafana, Jaeger, ELK Stack, Alert Manager
+   - Replaced with Spring Boot Actuator, Micrometer, Custom Dashboards, Structured Logging, Custom Alerts
+   - Updated connection lines to reflect actual monitoring architecture
+
+9. **`/workspace/component-diagrams/09-microservices-architecture-detailed.puml`**
+   - Removed AWS ALB, NGINX Ingress, Vault
+   - Replaced with Spring Cloud Gateway, Load Balancer, OAuth2/JWT
+   - Updated connection lines to reflect actual architecture
+
+10. **`/workspace/component-diagrams/README.md`**
+    - Updated to reference OAuth2/JWT instead of Vault
+
 ## Technologies Actually Implemented
 
 ### Core Technologies

@@ -9,8 +9,8 @@ package "Client Layer" {
 }
 
 package "Load Balancer Layer" {
-    [AWS ALB] as ALB
-    [NGINX Ingress] as NI
+    [Spring Cloud Gateway] as SCG_LB
+    [Load Balancer] as LB
 }
 
 package "Service Mesh Layer" {
@@ -83,7 +83,7 @@ package "Data Layer" {
     database "PostgreSQL" as PG
     database "Redis" as R
     database "Kafka" as K
-    database "Vault" as V
+    database "OAuth2/JWT" as OAuth2
 }
 
 package "External Systems" {
@@ -94,13 +94,13 @@ package "External Systems" {
 }
 
 ' Client connections
-RF --> ALB
-MA --> ALB
-ES --> ALB
+RF --> SCG_LB
+MA --> SCG_LB
+ES --> SCG_LB
 
 ' Load balancer connections
-ALB --> NI
-NI --> IG
+SCG_LB --> LB
+LB --> IG
 
 ' Service mesh connections
 IG --> EP1
@@ -156,8 +156,8 @@ MS --> EncS
 MS --> DSS
 MS --> AudS
 MS --> CompS
-EncS --> V
-DSS --> V
+EncS --> OAuth2
+DSS --> OAuth2
 
 ' External connections
 CSA --> CS2

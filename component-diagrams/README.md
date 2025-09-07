@@ -170,7 +170,7 @@ plantuml -tsvg *.puml
 - PostgreSQL
 - Redis
 - Kafka
-- Vault
+- OAuth2/JWT
 
 ### External Systems
 - Clearing Systems
