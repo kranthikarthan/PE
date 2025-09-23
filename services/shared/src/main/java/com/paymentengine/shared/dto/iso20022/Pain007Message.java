@@ -697,7 +697,7 @@ public class Pain007Message {
         @JsonProperty("Amt")
         @NotNull
         @Valid
-        private ActiveCurrencyAndAmount amount;
+        private CommonTypes.ActiveCurrencyAndAmount amount;
         
         @JsonProperty("CcyOfTrf")
         @NotNull
@@ -706,11 +706,11 @@ public class Pain007Message {
         
         public EquivalentAmount() {}
         
-        public ActiveCurrencyAndAmount getAmount() {
+        public CommonTypes.ActiveCurrencyAndAmount getAmount() {
             return amount;
         }
         
-        public void setAmount(ActiveCurrencyAndAmount amount) {
+        public void setAmount(CommonTypes.ActiveCurrencyAndAmount amount) {
             this.amount = amount;
         }
         
@@ -1138,10 +1138,10 @@ public class Pain007Message {
         private TaxAmountType type;
         
         @JsonProperty("Amt")
-        private ActiveCurrencyAndAmount amount;
+        private CommonTypes.ActiveCurrencyAndAmount amount;
         
-        public ActiveCurrencyAndAmount getAmount() { return amount; }
-        public void setAmount(ActiveCurrencyAndAmount amount) { this.amount = amount; }
+        public CommonTypes.ActiveCurrencyAndAmount getAmount() { return amount; }
+        public void setAmount(CommonTypes.ActiveCurrencyAndAmount amount) { this.amount = amount; }
     }
     
     public static class TaxAmountType {

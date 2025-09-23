@@ -247,14 +247,32 @@ public class UetrGenerationService {
             Map<String, Object> cstmrCdtTrfInitn = (Map<String, Object>) message.get("CstmrCdtTrfInitn");
             if (cstmrCdtTrfInitn == null) return null;
             
-            List<Map<String, Object>> pmtInfList = (List<Map<String, Object>>) cstmrCdtTrfInitn.get("PmtInf");
-            if (pmtInfList == null || pmtInfList.isEmpty()) return null;
+            Object pmtInfObj = cstmrCdtTrfInitn.get("PmtInf");
+            if (pmtInfObj == null) return null;
             
-            Map<String, Object> pmtInf = pmtInfList.get(0);
-            List<Map<String, Object>> cdtTrfTxInfList = (List<Map<String, Object>>) pmtInf.get("CdtTrfTxInf");
-            if (cdtTrfTxInfList == null || cdtTrfTxInfList.isEmpty()) return null;
+            // Handle both single object and list cases
+            Map<String, Object> pmtInf;
+            if (pmtInfObj instanceof java.util.List) {
+                java.util.java.util.List<?> pmtInfList = (java.util.java.util.List<?>) pmtInfObj;
+                if (pmtInfList.isEmpty()) return null;
+                pmtInf = (Map<String, Object>) pmtInfList.get(0);
+            } else {
+                pmtInf = (Map<String, Object>) pmtInfObj;
+            }
             
-            Map<String, Object> cdtTrfTxInf = cdtTrfTxInfList.get(0);
+            Object cdtTrfTxInfObj = pmtInf.get("CdtTrfTxInf");
+            if (cdtTrfTxInfObj == null) return null;
+            
+            // Handle both single object and list cases
+            Map<String, Object> cdtTrfTxInf;
+            if (cdtTrfTxInfObj instanceof java.util.List) {
+                java.util.List<?> cdtTrfTxInfList = (java.util.List<?>) cdtTrfTxInfObj;
+                if (cdtTrfTxInfList.isEmpty()) return null;
+                cdtTrfTxInf = (Map<String, Object>) cdtTrfTxInfList.get(0);
+            } else {
+                cdtTrfTxInf = (Map<String, Object>) cdtTrfTxInfObj;
+            }
+            
             Map<String, Object> pmtId = (Map<String, Object>) cdtTrfTxInf.get("PmtId");
             if (pmtId == null) return null;
             
@@ -273,10 +291,19 @@ public class UetrGenerationService {
             Map<String, Object> fiToFICustomerCreditTransfer = (Map<String, Object>) message.get("FIToFICstmrCdtTrf");
             if (fiToFICustomerCreditTransfer == null) return null;
             
-            List<Map<String, Object>> cdtTrfTxInfList = (List<Map<String, Object>>) fiToFICustomerCreditTransfer.get("CdtTrfTxInf");
-            if (cdtTrfTxInfList == null || cdtTrfTxInfList.isEmpty()) return null;
+            Object cdtTrfTxInfObj = fiToFICustomerCreditTransfer.get("CdtTrfTxInf");
+            if (cdtTrfTxInfObj == null) return null;
             
-            Map<String, Object> cdtTrfTxInf = cdtTrfTxInfList.get(0);
+            // Handle both single object and list cases
+            Map<String, Object> cdtTrfTxInf;
+            if (cdtTrfTxInfObj instanceof java.util.List) {
+                java.util.List<?> cdtTrfTxInfList = (java.util.List<?>) cdtTrfTxInfObj;
+                if (cdtTrfTxInfList.isEmpty()) return null;
+                cdtTrfTxInf = (Map<String, Object>) cdtTrfTxInfList.get(0);
+            } else {
+                cdtTrfTxInf = (Map<String, Object>) cdtTrfTxInfObj;
+            }
+            
             Map<String, Object> pmtId = (Map<String, Object>) cdtTrfTxInf.get("PmtId");
             if (pmtId == null) return null;
             
@@ -298,10 +325,19 @@ public class UetrGenerationService {
             Map<String, Object> fiToFIPmtStsRpt = (Map<String, Object>) document.get("FIToFIPmtStsRpt");
             if (fiToFIPmtStsRpt == null) return null;
             
-            List<Map<String, Object>> txInfAndStsList = (List<Map<String, Object>>) fiToFIPmtStsRpt.get("TxInfAndSts");
-            if (txInfAndStsList == null || txInfAndStsList.isEmpty()) return null;
+            Object txInfAndStsObj = fiToFIPmtStsRpt.get("TxInfAndSts");
+            if (txInfAndStsObj == null) return null;
             
-            Map<String, Object> txInfAndSts = txInfAndStsList.get(0);
+            // Handle both single object and list cases
+            Map<String, Object> txInfAndSts;
+            if (txInfAndStsObj instanceof java.util.List) {
+                java.util.List<?> txInfAndStsList = (java.util.List<?>) txInfAndStsObj;
+                if (txInfAndStsList.isEmpty()) return null;
+                txInfAndSts = (Map<String, Object>) txInfAndStsList.get(0);
+            } else {
+                txInfAndSts = (Map<String, Object>) txInfAndStsObj;
+            }
+            
             Map<String, Object> orgnlTxId = (Map<String, Object>) txInfAndSts.get("OrgnlTxId");
             if (orgnlTxId == null) return null;
             
@@ -320,14 +356,32 @@ public class UetrGenerationService {
             Map<String, Object> cstmrPmtStsRpt = (Map<String, Object>) message.get("CstmrPmtStsRpt");
             if (cstmrPmtStsRpt == null) return null;
             
-            List<Map<String, Object>> orgnlPmtInfAndStsList = (List<Map<String, Object>>) cstmrPmtStsRpt.get("OrgnlPmtInfAndSts");
-            if (orgnlPmtInfAndStsList == null || orgnlPmtInfAndStsList.isEmpty()) return null;
+            Object orgnlPmtInfAndStsObj = cstmrPmtStsRpt.get("OrgnlPmtInfAndSts");
+            if (orgnlPmtInfAndStsObj == null) return null;
             
-            Map<String, Object> orgnlPmtInfAndSts = orgnlPmtInfAndStsList.get(0);
-            List<Map<String, Object>> txInfAndStsList = (List<Map<String, Object>>) orgnlPmtInfAndSts.get("TxInfAndSts");
-            if (txInfAndStsList == null || txInfAndStsList.isEmpty()) return null;
+            // Handle both single object and list cases
+            Map<String, Object> orgnlPmtInfAndSts;
+            if (orgnlPmtInfAndStsObj instanceof java.util.List) {
+                java.util.List<?> orgnlPmtInfAndStsList = (java.util.List<?>) orgnlPmtInfAndStsObj;
+                if (orgnlPmtInfAndStsList.isEmpty()) return null;
+                orgnlPmtInfAndSts = (Map<String, Object>) orgnlPmtInfAndStsList.get(0);
+            } else {
+                orgnlPmtInfAndSts = (Map<String, Object>) orgnlPmtInfAndStsObj;
+            }
             
-            Map<String, Object> txInfAndSts = txInfAndStsList.get(0);
+            Object txInfAndStsObj = orgnlPmtInfAndSts.get("TxInfAndSts");
+            if (txInfAndStsObj == null) return null;
+            
+            // Handle both single object and list cases
+            Map<String, Object> txInfAndSts;
+            if (txInfAndStsObj instanceof java.util.List) {
+                java.util.List<?> txInfAndStsList = (java.util.List<?>) txInfAndStsObj;
+                if (txInfAndStsList.isEmpty()) return null;
+                txInfAndSts = (Map<String, Object>) txInfAndStsList.get(0);
+            } else {
+                txInfAndSts = (Map<String, Object>) txInfAndStsObj;
+            }
+            
             Map<String, Object> orgnlTxId = (Map<String, Object>) txInfAndSts.get("OrgnlTxId");
             if (orgnlTxId == null) return null;
             
@@ -349,19 +403,19 @@ public class UetrGenerationService {
             Map<String, Object> bkTpCstmrDbtCdtNtfctn = (Map<String, Object>) document.get("BkTpCstmrDbtCdtNtfctn");
             if (bkTpCstmrDbtCdtNtfctn == null) return null;
             
-            List<Map<String, Object>> ntfctnList = (List<Map<String, Object>>) bkTpCstmrDbtCdtNtfctn.get("Ntfctn");
+            java.util.List<Map<String, Object>> ntfctnList = (java.util.List<Map<String, Object>>) bkTpCstmrDbtCdtNtfctn.get("Ntfctn");
             if (ntfctnList == null || ntfctnList.isEmpty()) return null;
             
             Map<String, Object> ntfctn = ntfctnList.get(0);
-            List<Map<String, Object>> ntryList = (List<Map<String, Object>>) ntfctn.get("Ntry");
+            java.util.List<Map<String, Object>> ntryList = (java.util.List<Map<String, Object>>) ntfctn.get("Ntry");
             if (ntryList == null || ntryList.isEmpty()) return null;
             
             Map<String, Object> ntry = ntryList.get(0);
-            List<Map<String, Object>> ntryDtlsList = (List<Map<String, Object>>) ntry.get("NtryDtls");
+            java.util.List<Map<String, Object>> ntryDtlsList = (java.util.List<Map<String, Object>>) ntry.get("NtryDtls");
             if (ntryDtlsList == null || ntryDtlsList.isEmpty()) return null;
             
             Map<String, Object> ntryDtls = ntryDtlsList.get(0);
-            List<Map<String, Object>> txDtlsList = (List<Map<String, Object>>) ntryDtls.get("TxDtls");
+            java.util.List<Map<String, Object>> txDtlsList = (java.util.List<Map<String, Object>>) ntryDtls.get("TxDtls");
             if (txDtlsList == null || txDtlsList.isEmpty()) return null;
             
             Map<String, Object> txDtls = txDtlsList.get(0);
@@ -386,11 +440,11 @@ public class UetrGenerationService {
             Map<String, Object> cstmrPmtCxlReq = (Map<String, Object>) document.get("CstmrPmtCxlReq");
             if (cstmrPmtCxlReq == null) return null;
             
-            List<Map<String, Object>> pmtInfList = (List<Map<String, Object>>) cstmrPmtCxlReq.get("PmtInf");
+            java.util.List<Map<String, Object>> pmtInfList = (java.util.List<Map<String, Object>>) cstmrPmtCxlReq.get("PmtInf");
             if (pmtInfList == null || pmtInfList.isEmpty()) return null;
             
             Map<String, Object> pmtInf = pmtInfList.get(0);
-            List<Map<String, Object>> cxlTxInfList = (List<Map<String, Object>>) pmtInf.get("CxlTxInf");
+            java.util.List<Map<String, Object>> cxlTxInfList = (java.util.List<Map<String, Object>>) pmtInf.get("CxlTxInf");
             if (cxlTxInfList == null || cxlTxInfList.isEmpty()) return null;
             
             Map<String, Object> cxlTxInf = cxlTxInfList.get(0);
@@ -445,12 +499,12 @@ public class UetrGenerationService {
         return switch (messageType.toUpperCase()) {
             case "PAIN001" -> MSG_TYPE_PAIN001;
             case "PACS008" -> MSG_TYPE_PACS008;
-            case "PACS002" -> MSG_TYPE_P002;
-            case "PAIN002" -> MSG_TYPE_P002;
-            case "CAMT054" -> MSG_TYPE_C054;
-            case "CAMT055" -> MSG_TYPE_C055;
-            case "CAMT056" -> MSG_TYPE_C056;
-            case "CAMT029" -> MSG_TYPE_C029;
+            case "PACS002" -> MSG_TYPE_PACS002;
+            case "PAIN002" -> MSG_TYPE_PAIN002;
+            case "CAMT054" -> MSG_TYPE_CAMT054;
+            case "CAMT055" -> MSG_TYPE_CAMT055;
+            case "CAMT056" -> MSG_TYPE_CAMT056;
+            case "CAMT029" -> MSG_TYPE_CAMT029;
             default -> "UNKN";
         };
     }

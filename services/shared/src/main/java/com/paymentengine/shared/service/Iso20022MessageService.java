@@ -284,8 +284,8 @@ public class Iso20022MessageService {
     /**
      * Map payment type from ISO 20022 to internal payment type ID
      */
-    private UUID mapPaymentTypeFromIso20022(Pain001Message.PaymentTypeInformation pmtTpInf, 
-                                          PaymentTypeInformation cdtTrfTxInfPmtTpInf) {
+    private UUID mapPaymentTypeFromIso20022(com.paymentengine.shared.dto.iso20022.PaymentTypeInformation pmtTpInf, 
+                                          com.paymentengine.shared.dto.iso20022.PaymentTypeInformation cdtTrfTxInfPmtTpInf) {
         
         // Default payment type mapping based on local instrument
         String localInstrumentCode = null;
@@ -310,14 +310,15 @@ public class Iso20022MessageService {
     /**
      * Map internal transaction status to ISO 20022 status
      */
-    private String mapTransactionStatusToIso20022(com.paymentengine.corebanking.entity.Transaction.TransactionStatus status) {
+    private String mapTransactionStatusToIso20022(String status) {
         return switch (status) {
-            case PENDING -> "PDNG"; // Pending
-            case PROCESSING -> "ACTC"; // Accepted Technical Validation
-            case COMPLETED -> "ACSC"; // Accepted Settlement Completed
-            case FAILED -> "RJCT"; // Rejected
-            case CANCELLED -> "CANC"; // Cancelled
-            case REVERSED -> "ACSC"; // Accepted Settlement Completed (for reversal)
+            case "PENDING" -> "PDNG"; // Pending
+            case "PROCESSING" -> "ACTC"; // Accepted Technical Validation
+            case "COMPLETED" -> "ACSC"; // Accepted Settlement Completed
+            case "FAILED" -> "RJCT"; // Rejected
+            case "CANCELLED" -> "CANC"; // Cancelled
+            case "REVERSED" -> "ACSC"; // Accepted Settlement Completed (for reversal)
+            default -> "ACTC"; // Default to accepted technical validation
         };
     }
     

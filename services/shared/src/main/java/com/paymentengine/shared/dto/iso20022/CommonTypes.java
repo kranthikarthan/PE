@@ -1314,4 +1314,23 @@ public class CommonTypes {
         public String getRate() { return rate; }
         public void setRate(String rate) { this.rate = rate; }
     }
+
+    /**
+     * Currency and Amount Range
+     */
+    public static class CurrencyAndAmountRange {
+        @JsonProperty("Amt")
+        private ActiveCurrencyAndAmount amount;
+        
+        @JsonProperty("Ccy")
+        private String currency;
+        
+        public CurrencyAndAmountRange() {}
+        
+        public ActiveCurrencyAndAmount getAmount() { return amount; }
+        public void setAmount(ActiveCurrencyAndAmount amount) { this.amount = amount; }
+        
+        public String getCurrency() { return currency; }
+        public void setCurrency(String currency) { this.currency = currency; }
+    }
 }

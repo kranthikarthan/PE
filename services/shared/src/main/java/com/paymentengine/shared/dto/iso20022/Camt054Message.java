@@ -1059,10 +1059,10 @@ public class Camt054Message {
         @JsonProperty("PrtryAmt")
         private List<ProprietaryAmount> proprietaryAmount;
         
-        public ActiveCurrencyAndAmount getInstructedAmount() { return instructedAmount; }
-        public void setInstructedAmount(ActiveCurrencyAndAmount instructedAmount) { this.instructedAmount = instructedAmount; }
-        public ActiveCurrencyAndAmount getTransactionAmount() { return transactionAmount; }
-        public void setTransactionAmount(ActiveCurrencyAndAmount transactionAmount) { this.transactionAmount = transactionAmount; }
+        public CommonTypes.ActiveCurrencyAndAmount getInstructedAmount() { return instructedAmount; }
+        public void setInstructedAmount(CommonTypes.ActiveCurrencyAndAmount instructedAmount) { this.instructedAmount = instructedAmount; }
+        public CommonTypes.ActiveCurrencyAndAmount getTransactionAmount() { return transactionAmount; }
+        public void setTransactionAmount(CommonTypes.ActiveCurrencyAndAmount transactionAmount) { this.transactionAmount = transactionAmount; }
     }
     
     public static class ProprietaryAmount {

@@ -15,7 +15,7 @@ public class CreditTransferTransactionInformation {
     @JsonProperty("PmtId")
     @NotNull
     @Valid
-    private PaymentIdentification paymentIdentification;
+    private CommonTypes.PaymentIdentification paymentIdentification;
     
     @JsonProperty("PmtTpInf")
     @Valid
@@ -82,11 +82,11 @@ public class CreditTransferTransactionInformation {
     public CreditTransferTransactionInformation() {}
     
     // Getters and Setters
-    public PaymentIdentification getPaymentIdentification() {
+    public CommonTypes.PaymentIdentification getPaymentIdentification() {
         return paymentIdentification;
     }
     
-    public void setPaymentIdentification(PaymentIdentification paymentIdentification) {
+    public void setPaymentIdentification(CommonTypes.PaymentIdentification paymentIdentification) {
         this.paymentIdentification = paymentIdentification;
     }
     
