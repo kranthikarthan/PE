@@ -253,7 +253,7 @@ public class UetrGenerationService {
             // Handle both single object and list cases
             Map<String, Object> pmtInf;
             if (pmtInfObj instanceof java.util.List) {
-                java.util.java.util.List<?> pmtInfList = (java.util.java.util.List<?>) pmtInfObj;
+                java.util.List<?> pmtInfList = (java.util.List<?>) pmtInfObj;
                 if (pmtInfList.isEmpty()) return null;
                 pmtInf = (Map<String, Object>) pmtInfList.get(0);
             } else {

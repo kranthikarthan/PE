@@ -53,8 +53,8 @@ public class Iso20022MessageService {
             String debtorAccountId = mapAccountIdentificationToId(pmtInf.getDebtorAccount());
             String creditorAccountId = mapAccountIdentificationToId(cdtTrfTxInf.getCreditorAccount());
             
-            request.setFromAccountId(debtorAccountId != null ? UUID.fromString(debtorAccountId) : null);
-            request.setToAccountId(creditorAccountId != null ? UUID.fromString(creditorAccountId) : null);
+            request.setFromAccount(debtorAccountId);
+            request.setToAccount(creditorAccountId);
             
             // Map payment type based on local instrument and service level
             UUID paymentTypeId = mapPaymentTypeFromIso20022(pmtInf.getPaymentTypeInformation(), cdtTrfTxInf.getPaymentTypeInformation());
@@ -66,7 +66,7 @@ public class Iso20022MessageService {
                 "messageId", cctInitiation.getGroupHeader().getMessageId(),
                 "paymentInformationId", pmtInf.getPaymentInformationId(),
                 "endToEndId", cdtTrfTxInf.getPaymentIdentification().getEndToEndId(),
-                "instructionId", cdtTrfTxInf.getPaymentIdentification().getInstrId(),
+                "instructionId", cdtTrfTxInf.getPaymentIdentification().getInstructionId(),
                 "paymentMethod", pmtInf.getPaymentMethod(),
                 "chargeBearer", cdtTrfTxInf.getChargeBearer(),
                 "requestedExecutionDate", pmtInf.getRequestedExecutionDate()
@@ -135,7 +135,7 @@ public class Iso20022MessageService {
             
             // Transaction Information and Status
             Map<String, Object> txInfAndSts = new HashMap<>();
-            txInfAndSts.put("StsId", transaction.getId().toString());
+            txInfAndSts.put("StsId", transaction.getTransactionId());
             txInfAndSts.put("OrgnlInstrId", transaction.getExternalReference());
             txInfAndSts.put("OrgnlEndToEndId", transaction.getExternalReference());
             txInfAndSts.put("TxSts", mapTransactionStatusToIso20022(transaction.getStatus()));
