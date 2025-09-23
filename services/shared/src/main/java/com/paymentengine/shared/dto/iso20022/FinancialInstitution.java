@@ -66,7 +66,7 @@ public class FinancialInstitution {
         
         @JsonProperty("Othr")
         @Valid
-        private GenericFinancialIdentification other;
+        private CommonTypes.GenericFinancialIdentification other;
         
         public FinancialInstitutionIdentification() {}
         
@@ -111,11 +111,11 @@ public class FinancialInstitution {
             this.postalAddress = postalAddress;
         }
         
-        public GenericFinancialIdentification getOther() {
+        public CommonTypes.GenericFinancialIdentification getOther() {
             return other;
         }
         
-        public void setOther(GenericFinancialIdentification other) {
+        public void setOther(CommonTypes.GenericFinancialIdentification other) {
             this.other = other;
         }
     }

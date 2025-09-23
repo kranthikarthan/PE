@@ -1162,4 +1162,156 @@ public class CommonTypes {
         public String getValue() { return value; }
         public void setValue(String value) { this.value = value; }
     }
+
+    /**
+     * Payment Card
+     */
+    public static class PaymentCard {
+        @JsonProperty("PlainCardData")
+        private String plainCardData;
+        
+        @JsonProperty("CardData")
+        private String cardData;
+        
+        public PaymentCard() {}
+        
+        public String getPlainCardData() { return plainCardData; }
+        public void setPlainCardData(String plainCardData) { this.plainCardData = plainCardData; }
+        
+        public String getCardData() { return cardData; }
+        public void setCardData(String cardData) { this.cardData = cardData; }
+    }
+
+    /**
+     * Point of Interaction
+     */
+    public static class PointOfInteraction {
+        @JsonProperty("Id")
+        private String id;
+        
+        @JsonProperty("SysNm")
+        private String systemName;
+        
+        public PointOfInteraction() {}
+        
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        
+        public String getSystemName() { return systemName; }
+        public void setSystemName(String systemName) { this.systemName = systemName; }
+    }
+
+    /**
+     * Card Transaction Detail
+     */
+    public static class CardTransactionDetail {
+        @JsonProperty("TxId")
+        private String transactionId;
+        
+        @JsonProperty("Amt")
+        private ActiveCurrencyAndAmount amount;
+        
+        public CardTransactionDetail() {}
+        
+        public String getTransactionId() { return transactionId; }
+        public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+        
+        public ActiveCurrencyAndAmount getAmount() { return amount; }
+        public void setAmount(ActiveCurrencyAndAmount amount) { this.amount = amount; }
+    }
+
+    /**
+     * Cash Account
+     */
+    public static class CashAccount {
+        @JsonProperty("Id")
+        private String id;
+        
+        @JsonProperty("Tp")
+        private String type;
+        
+        public CashAccount() {}
+        
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+    }
+
+    /**
+     * Securities Account
+     */
+    public static class SecuritiesAccount {
+        @JsonProperty("Id")
+        private String id;
+        
+        @JsonProperty("Tp")
+        private String type;
+        
+        public SecuritiesAccount() {}
+        
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+    }
+
+    /**
+     * Payment Return Information
+     */
+    public static class PaymentReturnInformation {
+        @JsonProperty("OrgnlInstrId")
+        private String originalInstructionId;
+        
+        @JsonProperty("OrgnlEndToEndId")
+        private String originalEndToEndId;
+        
+        public PaymentReturnInformation() {}
+        
+        public String getOriginalInstructionId() { return originalInstructionId; }
+        public void setOriginalInstructionId(String originalInstructionId) { this.originalInstructionId = originalInstructionId; }
+        
+        public String getOriginalEndToEndId() { return originalEndToEndId; }
+        public void setOriginalEndToEndId(String originalEndToEndId) { this.originalEndToEndId = originalEndToEndId; }
+    }
+
+    /**
+     * Price Type
+     */
+    public static class PriceType {
+        @JsonProperty("Cd")
+        private String code;
+        
+        @JsonProperty("Prtry")
+        private String proprietary;
+        
+        public PriceType() {}
+        
+        public String getCode() { return code; }
+        public void setCode(String code) { this.code = code; }
+        
+        public String getProprietary() { return proprietary; }
+        public void setProprietary(String proprietary) { this.proprietary = proprietary; }
+    }
+
+    /**
+     * Transaction Interest
+     */
+    public static class TransactionInterest {
+        @JsonProperty("TtlIntrstAndTaxAmt")
+        private ActiveCurrencyAndAmount totalInterestAndTaxAmount;
+        
+        @JsonProperty("Rate")
+        private String rate;
+        
+        public TransactionInterest() {}
+        
+        public ActiveCurrencyAndAmount getTotalInterestAndTaxAmount() { return totalInterestAndTaxAmount; }
+        public void setTotalInterestAndTaxAmount(ActiveCurrencyAndAmount totalInterestAndTaxAmount) { this.totalInterestAndTaxAmount = totalInterestAndTaxAmount; }
+        
+        public String getRate() { return rate; }
+        public void setRate(String rate) { this.rate = rate; }
+    }
 }

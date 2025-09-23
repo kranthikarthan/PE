@@ -54,7 +54,7 @@ public class Pain007Message {
         
         @JsonProperty("SplmtryData")
         @Valid
-        private List<SupplementaryData> supplementaryData;
+        private List<CommonTypes.SupplementaryData> supplementaryData;
         
         public CustomerPaymentReversal() {}
         
@@ -339,11 +339,11 @@ public class Pain007Message {
         
         @JsonProperty("OrgnlInstdAmt")
         @Valid
-        private ActiveCurrencyAndAmount originalInstructedAmount;
+        private CommonTypes.ActiveCurrencyAndAmount originalInstructedAmount;
         
         @JsonProperty("RvsdInstdAmt")
         @Valid
-        private ActiveCurrencyAndAmount reversedInstructedAmount;
+        private CommonTypes.ActiveCurrencyAndAmount reversedInstructedAmount;
         
         @JsonProperty("ChrgBr")
         private String chargeBearer; // DEBT, CRED, SHAR, SLEV
@@ -358,7 +358,7 @@ public class Pain007Message {
         
         @JsonProperty("SplmtryData")
         @Valid
-        private List<SupplementaryData> supplementaryData;
+        private List<CommonTypes.SupplementaryData> supplementaryData;
         
         public PaymentTransactionInformation() {}
         
@@ -395,19 +395,19 @@ public class Pain007Message {
             this.originalTransactionId = originalTransactionId;
         }
         
-        public ActiveCurrencyAndAmount getOriginalInstructedAmount() {
+        public CommonTypes.ActiveCurrencyAndAmount getOriginalInstructedAmount() {
             return originalInstructedAmount;
         }
         
-        public void setOriginalInstructedAmount(ActiveCurrencyAndAmount originalInstructedAmount) {
+        public void setOriginalInstructedAmount(CommonTypes.ActiveCurrencyAndAmount originalInstructedAmount) {
             this.originalInstructedAmount = originalInstructedAmount;
         }
         
-        public ActiveCurrencyAndAmount getReversedInstructedAmount() {
+        public CommonTypes.ActiveCurrencyAndAmount getReversedInstructedAmount() {
             return reversedInstructedAmount;
         }
         
-        public void setReversedInstructedAmount(ActiveCurrencyAndAmount reversedInstructedAmount) {
+        public void setReversedInstructedAmount(CommonTypes.ActiveCurrencyAndAmount reversedInstructedAmount) {
             this.reversedInstructedAmount = reversedInstructedAmount;
         }
         
@@ -515,7 +515,7 @@ public class Pain007Message {
         
         @JsonProperty("IntrBkSttlmAmt")
         @Valid
-        private ActiveCurrencyAndAmount interbankSettlementAmount;
+        private CommonTypes.ActiveCurrencyAndAmount interbankSettlementAmount;
         
         @JsonProperty("Amt")
         @Valid
@@ -600,11 +600,11 @@ public class Pain007Message {
         public OriginalTransactionReference() {}
         
         // Key getters and setters
-        public ActiveCurrencyAndAmount getInterbankSettlementAmount() {
+        public CommonTypes.ActiveCurrencyAndAmount getInterbankSettlementAmount() {
             return interbankSettlementAmount;
         }
         
-        public void setInterbankSettlementAmount(ActiveCurrencyAndAmount interbankSettlementAmount) {
+        public void setInterbankSettlementAmount(CommonTypes.ActiveCurrencyAndAmount interbankSettlementAmount) {
             this.interbankSettlementAmount = interbankSettlementAmount;
         }
         
@@ -664,7 +664,7 @@ public class Pain007Message {
         
         @JsonProperty("InstdAmt")
         @Valid
-        private ActiveCurrencyAndAmount instructedAmount;
+        private CommonTypes.ActiveCurrencyAndAmount instructedAmount;
         
         @JsonProperty("EqvtAmt")
         @Valid
@@ -672,11 +672,11 @@ public class Pain007Message {
         
         public AmountType() {}
         
-        public ActiveCurrencyAndAmount getInstructedAmount() {
+        public CommonTypes.ActiveCurrencyAndAmount getInstructedAmount() {
             return instructedAmount;
         }
         
-        public void setInstructedAmount(ActiveCurrencyAndAmount instructedAmount) {
+        public void setInstructedAmount(CommonTypes.ActiveCurrencyAndAmount instructedAmount) {
             this.instructedAmount = instructedAmount;
         }
         
@@ -1088,13 +1088,13 @@ public class Pain007Message {
     
     public static class RemittanceAmount {
         @JsonProperty("DuePyblAmt")
-        private ActiveCurrencyAndAmount duePayableAmount;
+        private CommonTypes.ActiveCurrencyAndAmount duePayableAmount;
         
         @JsonProperty("DscntApldAmt")
         private List<DiscountAmountAndType> discountAppliedAmount;
         
         @JsonProperty("CdtNoteAmt")
-        private ActiveCurrencyAndAmount creditNoteAmount;
+        private CommonTypes.ActiveCurrencyAndAmount creditNoteAmount;
         
         @JsonProperty("TaxAmt")
         private List<TaxAmountAndType> taxAmount;
@@ -1103,12 +1103,12 @@ public class Pain007Message {
         private List<DocumentAdjustment> adjustmentAmountAndReason;
         
         @JsonProperty("RmtdAmt")
-        private ActiveCurrencyAndAmount remittedAmount;
+        private CommonTypes.ActiveCurrencyAndAmount remittedAmount;
         
-        public ActiveCurrencyAndAmount getDuePayableAmount() { return duePayableAmount; }
-        public void setDuePayableAmount(ActiveCurrencyAndAmount duePayableAmount) { this.duePayableAmount = duePayableAmount; }
-        public ActiveCurrencyAndAmount getRemittedAmount() { return remittedAmount; }
-        public void setRemittedAmount(ActiveCurrencyAndAmount remittedAmount) { this.remittedAmount = remittedAmount; }
+        public CommonTypes.ActiveCurrencyAndAmount getDuePayableAmount() { return duePayableAmount; }
+        public void setDuePayableAmount(CommonTypes.ActiveCurrencyAndAmount duePayableAmount) { this.duePayableAmount = duePayableAmount; }
+        public CommonTypes.ActiveCurrencyAndAmount getRemittedAmount() { return remittedAmount; }
+        public void setRemittedAmount(CommonTypes.ActiveCurrencyAndAmount remittedAmount) { this.remittedAmount = remittedAmount; }
     }
     
     public static class DiscountAmountAndType {
@@ -1116,10 +1116,10 @@ public class Pain007Message {
         private DiscountAmountType type;
         
         @JsonProperty("Amt")
-        private ActiveCurrencyAndAmount amount;
+        private CommonTypes.ActiveCurrencyAndAmount amount;
         
-        public ActiveCurrencyAndAmount getAmount() { return amount; }
-        public void setAmount(ActiveCurrencyAndAmount amount) { this.amount = amount; }
+        public CommonTypes.ActiveCurrencyAndAmount getAmount() { return amount; }
+        public void setAmount(CommonTypes.ActiveCurrencyAndAmount amount) { this.amount = amount; }
     }
     
     public static class DiscountAmountType {
@@ -1157,7 +1157,7 @@ public class Pain007Message {
     
     public static class DocumentAdjustment {
         @JsonProperty("Amt")
-        private ActiveCurrencyAndAmount amount;
+        private CommonTypes.ActiveCurrencyAndAmount amount;
         
         @JsonProperty("CdtDbtInd")
         private String creditDebitIndicator;
@@ -1168,8 +1168,8 @@ public class Pain007Message {
         @JsonProperty("AddtlInf")
         private String additionalInformation;
         
-        public ActiveCurrencyAndAmount getAmount() { return amount; }
-        public void setAmount(ActiveCurrencyAndAmount amount) { this.amount = amount; }
+        public CommonTypes.ActiveCurrencyAndAmount getAmount() { return amount; }
+        public void setAmount(CommonTypes.ActiveCurrencyAndAmount amount) { this.amount = amount; }
         public String getCreditDebitIndicator() { return creditDebitIndicator; }
         public void setCreditDebitIndicator(String creditDebitIndicator) { this.creditDebitIndicator = creditDebitIndicator; }
     }

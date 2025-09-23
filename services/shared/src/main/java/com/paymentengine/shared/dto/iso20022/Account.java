@@ -126,7 +126,7 @@ public class Account {
         
         @JsonProperty("SchmeNm")
         @Valid
-        private SchemeName schemeName;
+        private CommonTypes.SchemeName schemeName;
         
         @JsonProperty("Issr")
         @Size(max = 35)
@@ -146,11 +146,11 @@ public class Account {
             this.identification = identification;
         }
         
-        public SchemeName getSchemeName() {
+        public CommonTypes.SchemeName getSchemeName() {
             return schemeName;
         }
         
-        public void setSchemeName(SchemeName schemeName) {
+        public void setSchemeName(CommonTypes.SchemeName schemeName) {
             this.schemeName = schemeName;
         }
         
