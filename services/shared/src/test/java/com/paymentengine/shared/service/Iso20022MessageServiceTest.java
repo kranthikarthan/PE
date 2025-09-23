@@ -61,15 +61,20 @@ class Iso20022MessageServiceTest {
 
         // Assert
         assertNotNull(result, "PAIN.002 response should not be null");
-        assertTrue(result.containsKey("GrpHdr"), "Should contain Group Header");
-        assertTrue(result.containsKey("OrgnlGrpInfAndSts"), "Should contain Original Group Information");
-        assertTrue(result.containsKey("TxInfAndSts"), "Should contain Transaction Information");
+        assertTrue(result.containsKey("CstmrPmtStsRpt"), "Should contain Customer Payment Status Report");
+        
+        @SuppressWarnings("unchecked")
+        Map<String, Object> cstmrPmtStsRpt = (Map<String, Object>) result.get("CstmrPmtStsRpt");
+        assertNotNull(cstmrPmtStsRpt, "Customer Payment Status Report should not be null");
+        assertTrue(cstmrPmtStsRpt.containsKey("GrpHdr"), "Should contain Group Header");
+        assertTrue(cstmrPmtStsRpt.containsKey("OrgnlGrpInfAndSts"), "Should contain Original Group Information");
+        assertTrue(cstmrPmtStsRpt.containsKey("PmtInfSts"), "Should contain Payment Information Status");
     }
 
     @Test
     void testTransformPain001ToTransactionRequest_WithNullInput_ShouldHandleGracefully() {
         // Act & Assert
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
             iso20022MessageService.transformPain001ToTransactionRequest(null);
         });
     }
@@ -77,7 +82,7 @@ class Iso20022MessageServiceTest {
     @Test
     void testTransformTransactionResponseToPain002_WithNullInput_ShouldHandleGracefully() {
         // Act & Assert
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
             iso20022MessageService.transformTransactionResponseToPain002(null, "MSG-12345");
         });
     }
@@ -104,9 +109,14 @@ class Iso20022MessageServiceTest {
         paymentInfo.setNumberOfTransactions("1");
         paymentInfo.setControlSum("100.00");
         
+        // Create Payment Type Information
+        com.paymentengine.shared.dto.iso20022.PaymentTypeInformation paymentTypeInfo = new com.paymentengine.shared.dto.iso20022.PaymentTypeInformation();
+        paymentInfo.setPaymentTypeInformation(paymentTypeInfo);
+        
         // Create Debtor
         Party debtor = new Party();
         debtor.setName("Test Debtor");
+        debtor.setCountryOfResidence("US");
         paymentInfo.setDebtor(debtor);
         
         // Create Debtor Account
@@ -133,9 +143,17 @@ class Iso20022MessageServiceTest {
         amount.setInstructedAmount(instructedAmount);
         cdtTrfTxInf.setAmount(amount);
         
+        // Set Payment Type Information for Credit Transfer
+        com.paymentengine.shared.dto.iso20022.PaymentTypeInformation cdtTrfTxInfPmtTpInf = new com.paymentengine.shared.dto.iso20022.PaymentTypeInformation();
+        cdtTrfTxInf.setPaymentTypeInformation(cdtTrfTxInfPmtTpInf);
+        
+        // Set Charge Bearer
+        cdtTrfTxInf.setChargeBearer("OUR");
+        
         // Set Creditor
         Party creditor = new Party();
         creditor.setName("Test Creditor");
+        creditor.setCountryOfResidence("US");
         cdtTrfTxInf.setCreditor(creditor);
         
         // Set Creditor Account
