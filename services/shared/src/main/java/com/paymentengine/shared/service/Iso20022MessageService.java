@@ -1,8 +1,8 @@
 package com.paymentengine.shared.service;
 
 import com.paymentengine.shared.dto.iso20022.*;
-import com.paymentengine.corebanking.dto.CreateTransactionRequest;
-import com.paymentengine.corebanking.dto.TransactionResponse;
+import com.paymentengine.shared.dto.CreateTransactionRequest;
+import com.paymentengine.shared.dto.TransactionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

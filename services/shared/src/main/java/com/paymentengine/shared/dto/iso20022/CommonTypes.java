@@ -806,4 +806,360 @@ public class CommonTypes {
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
     }
+
+    /**
+     * Payment Identification
+     */
+    public static class PaymentIdentification {
+        @JsonProperty("InstrId")
+        private String instructionId;
+        
+        @JsonProperty("EndToEndId")
+        private String endToEndId;
+        
+        @JsonProperty("TxId")
+        private String transactionId;
+        
+        @JsonProperty("ClrSysRef")
+        private String clearingSystemReference;
+        
+        public PaymentIdentification() {}
+        
+        public String getInstructionId() { return instructionId; }
+        public void setInstructionId(String instructionId) { this.instructionId = instructionId; }
+        
+        public String getEndToEndId() { return endToEndId; }
+        public void setEndToEndId(String endToEndId) { this.endToEndId = endToEndId; }
+        
+        public String getTransactionId() { return transactionId; }
+        public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+        
+        public String getClearingSystemReference() { return clearingSystemReference; }
+        public void setClearingSystemReference(String clearingSystemReference) { this.clearingSystemReference = clearingSystemReference; }
+    }
+
+    /**
+     * Currency and Amount
+     */
+    public static class CurrencyAndAmount {
+        @JsonProperty("Ccy")
+        private String currency;
+        
+        @JsonProperty("Value")
+        private String value;
+        
+        public CurrencyAndAmount() {}
+        
+        public String getCurrency() { return currency; }
+        public void setCurrency(String currency) { this.currency = currency; }
+        
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
+    }
+
+    /**
+     * Active Currency and Amount
+     */
+    public static class ActiveCurrencyAndAmount {
+        @JsonProperty("Ccy")
+        private String currency;
+        
+        @JsonProperty("Value")
+        private String value;
+        
+        public ActiveCurrencyAndAmount() {}
+        
+        public String getCurrency() { return currency; }
+        public void setCurrency(String currency) { this.currency = currency; }
+        
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
+    }
+
+    /**
+     * Message Identification
+     */
+    public static class MessageIdentification {
+        @JsonProperty("MsgId")
+        private String messageId;
+        
+        @JsonProperty("CreDtTm")
+        private String creationDateTime;
+        
+        public MessageIdentification() {}
+        
+        public String getMessageId() { return messageId; }
+        public void setMessageId(String messageId) { this.messageId = messageId; }
+        
+        public String getCreationDateTime() { return creationDateTime; }
+        public void setCreationDateTime(String creationDateTime) { this.creationDateTime = creationDateTime; }
+    }
+
+    /**
+     * Charges Information
+     */
+    public static class ChargesInformation {
+        @JsonProperty("TtlChrgsAndTaxAmt")
+        private ActiveCurrencyAndAmount totalChargesAndTaxAmount;
+        
+        @JsonProperty("Rcrd")
+        private ChargeRecord record;
+        
+        public ChargesInformation() {}
+        
+        public ActiveCurrencyAndAmount getTotalChargesAndTaxAmount() { return totalChargesAndTaxAmount; }
+        public void setTotalChargesAndTaxAmount(ActiveCurrencyAndAmount totalChargesAndTaxAmount) { this.totalChargesAndTaxAmount = totalChargesAndTaxAmount; }
+        
+        public ChargeRecord getRecord() { return record; }
+        public void setRecord(ChargeRecord record) { this.record = record; }
+    }
+
+    /**
+     * Charge Record
+     */
+    public static class ChargeRecord {
+        @JsonProperty("Amt")
+        private ActiveCurrencyAndAmount amount;
+        
+        @JsonProperty("CdtDbtInd")
+        private String creditDebitIndicator;
+        
+        @JsonProperty("Tp")
+        private ChargeType type;
+        
+        public ChargeRecord() {}
+        
+        public ActiveCurrencyAndAmount getAmount() { return amount; }
+        public void setAmount(ActiveCurrencyAndAmount amount) { this.amount = amount; }
+        
+        public String getCreditDebitIndicator() { return creditDebitIndicator; }
+        public void setCreditDebitIndicator(String creditDebitIndicator) { this.creditDebitIndicator = creditDebitIndicator; }
+        
+        public ChargeType getType() { return type; }
+        public void setType(ChargeType type) { this.type = type; }
+    }
+
+    /**
+     * Charge Type
+     */
+    public static class ChargeType {
+        @JsonProperty("CdOrPrtry")
+        private CodeOrProprietary codeOrProprietary;
+        
+        public ChargeType() {}
+        
+        public CodeOrProprietary getCodeOrProprietary() { return codeOrProprietary; }
+        public void setCodeOrProprietary(CodeOrProprietary codeOrProprietary) { this.codeOrProprietary = codeOrProprietary; }
+    }
+
+    /**
+     * Code or Proprietary
+     */
+    public static class CodeOrProprietary {
+        @JsonProperty("Cd")
+        private String code;
+        
+        @JsonProperty("Prtry")
+        private String proprietary;
+        
+        public CodeOrProprietary() {}
+        
+        public String getCode() { return code; }
+        public void setCode(String code) { this.code = code; }
+        
+        public String getProprietary() { return proprietary; }
+        public void setProprietary(String proprietary) { this.proprietary = proprietary; }
+    }
+
+    /**
+     * Local Instrument
+     */
+    public static class LocalInstrument {
+        @JsonProperty("Cd")
+        private String code;
+        
+        @JsonProperty("Prtry")
+        private String proprietary;
+        
+        public LocalInstrument() {}
+        
+        public String getCode() { return code; }
+        public void setCode(String code) { this.code = code; }
+        
+        public String getProprietary() { return proprietary; }
+        public void setProprietary(String proprietary) { this.proprietary = proprietary; }
+    }
+
+    /**
+     * Remittance Location
+     */
+    public static class RemittanceLocation {
+        @JsonProperty("RmtId")
+        private String remittanceId;
+        
+        @JsonProperty("RmtLctnMtd")
+        private String remittanceLocationMethod;
+        
+        @JsonProperty("RmtLctnElctrncAdr")
+        private String remittanceLocationElectronicAddress;
+        
+        @JsonProperty("RmtLctnPstlAdr")
+        private PostalAddress remittanceLocationPostalAddress;
+        
+        public RemittanceLocation() {}
+        
+        public String getRemittanceId() { return remittanceId; }
+        public void setRemittanceId(String remittanceId) { this.remittanceId = remittanceId; }
+        
+        public String getRemittanceLocationMethod() { return remittanceLocationMethod; }
+        public void setRemittanceLocationMethod(String remittanceLocationMethod) { this.remittanceLocationMethod = remittanceLocationMethod; }
+        
+        public String getRemittanceLocationElectronicAddress() { return remittanceLocationElectronicAddress; }
+        public void setRemittanceLocationElectronicAddress(String remittanceLocationElectronicAddress) { this.remittanceLocationElectronicAddress = remittanceLocationElectronicAddress; }
+        
+        public PostalAddress getRemittanceLocationPostalAddress() { return remittanceLocationPostalAddress; }
+        public void setRemittanceLocationPostalAddress(PostalAddress remittanceLocationPostalAddress) { this.remittanceLocationPostalAddress = remittanceLocationPostalAddress; }
+    }
+
+    /**
+     * Postal Address
+     */
+    public static class PostalAddress {
+        @JsonProperty("AdrTp")
+        private String addressType;
+        
+        @JsonProperty("Dept")
+        private String department;
+        
+        @JsonProperty("SubDept")
+        private String subDepartment;
+        
+        @JsonProperty("StrtNm")
+        private String streetName;
+        
+        @JsonProperty("BldgNb")
+        private String buildingNumber;
+        
+        @JsonProperty("BldgNm")
+        private String buildingName;
+        
+        @JsonProperty("Flr")
+        private String floor;
+        
+        @JsonProperty("PstBx")
+        private String postBox;
+        
+        @JsonProperty("Room")
+        private String room;
+        
+        @JsonProperty("PstCd")
+        private String postCode;
+        
+        @JsonProperty("TwnNm")
+        private String townName;
+        
+        @JsonProperty("TwnLctnNm")
+        private String townLocationName;
+        
+        @JsonProperty("DstrctNm")
+        private String districtName;
+        
+        @JsonProperty("CtrySubDvsn")
+        private String countrySubDivision;
+        
+        @JsonProperty("Ctry")
+        private String country;
+        
+        @JsonProperty("AdrLine")
+        private String addressLine;
+        
+        public PostalAddress() {}
+        
+        // Getters and setters
+        public String getAddressType() { return addressType; }
+        public void setAddressType(String addressType) { this.addressType = addressType; }
+        
+        public String getDepartment() { return department; }
+        public void setDepartment(String department) { this.department = department; }
+        
+        public String getSubDepartment() { return subDepartment; }
+        public void setSubDepartment(String subDepartment) { this.subDepartment = subDepartment; }
+        
+        public String getStreetName() { return streetName; }
+        public void setStreetName(String streetName) { this.streetName = streetName; }
+        
+        public String getBuildingNumber() { return buildingNumber; }
+        public void setBuildingNumber(String buildingNumber) { this.buildingNumber = buildingNumber; }
+        
+        public String getBuildingName() { return buildingName; }
+        public void setBuildingName(String buildingName) { this.buildingName = buildingName; }
+        
+        public String getFloor() { return floor; }
+        public void setFloor(String floor) { this.floor = floor; }
+        
+        public String getPostBox() { return postBox; }
+        public void setPostBox(String postBox) { this.postBox = postBox; }
+        
+        public String getRoom() { return room; }
+        public void setRoom(String room) { this.room = room; }
+        
+        public String getPostCode() { return postCode; }
+        public void setPostCode(String postCode) { this.postCode = postCode; }
+        
+        public String getTownName() { return townName; }
+        public void setTownName(String townName) { this.townName = townName; }
+        
+        public String getTownLocationName() { return townLocationName; }
+        public void setTownLocationName(String townLocationName) { this.townLocationName = townLocationName; }
+        
+        public String getDistrictName() { return districtName; }
+        public void setDistrictName(String districtName) { this.districtName = districtName; }
+        
+        public String getCountrySubDivision() { return countrySubDivision; }
+        public void setCountrySubDivision(String countrySubDivision) { this.countrySubDivision = countrySubDivision; }
+        
+        public String getCountry() { return country; }
+        public void setCountry(String country) { this.country = country; }
+        
+        public String getAddressLine() { return addressLine; }
+        public void setAddressLine(String addressLine) { this.addressLine = addressLine; }
+    }
+
+    /**
+     * Supplementary Data
+     */
+    public static class SupplementaryData {
+        @JsonProperty("PlcAndNm")
+        private String placeAndName;
+        
+        @JsonProperty("Envlp")
+        private String envelope;
+        
+        public SupplementaryData() {}
+        
+        public String getPlaceAndName() { return placeAndName; }
+        public void setPlaceAndName(String placeAndName) { this.placeAndName = placeAndName; }
+        
+        public String getEnvelope() { return envelope; }
+        public void setEnvelope(String envelope) { this.envelope = envelope; }
+    }
+
+    /**
+     * Amount
+     */
+    public static class Amount {
+        @JsonProperty("Ccy")
+        private String currency;
+        
+        @JsonProperty("Value")
+        private String value;
+        
+        public Amount() {}
+        
+        public String getCurrency() { return currency; }
+        public void setCurrency(String currency) { this.currency = currency; }
+        
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
+    }
 }
