@@ -1,1 +1,3 @@
 com/paymentengine/shared/service/Iso20022MessageServiceTest.class
+com/paymentengine/shared/service/Pain001ToPain002FlowTest.class
+com/paymentengine/shared/service/IntegrationTest.class

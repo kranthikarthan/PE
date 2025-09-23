@@ -1,0 +1,13 @@
+-------------------------------------------------------------------------------
+Test set: com.paymentengine.shared.service.IntegrationTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.440 s <<< FAILURE! -- in com.paymentengine.shared.service.IntegrationTest
+com.paymentengine.shared.service.IntegrationTest.testLiveServiceHealth -- Time elapsed: 0.061 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Service is not running or not accessible: I/O error on GET request for "http://localhost:8082/payment-processing/actuator/health": Connection refused
+	at org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:38)
+	at org.junit.jupiter.api.Assertions.fail(Assertions.java:138)
+	at com.paymentengine.shared.service.IntegrationTest.testLiveServiceHealth(IntegrationTest.java:35)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
