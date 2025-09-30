@@ -10,6 +10,7 @@ import io.github.resilience4j.ratelimiter.RateLimiter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -37,120 +38,77 @@ public class ResilientClearingSystemService {
     private ClearingSystemRoutingService clearingSystemRoutingService;
     
     public List<ClearingSystemResponse> getAllClearingSystems() {
-        Supplier<List<ClearingSystemResponse>> supplier = () -> {
-            // Simulate clearing system service call
-            return clearingSystemRoutingService.getAllClearingSystems();
-        };
-        
-        Supplier<List<ClearingSystemResponse>> decoratedSupplier = CircuitBreaker
-                .decorateSupplier(clearingSystemCircuitBreaker, supplier);
-        
-        decoratedSupplier = Retry.decorateSupplier(clearingSystemRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(clearingSystemTimeLimiter, decoratedSupplier);
-        decoratedSupplier = Bulkhead.decorateSupplier(clearingSystemBulkhead, decoratedSupplier);
-        decoratedSupplier = RateLimiter.decorateSupplier(clearingSystemRateLimiter, decoratedSupplier);
-        
-        return decoratedSupplier.get();
+        Supplier<List<ClearingSystemResponse>> supplier = () -> clearingSystemRoutingService.getAllClearingSystems();
+
+        return executeWithResilience(supplier);
     }
-    
+
     public ClearingSystemResponse getClearingSystemById(UUID id) {
-        Supplier<ClearingSystemResponse> supplier = () -> {
-            return clearingSystemRoutingService.getClearingSystemById(id);
-        };
-        
-        Supplier<ClearingSystemResponse> decoratedSupplier = CircuitBreaker
-                .decorateSupplier(clearingSystemCircuitBreaker, supplier);
-        
-        decoratedSupplier = Retry.decorateSupplier(clearingSystemRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(clearingSystemTimeLimiter, decoratedSupplier);
-        decoratedSupplier = Bulkhead.decorateSupplier(clearingSystemBulkhead, decoratedSupplier);
-        decoratedSupplier = RateLimiter.decorateSupplier(clearingSystemRateLimiter, decoratedSupplier);
-        
-        return decoratedSupplier.get();
+        Supplier<ClearingSystemResponse> supplier = () -> clearingSystemRoutingService.getClearingSystemById(id);
+
+        return executeWithResilience(supplier);
     }
-    
+
     public ClearingSystemResponse createClearingSystem(ClearingSystemRequest request) {
-        Supplier<ClearingSystemResponse> supplier = () -> {
-            return clearingSystemRoutingService.createClearingSystem(request);
-        };
-        
-        Supplier<ClearingSystemResponse> decoratedSupplier = CircuitBreaker
-                .decorateSupplier(clearingSystemCircuitBreaker, supplier);
-        
-        decoratedSupplier = Retry.decorateSupplier(clearingSystemRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(clearingSystemTimeLimiter, decoratedSupplier);
-        decoratedSupplier = Bulkhead.decorateSupplier(clearingSystemBulkhead, decoratedSupplier);
-        decoratedSupplier = RateLimiter.decorateSupplier(clearingSystemRateLimiter, decoratedSupplier);
-        
-        return decoratedSupplier.get();
+        Supplier<ClearingSystemResponse> supplier = () -> clearingSystemRoutingService.createClearingSystem(request);
+
+        return executeWithResilience(supplier);
     }
-    
+
     public ClearingSystemResponse updateClearingSystem(UUID id, ClearingSystemRequest request) {
-        Supplier<ClearingSystemResponse> supplier = () -> {
-            return clearingSystemRoutingService.updateClearingSystem(id, request);
-        };
-        
-        Supplier<ClearingSystemResponse> decoratedSupplier = CircuitBreaker
-                .decorateSupplier(clearingSystemCircuitBreaker, supplier);
-        
-        decoratedSupplier = Retry.decorateSupplier(clearingSystemRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(clearingSystemTimeLimiter, decoratedSupplier);
-        decoratedSupplier = Bulkhead.decorateSupplier(clearingSystemBulkhead, decoratedSupplier);
-        decoratedSupplier = RateLimiter.decorateSupplier(clearingSystemRateLimiter, decoratedSupplier);
-        
-        return decoratedSupplier.get();
+        Supplier<ClearingSystemResponse> supplier = () -> clearingSystemRoutingService.updateClearingSystem(id, request);
+
+        return executeWithResilience(supplier);
     }
-    
+
     public void deleteClearingSystem(UUID id) {
-        Supplier<Void> supplier = () -> {
+        executeWithResilience(() -> {
             clearingSystemRoutingService.deleteClearingSystem(id);
             return null;
-        };
-        
-        Supplier<Void> decoratedSupplier = CircuitBreaker
-                .decorateSupplier(clearingSystemCircuitBreaker, supplier);
-        
-        decoratedSupplier = Retry.decorateSupplier(clearingSystemRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(clearingSystemTimeLimiter, decoratedSupplier);
-        decoratedSupplier = Bulkhead.decorateSupplier(clearingSystemBulkhead, decoratedSupplier);
-        decoratedSupplier = RateLimiter.decorateSupplier(clearingSystemRateLimiter, decoratedSupplier);
-        
-        decoratedSupplier.get();
+        });
     }
-    
+
     public CompletableFuture<ClearingSystemResponse> getClearingSystemByIdAsync(UUID id) {
-        Supplier<CompletableFuture<ClearingSystemResponse>> supplier = () -> {
-            return CompletableFuture.supplyAsync(() -> {
-                return clearingSystemRoutingService.getClearingSystemById(id);
-            });
-        };
-        
-        Supplier<CompletableFuture<ClearingSystemResponse>> decoratedSupplier = CircuitBreaker
-                .decorateSupplier(clearingSystemCircuitBreaker, supplier);
-        
-        decoratedSupplier = Retry.decorateSupplier(clearingSystemRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(clearingSystemTimeLimiter, decoratedSupplier);
-        decoratedSupplier = Bulkhead.decorateSupplier(clearingSystemBulkhead, decoratedSupplier);
-        decoratedSupplier = RateLimiter.decorateSupplier(clearingSystemRateLimiter, decoratedSupplier);
-        
+        Supplier<CompletableFuture<ClearingSystemResponse>> supplier = () ->
+                CompletableFuture.supplyAsync(() -> clearingSystemRoutingService.getClearingSystemById(id));
+
+        return executeWithResilience(supplier);
+    }
+
+    public CompletableFuture<List<ClearingSystemResponse>> getAllClearingSystemsAsync() {
+        Supplier<CompletableFuture<List<ClearingSystemResponse>>> supplier = () ->
+                CompletableFuture.supplyAsync(clearingSystemRoutingService::getAllClearingSystems);
+
+        return executeWithResilience(supplier);
+    }
+
+    private <T> T executeWithResilience(Supplier<T> supplier) {
+        Supplier<T> decoratedSupplier = supplier;
+
+        if (clearingSystemCircuitBreaker != null && !isProxy(clearingSystemCircuitBreaker)) {
+            decoratedSupplier = CircuitBreaker.decorateSupplier(clearingSystemCircuitBreaker, decoratedSupplier);
+        }
+
+        if (clearingSystemRetry != null && !isProxy(clearingSystemRetry)) {
+            decoratedSupplier = Retry.decorateSupplier(clearingSystemRetry, decoratedSupplier);
+        }
+
+        if (clearingSystemTimeLimiter != null && !isProxy(clearingSystemTimeLimiter)) {
+            decoratedSupplier = TimeLimiter.decorateSupplier(clearingSystemTimeLimiter, decoratedSupplier);
+        }
+
+        if (clearingSystemBulkhead != null && !isProxy(clearingSystemBulkhead)) {
+            decoratedSupplier = Bulkhead.decorateSupplier(clearingSystemBulkhead, decoratedSupplier);
+        }
+
+        if (clearingSystemRateLimiter != null && !isProxy(clearingSystemRateLimiter)) {
+            decoratedSupplier = RateLimiter.decorateSupplier(clearingSystemRateLimiter, decoratedSupplier);
+        }
+
         return decoratedSupplier.get();
     }
-    
-    public CompletableFuture<List<ClearingSystemResponse>> getAllClearingSystemsAsync() {
-        Supplier<CompletableFuture<List<ClearingSystemResponse>>> supplier = () -> {
-            return CompletableFuture.supplyAsync(() -> {
-                return clearingSystemRoutingService.getAllClearingSystems();
-            });
-        };
-        
-        Supplier<CompletableFuture<List<ClearingSystemResponse>>> decoratedSupplier = CircuitBreaker
-                .decorateSupplier(clearingSystemCircuitBreaker, supplier);
-        
-        decoratedSupplier = Retry.decorateSupplier(clearingSystemRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(clearingSystemTimeLimiter, decoratedSupplier);
-        decoratedSupplier = Bulkhead.decorateSupplier(clearingSystemBulkhead, decoratedSupplier);
-        decoratedSupplier = RateLimiter.decorateSupplier(clearingSystemRateLimiter, decoratedSupplier);
-        
-        return decoratedSupplier.get();
+
+    private boolean isProxy(Object candidate) {
+        return candidate != null && Proxy.isProxyClass(candidate.getClass());
     }
 }
