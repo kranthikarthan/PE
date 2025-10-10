@@ -1,0 +1,19 @@
+apiVersion: v2
+name: payment-processing
+description: Payment Processing Service - ISO20022 Message Handling
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - payment
+  - iso20022
+  - fintech
+  - microservices
+home: https://github.com/payment-engine/payment-processing
+sources:
+  - https://github.com/payment-engine/payment-processing
+maintainers:
+  - name: Payment Engine Team
+    email: team@paymentengine.com
+icon: https://paymentengine.com/icon.png
+dependencies: []
