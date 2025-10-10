@@ -90,10 +90,20 @@ public class SecurityConfig {
             roles = Collections.emptyList();
         }
         
-        // Convert scopes and roles to authorities
-        return scopes.stream()
+        // Convert scopes to authorities with SCOPE_ prefix
+        List<SimpleGrantedAuthority> authorities = scopes.stream()
                 .map(scope -> new SimpleGrantedAuthority("SCOPE_" + scope))
                 .collect(Collectors.toList());
+        
+        // Convert roles to authorities with ROLE_ prefix for @PreAuthorize("hasRole(...)")
+        List<SimpleGrantedAuthority> roleAuthorities = roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .collect(Collectors.toList());
+        
+        // Combine both scopes and roles
+        authorities.addAll(roleAuthorities);
+        
+        return authorities;
     }
 
     @Bean
