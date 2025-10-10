@@ -33,6 +33,11 @@ spring:
   
   # Spring Cloud Gateway Configuration
   cloud:
+    discovery:
+      enabled: true
+    loadbalancer:
+      cache:
+        enabled: true
     gateway:
       # Global CORS configuration
       globalcors:
@@ -618,7 +623,19 @@ resilience4j:
         sliding-window-size: 20
         minimum-number-of-calls: 10
         failure-rate-threshold: 60
-        wait-duration-in-open-state: 30s
+      wait-duration-in-open-state: 30s
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:${HOSTNAME:api-gateway}}
+    prefer-ip-address: false
+    metadata-map:
+      management.port: ${MANAGEMENT_SERVER_PORT:${server.port}}
 
 # Management and Monitoring
 management:

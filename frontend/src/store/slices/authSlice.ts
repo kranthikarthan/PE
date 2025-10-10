@@ -2,6 +2,17 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, User } from '../../types';
 import apiService from '../../services/api';
 
+type LoginResult = {
+  token: string;
+  refreshToken: string;
+  user: User;
+};
+
+type RefreshResult = {
+  token: string;
+  refreshToken: string;
+};
+
 const initialState: AuthState = {
   isAuthenticated: false,
   user: null,
@@ -12,17 +23,47 @@ const initialState: AuthState = {
 };
 
 // Async thunks
-export const login = createAsyncThunk(
+export const login = createAsyncThunk<LoginResult,
+  { username: string; password: string },
+  { rejectValue: string }>(
   'auth/login',
-  async ({ username, password }: { username: string; password: string }, { rejectWithValue }) => {
+  async ({ username, password }, { rejectWithValue }) => {
     try {
       const response = await apiService.login(username, password);
-      
-      // Store tokens in localStorage
-      localStorage.setItem('authToken', response.data.token);
-      localStorage.setItem('refreshToken', response.data.refreshToken);
-      
-      return response.data;
+
+      const token = response?.accessToken ?? '';
+      const refreshTokenValue = response?.refreshToken ?? '';
+      if (!token || !refreshTokenValue) {
+        throw new Error('Authentication response missing tokens');
+      }
+
+      const roles = Array.isArray(response.roles)
+        ? response.roles
+        : Array.from(response.roles ?? []);
+      const permissions = Array.isArray(response.permissions)
+        ? response.permissions
+        : Array.from(response.permissions ?? []);
+
+      const user: User = {
+        id: response.userId ?? '',
+        username: response.username ?? username,
+        email: response.email ?? '',
+        firstName: (response as any).firstName ?? undefined,
+        lastName: (response as any).lastName ?? undefined,
+        roles,
+        permissions,
+        lastLoginAt: (response as any).lastLoginAt ?? undefined,
+        isActive: true,
+      };
+
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('refreshToken', refreshTokenValue);
+
+      return {
+        token,
+        refreshToken: refreshTokenValue,
+        user,
+      };
     } catch (error: any) {
       return rejectWithValue(error.message || 'Login failed');
     }
@@ -53,33 +94,57 @@ export const getCurrentUser = createAsyncThunk(
         method: 'GET',
         url: '/api/v1/auth/me',
       });
-      return response.data;
+      const data = response as any;
+      return {
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        roles: Array.isArray(data.roles) ? data.roles : Array.from(data.roles ?? []),
+        permissions: Array.isArray(data.permissions) ? data.permissions : Array.from(data.permissions ?? []),
+        lastLoginAt: data.lastLoginAt ?? null,
+        isActive: Boolean(data.active),
+      } as User;
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to get current user');
     }
   }
 );
 
-export const refreshToken = createAsyncThunk(
+export const refreshToken = createAsyncThunk<RefreshResult,
+  void,
+  { rejectValue: string; state: { auth: AuthState } }>(
   'auth/refreshToken',
   async (_, { rejectWithValue, getState }) => {
     try {
       const state = getState() as { auth: AuthState };
       const refreshToken = state.auth.refreshToken;
-      
+
       if (!refreshToken) {
         throw new Error('No refresh token available');
       }
       
-      const response = await apiService.request({
+      const response = await apiService.request<any>({
         method: 'POST',
         url: '/api/v1/auth/refresh',
         data: { refreshToken },
       });
-      
-      localStorage.setItem('authToken', response.data.token);
-      
-      return response.data;
+
+      const token = response?.accessToken ?? '';
+      const newRefreshToken = response?.refreshToken ?? refreshToken;
+
+      if (!token) {
+        throw new Error('Token refresh response missing access token');
+      }
+
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('refreshToken', newRefreshToken ?? '');
+
+      return {
+        token,
+        refreshToken: newRefreshToken,
+      };
     } catch (error: any) {
       localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');
@@ -187,6 +252,7 @@ const authSlice = createSlice({
       .addCase(refreshToken.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload.token;
+        state.refreshToken = action.payload.refreshToken;
         state.error = null;
       })
       .addCase(refreshToken.rejected, (state, action) => {

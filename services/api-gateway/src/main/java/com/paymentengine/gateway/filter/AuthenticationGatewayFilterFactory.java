@@ -1,6 +1,8 @@
 package com.paymentengine.gateway.filter;
 
 import com.paymentengine.gateway.security.JwtAuthenticationManager;
+import com.paymentengine.gateway.service.ConfigurationHierarchyService;
+import com.paymentengine.gateway.dto.multilevel.ResolvedAuthConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Custom Gateway Filter for JWT Authentication
@@ -28,6 +31,9 @@ public class AuthenticationGatewayFilterFactory
     
     @Autowired
     private JwtAuthenticationManager jwtAuthenticationManager;
+
+    @Autowired
+    private ConfigurationHierarchyService configurationHierarchyService;
     
     public AuthenticationGatewayFilterFactory() {
         super(Config.class);
@@ -49,13 +55,7 @@ public class AuthenticationGatewayFilterFactory
             String token = extractToken(authHeader);
             
             if (token == null) {
-                // Check for API key authentication
-                String apiKey = request.getHeaders().getFirst("X-API-Key");
-                if (apiKey != null && !apiKey.isEmpty()) {
-                    return handleApiKeyAuth(exchange, chain, apiKey);
-                }
-                
-                return handleUnauthorized(exchange, "Missing authentication token");
+                return handleApiKeyAuth(exchange, chain);
             }
             
             // Validate JWT token
@@ -94,16 +94,44 @@ public class AuthenticationGatewayFilterFactory
             });
     }
     
-    private Mono<Void> handleApiKeyAuth(ServerWebExchange exchange, 
-                                       org.springframework.cloud.gateway.filter.GatewayFilterChain chain, 
-                                       String apiKey) {
-        // TODO: Implement API key validation
-        // For now, we'll add a placeholder header and continue
-        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+    private Mono<Void> handleApiKeyAuth(ServerWebExchange exchange,
+                                       org.springframework.cloud.gateway.filter.GatewayFilterChain chain) {
+        ServerHttpRequest request = exchange.getRequest();
+        String tenantId = request.getHeaders().getFirst("X-Tenant-ID");
+        if (tenantId == null || tenantId.isBlank()) {
+            return handleUnauthorized(exchange, "Missing tenant identifier for API key authentication");
+        }
+
+        String serviceType = Optional.ofNullable(request.getHeaders().getFirst("X-Service-Type"))
+                .orElse("api-gateway");
+        String endpoint = request.getURI().getPath();
+        String paymentType = request.getHeaders().getFirst("X-Payment-Type");
+
+        Optional<ResolvedAuthConfiguration> resolved = configurationHierarchyService.resolveConfigurationPrecedence(
+                tenantId, serviceType, endpoint, paymentType);
+
+        if (resolved.isEmpty()) {
+            return handleUnauthorized(exchange, "No API key configuration found for tenant");
+        }
+
+        ResolvedAuthConfiguration configuration = resolved.get();
+        String headerName = Optional.ofNullable(configuration.getApiKeyHeaderName()).orElse("X-API-Key");
+        String providedKey = request.getHeaders().getFirst(headerName);
+
+        if (providedKey == null || providedKey.isBlank()) {
+            return handleUnauthorized(exchange, "Missing API key header: " + headerName);
+        }
+
+        if (configuration.getApiKey() == null || !configuration.getApiKey().equals(providedKey)) {
+            logger.warn("API key validation failed for tenant {} on endpoint {}", tenantId, endpoint);
+            return handleUnauthorized(exchange, "Invalid API key");
+        }
+
+        ServerHttpRequest mutatedRequest = request.mutate()
             .header("X-Auth-Type", "API_KEY")
             .header("X-API-Key-Validated", "true")
             .build();
-        
+
         return chain.filter(exchange.mutate().request(mutatedRequest).build());
     }
     

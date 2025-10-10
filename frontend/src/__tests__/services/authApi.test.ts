@@ -55,7 +55,7 @@ describe('AuthApiService', () => {
       const result = await authApi.login(loginRequest);
 
       expect(result).toEqual(mockResponse.data);
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('accessToken', 'access-token');
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('authToken', 'access-token');
       expect(localStorageMock.setItem).toHaveBeenCalledWith('refreshToken', 'refresh-token');
     });
 
@@ -173,7 +173,7 @@ describe('AuthApiService', () => {
 
       await authApi.logout();
 
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('accessToken');
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken');
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('refreshToken');
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('user');
     });
@@ -190,7 +190,7 @@ describe('AuthApiService', () => {
 
       await authApi.logout();
 
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('accessToken');
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken');
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('refreshToken');
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('user');
     });
@@ -449,7 +449,7 @@ describe('AuthApiService', () => {
       const result = authApi.isAuthenticated();
 
       expect(result).toBe(true);
-      expect(localStorageMock.getItem).toHaveBeenCalledWith('accessToken');
+      expect(localStorageMock.getItem).toHaveBeenCalledWith('authToken');
     });
 
     it('should return false when not authenticated', () => {
@@ -491,7 +491,7 @@ describe('AuthApiService', () => {
       const result = authApi.getToken();
 
       expect(result).toBe('access-token');
-      expect(localStorageMock.getItem).toHaveBeenCalledWith('accessToken');
+      expect(localStorageMock.getItem).toHaveBeenCalledWith('authToken');
     });
   });
 });

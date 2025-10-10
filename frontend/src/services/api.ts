@@ -65,10 +65,20 @@ class ApiService {
             const refreshToken = localStorage.getItem('refreshToken');
             if (refreshToken) {
               const response = await this.refreshAuthToken(refreshToken);
-              localStorage.setItem('authToken', response.data.token);
-              
+              const newAccessToken = response.data?.accessToken;
+              const newRefreshToken = response.data?.refreshToken;
+
+              if (!newAccessToken) {
+                throw new Error('Refresh token response missing access token');
+              }
+
+              localStorage.setItem('authToken', newAccessToken);
+              if (newRefreshToken) {
+                localStorage.setItem('refreshToken', newRefreshToken);
+              }
+
               // Retry original request
-              originalRequest.headers.Authorization = `Bearer ${response.data.token}`;
+              originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
               return this.api(originalRequest);
             }
           } catch (refreshError) {
