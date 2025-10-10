@@ -1,0 +1,27 @@
+# Development environment overrides
+components:
+  apiGateway:
+    replicaCount: 1
+    autoscaling:
+      minReplicas: 1
+      maxReplicas: 3
+    ingress:
+      hosts:
+        - host: dev-api.payment-engine.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: payment-engine-tls
+          hosts:
+            - dev-api.payment-engine.example.com
+  paymentProcessing:
+    replicaCount: 1
+    autoscaling:
+      minReplicas: 1
+      maxReplicas: 3
+  authService:
+    replicaCount: 1
+    autoscaling:
+      minReplicas: 1
+      maxReplicas: 3
