@@ -251,7 +251,7 @@ public class Party {
         
         @JsonProperty("Othr")
         @Valid
-        private GenericOrganisationIdentification[] other;
+        private CommonTypes.GenericOrganisationIdentification[] other;
         
         public OrganisationIdentification() {}
         
@@ -272,11 +272,11 @@ public class Party {
             this.legalEntityIdentifier = legalEntityIdentifier;
         }
         
-        public GenericOrganisationIdentification[] getOther() {
+        public CommonTypes.GenericOrganisationIdentification[] getOther() {
             return other;
         }
         
-        public void setOther(GenericOrganisationIdentification[] other) {
+        public void setOther(CommonTypes.GenericOrganisationIdentification[] other) {
             this.other = other;
         }
     }
@@ -288,28 +288,28 @@ public class Party {
         
         @JsonProperty("DtAndPlcOfBirth")
         @Valid
-        private DateAndPlaceOfBirth dateAndPlaceOfBirth;
+        private CommonTypes.DateAndPlaceOfBirth dateAndPlaceOfBirth;
         
         @JsonProperty("Othr")
         @Valid
-        private GenericPersonIdentification[] other;
+        private CommonTypes.GenericPersonIdentification[] other;
         
         public PersonIdentification() {}
         
         // Getters and Setters
-        public DateAndPlaceOfBirth getDateAndPlaceOfBirth() {
+        public CommonTypes.DateAndPlaceOfBirth getDateAndPlaceOfBirth() {
             return dateAndPlaceOfBirth;
         }
         
-        public void setDateAndPlaceOfBirth(DateAndPlaceOfBirth dateAndPlaceOfBirth) {
+        public void setDateAndPlaceOfBirth(CommonTypes.DateAndPlaceOfBirth dateAndPlaceOfBirth) {
             this.dateAndPlaceOfBirth = dateAndPlaceOfBirth;
         }
         
-        public GenericPersonIdentification[] getOther() {
+        public CommonTypes.GenericPersonIdentification[] getOther() {
             return other;
         }
         
-        public void setOther(GenericPersonIdentification[] other) {
+        public void setOther(CommonTypes.GenericPersonIdentification[] other) {
             this.other = other;
         }
     }

@@ -1,7 +1,540 @@
+# Azure DevOps Pipeline - Payment Engine
+# Enterprise-grade CI/CD with fail-fast, parallel stages, and comprehensive quality gates
+
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
 trigger:
   branches:
     include:
       - main
+      - develop
+      - release/*
+      - feature/*
+  paths:
+    exclude:
+      - docs/**
+      - README.md
+      - '**/*.md'
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    exclude:
+      - docs/**
+      - README.md
+
+variables:
+  - name: MAVEN_CACHE_FOLDER
+    value: $(Pipeline.Workspace)/.m2/repository
+  - name: MAVEN_OPTS
+    value: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER) -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn'
+  - name: JAVA_VERSION
+    value: '17'
+  - name: DOCKER_BUILDKIT
+    value: '1'
+  - name: SONAR_HOST_URL
+    value: 'https://sonarcloud.io'
+  - name: DOCKER_REGISTRY
+    value: 'paymentengine.azurecr.io'
+  - name: HELM_VERSION
+    value: '3.13.0'
+  - name: TRIVY_VERSION
+    value: '0.48.0'
+  - group: payment-engine-secrets  # Azure DevOps variable group
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  # ============================================================================
+  # STAGE 1: BUILD & COMPILE
+  # ============================================================================
+  - stage: Build
+    displayName: 'Build & Compile'
+    jobs:
+      - job: CompileAndPackage
+        displayName: 'Compile and Package'
+        timeoutInMinutes: 15
+        steps:
+          - checkout: self
+            fetchDepth: 1
+            clean: true
+
+          - task: Cache@2
+            displayName: 'Cache Maven packages'
+            inputs:
+              key: 'maven | "$(Agent.OS)" | **/pom.xml'
+              restoreKeys: |
+                maven | "$(Agent.OS)"
+                maven
+              path: $(MAVEN_CACHE_FOLDER)
+
+          - task: JavaToolInstaller@0
+            displayName: 'Setup Java $(JAVA_VERSION)'
+            inputs:
+              versionSpec: '$(JAVA_VERSION)'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+
+          - script: |
+              set -e
+              echo "Building with Maven..."
+              ./mvnw $(MAVEN_OPTS) -B clean compile -DskipTests
+            displayName: 'Maven Compile'
+
+          - script: |
+              set -e
+              echo "Packaging applications..."
+              ./mvnw $(MAVEN_OPTS) -B package -DskipTests
+            displayName: 'Maven Package'
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Build Artifacts'
+            inputs:
+              targetPath: '$(System.DefaultWorkingDirectory)'
+              artifact: 'build-output'
+              publishLocation: 'pipeline'
+
+  # ============================================================================
+  # STAGE 2: UNIT TESTS (Parallel)
+  # ============================================================================
+  - stage: UnitTests
+    displayName: 'Unit Tests'
+    dependsOn: Build
+    jobs:
+      - job: UnitTestExecution
+        displayName: 'Run Unit Tests'
+        timeoutInMinutes: 20
+        strategy:
+          parallel: 3  # Run tests in parallel for faster execution
+        steps:
+          - checkout: none
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Build Artifacts'
+            inputs:
+              artifact: 'build-output'
+              path: '$(System.DefaultWorkingDirectory)'
+
+          - task: JavaToolInstaller@0
+            displayName: 'Setup Java $(JAVA_VERSION)'
+            inputs:
+              versionSpec: '$(JAVA_VERSION)'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+
+          - task: Cache@2
+            displayName: 'Cache Maven packages'
+            inputs:
+              key: 'maven | "$(Agent.OS)" | **/pom.xml'
+              path: $(MAVEN_CACHE_FOLDER)
+
+          - script: |
+              set -e
+              echo "Running unit tests..."
+              ./mvnw $(MAVEN_OPTS) -B test
+            displayName: 'Execute Unit Tests'
+            continueOnError: false  # Fail fast
+
+          - task: PublishTestResults@2
+            displayName: 'Publish Test Results'
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/target/surefire-reports/*.xml'
+              failTaskOnFailedTests: true
+              testRunTitle: 'Unit Tests'
+
+          - task: PublishCodeCoverageResults@1
+            displayName: 'Publish Code Coverage'
+            condition: always()
+            inputs:
+              codeCoverageTool: 'JaCoCo'
+              summaryFileLocation: '**/target/site/jacoco/jacoco.xml'
+              reportDirectory: '**/target/site/jacoco'
+              failIfCoverageEmpty: true
+
+  # ============================================================================
+  # STAGE 3: INTEGRATION TESTS
+  # ============================================================================
+  - stage: IntegrationTests
+    displayName: 'Integration Tests'
+    dependsOn: UnitTests
+    jobs:
+      - job: IntegrationTestExecution
+        displayName: 'Run Integration Tests (Testcontainers)'
+        timeoutInMinutes: 30
+        steps:
+          - checkout: none
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Build Artifacts'
+            inputs:
+              artifact: 'build-output'
+              path: '$(System.DefaultWorkingDirectory)'
+
+          - task: JavaToolInstaller@0
+            displayName: 'Setup Java $(JAVA_VERSION)'
+            inputs:
+              versionSpec: '$(JAVA_VERSION)'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+
+          - task: Cache@2
+            displayName: 'Cache Maven packages'
+            inputs:
+              key: 'maven | "$(Agent.OS)" | **/pom.xml'
+              path: $(MAVEN_CACHE_FOLDER)
+
+          - script: |
+              set -e
+              echo "Running integration tests with Testcontainers..."
+              ./mvnw $(MAVEN_OPTS) -B verify -DskipUnitTests
+            displayName: 'Execute Integration Tests'
+            env:
+              DOCKER_HOST: unix:///var/run/docker.sock
+
+          - task: PublishTestResults@2
+            displayName: 'Publish Integration Test Results'
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/target/failsafe-reports/*.xml'
+              failTaskOnFailedTests: true
+              testRunTitle: 'Integration Tests'
+
+  # ============================================================================
+  # STAGE 4: CODE QUALITY & SECURITY
+  # ============================================================================
+  - stage: CodeQuality
+    displayName: 'Code Quality & Security Analysis'
+    dependsOn: UnitTests
+    jobs:
+      # SonarQube Analysis
+      - job: SonarQubeAnalysis
+        displayName: 'SonarQube Analysis'
+        timeoutInMinutes: 15
+        steps:
+          - checkout: none
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Build Artifacts'
+            inputs:
+              artifact: 'build-output'
+              path: '$(System.DefaultWorkingDirectory)'
+
+          - task: JavaToolInstaller@0
+            displayName: 'Setup Java $(JAVA_VERSION)'
+            inputs:
+              versionSpec: '$(JAVA_VERSION)'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+
+          - task: Cache@2
+            displayName: 'Cache Maven packages'
+            inputs:
+              key: 'maven | "$(Agent.OS)" | **/pom.xml'
+              path: $(MAVEN_CACHE_FOLDER)
+
+          - task: SonarCloudPrepare@1
+            displayName: 'Prepare SonarCloud Analysis'
+            inputs:
+              SonarCloud: 'SonarCloud-PaymentEngine'
+              organization: 'payment-engine'
+              scannerMode: 'Other'
+              extraProperties: |
+                sonar.projectKey=payment-engine
+                sonar.projectName=Payment Engine
+                sonar.sources=.
+                sonar.java.binaries=**/target/classes
+                sonar.coverage.jacoco.xmlReportPaths=**/target/site/jacoco/jacoco.xml
+                sonar.qualitygate.wait=true
+                sonar.qualitygate.timeout=300
+
+          - script: |
+              set -e
+              echo "Running SonarQube analysis..."
+              ./mvnw $(MAVEN_OPTS) -B sonar:sonar \
+                -Dsonar.host.url=$(SONAR_HOST_URL) \
+                -Dsonar.login=$(SONAR_TOKEN)
+            displayName: 'Run SonarQube Scan'
+            env:
+              SONAR_TOKEN: $(SONAR_TOKEN)
+
+          - task: SonarCloudPublish@1
+            displayName: 'Publish SonarCloud Results'
+            inputs:
+              pollingTimeoutSec: '300'
+
+      # OWASP Dependency Check
+      - job: SecurityScan
+        displayName: 'Security Vulnerability Scan'
+        timeoutInMinutes: 20
+        steps:
+          - checkout: none
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Build Artifacts'
+            inputs:
+              artifact: 'build-output'
+              path: '$(System.DefaultWorkingDirectory)'
+
+          - task: JavaToolInstaller@0
+            displayName: 'Setup Java $(JAVA_VERSION)'
+            inputs:
+              versionSpec: '$(JAVA_VERSION)'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+
+          - script: |
+              set -e
+              echo "Running OWASP Dependency Check..."
+              ./mvnw $(MAVEN_OPTS) -B verify -Psecurity
+            displayName: 'OWASP Dependency Check'
+
+            - task: PublishPipelineArtifact@1
+            condition: always()
+            displayName: 'Publish Security Report'
+            inputs:
+              targetPath: '**/target/dependency-check-report.html'
+              artifact: 'security-reports'
+          
+          - script: |
+              set -e
+              echo "Generating CycloneDX SBOM..."
+              ./mvnw $(MAVEN_OPTS) -B cyclonedx:makeAggregateBom
+            displayName: 'Generate SBOM'
+          
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish SBOM'
+            inputs:
+              targetPath: '**/target/bom.*'
+              artifact: 'sbom-reports'
+
+  # ============================================================================
+  # STAGE 5: DOCKER BUILD & SCAN
+  # ============================================================================
+  - stage: DockerBuild
+    displayName: 'Docker Build & Security Scan'
+    dependsOn: IntegrationTests
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/develop')))
+    jobs:
+      - job: BuildDockerImages
+        displayName: 'Build Docker Images'
+        timeoutInMinutes: 30
+        strategy:
+          matrix:
+            payment-processing:
+              SERVICE_NAME: 'payment-processing'
+            core-banking:
+              SERVICE_NAME: 'core-banking'
+            api-gateway:
+              SERVICE_NAME: 'api-gateway'
+            auth-service:
+              SERVICE_NAME: 'auth-service'
+        steps:
+          - checkout: none
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Build Artifacts'
+            inputs:
+              artifact: 'build-output'
+              path: '$(System.DefaultWorkingDirectory)'
+
+          - task: Docker@2
+            displayName: 'Build Docker Image'
+            inputs:
+              command: 'build'
+              repository: '$(DOCKER_REGISTRY)/$(SERVICE_NAME)'
+              dockerfile: 'services/$(SERVICE_NAME)/Dockerfile'
+              buildContext: '$(System.DefaultWorkingDirectory)'
+              tags: |
+                $(Build.BuildId)
+                latest
+              arguments: '--build-arg BUILDKIT_INLINE_CACHE=1'
+
+          - script: |
+              set -e
+              echo "Installing Trivy..."
+              wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+              echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+              sudo apt-get update
+              sudo apt-get install -y trivy
+
+              echo "Scanning Docker image with Trivy..."
+              trivy image --severity HIGH,CRITICAL --exit-code 1 --no-progress \
+                --format json --output trivy-report-$(SERVICE_NAME).json \
+                $(DOCKER_REGISTRY)/$(SERVICE_NAME):$(Build.BuildId)
+            displayName: 'Trivy Security Scan'
+            continueOnError: false  # Fail on HIGH/CRITICAL vulnerabilities
+
+          - task: PublishPipelineArtifact@1
+            condition: always()
+            displayName: 'Publish Trivy Report'
+            inputs:
+              targetPath: 'trivy-report-$(SERVICE_NAME).json'
+              artifact: 'trivy-reports-$(SERVICE_NAME)'
+
+          - task: Docker@2
+            displayName: 'Push Docker Image'
+            condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+            inputs:
+              command: 'push'
+              repository: '$(DOCKER_REGISTRY)/$(SERVICE_NAME)'
+              tags: |
+                $(Build.BuildId)
+                latest
+
+  # ============================================================================
+  # STAGE 6: HELM PACKAGING
+  # ============================================================================
+  - stage: HelmPackage
+    displayName: 'Helm Chart Package'
+    dependsOn: DockerBuild
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/develop')))
+    jobs:
+      - job: PackageHelmCharts
+        displayName: 'Package Helm Charts'
+        timeoutInMinutes: 10
+        steps:
+          - checkout: self
+            fetchDepth: 1
+
+          - script: |
+              set -e
+              echo "Installing Helm $(HELM_VERSION)..."
+              curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+              chmod 700 get_helm.sh
+              ./get_helm.sh --version v$(HELM_VERSION)
+            displayName: 'Install Helm'
+
+          - script: |
+              set -e
+              echo "Linting Helm charts..."
+              for chart in helm/*/; do
+                if [ -f "$chart/Chart.yaml" ]; then
+                  echo "Linting $chart..."
+                  helm lint "$chart"
+                fi
+              done
+            displayName: 'Lint Helm Charts'
+
+          - script: |
+              set -e
+              mkdir -p $(Build.ArtifactStagingDirectory)/helm-packages
+              echo "Packaging Helm charts..."
+              for chart in helm/*/; do
+                if [ -f "$chart/Chart.yaml" ]; then
+                  echo "Packaging $chart..."
+                  helm package "$chart" -d $(Build.ArtifactStagingDirectory)/helm-packages \
+                    --app-version $(Build.BuildId) \
+                    --version 1.0.$(Build.BuildId)
+                fi
+              done
+            displayName: 'Package Helm Charts'
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Helm Packages'
+            inputs:
+              targetPath: '$(Build.ArtifactStagingDirectory)/helm-packages'
+              artifact: 'helm-charts'
+
+  # ============================================================================
+  # STAGE 7: E2E TESTS
+  # ============================================================================
+  - stage: E2ETests
+    displayName: 'End-to-End Tests'
+    dependsOn: DockerBuild
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+    jobs:
+      - job: E2ETestExecution
+        displayName: 'Run E2E Tests'
+        timeoutInMinutes: 45
+        steps:
+          - checkout: none
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Build Artifacts'
+            inputs:
+              artifact: 'build-output'
+              path: '$(System.DefaultWorkingDirectory)'
+
+          - script: |
+              set -e
+              echo "Starting test environment..."
+              docker-compose -f docker-compose.test.yml up -d
+              sleep 30  # Wait for services to be ready
+            displayName: 'Start Test Environment'
+
+          - script: |
+              set -e
+              echo "Running E2E tests..."
+              ./mvnw $(MAVEN_OPTS) -B verify -Pe2e
+            displayName: 'Execute E2E Tests'
+
+          - script: |
+              echo "Stopping test environment..."
+              docker-compose -f docker-compose.test.yml down -v
+            displayName: 'Cleanup Test Environment'
+            condition: always()
+
+          - task: PublishTestResults@2
+            displayName: 'Publish E2E Test Results'
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/target/e2e-reports/*.xml'
+              failTaskOnFailedTests: true
+              testRunTitle: 'E2E Tests'
+
+  # ============================================================================
+  # STAGE 8: DEPLOYMENT (Production)
+  # ============================================================================
+  - stage: Deploy
+    displayName: 'Deploy to Environment'
+    dependsOn:
+      - HelmPackage
+      - E2ETests
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: DeployToProduction
+        displayName: 'Deploy to Production'
+        environment: 'production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: helm-charts
+
+                - script: |
+                    echo "Deploying to production..."
+                    # Add your deployment commands here
+                    # e.g., helm upgrade --install payment-engine ./helm-charts/*.tgz
+                  displayName: 'Deploy with Helm'
+
+# ============================================================================
+# POST-BUILD NOTIFICATIONS
+# ============================================================================
+- stage: Notifications
+  displayName: 'Notifications'
+  dependsOn:
+    - Build
+    - UnitTests
+    - IntegrationTests
+    - CodeQuality
+  condition: always()
+  jobs:
+    - job: SendNotifications
+      displayName: 'Send Build Notifications'
+      steps:
+        - script: |
+            echo "Build completed with status: $(Agent.JobStatus)"
+            # Add notification logic (Slack, Teams, Email, etc.)
+          displayName: 'Send Notifications'
       - work
       - feature/*
 

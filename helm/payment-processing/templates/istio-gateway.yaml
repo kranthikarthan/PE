@@ -1,0 +1,31 @@
+{{- if and .Values.istio.enabled .Values.istio.gateway.create }}
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ .Values.istio.gateway.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "payment-processing.labels" . | nindent 4 }}
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: {{ .Values.istio.gateway.tls.mode }}
+        credentialName: {{ .Values.istio.gateway.tls.credentialName }}
+        minProtocolVersion: {{ .Values.istio.gateway.tls.minProtocolVersion }}
+      hosts:
+        {{- toYaml .Values.istio.gateway.hosts | nindent 8 }}
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        {{- toYaml .Values.istio.gateway.hosts | nindent 8 }}
+      tls:
+        httpsRedirect: true
+{{- end }}
