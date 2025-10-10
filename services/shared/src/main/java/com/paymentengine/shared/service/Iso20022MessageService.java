@@ -1,8 +1,8 @@
 package com.paymentengine.shared.service;
 
 import com.paymentengine.shared.dto.iso20022.*;
-import com.paymentengine.corebanking.dto.CreateTransactionRequest;
-import com.paymentengine.corebanking.dto.TransactionResponse;
+import com.paymentengine.shared.dto.CreateTransactionRequest;
+import com.paymentengine.shared.dto.TransactionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -53,8 +53,8 @@ public class Iso20022MessageService {
             String debtorAccountId = mapAccountIdentificationToId(pmtInf.getDebtorAccount());
             String creditorAccountId = mapAccountIdentificationToId(cdtTrfTxInf.getCreditorAccount());
             
-            request.setFromAccountId(debtorAccountId != null ? UUID.fromString(debtorAccountId) : null);
-            request.setToAccountId(creditorAccountId != null ? UUID.fromString(creditorAccountId) : null);
+            request.setFromAccount(debtorAccountId);
+            request.setToAccount(creditorAccountId);
             
             // Map payment type based on local instrument and service level
             UUID paymentTypeId = mapPaymentTypeFromIso20022(pmtInf.getPaymentTypeInformation(), cdtTrfTxInf.getPaymentTypeInformation());
@@ -66,7 +66,7 @@ public class Iso20022MessageService {
                 "messageId", cctInitiation.getGroupHeader().getMessageId(),
                 "paymentInformationId", pmtInf.getPaymentInformationId(),
                 "endToEndId", cdtTrfTxInf.getPaymentIdentification().getEndToEndId(),
-                "instructionId", cdtTrfTxInf.getPaymentIdentification().getInstrId(),
+                "instructionId", cdtTrfTxInf.getPaymentIdentification().getInstructionId(),
                 "paymentMethod", pmtInf.getPaymentMethod(),
                 "chargeBearer", cdtTrfTxInf.getChargeBearer(),
                 "requestedExecutionDate", pmtInf.getRequestedExecutionDate()
@@ -135,7 +135,7 @@ public class Iso20022MessageService {
             
             // Transaction Information and Status
             Map<String, Object> txInfAndSts = new HashMap<>();
-            txInfAndSts.put("StsId", transaction.getId().toString());
+            txInfAndSts.put("StsId", transaction.getTransactionId());
             txInfAndSts.put("OrgnlInstrId", transaction.getExternalReference());
             txInfAndSts.put("OrgnlEndToEndId", transaction.getExternalReference());
             txInfAndSts.put("TxSts", mapTransactionStatusToIso20022(transaction.getStatus()));
@@ -284,8 +284,8 @@ public class Iso20022MessageService {
     /**
      * Map payment type from ISO 20022 to internal payment type ID
      */
-    private UUID mapPaymentTypeFromIso20022(Pain001Message.PaymentTypeInformation pmtTpInf, 
-                                          PaymentTypeInformation cdtTrfTxInfPmtTpInf) {
+    private UUID mapPaymentTypeFromIso20022(com.paymentengine.shared.dto.iso20022.PaymentTypeInformation pmtTpInf, 
+                                          com.paymentengine.shared.dto.iso20022.PaymentTypeInformation cdtTrfTxInfPmtTpInf) {
         
         // Default payment type mapping based on local instrument
         String localInstrumentCode = null;
@@ -310,14 +310,15 @@ public class Iso20022MessageService {
     /**
      * Map internal transaction status to ISO 20022 status
      */
-    private String mapTransactionStatusToIso20022(com.paymentengine.corebanking.entity.Transaction.TransactionStatus status) {
+    private String mapTransactionStatusToIso20022(String status) {
         return switch (status) {
-            case PENDING -> "PDNG"; // Pending
-            case PROCESSING -> "ACTC"; // Accepted Technical Validation
-            case COMPLETED -> "ACSC"; // Accepted Settlement Completed
-            case FAILED -> "RJCT"; // Rejected
-            case CANCELLED -> "CANC"; // Cancelled
-            case REVERSED -> "ACSC"; // Accepted Settlement Completed (for reversal)
+            case "PENDING" -> "PDNG"; // Pending
+            case "PROCESSING" -> "ACTC"; // Accepted Technical Validation
+            case "COMPLETED" -> "ACSC"; // Accepted Settlement Completed
+            case "FAILED" -> "RJCT"; // Rejected
+            case "CANCELLED" -> "CANC"; // Cancelled
+            case "REVERSED" -> "ACSC"; // Accepted Settlement Completed (for reversal)
+            default -> "ACTC"; // Default to accepted technical validation
         };
     }
     

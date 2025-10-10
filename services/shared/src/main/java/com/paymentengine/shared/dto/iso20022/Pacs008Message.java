@@ -204,7 +204,7 @@ public class Pacs008Message {
         @JsonProperty("PmtId")
         @NotNull
         @Valid
-        private PaymentIdentification paymentIdentification;
+        private CommonTypes.PaymentIdentification paymentIdentification;
         
         @JsonProperty("PmtTpInf")
         @Valid
@@ -345,15 +345,15 @@ public class Pacs008Message {
         
         @JsonProperty("Purp")
         @Valid
-        private Purpose purpose;
+        private CommonTypes.Purpose purpose;
         
         @JsonProperty("RgltryRptg")
         @Valid
-        private List<RegulatoryReporting> regulatoryReporting;
+        private List<CommonTypes.RegulatoryReporting> regulatoryReporting;
         
         @JsonProperty("Tax")
         @Valid
-        private TaxInformation tax;
+        private CommonTypes.TaxInformation tax;
         
         @JsonProperty("RltdRmtInf")
         @Valid
@@ -361,7 +361,7 @@ public class Pacs008Message {
         
         @JsonProperty("RmtInf")
         @Valid
-        private RemittanceInformation remittanceInformation;
+        private CommonTypes.RemittanceInformation remittanceInformation;
         
         @JsonProperty("SplmtryData")
         @Valid
@@ -370,11 +370,11 @@ public class Pacs008Message {
         public CreditTransferTransaction() {}
         
         // Getters and Setters (abbreviated for key fields)
-        public PaymentIdentification getPaymentIdentification() {
+        public CommonTypes.PaymentIdentification getPaymentIdentification() {
             return paymentIdentification;
         }
         
-        public void setPaymentIdentification(PaymentIdentification paymentIdentification) {
+        public void setPaymentIdentification(CommonTypes.PaymentIdentification paymentIdentification) {
             this.paymentIdentification = paymentIdentification;
         }
         
@@ -418,11 +418,11 @@ public class Pacs008Message {
             this.creditorAccount = creditorAccount;
         }
         
-        public RemittanceInformation getRemittanceInformation() {
+        public CommonTypes.RemittanceInformation getRemittanceInformation() {
             return remittanceInformation;
         }
         
-        public void setRemittanceInformation(RemittanceInformation remittanceInformation) {
+        public void setRemittanceInformation(CommonTypes.RemittanceInformation remittanceInformation) {
             this.remittanceInformation = remittanceInformation;
         }
     }
