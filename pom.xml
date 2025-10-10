@@ -52,7 +52,7 @@
         <grpc.version>1.76.0</grpc.version>
         <protobuf.version>3.25.1</protobuf.version>
         <mapstruct.version>1.6.3</mapstruct.version>
-        <jjwt.version>0.12.3</jjwt.version>
+        <jjwt.version>0.13.0</jjwt.version>
         <nimbus-jose-jwt.version>9.31</nimbus-jose-jwt.version>
         <azure-keyvault.version>4.10.3</azure-keyvault.version>
         <azure-identity.version>1.10.4</azure-identity.version>
