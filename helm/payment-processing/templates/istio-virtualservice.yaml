@@ -1,0 +1,16 @@
+{{- if and .Values.istio.enabled .Values.istio.virtualService.create }}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ .Values.istio.virtualService.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "payment-processing.labels" . | nindent 4 }}
+spec:
+  hosts:
+    {{- toYaml .Values.istio.virtualService.hosts | nindent 4 }}
+  gateways:
+    {{- toYaml .Values.istio.virtualService.gateways | nindent 4 }}
+  http:
+    {{- toYaml .Values.istio.virtualService.http | nindent 4 }}
+{{- end }}

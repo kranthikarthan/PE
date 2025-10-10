@@ -15,7 +15,7 @@ public class CreditTransferTransactionInformation {
     @JsonProperty("PmtId")
     @NotNull
     @Valid
-    private PaymentIdentification paymentIdentification;
+    private CommonTypes.PaymentIdentification paymentIdentification;
     
     @JsonProperty("PmtTpInf")
     @Valid
@@ -61,32 +61,32 @@ public class CreditTransferTransactionInformation {
     
     @JsonProperty("Purp")
     @Valid
-    private Purpose purpose;
+    private CommonTypes.Purpose purpose;
     
     @JsonProperty("RgltryRptg")
     @Valid
-    private RegulatoryReporting regulatoryReporting;
+    private CommonTypes.RegulatoryReporting regulatoryReporting;
     
     @JsonProperty("Tax")
     @Valid
-    private TaxInformation taxInformation;
+    private CommonTypes.TaxInformation taxInformation;
     
     @JsonProperty("RltdRmtInf")
     @Valid
-    private RemittanceInformation relatedRemittanceInformation;
+    private CommonTypes.RemittanceInformation relatedRemittanceInformation;
     
     @JsonProperty("RmtInf")
     @Valid
-    private RemittanceInformation remittanceInformation;
+    private CommonTypes.RemittanceInformation remittanceInformation;
     
     public CreditTransferTransactionInformation() {}
     
     // Getters and Setters
-    public PaymentIdentification getPaymentIdentification() {
+    public CommonTypes.PaymentIdentification getPaymentIdentification() {
         return paymentIdentification;
     }
     
-    public void setPaymentIdentification(PaymentIdentification paymentIdentification) {
+    public void setPaymentIdentification(CommonTypes.PaymentIdentification paymentIdentification) {
         this.paymentIdentification = paymentIdentification;
     }
     
@@ -170,43 +170,43 @@ public class CreditTransferTransactionInformation {
         this.instructionForDebtorAgent = instructionForDebtorAgent;
     }
     
-    public Purpose getPurpose() {
+    public CommonTypes.Purpose getPurpose() {
         return purpose;
     }
     
-    public void setPurpose(Purpose purpose) {
+    public void setPurpose(CommonTypes.Purpose purpose) {
         this.purpose = purpose;
     }
     
-    public RegulatoryReporting getRegulatoryReporting() {
+    public CommonTypes.RegulatoryReporting getRegulatoryReporting() {
         return regulatoryReporting;
     }
     
-    public void setRegulatoryReporting(RegulatoryReporting regulatoryReporting) {
+    public void setRegulatoryReporting(CommonTypes.RegulatoryReporting regulatoryReporting) {
         this.regulatoryReporting = regulatoryReporting;
     }
     
-    public TaxInformation getTaxInformation() {
+    public CommonTypes.TaxInformation getTaxInformation() {
         return taxInformation;
     }
     
-    public void setTaxInformation(TaxInformation taxInformation) {
+    public void setTaxInformation(CommonTypes.TaxInformation taxInformation) {
         this.taxInformation = taxInformation;
     }
     
-    public RemittanceInformation getRelatedRemittanceInformation() {
+    public CommonTypes.RemittanceInformation getRelatedRemittanceInformation() {
         return relatedRemittanceInformation;
     }
     
-    public void setRelatedRemittanceInformation(RemittanceInformation relatedRemittanceInformation) {
+    public void setRelatedRemittanceInformation(CommonTypes.RemittanceInformation relatedRemittanceInformation) {
         this.relatedRemittanceInformation = relatedRemittanceInformation;
     }
     
-    public RemittanceInformation getRemittanceInformation() {
+    public CommonTypes.RemittanceInformation getRemittanceInformation() {
         return remittanceInformation;
     }
     
-    public void setRemittanceInformation(RemittanceInformation remittanceInformation) {
+    public void setRemittanceInformation(CommonTypes.RemittanceInformation remittanceInformation) {
         this.remittanceInformation = remittanceInformation;
     }
     

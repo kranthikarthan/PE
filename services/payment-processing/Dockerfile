@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for Payment Processing Service
 
 # Build stage
-FROM maven:3.9-openjdk-17-slim AS builder
+FROM maven:3-openjdk-18-slim AS builder
 
 WORKDIR /app
 

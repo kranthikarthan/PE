@@ -1,0 +1,36 @@
+{{- $root := . -}}
+{{- range $name, $component := .Values.components }}
+{{- if and $component.enabled $component.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "payment-engine.component-name" (list $root $component $name) }}
+  labels:
+    {{- include "payment-engine.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: {{ $name | replace "_" "-" | lower }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ $root.Release.Name }}
+      app.kubernetes.io/name: {{ include "payment-engine.name" $root }}
+      app.kubernetes.io/component: {{ $name | replace "_" "-" | lower }}
+  policyTypes:
+    - Ingress
+    - Egress
+  {{- if $component.networkPolicy.ingress }}
+  ingress:
+    {{- toYaml $component.networkPolicy.ingress | nindent 4 }}
+  {{- else }}
+  ingress:
+    - {}
+  {{- end }}
+  {{- if $component.networkPolicy.egress }}
+  egress:
+    {{- toYaml $component.networkPolicy.egress | nindent 4 }}
+  {{- else }}
+  egress:
+    - {}
+  {{- end }}
+---
+{{- end }}
+{{- end }}

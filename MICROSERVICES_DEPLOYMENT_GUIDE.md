@@ -375,36 +375,15 @@ data:
 
 ### **Secrets Management**
 
-Create a `secrets.yaml` for sensitive configuration:
+Integrate Azure Key Vault via External Secrets instead of committing Kubernetes `Secret` manifests. The `deployment/kubernetes/external-secrets.yaml` file provisions a `ClusterSecretStore` that points at Key Vault and materializes environment-specific secrets through `ExternalSecret` resources. Populate Key Vault with the keys referenced in the manifest (for example `database-password`, `jwt-signing-secret`, `grafana-admin-password`) and ensure the `akv-service-principal` secret contains the service principal credentials with read access to the vault.
 
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: payment-engine-secrets
-  namespace: payment-engine
-type: Opaque
-data:
-  # Database password
-  DB_PASSWORD: <base64-encoded-password>
-  
-  # JWT secret
-  JWT_SECRET: <base64-encoded-jwt-secret>
-  
-  # OAuth client secret
-  OAUTH_CLIENT_SECRET: <base64-encoded-oauth-secret>
-  
-  # Encryption key
-  ENCRYPTION_KEY: <base64-encoded-encryption-key>
-  
-  # Signature keys
-  SIGNATURE_PRIVATE_KEY: <base64-encoded-private-key>
-  SIGNATURE_PUBLIC_KEY: <base64-encoded-public-key>
-  
-  # External service credentials
-  CLEARING_SYSTEM_API_KEY: <base64-encoded-api-key>
-  WEBHOOK_SECRET: <base64-encoded-webhook-secret>
+Apply the manifest per environment:
+
+```bash
+kubectl apply -f deployment/kubernetes/external-secrets.yaml --namespace <target-namespace>
 ```
+
+This approach keeps all credentials in Key Vault and lets Kubernetes synchronize them on demand.
 
 ## 📊 **Monitoring Setup**
 

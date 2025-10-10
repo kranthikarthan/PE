@@ -1,0 +1,11 @@
+{{- if .Values.configMap.create }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "payment-processing.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "payment-processing.labels" . | nindent 4 }}
+data:
+  {{- toYaml .Values.configMap.data | nindent 2 }}
+{{- end }}
