@@ -1,0 +1,72 @@
+trigger:
+  branches:
+    include:
+      - main
+      - work
+      - feature/*
+
+variables:
+  MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
+  JAVA_HOME: /usr/lib/jvm/msopenjdk-17
+
+stages:
+  - stage: build
+    displayName: Build and Test
+    jobs:
+      - job: build
+        pool:
+          vmImage: ubuntu-22.04
+        steps:
+          - task: Cache@2
+            inputs:
+              key: maven | $(Agent.OS) | pom.xml
+              restoreKeys: maven | $(Agent.OS)
+              path: $(MAVEN_CACHE_FOLDER)
+          - task: Bash@3
+            displayName: Set up Maven wrapper
+            inputs:
+              targetType: inline
+              script: |
+                chmod +x ./mvnw
+          - task: Bash@3
+            displayName: Backend unit tests
+            inputs:
+              targetType: inline
+              script: |
+                ./mvnw -T1C verify -DskipITs
+            env:
+              MAVEN_OPTS: -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)
+          - task: Bash@3
+            displayName: ISO20022 E2E tests
+            inputs:
+              targetType: inline
+              script: |
+                ./mvnw -pl tests/iso20022/junit-e2e -am verify
+            env:
+              MAVEN_OPTS: -Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)
+          - task: PublishBuildArtifacts@1
+            displayName: Publish test reports
+            inputs:
+              PathtoPublish: $(System.DefaultWorkingDirectory)/target/surefire-reports
+              ArtifactName: surefire-reports
+              publishLocation: Container
+  - stage: security
+    displayName: Security Scans
+    dependsOn: build
+    jobs:
+      - job: security
+        pool:
+          vmImage: ubuntu-22.04
+        steps:
+          - script: echo "TODO: integrate SonarQube, Trivy, OWASP dependency check"
+            displayName: Placeholder for security scanners
+  - stage: packaging
+    displayName: Package and Publish
+    dependsOn: security
+    jobs:
+      - job: package
+        pool:
+          vmImage: ubuntu-22.04
+        steps:
+          - script: echo "TODO: build Docker images and Helm charts"
+            displayName: Placeholder for packaging logic

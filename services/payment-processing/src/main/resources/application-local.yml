@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/payment_engine
+    username: pe
+    password: pe
+  kafka:
+    bootstrap-servers: localhost:9092
+
+features:
+  kafka:
+    enabled: true
+  fraud:
+    enabled: false
+  validation:
+    heavy:
+      enabled: false

@@ -1,81 +1,75 @@
 package com.paymentengine.paymentprocessing.controller;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
+import com.paymentengine.paymentprocessing.dto.LoginRequest;
+import com.paymentengine.paymentprocessing.dto.LoginResponse;
+import com.paymentengine.paymentprocessing.dto.RefreshTokenRequest;
+import com.paymentengine.paymentprocessing.service.ResilientAuthService;
+import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
- * Simple authentication controller for testing purposes
- * In production, this should be replaced with a proper OAuth2/OIDC implementation
+ * Authentication controller delegating to the dedicated auth service.
  */
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
 
-    @Value("${jwt.secret:your-secret-key-here-change-in-production}")
-    private String jwtSecret;
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
-    @Value("${jwt.access-token-expiration:3600}")
-    private long jwtExpiration;
+    private final ResilientAuthService resilientAuthService;
 
-    /**
-     * Generate a test JWT token for tenant management
-     */
-    @PostMapping("/test-token")
-    public ResponseEntity<Map<String, String>> generateTestToken(
-            @RequestParam(defaultValue = "admin") String username,
-            @RequestParam(defaultValue = "tenant:manage,tenant:read,tenant:export,tenant:import") String authorities) {
-        
+    public AuthController(ResilientAuthService resilientAuthService) {
+        this.resilientAuthService = resilientAuthService;
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        logger.info("Proxying login request for user: {}", request.getUsername());
         try {
-            SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-            
-            List<String> authorityList = List.of(authorities.split(","));
-            
-            String token = Jwts.builder()
-                .setSubject(username)
-                .claim("authorities", authorityList)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration * 1000))
-                .signWith(key)
-                .compact();
-            
-            Map<String, String> response = new HashMap<>();
-            response.put("token", token);
-            response.put("tokenType", "Bearer");
-            response.put("expiresIn", String.valueOf(jwtExpiration));
-            response.put("authorities", authorities);
-            
+            LoginResponse response = resilientAuthService.authenticate(request);
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Failed to generate token: " + e.getMessage());
-            return ResponseEntity.status(500).body(error);
+        } catch (Exception ex) {
+            logger.error("Login failed for user {}: {}", request.getUsername(), ex.getMessage());
+            return ResponseEntity.status(401).build();
         }
     }
 
-    /**
-     * Generate a test JWT token with admin role
-     */
-    @PostMapping("/admin-token")
-    public ResponseEntity<Map<String, String>> generateAdminToken() {
-        return generateTestToken("admin", "ROLE_ADMIN,tenant:manage,tenant:read,tenant:export,tenant:import");
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        logger.debug("Refreshing access token");
+        try {
+            LoginResponse response = resilientAuthService.refreshToken(request.getRefreshToken());
+            return ResponseEntity.ok(response);
+        } catch (Exception ex) {
+            logger.error("Token refresh failed: {}", ex.getMessage());
+            return ResponseEntity.status(401).build();
+        }
     }
 
-    /**
-     * Generate a test JWT token with read-only permissions
-     */
-    @PostMapping("/readonly-token")
-    public ResponseEntity<Map<String, String>> generateReadOnlyToken() {
-        return generateTestToken("readonly-user", "tenant:read");
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authorizationHeader) {
+        logger.debug("Logging out current session");
+        try {
+            resilientAuthService.logout(authorizationHeader);
+            return ResponseEntity.ok().build();
+        } catch (Exception ex) {
+            logger.error("Logout failed: {}", ex.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/validate")
+    public ResponseEntity<Boolean> validateToken(@RequestHeader("Authorization") String authorizationHeader) {
+        try {
+            boolean valid = resilientAuthService.validateToken(authorizationHeader);
+            return ResponseEntity.ok(valid);
+        } catch (Exception ex) {
+            logger.error("Token validation failed: {}", ex.getMessage());
+            return ResponseEntity.ok(false);
+        }
     }
 }

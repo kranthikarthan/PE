@@ -100,6 +100,10 @@ public class MultiLevelAuthConfigurationService {
         return clearingSystemAuthConfigRepository.findByEnvironmentAndIsActive(environment, true);
     }
 
+    public Optional<ClearingSystemAuthConfiguration> getClearingSystemConfigurationForCurrentEnvironment() {
+        return clearingSystemAuthConfigRepository.findByEnvironmentAndIsActive(currentEnvironment, true);
+    }
+
     public Optional<TenantAuthConfiguration> getTenantConfiguration(String tenantId) {
         return tenantAuthConfigRepository.findByTenantIdAndIsActive(tenantId, true);
     }
@@ -177,24 +181,27 @@ public class MultiLevelAuthConfigurationService {
         }
 
         public void mergeFrom(TenantAuthConfiguration config) {
-            if (config.getAuthMethod() != null) this.authMethod = config.getAuthMethod();
-            if (config.getJwtSecret() != null) this.jwtSecret = config.getJwtSecret();
-            if (config.getJwsSecret() != null) this.jwsSecret = config.getJwsSecret();
-            if (config.getJwsAlgorithm() != null) this.jwsAlgorithm = config.getJwsAlgorithm();
-            if (config.getJwsIssuer() != null) this.jwsIssuer = config.getJwsIssuer();
-            if (config.getTokenEndpoint() != null) this.oauth2TokenEndpoint = config.getTokenEndpoint();
-            if (config.getClientId() != null) this.oauth2ClientId = config.getClientId();
-            if (config.getClientSecret() != null) this.oauth2ClientSecret = config.getClientSecret();
-            if (config.getApiKey() != null) this.apiKey = config.getApiKey();
-            if (config.getApiKeyHeaderName() != null) this.apiKeyHeaderName = config.getApiKeyHeaderName();
-            if (config.getBasicAuthUsername() != null) this.basicAuthUsername = config.getBasicAuthUsername();
-            if (config.getBasicAuthPassword() != null) this.basicAuthPassword = config.getBasicAuthPassword();
-            if (config.getIncludeClientHeaders() != null) this.includeClientHeaders = config.getIncludeClientHeaders();
-            if (config.getOutgoingClientId() != null) this.clientId = config.getOutgoingClientId();
-            if (config.getOutgoingClientSecret() != null) this.clientSecret = config.getOutgoingClientSecret();
-            if (config.getOutgoingClientIdHeaderName() != null) this.clientIdHeaderName = config.getOutgoingClientIdHeaderName();
-            if (config.getOutgoingClientSecretHeaderName() != null) this.clientSecretHeaderName = config.getOutgoingClientSecretHeaderName();
-            if (config.getMetadata() != null) this.metadata = config.getMetadata();
+            if (config.getAuthMethod() != null) {
+                this.authMethod = config.getAuthMethod();
+            }
+            if (config.getTokenEndpoint() != null) {
+                this.oauth2TokenEndpoint = config.getTokenEndpoint();
+            }
+            if (config.getClientId() != null) {
+                this.clientId = config.getClientId();
+            }
+            if (config.getClientSecret() != null) {
+                this.clientSecret = config.getClientSecret();
+            }
+            if (config.getClientIdHeaderName() != null) {
+                this.clientIdHeaderName = config.getClientIdHeaderName();
+            }
+            if (config.getClientSecretHeaderName() != null) {
+                this.clientSecretHeaderName = config.getClientSecretHeaderName();
+            }
+            if (config.getIncludeClientHeaders() != null) {
+                this.includeClientHeaders = config.getIncludeClientHeaders();
+            }
         }
 
         public void mergeFrom(PaymentTypeAuthConfiguration config) {

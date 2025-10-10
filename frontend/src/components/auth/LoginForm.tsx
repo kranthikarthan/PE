@@ -47,7 +47,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       const response = await authApi.login(formData);
       
       // Store tokens and user data
-      localStorage.setItem('accessToken', response.accessToken);
+      localStorage.setItem('authToken', response.accessToken);
       localStorage.setItem('refreshToken', response.refreshToken);
       
       // Get user details

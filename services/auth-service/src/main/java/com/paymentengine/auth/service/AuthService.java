@@ -2,6 +2,7 @@ package com.paymentengine.auth.service;
 
 import com.paymentengine.auth.dto.LoginResponse;
 import com.paymentengine.auth.dto.UserRegistrationRequest;
+import com.paymentengine.auth.dto.UserProfileResponse;
 import com.paymentengine.auth.entity.OAuthToken;
 import com.paymentengine.auth.entity.User;
 import com.paymentengine.auth.repository.OAuthTokenRepository;
@@ -162,7 +163,7 @@ public class AuthService {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-        
+
         // Validate JWT token
         if (!jwtTokenService.validateToken(token) || !jwtTokenService.isAccessToken(token)) {
             return false;
@@ -185,5 +186,43 @@ public class AuthService {
             }
         }
         return false;
+    }
+
+    public UserProfileResponse getCurrentUserProfile(String authorizationHeader) {
+        String token = authorizationHeader;
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        if (!jwtTokenService.validateToken(token) || !jwtTokenService.isAccessToken(token)) {
+            throw new RuntimeException("Invalid token");
+        }
+
+        UUID userId = jwtTokenService.getUserIdFromToken(token);
+        User user = userService.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Set<String> roles = user.getRoles().stream()
+                .map(role -> role.getName())
+                .collect(Collectors.toSet());
+
+        Set<String> permissions = user.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(permission -> permission.getName())
+                .collect(Collectors.toSet());
+
+        boolean active = userService.isUserActive(user.getId());
+
+        return new UserProfileResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                roles,
+                permissions,
+                active,
+                user.getLastLoginAt()
+        );
     }
 }

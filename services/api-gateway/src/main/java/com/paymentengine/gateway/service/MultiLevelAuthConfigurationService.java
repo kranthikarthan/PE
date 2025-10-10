@@ -6,11 +6,19 @@ import com.paymentengine.gateway.dto.tenant.ConfigurationDeploymentResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,9 +32,12 @@ import java.util.Optional;
 public class MultiLevelAuthConfigurationService {
     
     private static final Logger logger = LoggerFactory.getLogger(MultiLevelAuthConfigurationService.class);
-    
+
     @Autowired
     private RestTemplate restTemplate;
+
+    @Value("${services.payment-processing.base-url:http://payment-processing:8080}")
+    private String paymentProcessingBaseUrl;
     
     /**
      * Create tenant with multi-level authentication configuration
@@ -36,12 +47,23 @@ public class MultiLevelAuthConfigurationService {
         
         try {
             // Call Payment Processing Service to create multi-level auth configuration
-            String url = "http://payment-processing-service/api/v1/multi-level-auth/tenant";
-            EnhancedTenantSetupResponse response = restTemplate.postForObject(url, request, EnhancedTenantSetupResponse.class);
-            
-            logger.info("Successfully created tenant with multi-level auth: {}", request.getBasicInfo().getTenantId());
-            return response;
-            
+            String url = paymentProcessingBaseUrl + "/api/v1/multi-level-auth/tenant";
+            ResponseEntity<EnhancedTenantSetupResponse> response = restTemplate.postForEntity(
+                    url,
+                    request,
+                    EnhancedTenantSetupResponse.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                logger.info("Successfully created tenant with multi-level auth: {}", request.getBasicInfo().getTenantId());
+                return response.getBody();
+            }
+
+            return EnhancedTenantSetupResponse.builder()
+                    .success(false)
+                    .message("Payment Processing rejected tenant provisioning request")
+                    .build();
+
         } catch (Exception e) {
             logger.error("Failed to create tenant with multi-level auth: {}", request.getBasicInfo().getTenantId(), e);
             return EnhancedTenantSetupResponse.builder()
@@ -56,14 +78,32 @@ public class MultiLevelAuthConfigurationService {
      */
     public Map<String, Object> validateTenantConfiguration(EnhancedTenantSetupRequest request) {
         logger.info("Validating tenant configuration: {}", request.getBasicInfo().getTenantId());
-        
+
         try {
-            // Call Payment Processing Service to validate configuration
-            String url = "http://payment-processing-service/api/v1/multi-level-auth/validate";
-            Map<String, Object> validationResult = restTemplate.postForObject(url, request, Map.class);
-            
-            return validationResult;
-            
+            String tenantId = request.getBasicInfo().getTenantId();
+            String serviceType = resolveServiceType(request);
+            String endpoint = resolveEndpoint(request);
+            String paymentType = resolvePaymentType(request);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Tenant-ID", tenantId);
+
+            URI uri = buildHierarchyUri(
+                    "/validate-hierarchy/" + tenantId,
+                    serviceType,
+                    endpoint,
+                    paymentType
+            );
+
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    uri,
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    new ParameterizedTypeReference<>() {}
+            );
+
+            return response.getBody() != null ? response.getBody() : Map.of("valid", false);
+
         } catch (Exception e) {
             logger.error("Failed to validate tenant configuration: {}", request.getBasicInfo().getTenantId(), e);
             return Map.of(
@@ -114,29 +154,25 @@ public class MultiLevelAuthConfigurationService {
             String paymentType) {
         
         logger.info("Testing tenant configuration: {} - {}:{}:{}", tenantId, serviceType, endpoint, paymentType);
-        
+
         try {
-            // TODO: Call Payment Processing Service to test configuration
-            // String url = String.format("http://payment-processing-service/api/v1/multi-level-auth/test/%s?serviceType=%s&endpoint=%s&paymentType=%s", 
-            //         tenantId, serviceType, endpoint, paymentType);
-            // Map<String, Object> testResult = restTemplate.getForObject(url, Map.class);
-            
-            // For now, return a placeholder test result
-            Map<String, Object> testResult = Map.of(
-                    "success", true,
+            Optional<Map<String, Object>> hierarchy = Optional.ofNullable(getConfigurationHierarchy(
+                    tenantId, serviceType, endpoint, paymentType));
+
+            boolean hasActiveLevels = hierarchy
+                    .map(body -> (List<Map<String, Object>>) body.getOrDefault("levels", List.of()))
+                    .map(levels -> levels.stream().anyMatch(level -> Boolean.TRUE.equals(level.get("active"))))
+                    .orElse(false);
+
+            return Map.of(
+                    "success", hasActiveLevels,
                     "tenantId", tenantId,
                     "serviceType", serviceType,
                     "endpoint", endpoint,
                     "paymentType", paymentType,
-                    "testResults", Map.of(
-                            "authentication", "PASS",
-                            "authorization", "PASS",
-                            "clientHeaders", "PASS"
-                    )
+                    "details", hierarchy.orElse(Map.of())
             );
-            
-            return testResult;
-            
+
         } catch (Exception e) {
             logger.error("Failed to test tenant configuration: {}", tenantId, e);
             return Map.of(
@@ -150,41 +186,93 @@ public class MultiLevelAuthConfigurationService {
      * Get configuration hierarchy for tenant
      */
     public Map<String, Object> getConfigurationHierarchy(
-            String tenantId, 
-            String serviceType, 
-            String endpoint, 
+            String tenantId,
+            String serviceType,
+            String endpoint,
             String paymentType) {
         
         logger.info("Getting configuration hierarchy for tenant: {} - {}:{}:{}", tenantId, serviceType, endpoint, paymentType);
-        
+
         try {
-            // TODO: Call Payment Processing Service to get configuration hierarchy
-            // String url = String.format("http://payment-processing-service/api/v1/multi-level-auth/hierarchy/%s?serviceType=%s&endpoint=%s&paymentType=%s", 
-            //         tenantId, serviceType, endpoint, paymentType);
-            // Map<String, Object> hierarchy = restTemplate.getForObject(url, Map.class);
-            
-            // For now, return a placeholder hierarchy
-            Map<String, Object> hierarchy = Map.of(
-                    "tenantId", tenantId,
-                    "serviceType", serviceType,
-                    "endpoint", endpoint,
-                    "paymentType", paymentType,
-                    "hierarchyLevels", List.of(
-                            Map.of("level", "downstream-call", "priority", 1, "name", "Downstream Call Level"),
-                            Map.of("level", "payment-type", "priority", 2, "name", "Payment Type Level"),
-                            Map.of("level", "tenant", "priority", 3, "name", "Tenant Level"),
-                            Map.of("level", "clearing-system", "priority", 4, "name", "Clearing System Level")
-                    )
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Tenant-ID", tenantId);
+
+            URI uri = buildHierarchyUri(
+                    "/hierarchy/" + tenantId,
+                    serviceType,
+                    endpoint,
+                    paymentType
             );
-            
-            return hierarchy;
-            
+
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    uri,
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    new ParameterizedTypeReference<>() {}
+            );
+
+            return response.getBody();
+
         } catch (Exception e) {
             logger.error("Failed to get configuration hierarchy for tenant: {}", tenantId, e);
             return Map.of(
                     "error", "Failed to get hierarchy: " + e.getMessage()
             );
         }
+    }
+
+    private URI buildHierarchyUri(String pathSuffix,
+                                  String serviceType,
+                                  String endpoint,
+                                  String paymentType) {
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromHttpUrl(paymentProcessingBaseUrl + "/api/v1/multi-level-auth")
+                .path(pathSuffix);
+
+        if (serviceType != null && !serviceType.isBlank()) {
+            builder.queryParam("serviceType", serviceType);
+        }
+        if (endpoint != null && !endpoint.isBlank()) {
+            builder.queryParam("endpoint", endpoint);
+        }
+        if (paymentType != null && !paymentType.isBlank()) {
+            builder.queryParam("paymentType", paymentType);
+        }
+
+        return builder.build(true).toUri();
+    }
+
+    private String resolveServiceType(EnhancedTenantSetupRequest request) {
+        return Optional.ofNullable(request.getDownstreamCallConfigs())
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.get(0).getServiceType())
+                .filter(value -> value != null && !value.isBlank())
+                .orElse("api-gateway");
+    }
+
+    private String resolveEndpoint(EnhancedTenantSetupRequest request) {
+        return Optional.ofNullable(request.getDownstreamCallConfigs())
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.get(0).getEndpoint())
+                .filter(value -> value != null && !value.isBlank())
+                .orElse("/gateway");
+    }
+
+    private String resolvePaymentType(EnhancedTenantSetupRequest request) {
+        Optional<String> fromDownstream = Optional.ofNullable(request.getDownstreamCallConfigs())
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.get(0).getPaymentType())
+                .filter(value -> value != null && !value.isBlank());
+
+        if (fromDownstream.isPresent()) {
+            return fromDownstream.get();
+        }
+
+        return Optional.ofNullable(request.getPaymentTypeConfigs())
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.get(0).getPaymentType())
+                .filter(value -> value != null && !value.isBlank())
+                .orElse(null);
     }
     
     /**

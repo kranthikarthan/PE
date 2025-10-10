@@ -61,10 +61,10 @@ import {
   RetryPolicy,
   AuthenticationConfig,
   EndpointConfig,
-  SchemeInteractionStats,
   SchemeConfigTestRequest,
   SchemeConfigTestResponse
 } from '../../types/scheme';
+import apiClient from '../../services/apiClient';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -137,50 +137,101 @@ const SchemeConfigManager: React.FC = () => {
     loadConfigurations();
   }, []);
 
+  const mapConfigResponse = (config: any): SchemeInteractionConfig => ({
+    id: config.id,
+    name: config.name,
+    description: config.description ?? '',
+    isActive: config.isActive ?? false,
+    interactionMode: config.interactionMode as InteractionMode,
+    messageFormat: config.messageFormat as MessageFormat,
+    responseMode: config.responseMode as ResponseMode,
+    timeoutMs: Number(config.timeoutMs ?? 0),
+    retryPolicy: {
+      maxRetries: config.retryPolicy?.maxRetries ?? 0,
+      backoffMs: Number(config.retryPolicy?.backoffMs ?? 0),
+      exponentialBackoff: Boolean(config.retryPolicy?.exponentialBackoff ?? false),
+      retryableStatusCodes: config.retryPolicy?.retryableStatusCodes ?? []
+    },
+    authentication: {
+      type: (config.authentication?.type ?? 'NONE') as AuthenticationConfig['type'],
+      apiKey: config.authentication?.apiKey,
+      jwtSecret: config.authentication?.jwtSecret,
+      oauth2Config: config.authentication?.oauth2Config,
+      certificatePath: config.authentication?.certificatePath,
+      keyPath: config.authentication?.keyPath
+    },
+    endpoints: (config.endpoints ?? []).map((endpoint: any, index: number) => ({
+      id: endpoint.id ?? `endpoint-${index}`,
+      name: endpoint.name,
+      url: endpoint.url,
+      method: endpoint.method,
+      isActive: endpoint.isActive ?? false,
+      timeoutMs: Number(endpoint.timeoutMs ?? 0),
+      headers: endpoint.headers ?? {},
+      supportedMessageTypes: endpoint.supportedMessageTypes ?? [],
+      priority: endpoint.priority ?? 1
+    })),
+    createdAt: config.createdAt,
+    updatedAt: config.updatedAt,
+    createdBy: config.createdBy ?? '',
+    updatedBy: config.updatedBy ?? ''
+  });
+
+  const mapFormToRequest = (data: SchemeConfigForm) => ({
+    name: data.name,
+    description: data.description,
+    isActive: data.isActive,
+    interactionMode: data.interactionMode,
+    messageFormat: data.messageFormat,
+    responseMode: data.responseMode,
+    timeoutMs: data.timeoutMs,
+    retryPolicy: {
+      maxRetries: data.retryPolicy.maxRetries,
+      backoffMs: data.retryPolicy.backoffMs,
+      exponentialBackoff: data.retryPolicy.exponentialBackoff,
+      retryableStatusCodes: data.retryPolicy.retryableStatusCodes
+    },
+    authentication: {
+      type: data.authentication.type,
+      apiKey: data.authentication.apiKey,
+      jwtSecret: data.authentication.jwtSecret,
+      oauth2Config: data.authentication.oauth2Config,
+      certificatePath: data.authentication.certificatePath,
+      keyPath: data.authentication.keyPath
+    },
+    endpoints: data.endpoints.map((endpoint) => ({
+      name: endpoint.name,
+      url: endpoint.url,
+      method: endpoint.method,
+      isActive: endpoint.isActive,
+      timeoutMs: endpoint.timeoutMs,
+      headers: endpoint.headers,
+      supportedMessageTypes: endpoint.supportedMessageTypes,
+      priority: endpoint.priority
+    }))
+  });
+
+  const mapConfigToForm = (config: SchemeInteractionConfig): SchemeConfigForm => ({
+    name: config.name,
+    description: config.description,
+    isActive: config.isActive,
+    interactionMode: config.interactionMode,
+    messageFormat: config.messageFormat,
+    responseMode: config.responseMode,
+    timeoutMs: config.timeoutMs,
+    retryPolicy: config.retryPolicy,
+    authentication: config.authentication,
+    endpoints: config.endpoints.map(({ id: _id, ...rest }) => rest)
+  });
+
   const loadConfigurations = async () => {
     try {
       setLoading(true);
-      // TODO: Replace with actual API call
-      const mockConfigs: SchemeInteractionConfig[] = [
-        {
-          id: '1',
-          name: 'Real-Time Payment Scheme',
-          description: 'Synchronous JSON-based real-time payment processing',
-          isActive: true,
-          interactionMode: InteractionMode.SYNCHRONOUS,
-          messageFormat: MessageFormat.JSON,
-          responseMode: ResponseMode.IMMEDIATE,
-          timeoutMs: 10000,
-          retryPolicy: {
-            maxRetries: 3,
-            backoffMs: 1000,
-            exponentialBackoff: true,
-            retryableStatusCodes: [500, 502, 503, 504]
-          },
-          authentication: {
-            type: 'API_KEY',
-            apiKey: 'sk-***'
-          },
-          endpoints: [
-            {
-              id: 'ep1',
-              name: 'Primary Endpoint',
-              url: 'https://api.scheme.com/v1/payments',
-              method: 'POST',
-              isActive: true,
-              timeoutMs: 10000,
-              headers: { 'Content-Type': 'application/json' },
-              supportedMessageTypes: ['pain001', 'pain002'],
-              priority: 1
-            }
-          ],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          createdBy: 'admin',
-          updatedBy: 'admin'
-        }
-      ];
-      setConfigs(mockConfigs);
+      const response = await apiClient.get('/api/v1/scheme/configurations', {
+        params: { page: 0, size: 50, sortBy: 'updatedAt', sortDirection: 'desc' }
+      });
+      const mapped = (response.data?.content ?? []).map(mapConfigResponse);
+      setConfigs(mapped);
     } catch (err) {
       setError('Failed to load configurations');
     } finally {
@@ -191,8 +242,7 @@ const SchemeConfigManager: React.FC = () => {
   const handleCreateConfig = async (data: SchemeConfigForm) => {
     try {
       setLoading(true);
-      // TODO: Implement API call to create configuration
-      console.log('Creating configuration:', data);
+      await apiClient.post('/api/v1/scheme/configurations', mapFormToRequest(data));
       setIsCreateDialogOpen(false);
       reset();
       loadConfigurations();
@@ -206,8 +256,10 @@ const SchemeConfigManager: React.FC = () => {
   const handleEditConfig = async (data: SchemeConfigForm) => {
     try {
       setLoading(true);
-      // TODO: Implement API call to update configuration
-      console.log('Updating configuration:', data);
+      if (!selectedConfig) {
+        throw new Error('No configuration selected');
+      }
+      await apiClient.put(`/api/v1/scheme/configurations/${selectedConfig.id}`, mapFormToRequest(data));
       setIsEditDialogOpen(false);
       reset();
       loadConfigurations();
@@ -222,8 +274,7 @@ const SchemeConfigManager: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this configuration?')) {
       try {
         setLoading(true);
-        // TODO: Implement API call to delete configuration
-        console.log('Deleting configuration:', configId);
+        await apiClient.delete(`/api/v1/scheme/configurations/${configId}`);
         loadConfigurations();
       } catch (err) {
         setError('Failed to delete configuration');
@@ -236,20 +287,20 @@ const SchemeConfigManager: React.FC = () => {
   const handleTestConfig = async (configId: string) => {
     try {
       setLoading(true);
-      // TODO: Implement API call to test configuration
-      const mockTestResult: SchemeConfigTestResponse = {
-        success: true,
-        responseTimeMs: 245,
-        response: {
-          messageId: 'test-msg-123',
-          correlationId: 'test-corr-123',
-          status: 'SUCCESS',
-          responseCode: '200',
-          responseMessage: 'Test successful',
-          timestamp: new Date().toISOString()
+      const requestPayload: SchemeConfigTestRequest = {
+        configId,
+        validateOnly: false,
+        testMessage: {
+          messageType: 'test-message',
+          messageId: `TEST-${Date.now()}`,
+          correlationId: `CORR-${Date.now()}`,
+          format: MessageFormat.JSON,
+          interactionMode: InteractionMode.SYNCHRONOUS,
+          payload: { test: true }
         }
       };
-      setTestResults(mockTestResult);
+      const response = await apiClient.post('/api/v1/scheme/configurations/test', requestPayload);
+      setTestResults(response.data as SchemeConfigTestResponse);
       setIsTestDialogOpen(true);
     } catch (err) {
       setError('Failed to test configuration');
@@ -390,7 +441,7 @@ const SchemeConfigManager: React.FC = () => {
                             size="small"
                             onClick={() => {
                               setSelectedConfig(config);
-                              reset(config);
+                              reset(mapConfigToForm(config));
                               setIsEditDialogOpen(true);
                             }}
                           >
@@ -419,20 +470,81 @@ const SchemeConfigManager: React.FC = () => {
           <Typography variant="h5" component="h1" sx={{ mb: 3 }}>
             Scheme Interaction Statistics
           </Typography>
-          {/* TODO: Implement statistics dashboard */}
-          <Alert severity="info">
-            Statistics dashboard will be implemented here
-          </Alert>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <Card>
+                <CardContent>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Total Configurations
+                  </Typography>
+                  <Typography variant="h4">{configs.length}</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Card>
+                <CardContent>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Active Configurations
+                  </Typography>
+                  <Typography variant="h4">{configs.filter((config) => config.isActive).length}</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Card>
+                <CardContent>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Interaction Modes
+                  </Typography>
+                  <Box>
+                    {Object.values(InteractionMode).map((mode) => (
+                      <Typography key={mode} variant="body2">
+                        {mode}: {configs.filter((config) => config.interactionMode === mode).length}
+                      </Typography>
+                    ))}
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
         </TabPanel>
 
         <TabPanel value={activeTab} index={2}>
           <Typography variant="h5" component="h1" sx={{ mb: 3 }}>
             Test Results
           </Typography>
-          {/* TODO: Implement test results dashboard */}
-          <Alert severity="info">
-            Test results dashboard will be implemented here
-          </Alert>
+          {testResults ? (
+            <Card>
+              <CardContent>
+                <Typography variant="subtitle1" gutterBottom>
+                  Result
+                </Typography>
+                <Typography variant="body2">Success: {testResults.success ? 'Yes' : 'No'}</Typography>
+                <Typography variant="body2">Response Time: {testResults.responseTimeMs ?? 'N/A'} ms</Typography>
+                {testResults.response && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2">Response Details</Typography>
+                    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {JSON.stringify(testResults.response, null, 2)}
+                    </pre>
+                  </Box>
+                )}
+                {testResults.error && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" color="error">
+                      Error
+                    </Typography>
+                    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {JSON.stringify(testResults.error, null, 2)}
+                    </pre>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Alert severity="info">No test results available. Run a configuration test to view results.</Alert>
+          )}
         </TabPanel>
 
         {/* Create Configuration Dialog */}
