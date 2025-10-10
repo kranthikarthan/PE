@@ -295,12 +295,24 @@ stages:
               ./mvnw $(MAVEN_OPTS) -B verify -Psecurity
             displayName: 'OWASP Dependency Check'
 
-          - task: PublishPipelineArtifact@1
+            - task: PublishPipelineArtifact@1
             condition: always()
             displayName: 'Publish Security Report'
             inputs:
               targetPath: '**/target/dependency-check-report.html'
               artifact: 'security-reports'
+          
+          - script: |
+              set -e
+              echo "Generating CycloneDX SBOM..."
+              ./mvnw $(MAVEN_OPTS) -B cyclonedx:makeAggregateBom
+            displayName: 'Generate SBOM'
+          
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish SBOM'
+            inputs:
+              targetPath: '**/target/bom.*'
+              artifact: 'sbom-reports'
 
   # ============================================================================
   # STAGE 5: DOCKER BUILD & SCAN
