@@ -98,6 +98,39 @@ stages:
               testResultsFiles: '**/surefire-reports/TEST-*.xml'
               codeCoverageToolOption: 'JaCoCo'
               javaHomeOption: 'JDKVersion'
+
+          - task: Maven@3
+            displayName: 'Build API Gateway Service'
+            inputs:
+              mavenPomFile: 'services/api-gateway/pom.xml'
+              goals: 'clean compile package'
+              options: '-DskipTests=false'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              codeCoverageToolOption: 'JaCoCo'
+              javaHomeOption: 'JDKVersion'
+
+          - task: Maven@3
+            displayName: 'Build Payment Processing Service'
+            inputs:
+              mavenPomFile: 'services/payment-processing/pom.xml'
+              goals: 'clean compile package'
+              options: '-DskipTests=false'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              codeCoverageToolOption: 'JaCoCo'
+              javaHomeOption: 'JDKVersion'
+
+          - task: Maven@3
+            displayName: 'Build Auth Service'
+            inputs:
+              mavenPomFile: 'services/auth-service/pom.xml'
+              goals: 'clean compile package'
+              options: '-DskipTests=false'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              codeCoverageToolOption: 'JaCoCo'
+              javaHomeOption: 'JDKVersion'
               
           - task: SonarQubePrepare@4
             displayName: 'Prepare SonarQube Analysis'
@@ -135,7 +168,6 @@ stages:
               buildContext: 'services'
               tags: |
                 $(buildVersion)
-                latest
                 
           - task: Docker@2
             displayName: 'Push Core Banking Docker Image'
@@ -145,7 +177,94 @@ stages:
               command: 'push'
               tags: |
                 $(buildVersion)
-                latest
+
+          - script: |
+              CORE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $(containerRegistry)/core-banking:$(buildVersion))
+              CORE_DIGEST=${CORE_DIGEST##*@}
+              echo "##vso[task.setvariable variable=coreBankingDigest;isOutput=true]$CORE_DIGEST"
+            displayName: 'Capture Core Banking image digest'
+            name: setCoreBankingDigest
+
+          - task: Docker@2
+            displayName: 'Build API Gateway Docker Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              repository: 'api-gateway'
+              command: 'build'
+              Dockerfile: 'services/api-gateway/Dockerfile'
+              buildContext: 'services'
+              tags: |
+                $(buildVersion)
+
+          - task: Docker@2
+            displayName: 'Push API Gateway Docker Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              repository: 'api-gateway'
+              command: 'push'
+              tags: |
+                $(buildVersion)
+
+          - script: |
+              API_GATEWAY_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $(containerRegistry)/api-gateway:$(buildVersion))
+              API_GATEWAY_DIGEST=${API_GATEWAY_DIGEST##*@}
+              echo "##vso[task.setvariable variable=apiGatewayDigest;isOutput=true]$API_GATEWAY_DIGEST"
+            displayName: 'Capture API Gateway image digest'
+            name: setApiGatewayDigest
+
+          - task: Docker@2
+            displayName: 'Build Payment Processing Docker Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              repository: 'payment-processing'
+              command: 'build'
+              Dockerfile: 'services/payment-processing/Dockerfile'
+              buildContext: 'services'
+              tags: |
+                $(buildVersion)
+
+          - task: Docker@2
+            displayName: 'Push Payment Processing Docker Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              repository: 'payment-processing'
+              command: 'push'
+              tags: |
+                $(buildVersion)
+
+          - script: |
+              PAYMENT_PROCESSING_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $(containerRegistry)/payment-processing:$(buildVersion))
+              PAYMENT_PROCESSING_DIGEST=${PAYMENT_PROCESSING_DIGEST##*@}
+              echo "##vso[task.setvariable variable=paymentProcessingDigest;isOutput=true]$PAYMENT_PROCESSING_DIGEST"
+            displayName: 'Capture Payment Processing image digest'
+            name: setPaymentProcessingDigest
+
+          - task: Docker@2
+            displayName: 'Build Auth Service Docker Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              repository: 'auth-service'
+              command: 'build'
+              Dockerfile: 'services/auth-service/Dockerfile'
+              buildContext: 'services'
+              tags: |
+                $(buildVersion)
+
+          - task: Docker@2
+            displayName: 'Push Auth Service Docker Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              repository: 'auth-service'
+              command: 'push'
+              tags: |
+                $(buildVersion)
+
+          - script: |
+              AUTH_SERVICE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $(containerRegistry)/auth-service:$(buildVersion))
+              AUTH_SERVICE_DIGEST=${AUTH_SERVICE_DIGEST##*@}
+              echo "##vso[task.setvariable variable=authServiceDigest;isOutput=true]$AUTH_SERVICE_DIGEST"
+            displayName: 'Capture Auth Service image digest'
+            name: setAuthServiceDigest
                 
           - task: PublishTestResults@2
             displayName: 'Publish Test Results'
@@ -233,7 +352,6 @@ stages:
               buildContext: 'frontend'
               tags: |
                 $(buildVersion)
-                latest
                 
           - task: Docker@2
             displayName: 'Push Frontend Docker Image'
@@ -243,7 +361,6 @@ stages:
               command: 'push'
               tags: |
                 $(buildVersion)
-                latest
 
   # ============================================================================
   # SECURITY SCANNING STAGE
@@ -264,6 +381,27 @@ stages:
               containerRegistry: $(containerRegistryConnection)
               command: 'pull'
               arguments: '$(containerRegistry)/core-banking:$(buildVersion)'
+
+          - task: Docker@2
+            displayName: 'Pull API Gateway Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              command: 'pull'
+              arguments: '$(containerRegistry)/api-gateway:$(buildVersion)'
+
+          - task: Docker@2
+            displayName: 'Pull Payment Processing Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              command: 'pull'
+              arguments: '$(containerRegistry)/payment-processing:$(buildVersion)'
+
+          - task: Docker@2
+            displayName: 'Pull Auth Service Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              command: 'pull'
+              arguments: '$(containerRegistry)/auth-service:$(buildVersion)'
               
           - script: |
               wget https://github.com/aquasecurity/trivy/releases/download/v$(trivyVersion)/trivy_$(trivyVersion)_Linux-64bit.tar.gz
@@ -274,10 +412,22 @@ stages:
           - script: |
               trivy image --format sarif --output trivy-results.sarif $(containerRegistry)/core-banking:$(buildVersion)
             displayName: 'Scan Core Banking Image'
-            
+
           - script: |
               trivy image --format sarif --output trivy-frontend-results.sarif $(containerRegistry)/frontend:$(buildVersion)
             displayName: 'Scan Frontend Image'
+
+          - script: |
+              trivy image --format sarif --output trivy-api-gateway-results.sarif $(containerRegistry)/api-gateway:$(buildVersion)
+            displayName: 'Scan API Gateway Image'
+
+          - script: |
+              trivy image --format sarif --output trivy-payment-processing-results.sarif $(containerRegistry)/payment-processing:$(buildVersion)
+            displayName: 'Scan Payment Processing Image'
+
+          - script: |
+              trivy image --format sarif --output trivy-auth-service-results.sarif $(containerRegistry)/auth-service:$(buildVersion)
+            displayName: 'Scan Auth Service Image'
             
           - task: PublishBuildArtifacts@1
             displayName: 'Publish Trivy Results'
@@ -323,13 +473,16 @@ stages:
   # ============================================================================
   - stage: DeployDev
     displayName: 'Deploy to Development'
-    dependsOn: 
+    dependsOn:
       - Build
       - SecurityScan
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
     variables:
       environment: 'development'
       kubernetesNamespace: 'payment-engine-dev'
+      apiGatewayDigest: $[ dependencies.Build.outputs['BuildBackend.setApiGatewayDigest.apiGatewayDigest'] ]
+      paymentProcessingDigest: $[ dependencies.Build.outputs['BuildBackend.setPaymentProcessingDigest.paymentProcessingDigest'] ]
+      authServiceDigest: $[ dependencies.Build.outputs['BuildBackend.setAuthServiceDigest.authServiceDigest'] ]
     jobs:
       - deployment: DeployToDev
         displayName: 'Deploy to Development Environment'
@@ -353,53 +506,65 @@ stages:
                       deployment/kubernetes/namespace.yaml
                       
                 - task: KubernetesManifest@0
-                  displayName: 'Deploy ConfigMaps and Secrets'
+                  displayName: 'Deploy ConfigMaps and External Secrets'
                   inputs:
                     action: 'deploy'
                     kubernetesServiceConnection: $(kubernetesConnection)
                     namespace: $(kubernetesNamespace)
                     manifests: |
                       deployment/kubernetes/configmaps.yaml
-                      deployment/kubernetes/secrets.yaml
-                      
-                - task: KubernetesManifest@0
-                  displayName: 'Deploy Services'
+                      deployment/kubernetes/external-secrets.yaml
+
+                - task: HelmDeploy@0
+                  displayName: 'Deploy Payment Engine Helm chart'
                   inputs:
-                    action: 'deploy'
+                    connectionType: 'Kubernetes Service Connection'
                     kubernetesServiceConnection: $(kubernetesConnection)
                     namespace: $(kubernetesNamespace)
-                    manifests: |
-                      deployment/kubernetes/services.yaml
-                      
-                - task: KubernetesManifest@0
-                  displayName: 'Deploy StatefulSets'
-                  inputs:
-                    action: 'deploy'
-                    kubernetesServiceConnection: $(kubernetesConnection)
-                    namespace: $(kubernetesNamespace)
-                    manifests: |
-                      deployment/kubernetes/statefulsets.yaml
-                      
-                - task: KubernetesManifest@0
-                  displayName: 'Deploy Applications'
-                  inputs:
-                    action: 'deploy'
-                    kubernetesServiceConnection: $(kubernetesConnection)
-                    namespace: $(kubernetesNamespace)
-                    manifests: |
-                      deployment/kubernetes/deployments.yaml
-                    containers: |
-                      $(containerRegistry)/core-banking:$(buildVersion)
-                      $(containerRegistry)/frontend:$(buildVersion)
-                      
+                    command: upgrade
+                    chartType: FilePath
+                    chartPath: deployment/helm/payment-engine
+                    releaseName: payment-engine
+                    install: true
+                    valueFile: |
+                      deployment/helm/payment-engine/values.yaml
+                      deployment/helm/payment-engine/values-development.yaml
+                    overrideValues: |
+                      global.imageRegistry=$(containerRegistry)
+                      components.apiGateway.image.tag=$(buildVersion)
+                      components.apiGateway.image.digest=$(apiGatewayDigest)
+                      components.paymentProcessing.image.tag=$(buildVersion)
+                      components.paymentProcessing.image.digest=$(paymentProcessingDigest)
+                      components.authService.image.tag=$(buildVersion)
+                      components.authService.image.digest=$(authServiceDigest)
+                    arguments: '--wait --timeout 10m'
+
                 - task: Kubernetes@1
-                  displayName: 'Wait for Deployment Rollout'
+                  displayName: 'Wait for Helm Deployments'
                   inputs:
                     connectionType: 'Kubernetes Service Connection'
                     kubernetesServiceEndpoint: $(kubernetesConnection)
                     namespace: $(kubernetesNamespace)
                     command: 'rollout'
-                    arguments: 'status deployment/core-banking --timeout=600s'
+                    arguments: 'status deployment/payment-engine-apigateway --timeout=600s'
+
+                - task: Kubernetes@1
+                  displayName: 'Wait for Payment Processing Deployment'
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceEndpoint: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    command: 'rollout'
+                    arguments: 'status deployment/payment-engine-paymentprocessing --timeout=600s'
+
+                - task: Kubernetes@1
+                  displayName: 'Wait for Auth Service Deployment'
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceEndpoint: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    command: 'rollout'
+                    arguments: 'status deployment/payment-engine-authservice --timeout=600s'
 
   # ============================================================================
   # INTEGRATION TESTS
@@ -472,6 +637,9 @@ stages:
     variables:
       environment: 'staging'
       kubernetesNamespace: 'payment-engine-staging'
+      apiGatewayDigest: $[ dependencies.Build.outputs['BuildBackend.setApiGatewayDigest.apiGatewayDigest'] ]
+      paymentProcessingDigest: $[ dependencies.Build.outputs['BuildBackend.setPaymentProcessingDigest.paymentProcessingDigest'] ]
+      authServiceDigest: $[ dependencies.Build.outputs['BuildBackend.setAuthServiceDigest.authServiceDigest'] ]
     jobs:
       - deployment: DeployToStaging
         displayName: 'Deploy to Staging Environment'
@@ -486,16 +654,65 @@ stages:
                   displayName: 'Checkout source code'
                   
                 - task: KubernetesManifest@0
-                  displayName: 'Deploy to Staging'
+                  displayName: 'Deploy ConfigMaps and External Secrets'
                   inputs:
                     action: 'deploy'
                     kubernetesServiceConnection: $(kubernetesConnection)
                     namespace: $(kubernetesNamespace)
                     manifests: |
-                      deployment/kubernetes/*.yaml
-                    containers: |
-                      $(containerRegistry)/core-banking:$(buildVersion)
-                      $(containerRegistry)/frontend:$(buildVersion)
+                      deployment/kubernetes/configmaps.yaml
+                      deployment/kubernetes/external-secrets.yaml
+
+                - task: HelmDeploy@0
+                  displayName: 'Deploy Payment Engine Helm chart (staging)'
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceConnection: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    command: upgrade
+                    chartType: FilePath
+                    chartPath: deployment/helm/payment-engine
+                    releaseName: payment-engine
+                    install: true
+                    valueFile: |
+                      deployment/helm/payment-engine/values.yaml
+                      deployment/helm/payment-engine/values-staging.yaml
+                    overrideValues: |
+                      global.imageRegistry=$(containerRegistry)
+                      components.apiGateway.image.tag=$(buildVersion)
+                      components.apiGateway.image.digest=$(apiGatewayDigest)
+                      components.paymentProcessing.image.tag=$(buildVersion)
+                      components.paymentProcessing.image.digest=$(paymentProcessingDigest)
+                      components.authService.image.tag=$(buildVersion)
+                      components.authService.image.digest=$(authServiceDigest)
+                    arguments: '--wait --timeout 10m'
+
+                - task: Kubernetes@1
+                  displayName: 'Wait for Staging Deployments'
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceEndpoint: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    command: 'rollout'
+                    arguments: 'status deployment/payment-engine-apigateway --timeout=600s'
+
+                - task: Kubernetes@1
+                  displayName: 'Wait for Staging Payment Processing'
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceEndpoint: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    command: 'rollout'
+                    arguments: 'status deployment/payment-engine-paymentprocessing --timeout=600s'
+
+                - task: Kubernetes@1
+                  displayName: 'Wait for Staging Auth Service'
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceEndpoint: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    command: 'rollout'
+                    arguments: 'status deployment/payment-engine-authservice --timeout=600s'
 
   # ============================================================================
   # DEPLOY TO PRODUCTION
@@ -507,6 +724,9 @@ stages:
     variables:
       environment: 'production'
       kubernetesNamespace: 'payment-engine'
+      apiGatewayDigest: $[ dependencies.Build.outputs['BuildBackend.setApiGatewayDigest.apiGatewayDigest'] ]
+      paymentProcessingDigest: $[ dependencies.Build.outputs['BuildBackend.setPaymentProcessingDigest.paymentProcessingDigest'] ]
+      authServiceDigest: $[ dependencies.Build.outputs['BuildBackend.setAuthServiceDigest.authServiceDigest'] ]
     jobs:
       - deployment: DeployToProduction
         displayName: 'Deploy to Production Environment'
@@ -521,26 +741,66 @@ stages:
                   displayName: 'Checkout source code'
                   
                 - task: KubernetesManifest@0
-                  displayName: 'Deploy to Production'
+                  displayName: 'Deploy ConfigMaps and External Secrets'
                   inputs:
                     action: 'deploy'
                     kubernetesServiceConnection: $(kubernetesConnection)
                     namespace: $(kubernetesNamespace)
                     manifests: |
-                      deployment/kubernetes/*.yaml
-                    containers: |
-                      $(containerRegistry)/core-banking:$(buildVersion)
-                      $(containerRegistry)/frontend:$(buildVersion)
-                      
+                      deployment/kubernetes/configmaps.yaml
+                      deployment/kubernetes/external-secrets.yaml
+
+                - task: HelmDeploy@0
+                  displayName: 'Deploy Payment Engine Helm chart (production)'
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceConnection: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    command: upgrade
+                    chartType: FilePath
+                    chartPath: deployment/helm/payment-engine
+                    releaseName: payment-engine
+                    install: true
+                    valueFile: |
+                      deployment/helm/payment-engine/values.yaml
+                      deployment/helm/payment-engine/values-production.yaml
+                    overrideValues: |
+                      global.imageRegistry=$(containerRegistry)
+                      components.apiGateway.image.tag=$(buildVersion)
+                      components.apiGateway.image.digest=$(apiGatewayDigest)
+                      components.paymentProcessing.image.tag=$(buildVersion)
+                      components.paymentProcessing.image.digest=$(paymentProcessingDigest)
+                      components.authService.image.tag=$(buildVersion)
+                      components.authService.image.digest=$(authServiceDigest)
+                    arguments: '--wait --timeout 10m'
+
                 - task: Kubernetes@1
-                  displayName: 'Verify Production Deployment'
+                  displayName: 'Verify Production API Gateway'
                   inputs:
                     connectionType: 'Kubernetes Service Connection'
                     kubernetesServiceEndpoint: $(kubernetesConnection)
                     namespace: $(kubernetesNamespace)
-                    command: 'get'
-                    arguments: 'pods -l app=core-banking'
-                    
+                    command: 'rollout'
+                    arguments: 'status deployment/payment-engine-apigateway --timeout=600s'
+
+                - task: Kubernetes@1
+                  displayName: 'Verify Production Payment Processing'
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceEndpoint: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    command: 'rollout'
+                    arguments: 'status deployment/payment-engine-paymentprocessing --timeout=600s'
+
+                - task: Kubernetes@1
+                  displayName: 'Verify Production Auth Service'
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceEndpoint: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    command: 'rollout'
+                    arguments: 'status deployment/payment-engine-authservice --timeout=600s'
+
                 - script: |
                     echo "Deployment completed successfully!"
                     echo "Version: $(buildVersion)"

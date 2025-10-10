@@ -2,6 +2,7 @@ package com.paymentengine.shared.dto.iso20022;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -66,7 +67,7 @@ public class FinancialInstitution {
         
         @JsonProperty("Othr")
         @Valid
-        private GenericFinancialIdentification other;
+        private CommonTypes.GenericFinancialIdentification other;
         
         public FinancialInstitutionIdentification() {}
         
@@ -111,11 +112,11 @@ public class FinancialInstitution {
             this.postalAddress = postalAddress;
         }
         
-        public GenericFinancialIdentification getOther() {
+        public CommonTypes.GenericFinancialIdentification getOther() {
             return other;
         }
         
-        public void setOther(GenericFinancialIdentification other) {
+        public void setOther(CommonTypes.GenericFinancialIdentification other) {
             this.other = other;
         }
     }

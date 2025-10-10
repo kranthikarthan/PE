@@ -223,7 +223,7 @@ kubectl create namespace payment-engine
 # Apply multi-tenant configuration
 kubectl apply -f deployment/kubernetes/namespace.yaml
 kubectl apply -f deployment/kubernetes/tenant-config.yaml
-kubectl apply -f deployment/kubernetes/secrets.yaml
+kubectl apply -f deployment/kubernetes/external-secrets.yaml
 kubectl apply -f deployment/kubernetes/configmaps.yaml
 
 # Set up RBAC for tenant operations
@@ -238,44 +238,47 @@ kubectl apply -f deployment/kubernetes/rbac.yaml
 az acr login --name paymentengineacr
 
 # Build all services
-./build-all.sh --production
+./build-all.sh --production --version $BUILD_VERSION
 
-# Tag and push images
-docker tag payment-engine/api-gateway:latest \
-  paymentengineacr.azurecr.io/api-gateway:v1.0.0
+# Tag images with immutable versions
+docker tag payment-engine/api-gateway:$BUILD_VERSION \
+  paymentengineacr.azurecr.io/api-gateway:$BUILD_VERSION
 
-docker tag payment-engine/core-banking:latest \
-  paymentengineacr.azurecr.io/core-banking:v1.0.0
+docker tag payment-engine/core-banking:$BUILD_VERSION \
+  paymentengineacr.azurecr.io/core-banking:$BUILD_VERSION
 
-docker tag payment-engine/payment-processing:latest \
-  paymentengineacr.azurecr.io/payment-processing:v1.0.0
+docker tag payment-engine/payment-processing:$BUILD_VERSION \
+  paymentengineacr.azurecr.io/payment-processing:$BUILD_VERSION
 
-docker tag payment-engine/frontend:latest \
-  paymentengineacr.azurecr.io/frontend:v1.0.0
+docker tag payment-engine/frontend:$BUILD_VERSION \
+  paymentengineacr.azurecr.io/frontend:$BUILD_VERSION
 
 # Push all images
-docker push paymentengineacr.azurecr.io/api-gateway:v1.0.0
-docker push paymentengineacr.azurecr.io/core-banking:v1.0.0
-docker push paymentengineacr.azurecr.io/payment-processing:v1.0.0
-docker push paymentengineacr.azurecr.io/frontend:v1.0.0
+docker push paymentengineacr.azurecr.io/api-gateway:$BUILD_VERSION
+docker push paymentengineacr.azurecr.io/core-banking:$BUILD_VERSION
+docker push paymentengineacr.azurecr.io/payment-processing:$BUILD_VERSION
+docker push paymentengineacr.azurecr.io/frontend:$BUILD_VERSION
 ```
 
 ### **2. Deploy Services to AKS**
 ```bash
-# Deploy in order (dependencies first)
-kubectl apply -f deployment/kubernetes/secrets.yaml
+# Deploy shared configuration
 kubectl apply -f deployment/kubernetes/configmaps.yaml
-kubectl apply -f deployment/kubernetes/tenant-config.yaml
+kubectl apply -f deployment/kubernetes/external-secrets.yaml
 
-# Deploy stateful services
-kubectl apply -f deployment/kubernetes/statefulsets.yaml
-
-# Deploy applications
-kubectl apply -f deployment/kubernetes/deployments.yaml
-
-# Deploy services and ingress
-kubectl apply -f deployment/kubernetes/services.yaml
-kubectl apply -f deployment/kubernetes/ingress.yaml
+# Install application stack via Helm with immutable images
+helm upgrade --install payment-engine deployment/helm/payment-engine \
+  --namespace payment-engine \
+  -f deployment/helm/payment-engine/values.yaml \
+  -f deployment/helm/payment-engine/values-production.yaml \
+  --set global.imageRegistry=paymentengineacr.azurecr.io \
+  --set components.apiGateway.image.tag=$BUILD_VERSION \
+  --set components.apiGateway.image.digest=$API_GATEWAY_DIGEST \
+  --set components.paymentProcessing.image.tag=$BUILD_VERSION \
+  --set components.paymentProcessing.image.digest=$PAYMENT_PROCESSING_DIGEST \
+  --set components.authService.image.tag=$BUILD_VERSION \
+  --set components.authService.image.digest=$AUTH_SERVICE_DIGEST \
+  --wait --timeout 10m
 ```
 
 ### **3. Verify Multi-Tenant Deployment**

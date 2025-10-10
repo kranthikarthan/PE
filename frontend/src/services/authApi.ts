@@ -33,10 +33,11 @@ export interface User {
   email: string;
   firstName?: string;
   lastName?: string;
-  status: 'ACTIVE' | 'INACTIVE' | 'LOCKED' | 'SUSPENDED';
+  status?: 'ACTIVE' | 'INACTIVE' | 'LOCKED' | 'SUSPENDED';
+  isActive?: boolean;
   lastLoginAt?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
   roles: Role[];
 }
 
@@ -71,7 +72,7 @@ class AuthApiService {
     // Add request interceptor to include auth token
     this.api.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem('authToken');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -95,7 +96,7 @@ class AuthApiService {
             const refreshToken = localStorage.getItem('refreshToken');
             if (refreshToken) {
               const response = await this.refreshToken({ refreshToken });
-              localStorage.setItem('accessToken', response.accessToken);
+              localStorage.setItem('authToken', response.accessToken);
               localStorage.setItem('refreshToken', response.refreshToken);
               
               // Retry original request
@@ -116,7 +117,17 @@ class AuthApiService {
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await this.api.post<LoginResponse>('/login', credentials);
-    return response.data;
+    const data = response.data;
+
+    if (data?.accessToken) {
+      localStorage.setItem('authToken', data.accessToken);
+    }
+
+    if (data?.refreshToken) {
+      localStorage.setItem('refreshToken', data.refreshToken);
+    }
+
+    return data;
   }
 
   async register(userData: UserRegistrationRequest): Promise<User> {
@@ -133,7 +144,7 @@ class AuthApiService {
     try {
       await this.api.post('/logout');
     } finally {
-      localStorage.removeItem('accessToken');
+      localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
     }
@@ -149,8 +160,42 @@ class AuthApiService {
   }
 
   async getCurrentUser(): Promise<User> {
-    const response = await this.api.get<User>('/user/me');
-    return response.data;
+    const response = await this.api.get<User>('/me');
+    const user = response.data;
+
+    if (!user) {
+      return user;
+    }
+
+    const normalizedRoles: Role[] = Array.isArray(user.roles)
+      ? user.roles.map((role: any) => {
+          if (typeof role === 'string') {
+            return {
+              id: role,
+              name: role,
+              permissions: [],
+            } as Role;
+          }
+          return {
+            permissions: [],
+            ...role,
+          } as Role;
+        })
+      : [];
+
+    const storedUser: User = {
+      ...user,
+      roles: normalizedRoles,
+      isActive: typeof (user as any).isActive === 'boolean' ? (user as any).isActive : Boolean((user as any).active),
+      status: (user as any).status,
+    };
+
+    this.storeUser(storedUser);
+
+    return {
+      ...user,
+      roles: normalizedRoles,
+    } as User;
   }
 
   async getUser(userId: string): Promise<User> {
@@ -189,7 +234,7 @@ class AuthApiService {
 
   // Utility methods
   isAuthenticated(): boolean {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem('authToken');
     return !!token;
   }
 
@@ -203,7 +248,7 @@ class AuthApiService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem('accessToken');
+    return localStorage.getItem('authToken');
   }
 }
 

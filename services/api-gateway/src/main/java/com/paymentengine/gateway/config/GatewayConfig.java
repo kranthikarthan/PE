@@ -9,7 +9,9 @@ import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
@@ -26,6 +28,14 @@ public class GatewayConfig {
     @Bean
     public GlobalFilter customGlobalFilter() {
         return new RequestResponseLoggingFilter();
+    }
+
+    @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+        return builder
+            .setConnectTimeout(java.time.Duration.ofSeconds(5))
+            .setReadTimeout(java.time.Duration.ofSeconds(10))
+            .build();
     }
 
     /**

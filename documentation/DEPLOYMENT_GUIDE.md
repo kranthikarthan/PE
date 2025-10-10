@@ -203,18 +203,18 @@ If you prefer to deploy manually without Azure DevOps, follow these steps:
 ```bash
 # Build Core Banking Service
 cd services/core-banking
-docker build -t paymentengineacr.azurecr.io/core-banking:latest .
+docker build -t paymentengineacr.azurecr.io/core-banking:$BUILD_VERSION .
 
 # Build Frontend
 cd ../../frontend
-docker build -t paymentengineacr.azurecr.io/frontend:latest .
+docker build -t paymentengineacr.azurecr.io/frontend:$BUILD_VERSION .
 
 # Login to ACR
 az acr login --name paymentengineacr
 
 # Push images
-docker push paymentengineacr.azurecr.io/core-banking:latest
-docker push paymentengineacr.azurecr.io/frontend:latest
+docker push paymentengineacr.azurecr.io/core-banking:$BUILD_VERSION
+docker push paymentengineacr.azurecr.io/frontend:$BUILD_VERSION
 ```
 
 ### Step 2: Deploy Kubernetes Resources
@@ -223,25 +223,24 @@ docker push paymentengineacr.azurecr.io/frontend:latest
 # Apply namespace and RBAC
 kubectl apply -f deployment/kubernetes/namespace.yaml
 
-# Apply ConfigMaps and Secrets
+# Apply ConfigMaps and configure External Secrets for Azure Key Vault
 kubectl apply -f deployment/kubernetes/configmaps.yaml
-kubectl apply -f deployment/kubernetes/secrets.yaml
+kubectl apply -f deployment/kubernetes/external-secrets.yaml
 
-# Deploy Services
-kubectl apply -f deployment/kubernetes/services.yaml
-
-# Deploy StatefulSets (databases, kafka)
-kubectl apply -f deployment/kubernetes/statefulsets.yaml
-
-# Wait for StatefulSets to be ready
-kubectl wait --for=condition=ready pod -l app=postgresql -n payment-engine --timeout=300s
-kubectl wait --for=condition=ready pod -l app=kafka -n payment-engine --timeout=300s
-
-# Deploy Applications
-kubectl apply -f deployment/kubernetes/deployments.yaml
-
-# Wait for deployments to be ready
-kubectl wait --for=condition=available deployment --all -n payment-engine --timeout=600s
+# Deploy the platform via Helm with immutable images
+helm upgrade --install payment-engine deployment/helm/payment-engine \
+  --namespace payment-engine \
+  --create-namespace \
+  -f deployment/helm/payment-engine/values.yaml \
+  -f deployment/helm/payment-engine/values-production.yaml \
+  --set global.imageRegistry=paymentengineacr.azurecr.io \
+  --set components.apiGateway.image.tag=$BUILD_VERSION \
+  --set components.apiGateway.image.digest=$API_GATEWAY_DIGEST \
+  --set components.paymentProcessing.image.tag=$BUILD_VERSION \
+  --set components.paymentProcessing.image.digest=$PAYMENT_PROCESSING_DIGEST \
+  --set components.authService.image.tag=$BUILD_VERSION \
+  --set components.authService.image.digest=$AUTH_SERVICE_DIGEST \
+  --wait --timeout 10m
 ```
 
 ### Step 3: Verify Deployment

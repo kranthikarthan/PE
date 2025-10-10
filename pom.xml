@@ -2,6 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -47,24 +48,24 @@
         <spring-cloud.version>2023.0.0</spring-cloud.version>
         
         <!-- Dependencies Versions -->
-        <testcontainers.version>1.19.3</testcontainers.version>
-        <grpc.version>1.60.1</grpc.version>
+        <testcontainers.version>1.21.3</testcontainers.version>
+        <grpc.version>1.76.0</grpc.version>
         <protobuf.version>3.25.1</protobuf.version>
-        <mapstruct.version>1.5.5.Final</mapstruct.version>
-        <jjwt.version>0.12.3</jjwt.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <jjwt.version>0.13.0</jjwt.version>
         <nimbus-jose-jwt.version>9.31</nimbus-jose-jwt.version>
-        <azure-keyvault.version>4.6.4</azure-keyvault.version>
-        <azure-identity.version>1.10.4</azure-identity.version>
+        <azure-keyvault.version>4.10.3</azure-keyvault.version>
+        <azure-identity.version>1.18.0</azure-identity.version>
         <opentelemetry.version>1.34.1</opentelemetry.version>
         <logstash-logback.version>7.4</logstash-logback.version>
         
         <!-- Plugin Versions -->
         <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
-        <maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
-        <maven-surefire-plugin.version>3.2.3</maven-surefire-plugin.version>
+        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
         <maven-failsafe-plugin.version>3.2.3</maven-failsafe-plugin.version>
         <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
-        <sonar-maven-plugin.version>3.10.0.2594</sonar-maven-plugin.version>
+        <sonar-maven-plugin.version>5.2.0.4988</sonar-maven-plugin.version>
         <dockerfile-maven-plugin.version>1.4.13</dockerfile-maven-plugin.version>
         
         <!-- Minimum Maven Version -->
@@ -77,6 +78,34 @@
     <dependencyManagement>
         <dependencies>
             <!-- Spring Cloud -->
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <name>Payment Engine :: Parent</name>
+    <description>Parent build configuration for the Payment Engine services and tests</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
+        <project.build.outputTimestamp>2025-01-01T00:00:00Z</project.build.outputTimestamp>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring-cloud.version>2023.0.0</spring-cloud.version>
+    </properties>
+
+    <modules>
+        <module>services/shared</module>
+        <module>services/auth-service</module>
+        <module>services/config-service</module>
+        <module>services/core-banking</module>
+        <module>services/discovery-service</module>
+        <module>services/payment-processing</module>
+        <module>services/api-gateway</module>
+        <module>tests/iso20022/junit-e2e</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -343,6 +372,52 @@
                 <executions>
                     <execution>
                         <id>enforce-maven</id>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
+                    <configuration>
+                        <release>${java.version}</release>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.2.2</version>
+                    <configuration>
+                        <useSystemClassLoader>false</useSystemClassLoader>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>3.2.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.6.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.1.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <version>2.16.2</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-java</id>
                         <goals>
                             <goal>enforce</goal>
                         </goals>
@@ -387,6 +462,10 @@
                                     <property>project.build.outputTimestamp</property>
                                     <message>project.build.outputTimestamp must be set for reproducible builds</message>
                                 </requireProperty>
+                                <requireJavaVersion>
+                                    <version>[17,)</version>
+                                </requireJavaVersion>
+                                <dependencyConvergence/>
                             </rules>
                         </configuration>
                     </execution>
@@ -450,7 +529,7 @@
                     <plugin>
                         <groupId>org.owasp</groupId>
                         <artifactId>dependency-check-maven</artifactId>
-                        <version>9.0.9</version>
+                        <version>12.1.6</version>
                         <executions>
                             <execution>
                                 <goals>
@@ -485,4 +564,14 @@
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
