@@ -18,29 +18,32 @@ This runbook provides step-by-step procedures for common operational tasks, trou
 ### Quick Health Check
 ```bash
 # Check service health
-curl http://localhost:8081/actuator/health
+curl http://localhost:8082/payment-processing/actuator/health
 
 # Expected response
 {
   "status": "UP",
   "components": {
-    "db": {"status": "UP"},
-    "kafka": {"status": "UP"},
-    "redis": {"status": "UP"}
+    "diskSpace": {"status": "UP"},
+    "redis": {"status": "UP"},
+    "circuitBreakers": {"status": "UP"}
   }
 }
 ```
 
 ### Detailed Health Check
 ```bash
-# Liveness probe
-curl http://localhost:8081/actuator/health/liveness
+# Main health endpoint (includes all components)
+curl http://localhost:8082/payment-processing/actuator/health
 
-# Readiness probe
-curl http://localhost:8081/actuator/health/readiness
+# Check specific metrics
+curl http://localhost:8082/payment-processing/actuator/metrics
 
-# Check metrics
-curl http://localhost:8081/actuator/metrics
+# Check circuit breaker status
+curl http://localhost:8082/payment-processing/actuator/metrics/resilience4j.circuitbreaker.state
+
+# Check Prometheus metrics
+curl http://localhost:8082/payment-processing/actuator/prometheus
 ```
 
 ### Kubernetes Health Check
@@ -109,12 +112,12 @@ kubectl get pods -n payment-engine -l app=payment-processing
 kubectl logs -n payment-engine deployment/payment-processing --tail=100
 
 # Check metrics
-curl https://api.paymentengine.com/actuator/health
+curl https://api.paymentengine.com/payment-processing/actuator/health
 
 # Verify message processing
 # Check Kafka consumer lag
 kafka-consumer-groups --bootstrap-server kafka:9092 \
-  --describe --group payment-processing
+  --describe --group payment-processing-service
 ```
 
 ### Rollback Procedure
@@ -201,11 +204,11 @@ kubectl logs -n payment-engine deployment/payment-processing \
 # - Resource exhaustion
 
 # 3. Check database connection pool
-curl http://localhost:8081/actuator/metrics/hikaricp.connections.active
+curl http://localhost:8082/payment-processing/actuator/metrics/hikaricp.connections.active
 
 # 4. Check Kafka consumer lag
 kafka-consumer-groups --bootstrap-server kafka:9092 \
-  --describe --group payment-processing
+  --describe --group payment-processing-service
 
 # 5. Scale up if needed
 kubectl scale deployment payment-processing --replicas=5 -n payment-engine
@@ -282,7 +285,7 @@ helm upgrade payment-processing ./helm/payment-processing -n payment-engine
 **Diagnosis**:
 ```bash
 # Check active connections
-curl http://localhost:8081/actuator/metrics/hikaricp.connections.active
+curl http://localhost:8082/payment-processing/actuator/metrics/hikaricp.connections.active
 
 # Check pool configuration
 kubectl describe configmap payment-processing -n payment-engine
@@ -291,8 +294,9 @@ kubectl describe configmap payment-processing -n payment-engine
 **Resolution**:
 ```bash
 # 1. Increase pool size
-# Edit application-prod.yml
-# spring.datasource.hikari.maximum-pool-size: 50
+# Edit application.yml or application-prod.yml
+# Current default: maximum-pool-size: 20, minimum-idle: 5
+# Increase to: maximum-pool-size: 50, minimum-idle: 10
 
 # 2. Check for connection leaks
 kubectl logs -n payment-engine deployment/payment-processing \
@@ -308,9 +312,9 @@ kubectl rollout restart deployment/payment-processing -n payment-engine
 
 **Diagnosis**:
 ```bash
-# Check consumer lag
+# Check consumer lag (use actual consumer group name)
 kafka-consumer-groups --bootstrap-server kafka:9092 \
-  --describe --group payment-processing
+  --describe --group payment-processing-service
 ```
 
 **Resolution**:
@@ -325,7 +329,7 @@ kafka-topics --bootstrap-server kafka:9092 \
 
 # 3. Monitor lag reduction
 watch 'kafka-consumer-groups --bootstrap-server kafka:9092 \
-  --describe --group payment-processing'
+  --describe --group payment-processing-service'
 ```
 
 ---
@@ -334,9 +338,13 @@ watch 'kafka-consumer-groups --bootstrap-server kafka:9092 \
 
 ### Database Backup
 ```bash
-# Daily backup (automated via CronJob)
+# Daily backup (automated via CronJob if configured)
 kubectl create job manual-backup-$(date +%Y%m%d) \
   --from=cronjob/postgres-backup -n payment-engine
+
+# Or use manual pg_dump
+kubectl exec -it postgres-0 -n payment-engine -- \
+  pg_dump -U postgres payment_engine > backup-$(date +%Y%m%d).sql
 
 # Verify backup
 kubectl logs -n payment-engine job/manual-backup-20251010
@@ -344,15 +352,17 @@ kubectl logs -n payment-engine job/manual-backup-20251010
 
 ### Log Rotation
 ```bash
-# Logs are automatically rotated by logback
-# Configuration in logback-spring.xml:
-# - Max file size: 100MB
-# - Max history: 30 days
-# - Total size cap: 3GB
+# Logs are configured in application.yml
+# Default location: logs/payment-processing.log
+# No automatic rotation in application.yml - add if needed
 
-# Manual cleanup if needed
-kubectl exec -it <pod-name> -n payment-engine -- \
-  find /var/log/payment-processing -name "*.gz" -mtime +30 -delete
+# For production with logback-spring.xml:
+# - Max file size: 100MB
+# - Max history: 30 days (when configured)
+# - Total size cap: 3GB (when configured)
+
+# Manual cleanup if needed (when logs are in default location)
+find logs/ -name "*.log.*" -mtime +30 -delete
 ```
 
 ### Certificate Renewal

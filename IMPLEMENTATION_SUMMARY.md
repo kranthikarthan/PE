@@ -173,7 +173,9 @@ This document summarizes the comprehensive enterprise-grade implementation of th
 **Key Features**:
 - **Environment Variables**: All secrets from env vars (DB, Kafka, Redis, JWT)
 - **Azure Key Vault**: Ready for integration (config present)
-- **Spring Profiles**: dev, test, prod with environment-specific settings
+- **Spring Profiles**: 
+  - Main application.yml: `local`, `docker`, `production`
+  - Additional profiles: `dev` (application-dev.yml), `prod` (application-prod.yml)
 - **Feature Flags**: 
   - `featureFlags.enableFraudCheck`
   - `featureFlags.enableDuplicateDetection`

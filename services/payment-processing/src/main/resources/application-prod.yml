@@ -1,7 +1,10 @@
 # Production Profile Configuration
+# This profile can be activated with: -Dspring.profiles.active=prod
+# It complements or overrides the 'production' profile in application.yml
 spring:
-  profiles:
-    active: prod
+  config:
+    activate:
+      on-profile: prod
   
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}

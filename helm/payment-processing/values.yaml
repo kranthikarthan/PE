@@ -31,8 +31,8 @@ serviceAccount:
 # ============================================================================
 podAnnotations:
   prometheus.io/scrape: "true"
-  prometheus.io/port: "8081"
-  prometheus.io/path: "/actuator/prometheus"
+  prometheus.io/port: "8082"
+  prometheus.io/path: "/payment-processing/actuator/prometheus"
   sidecar.istio.io/inject: "true"
 
 podSecurityContext:
@@ -56,9 +56,9 @@ securityContext:
 # ============================================================================
 service:
   type: ClusterIP
-  port: 8080
-  targetPort: 8080
-  actuatorPort: 8081
+  port: 8082
+  targetPort: 8082
+  actuatorPort: 8082  # Actuator is on same port with /payment-processing/actuator context
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 
@@ -125,7 +125,7 @@ istio:
           - destination:
               host: payment-processing
               port:
-                number: 8080
+                number: 8082
         corsPolicy:
           allowOrigins:
             - exact: "https://paymentengine.com"
@@ -159,12 +159,12 @@ destinationRule:
     connectionPool:
       tcp:
         maxConnections: 100
-      http:
-        http1MaxPendingRequests: 50
-        http2MaxRequests: 100
-        maxRequestsPerConnection: 2
+        http:
+          http1MaxPendingRequests: 50
+          http2MaxRequests: 100
+          maxRequestsPerConnection: 2
     outlierDetection:
-      consecutiveErrors: 5
+      consecutive5xxErrors: 5
       interval: 30s
       baseEjectionTime: 30s
       maxEjectionPercent: 50
@@ -218,8 +218,8 @@ autoscaling:
 livenessProbe:
   enabled: true
   httpGet:
-    path: /actuator/health/liveness
-    port: 8081
+    path: /payment-processing/actuator/health
+    port: 8082
   initialDelaySeconds: 120
   periodSeconds: 10
   timeoutSeconds: 5
@@ -229,8 +229,8 @@ livenessProbe:
 readinessProbe:
   enabled: true
   httpGet:
-    path: /actuator/health/readiness
-    port: 8081
+    path: /payment-processing/actuator/health
+    port: 8082
   initialDelaySeconds: 30
   periodSeconds: 10
   timeoutSeconds: 5
@@ -240,8 +240,8 @@ readinessProbe:
 startupProbe:
   enabled: true
   httpGet:
-    path: /actuator/health/liveness
-    port: 8081
+    path: /payment-processing/actuator/health
+    port: 8082
   initialDelaySeconds: 0
   periodSeconds: 10
   timeoutSeconds: 5
@@ -273,9 +273,7 @@ networkPolicy:
               app: api-gateway
       ports:
         - protocol: TCP
-          port: 8080
-        - protocol: TCP
-          port: 8081
+          port: 8082
   egress:
     - to:
         - namespaceSelector: {}
@@ -298,15 +296,13 @@ networkPolicy:
 # ============================================================================
 env:
   - name: SPRING_PROFILES_ACTIVE
-    value: "prod"
+    value: "production"
   - name: JAVA_OPTS
     value: "-Xms1g -Xmx1500m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication"
   - name: SERVER_PORT
-    value: "8080"
-  - name: MANAGEMENT_SERVER_PORT
-    value: "8081"
+    value: "8082"
   - name: OTEL_SERVICE_NAME
-    value: "payment-processing"
+    value: "payment-processing-service"
   - name: OTEL_TRACES_EXPORTER
     value: "jaeger"
   - name: OTEL_METRICS_EXPORTER
@@ -328,7 +324,9 @@ configMap:
   data:
     application.yaml: |
       server:
-        port: 8080
+        port: 8082
+        servlet:
+          context-path: /payment-processing
         shutdown: graceful
         tomcat:
           threads:
@@ -336,30 +334,22 @@ configMap:
             min-spare: 10
       
       management:
-        server:
-          port: 8081
         endpoints:
           web:
             exposure:
               include: health,info,metrics,prometheus
+            base-path: /actuator
         endpoint:
           health:
-            probes:
-              enabled: true
             show-details: when-authorized
         metrics:
           tags:
             application: ${spring.application.name}
             environment: ${SPRING_PROFILES_ACTIVE}
-        health:
-          livenessstate:
-            enabled: true
-          readinessstate:
-            enabled: true
       
       spring:
         application:
-          name: payment-processing
+          name: payment-processing-service
         lifecycle:
           timeout-per-shutdown-phase: 30s
 

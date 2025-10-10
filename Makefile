@@ -286,6 +286,9 @@ kafka-console-consumer: ## Start Kafka console consumer for a topic (make kafka-
 kafka-console-producer: ## Start Kafka console producer for a topic (make kafka-console-producer TOPIC=payment.inbound.v1)
 	@docker exec -it payment-engine-kafka-dev kafka-console-producer --bootstrap-server localhost:9092 --topic $(TOPIC)
 
+kafka-consumer-lag: ## Check Kafka consumer group lag
+	@docker exec payment-engine-kafka-dev kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group payment-processing-service
+
 ##@ Utilities
 
 clean-build: ## Clean Maven build artifacts
@@ -345,10 +348,10 @@ docs-serve: docs-generate ## Generate and serve documentation
 ##@ Monitoring
 
 metrics: ## Show application metrics (requires app running)
-	@curl -s http://localhost:8081/actuator/metrics | jq .
+	@curl -s http://localhost:8082/payment-processing/actuator/metrics | jq .
 
 health: ## Check application health (requires app running)
-	@curl -s http://localhost:8081/actuator/health | jq .
+	@curl -s http://localhost:8082/payment-processing/actuator/health | jq .
 
 ##@ Quick Actions
 

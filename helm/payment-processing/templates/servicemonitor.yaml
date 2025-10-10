@@ -14,8 +14,8 @@ spec:
     matchLabels:
       {{- include "payment-processing.selectorLabels" . | nindent 6 }}
   endpoints:
-    - port: actuator
-      path: /actuator/prometheus
+    - port: http
+      path: /payment-processing/actuator/prometheus
       interval: {{ .Values.serviceMonitor.interval }}
       scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
 {{- end }}

@@ -55,10 +55,10 @@ The Payment Processing Service is the core component of the Payment Engine platf
    ```
 
 5. **Access the application**:
-   - API: http://localhost:8080
-   - Actuator: http://localhost:8081/actuator
-   - Swagger UI: http://localhost:8080/swagger-ui.html
-   - Prometheus Metrics: http://localhost:8081/actuator/prometheus
+   - API: http://localhost:8082/payment-processing
+   - Actuator: http://localhost:8082/payment-processing/actuator
+   - Health Check: http://localhost:8082/payment-processing/actuator/health
+   - Prometheus Metrics: http://localhost:8082/payment-processing/actuator/prometheus
 
 ### Using Make Commands
 
@@ -88,7 +88,7 @@ make clean
 
 #### Process PAIN.001 (Customer Credit Transfer)
 ```bash
-POST /api/v1/iso20022/comprehensive/pain001-to-clearing-system
+POST /payment-processing/api/v1/iso20022/comprehensive/pain001-to-clearing-system
 Content-Type: application/json
 Authorization: Bearer <JWT_TOKEN>
 
@@ -106,7 +106,7 @@ Authorization: Bearer <JWT_TOKEN>
 
 #### Validate ISO20022 Message
 ```bash
-POST /api/v1/iso20022/comprehensive/validate?messageType=pain.001
+POST /payment-processing/api/v1/iso20022/comprehensive/validate?messageType=pain.001
 Content-Type: application/json
 Authorization: Bearer <JWT_TOKEN>
 
@@ -132,13 +132,15 @@ For complete API documentation, refer to the [Postman Collection](../../postman/
 | `REDIS_HOST` | Redis host | localhost | Yes |
 | `REDIS_PORT` | Redis port | 6379 | Yes |
 | `JWT_SECRET_KEY` | JWT signing key | - | Yes |
-| `SPRING_PROFILES_ACTIVE` | Active profile | dev | No |
+| `SPRING_PROFILES_ACTIVE` | Active profile | local | No |
 
 ### Application Profiles
 
-- **dev**: Development environment with debug logging and all actuator endpoints enabled
-- **test**: Test environment for integration testing
-- **prod**: Production environment with security hardening and JSON logging
+- **local**: Local development environment with debug logging and all actuator endpoints enabled
+- **docker**: Docker Compose environment for containerized local development
+- **production**: Production environment with security hardening and optimized settings
+
+Note: Additional profiles `dev` and `prod` are available in `application-dev.yml` and `application-prod.yml` for enhanced configuration.
 
 ## Testing
 
@@ -170,21 +172,25 @@ Coverage reports are generated at `target/site/jacoco/index.html`.
 ## Monitoring & Observability
 
 ### Metrics
-- **Prometheus**: Metrics exposed at `/actuator/prometheus`
+- **Prometheus**: Metrics exposed at `/payment-processing/actuator/prometheus`
 - **Grafana Dashboards**: Pre-configured dashboards for service health, throughput, and latency
+- **Custom Metrics**: Business metrics tracked via Micrometer
 
 ### Distributed Tracing
-- **Jaeger**: Traces sent to Jaeger for end-to-end request tracking
+- **Jaeger**: Traces sent to Jaeger for end-to-end request tracking (when configured)
 - **Trace ID**: Automatically added to logs via MDC
+- **Correlation ID**: Propagated across service boundaries
 
 ### Logging
-- **Format**: JSON (production), Pattern (development)
+- **Format**: Pattern-based (local/docker), JSON (production with logback-spring.xml)
 - **MDC Fields**: `correlationId`, `tenantId`, `messageId`, `transactionId`
 - **Log Levels**: Configurable per package
+- **Log File**: `logs/payment-processing.log` (configurable)
 
 ### Health Checks
-- **Liveness**: `/actuator/health/liveness`
-- **Readiness**: `/actuator/health/readiness`
+- **Main Health**: `/payment-processing/actuator/health`
+- **Liveness**: `/payment-processing/actuator/health/liveness` (requires health probes enabled)
+- **Readiness**: `/payment-processing/actuator/health/readiness` (requires health probes enabled)
 
 ## Deployment
 
@@ -194,9 +200,12 @@ Coverage reports are generated at `target/site/jacoco/index.html`.
 make docker-build
 
 # Run container
-docker run -p 8080:8080 -p 8081:8081 \
-  -e SPRING_PROFILES_ACTIVE=prod \
-  -e DB_HOST=postgres \
+docker run -p 8082:8082 \
+  -e SPRING_PROFILES_ACTIVE=production \
+  -e DATABASE_URL=jdbc:postgresql://postgres:5432/payment_engine \
+  -e DATABASE_USERNAME=postgres \
+  -e DATABASE_PASSWORD=yourpassword \
+  -e KAFKA_BOOTSTRAP_SERVERS=kafka:9092 \
   paymentengine/payment-processing:latest
 ```
 
@@ -235,9 +244,9 @@ helm upgrade payment-processing ./helm/payment-processing \
 ### Common Issues
 
 #### Application won't start
-- Check database connectivity: `psql -h localhost -U payment_user -d payment_engine`
-- Verify Kafka is running: `docker-compose ps kafka`
-- Check logs: `docker logs payment-processing`
+- Check database connectivity: `psql -h localhost -U postgres -d payment_engine`
+- Verify Kafka is running: `docker-compose -f docker-compose.dev.yml ps kafka`
+- Check logs: `docker-compose -f docker-compose.dev.yml logs payment-processing` (if running via Docker Compose)
 
 #### Messages not being processed
 - Check Kafka consumer lag: `make kafka-consumer-lag`
@@ -246,12 +255,13 @@ helm upgrade payment-processing ./helm/payment-processing \
 
 #### High latency
 - Review Grafana dashboards for bottlenecks
-- Check database connection pool settings
-- Verify Kafka producer configuration
+- Check database connection pool settings (Hikari pool size: max 20, min 5)
+- Verify Kafka producer configuration (batch size, linger time)
+- Check circuit breaker status via `/payment-processing/actuator/health`
 
 ### Logs Location
-- **Development**: Console output
-- **Production**: `/var/log/payment-processing/application.json`
+- **Development**: Console output + `logs/payment-processing.log`
+- **Production**: `/var/log/payment-processing/application.json` (when logback-spring.xml is active)
 
 ## Contributing
 Please refer to [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
