@@ -100,6 +100,10 @@ public class MultiLevelAuthConfigurationService {
         return clearingSystemAuthConfigRepository.findByEnvironmentAndIsActive(environment, true);
     }
 
+    public Optional<ClearingSystemAuthConfiguration> getClearingSystemConfigurationForCurrentEnvironment() {
+        return clearingSystemAuthConfigRepository.findByEnvironmentAndIsActive(currentEnvironment, true);
+    }
+
     public Optional<TenantAuthConfiguration> getTenantConfiguration(String tenantId) {
         return tenantAuthConfigRepository.findByTenantIdAndIsActive(tenantId, true);
     }

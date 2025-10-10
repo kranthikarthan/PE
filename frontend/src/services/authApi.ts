@@ -71,7 +71,7 @@ class AuthApiService {
     // Add request interceptor to include auth token
     this.api.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem('authToken');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -95,7 +95,7 @@ class AuthApiService {
             const refreshToken = localStorage.getItem('refreshToken');
             if (refreshToken) {
               const response = await this.refreshToken({ refreshToken });
-              localStorage.setItem('accessToken', response.accessToken);
+              localStorage.setItem('authToken', response.accessToken);
               localStorage.setItem('refreshToken', response.refreshToken);
               
               // Retry original request
@@ -133,7 +133,7 @@ class AuthApiService {
     try {
       await this.api.post('/logout');
     } finally {
-      localStorage.removeItem('accessToken');
+      localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
     }
@@ -189,7 +189,7 @@ class AuthApiService {
 
   // Utility methods
   isAuthenticated(): boolean {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem('authToken');
     return !!token;
   }
 
@@ -203,7 +203,7 @@ class AuthApiService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem('accessToken');
+    return localStorage.getItem('authToken');
   }
 }
 

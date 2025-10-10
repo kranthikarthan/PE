@@ -5,6 +5,7 @@ import com.paymentengine.auth.dto.LoginResponse;
 import com.paymentengine.auth.dto.RefreshTokenRequest;
 import com.paymentengine.auth.dto.UserRegistrationRequest;
 import com.paymentengine.auth.entity.User;
+import com.paymentengine.auth.dto.UserProfileResponse;
 import com.paymentengine.auth.service.AuthService;
 import com.paymentengine.auth.service.UserService;
 import io.micrometer.core.annotation.Timed;
@@ -80,6 +81,17 @@ public class AuthController {
             return ResponseEntity.ok(isValid);
         } catch (Exception e) {
             return ResponseEntity.ok(false);
+        }
+    }
+
+    @GetMapping("/me")
+    @Timed(value = "auth.me", description = "Time taken to retrieve current user")
+    public ResponseEntity<UserProfileResponse> currentUser(@RequestHeader("Authorization") String token) {
+        try {
+            UserProfileResponse profile = authService.getCurrentUserProfile(token);
+            return ResponseEntity.ok(profile);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).build();
         }
     }
     
