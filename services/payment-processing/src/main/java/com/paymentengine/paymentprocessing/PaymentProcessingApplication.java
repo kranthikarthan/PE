@@ -9,6 +9,10 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  * Payment Processing Service Application
@@ -21,8 +25,19 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * - Payment validation and authorization
  * - Transaction monitoring and reporting
  */
-@SpringBootApplication(scanBasePackages = {
-    "com.paymentengine.paymentprocessing",
+@SpringBootApplication(
+    scanBasePackages = {
+        "com.paymentengine.paymentprocessing",
+        "com.paymentengine.shared"
+    },
+    exclude = {
+        RedisAutoConfiguration.class,
+        KafkaAutoConfiguration.class,
+        HibernateJpaAutoConfiguration.class
+    }
+)
+@ComponentScan(basePackages = {
+    "com.paymentengine.paymentprocessing.controller",
     "com.paymentengine.shared"
 })
 @EnableEurekaClient

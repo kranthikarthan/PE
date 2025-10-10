@@ -1,0 +1,3 @@
+/workspace/services/shared/src/test/java/com/paymentengine/shared/service/Iso20022MessageServiceTest.java
+/workspace/services/shared/src/test/java/com/paymentengine/shared/service/IntegrationTest.java
+/workspace/services/shared/src/test/java/com/paymentengine/shared/service/Pain001ToPain002FlowTest.java
