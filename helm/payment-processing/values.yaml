@@ -1,0 +1,410 @@
+# Default values for payment-processing service
+# This is a YAML-formatted file.
+
+# ============================================================================
+# GENERAL
+# ============================================================================
+replicaCount: 3
+revisionHistoryLimit: 10
+
+image:
+  repository: paymentengine.azurecr.io/payment-processing
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets:
+  - name: acr-secret
+
+nameOverride: ""
+fullnameOverride: ""
+
+# ============================================================================
+# SERVICE ACCOUNT
+# ============================================================================
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "payment-processing-sa"
+
+# ============================================================================
+# POD CONFIGURATION
+# ============================================================================
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8082"
+  prometheus.io/path: "/payment-processing/actuator/prometheus"
+  sidecar.istio.io/inject: "true"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# ============================================================================
+# SERVICE
+# ============================================================================
+service:
+  type: ClusterIP
+  port: 8082
+  targetPort: 8082
+  actuatorPort: 8082  # Actuator is on same port with /payment-processing/actuator context
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+
+# ============================================================================
+# INGRESS & ISTIO
+# ============================================================================
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    # CORS Configuration - Tight Security
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://paymentengine.com,https://app.paymentengine.com"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,X-Tenant-ID,X-Correlation-ID"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-max-age: "3600"
+    # Rate Limiting
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    nginx.ingress.kubernetes.io/limit-connections: "10"
+    # Security Headers
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains";
+  hosts:
+    - host: api.paymentengine.com
+      paths:
+        - path: /api/v1/payment-processing
+          pathType: Prefix
+  tls:
+    - secretName: paymentengine-tls
+      hosts:
+        - api.paymentengine.com
+
+# Istio Virtual Service (Alternative to Ingress)
+istio:
+  enabled: true
+  gateway:
+    create: true
+    name: payment-engine-gateway
+    hosts:
+      - "api.paymentengine.com"
+    tls:
+      mode: SIMPLE
+      credentialName: paymentengine-tls
+      minProtocolVersion: TLSV1_2
+  virtualService:
+    create: true
+    name: payment-processing-vs
+    gateways:
+      - payment-engine-gateway
+    hosts:
+      - "api.paymentengine.com"
+    http:
+      - match:
+          - uri:
+              prefix: /api/v1/payment-processing
+        route:
+          - destination:
+              host: payment-processing
+              port:
+                number: 8082
+        corsPolicy:
+          allowOrigins:
+            - exact: "https://paymentengine.com"
+            - exact: "https://app.paymentengine.com"
+          allowMethods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          allowHeaders:
+            - authorization
+            - content-type
+            - x-tenant-id
+            - x-correlation-id
+          allowCredentials: true
+          maxAge: "3600s"
+        timeout: 30s
+        retries:
+          attempts: 3
+          perTryTimeout: 10s
+          retryOn: "5xx,reset,connect-failure,refused-stream"
+
+# Istio Destination Rule for mTLS
+destinationRule:
+  enabled: true
+  name: payment-processing-dr
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        http:
+          http1MaxPendingRequests: 50
+          http2MaxRequests: 100
+          maxRequestsPerConnection: 2
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 40
+
+# ============================================================================
+# RESOURCES
+# ============================================================================
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# ============================================================================
+# AUTOSCALING (HPA)
+# ============================================================================
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+      selectPolicy: Min
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+        - type: Pods
+          value: 4
+          periodSeconds: 30
+      selectPolicy: Max
+
+# ============================================================================
+# HEALTH PROBES
+# ============================================================================
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /payment-processing/actuator/health
+    port: 8082
+  initialDelaySeconds: 120
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /payment-processing/actuator/health
+    port: 8082
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+startupProbe:
+  enabled: true
+  httpGet:
+    path: /payment-processing/actuator/health
+    port: 8082
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 30
+
+# ============================================================================
+# POD DISRUPTION BUDGET
+# ============================================================================
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# ============================================================================
+# NETWORK POLICY
+# ============================================================================
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: istio-system
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+      ports:
+        - protocol: TCP
+          port: 8082
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 5432  # PostgreSQL
+        - protocol: TCP
+          port: 9092  # Kafka
+        - protocol: TCP
+          port: 6379  # Redis
+        - protocol: TCP
+          port: 443   # HTTPS
+        - protocol: TCP
+          port: 53    # DNS
+        - protocol: UDP
+          port: 53    # DNS
+
+# ============================================================================
+# ENVIRONMENT VARIABLES & CONFIG
+# ============================================================================
+env:
+  - name: SPRING_PROFILES_ACTIVE
+    value: "production"
+  - name: JAVA_OPTS
+    value: "-Xms1g -Xmx1500m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication"
+  - name: SERVER_PORT
+    value: "8082"
+  - name: OTEL_SERVICE_NAME
+    value: "payment-processing-service"
+  - name: OTEL_TRACES_EXPORTER
+    value: "jaeger"
+  - name: OTEL_METRICS_EXPORTER
+    value: "prometheus"
+  - name: OTEL_LOGS_EXPORTER
+    value: "otlp"
+
+envFrom:
+  - configMapRef:
+      name: payment-processing-config
+  - secretRef:
+      name: payment-processing-secrets
+
+# ============================================================================
+# CONFIG MAP
+# ============================================================================
+configMap:
+  create: true
+  data:
+    application.yaml: |
+      server:
+        port: 8082
+        servlet:
+          context-path: /payment-processing
+        shutdown: graceful
+        tomcat:
+          threads:
+            max: 200
+            min-spare: 10
+      
+      management:
+        endpoints:
+          web:
+            exposure:
+              include: health,info,metrics,prometheus
+            base-path: /actuator
+        endpoint:
+          health:
+            show-details: when-authorized
+        metrics:
+          tags:
+            application: ${spring.application.name}
+            environment: ${SPRING_PROFILES_ACTIVE}
+      
+      spring:
+        application:
+          name: payment-processing-service
+        lifecycle:
+          timeout-per-shutdown-phase: 30s
+
+# ============================================================================
+# SECRETS (To be created separately)
+# ============================================================================
+secrets:
+  create: false  # Create secrets via sealed-secrets or external-secrets
+
+# ============================================================================
+# PERSISTENCE
+# ============================================================================
+persistence:
+  enabled: false  # Stateless service
+
+# ============================================================================
+# NODE AFFINITY & TOLERATIONS
+# ============================================================================
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - payment-processing
+          topologyKey: kubernetes.io/hostname
+
+# ============================================================================
+# MONITORING & OBSERVABILITY
+# ============================================================================
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s
+  labels:
+    release: prometheus
+
+# ============================================================================
+# ADDITIONAL LABELS
+# ============================================================================
+labels:
+  app: payment-processing
+  component: backend
+  tier: service
+  version: "1.0"
+
+# ============================================================================
+# CUSTOM ANNOTATIONS
+# ============================================================================
+annotations: {}
