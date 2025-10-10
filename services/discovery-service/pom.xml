@@ -6,15 +6,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
-        <relativePath/>
+        <groupId>com.paymentengine</groupId>
+        <artifactId>payment-engine-parent</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <groupId>com.paymentengine</groupId>
     <artifactId>discovery-service</artifactId>
-    <version>1.0.0</version>
     <name>discovery-service</name>
     <description>Service Discovery and Registration Service</description>
 

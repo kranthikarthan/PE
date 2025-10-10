@@ -1,0 +1,226 @@
+global:
+  imageRegistry: ghcr.io/paymentengine
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+
+podAnnotations: {}
+components:
+  apiGateway:
+    enabled: true
+    replicaCount: 2
+    image:
+      registry: ""
+      repository: api-gateway
+      tag: "1.0.0"
+      digest: "sha256:REPLACE_WITH_DIGEST"
+    serviceAccount:
+      create: true
+      name: ""
+      annotations: {}
+    podAnnotations:
+      sidecar.istio.io/inject: "true"
+    podLabels: {}
+    service:
+      type: ClusterIP
+      port: 80
+      targetPort: 8080
+    container:
+      port: 8080
+      envFromSecrets:
+        - payment-engine-secrets
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 60
+    podDisruptionBudget:
+      enabled: true
+      minAvailable: 1
+    networkPolicy:
+      enabled: true
+      ingress:
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                  istio-injection: enabled
+            - podSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: payment-engine
+          ports:
+            - port: 8080
+              protocol: TCP
+      egress:
+        - to:
+            - namespaceSelector: {}
+          ports:
+            - port: 443
+              protocol: TCP
+    livenessProbe:
+      path: /actuator/health/liveness
+      port: 8080
+    readinessProbe:
+      path: /actuator/health/readiness
+      port: 8080
+    ingress:
+      enabled: true
+      className: azure/application-gateway
+      annotations:
+        cert-manager.io/cluster-issuer: payment-engine-issuer
+      hosts:
+        - host: api.payment-engine.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: payment-engine-tls
+          hosts:
+            - api.payment-engine.example.com
+
+  paymentProcessing:
+    enabled: true
+    replicaCount: 3
+    image:
+      registry: ""
+      repository: payment-processing
+      tag: "1.0.0"
+      digest: "sha256:REPLACE_WITH_DIGEST"
+    serviceAccount:
+      create: true
+      name: ""
+      annotations: {}
+    podAnnotations:
+      sidecar.istio.io/inject: "true"
+    podLabels: {}
+    service:
+      type: ClusterIP
+      port: 8082
+      targetPort: 8082
+    container:
+      port: 8082
+      envFromSecrets:
+        - payment-engine-secrets
+        - postgresql-secrets
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "1"
+        memory: 2Gi
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 55
+    podDisruptionBudget:
+      enabled: true
+      minAvailable: 2
+    networkPolicy:
+      enabled: true
+      ingress:
+        - from:
+            - podSelector:
+                matchLabels:
+                  app.kubernetes.io/component: api-gateway
+          ports:
+            - port: 8082
+              protocol: TCP
+      egress:
+        - to:
+            - namespaceSelector: {}
+          ports:
+            - port: 443
+              protocol: TCP
+            - port: 5432
+              protocol: TCP
+            - port: 6379
+              protocol: TCP
+    livenessProbe:
+      path: /payment-processing/actuator/health/liveness
+      port: 8082
+    readinessProbe:
+      path: /payment-processing/actuator/health/readiness
+      port: 8082
+    ingress:
+      enabled: false
+
+  authService:
+    enabled: true
+    replicaCount: 2
+    image:
+      registry: ""
+      repository: auth-service
+      tag: "1.0.0"
+      digest: "sha256:REPLACE_WITH_DIGEST"
+    serviceAccount:
+      create: true
+      name: ""
+      annotations: {}
+    podAnnotations:
+      sidecar.istio.io/inject: "true"
+    podLabels: {}
+    service:
+      type: ClusterIP
+      port: 8080
+      targetPort: 8080
+    container:
+      port: 8080
+      envFromSecrets:
+        - payment-engine-secrets
+        - postgresql-secrets
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 60
+    podDisruptionBudget:
+      enabled: true
+      minAvailable: 1
+    networkPolicy:
+      enabled: true
+      ingress:
+        - from:
+            - podSelector:
+                matchLabels:
+                  app.kubernetes.io/component: api-gateway
+          ports:
+            - port: 8080
+              protocol: TCP
+      egress:
+        - to:
+            - namespaceSelector: {}
+          ports:
+            - port: 5432
+              protocol: TCP
+            - port: 443
+              protocol: TCP
+    livenessProbe:
+      path: /api/v1/auth/actuator/health/liveness
+      port: 8080
+    readinessProbe:
+      path: /api/v1/auth/actuator/health/readiness
+      port: 8080
+    ingress:
+      enabled: false
