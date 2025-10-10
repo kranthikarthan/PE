@@ -1,0 +1,393 @@
+@startuml CONFIGURATION_MANAGEMENT_ERD
+!theme plain
+title Configuration Management Entities ERD
+
+entity "configuration_templates" {
+  * id : UUID <<PK>>
+  --
+  * template_name : VARCHAR(100) <<UK>>
+  * template_type : VARCHAR(50)
+  * template_version : VARCHAR(20)
+  * template_data : TEXT
+  * description : TEXT
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "tenant_configurations" {
+  * id : UUID <<PK>>
+  --
+  * tenant_id : UUID <<FK>>
+  * config_key : VARCHAR(100)
+  * config_value : TEXT
+  * config_type : VARCHAR(20)
+  * is_encrypted : BOOLEAN
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "service_configurations" {
+  * id : UUID <<PK>>
+  --
+  * service_name : VARCHAR(100)
+  * config_key : VARCHAR(100)
+  * config_value : TEXT
+  * config_type : VARCHAR(20)
+  * environment : VARCHAR(50)
+  * is_encrypted : BOOLEAN
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "feature_flags" {
+  * id : UUID <<PK>>
+  --
+  * flag_name : VARCHAR(100) <<UK>>
+  * flag_description : TEXT
+  * flag_value : BOOLEAN
+  * tenant_id : UUID <<FK>>
+  * environment : VARCHAR(50)
+  * rollout_percentage : INTEGER
+  * target_users : TEXT
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "environment_configurations" {
+  * id : UUID <<PK>>
+  --
+  * environment_name : VARCHAR(50) <<UK>>
+  * config_key : VARCHAR(100)
+  * config_value : TEXT
+  * config_type : VARCHAR(20)
+  * is_encrypted : BOOLEAN
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "configuration_history" {
+  * id : UUID <<PK>>
+  --
+  * config_type : VARCHAR(50)
+  * config_id : UUID
+  * config_key : VARCHAR(100)
+  * old_value : TEXT
+  * new_value : TEXT
+  * change_reason : TEXT
+  * changed_by : VARCHAR(100)
+  * changed_at : TIMESTAMP
+  * created_at : TIMESTAMP
+}
+
+entity "configuration_validations" {
+  * id : UUID <<PK>>
+  --
+  * config_type : VARCHAR(50)
+  * config_key : VARCHAR(100)
+  * validation_rules : TEXT
+  * validation_type : VARCHAR(50)
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "configuration_dependencies" {
+  * id : UUID <<PK>>
+  --
+  * parent_config_type : VARCHAR(50)
+  * parent_config_key : VARCHAR(100)
+  * child_config_type : VARCHAR(50)
+  * child_config_key : VARCHAR(100)
+  * dependency_type : VARCHAR(50)
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "configuration_schemas" {
+  * id : UUID <<PK>>
+  --
+  * schema_name : VARCHAR(100) <<UK>>
+  * schema_version : VARCHAR(20)
+  * schema_definition : TEXT
+  * schema_type : VARCHAR(50)
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "configuration_deployments" {
+  * id : UUID <<PK>>
+  --
+  * deployment_name : VARCHAR(100)
+  * environment : VARCHAR(50)
+  * config_type : VARCHAR(50)
+  * config_id : UUID
+  * deployment_status : VARCHAR(20)
+  * deployed_by : VARCHAR(100)
+  * deployed_at : TIMESTAMP
+  * rollback_at : TIMESTAMP
+  * rollback_reason : TEXT
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "configuration_approvals" {
+  * id : UUID <<PK>>
+  --
+  * config_type : VARCHAR(50)
+  * config_id : UUID
+  * approval_type : VARCHAR(50)
+  * approver_id : VARCHAR(100)
+  * approval_status : VARCHAR(20)
+  * approval_notes : TEXT
+  * approved_at : TIMESTAMP
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "configuration_audit_logs" {
+  * id : UUID <<PK>>
+  --
+  * config_type : VARCHAR(50)
+  * config_id : UUID
+  * action : VARCHAR(50)
+  * old_value : TEXT
+  * new_value : TEXT
+  * user_id : VARCHAR(100)
+  * ip_address : VARCHAR(45)
+  * user_agent : VARCHAR(500)
+  * created_at : TIMESTAMP
+}
+
+' Relationships
+tenants ||--o{ tenant_configurations : "configures"
+tenants ||--o{ feature_flags : "enables"
+
+configuration_templates ||--o{ configuration_history : "tracks"
+tenant_configurations ||--o{ configuration_history : "tracks"
+service_configurations ||--o{ configuration_history : "tracks"
+feature_flags ||--o{ configuration_history : "tracks"
+environment_configurations ||--o{ configuration_history : "tracks"
+
+configuration_validations ||--o{ configuration_dependencies : "validates"
+configuration_schemas ||--o{ configuration_validations : "defines"
+
+configuration_deployments ||--o{ configuration_approvals : "requires"
+
+' Indexes and constraints
+note right of configuration_templates
+Indexes:
+- idx_configuration_templates_template_name (template_name)
+- idx_configuration_templates_template_type (template_type)
+- idx_configuration_templates_template_version (template_version)
+- idx_configuration_templates_is_active (is_active)
+- idx_configuration_templates_created_at (created_at)
+
+Constraints:
+- UK_configuration_templates_template_name (template_name)
+- CHK_configuration_templates_template_type (template_type IN ('TENANT', 'SERVICE', 'FEATURE_FLAG', 'ENVIRONMENT', 'SCHEMA'))
+- CHK_configuration_templates_is_active (is_active IN (true, false))
+- CHK_configuration_templates_template_version (template_version ~ '^[0-9]+\.[0-9]+\.[0-9]+$')
+end note
+
+note right of tenant_configurations
+Indexes:
+- idx_tenant_configurations_tenant_id (tenant_id)
+- idx_tenant_configurations_config_key (config_key)
+- idx_tenant_configurations_config_type (config_type)
+- idx_tenant_configurations_is_active (is_active)
+- idx_tenant_configurations_created_at (created_at)
+
+Constraints:
+- FK_tenant_configurations_tenant_id (tenant_id)
+- UK_tenant_configurations_tenant_config_key (tenant_id, config_key)
+- CHK_tenant_configurations_config_type (config_type IN ('STRING', 'INTEGER', 'BOOLEAN', 'JSON', 'XML', 'BINARY'))
+- CHK_tenant_configurations_is_active (is_active IN (true, false))
+- CHK_tenant_configurations_is_encrypted (is_encrypted IN (true, false))
+end note
+
+note right of service_configurations
+Indexes:
+- idx_service_configurations_service_name (service_name)
+- idx_service_configurations_config_key (config_key)
+- idx_service_configurations_config_type (config_type)
+- idx_service_configurations_environment (environment)
+- idx_service_configurations_is_active (is_active)
+- idx_service_configurations_created_at (created_at)
+
+Constraints:
+- UK_service_configurations_service_env_config_key (service_name, environment, config_key)
+- CHK_service_configurations_config_type (config_type IN ('STRING', 'INTEGER', 'BOOLEAN', 'JSON', 'XML', 'BINARY'))
+- CHK_service_configurations_environment (environment IN ('DEVELOPMENT', 'TESTING', 'STAGING', 'PRODUCTION'))
+- CHK_service_configurations_is_active (is_active IN (true, false))
+- CHK_service_configurations_is_encrypted (is_encrypted IN (true, false))
+end note
+
+note right of feature_flags
+Indexes:
+- idx_feature_flags_flag_name (flag_name)
+- idx_feature_flags_tenant_id (tenant_id)
+- idx_feature_flags_environment (environment)
+- idx_feature_flags_is_active (is_active)
+- idx_feature_flags_created_at (created_at)
+
+Constraints:
+- UK_feature_flags_flag_name (flag_name)
+- FK_feature_flags_tenant_id (tenant_id)
+- CHK_feature_flags_environment (environment IN ('DEVELOPMENT', 'TESTING', 'STAGING', 'PRODUCTION'))
+- CHK_feature_flags_rollout_percentage (rollout_percentage BETWEEN 0 AND 100)
+- CHK_feature_flags_is_active (is_active IN (true, false))
+- CHK_feature_flags_flag_value (flag_value IN (true, false))
+end note
+
+note right of environment_configurations
+Indexes:
+- idx_environment_configurations_environment_name (environment_name)
+- idx_environment_configurations_config_key (config_key)
+- idx_environment_configurations_config_type (config_type)
+- idx_environment_configurations_is_active (is_active)
+- idx_environment_configurations_created_at (created_at)
+
+Constraints:
+- UK_environment_configurations_env_config_key (environment_name, config_key)
+- CHK_environment_configurations_config_type (config_type IN ('STRING', 'INTEGER', 'BOOLEAN', 'JSON', 'XML', 'BINARY'))
+- CHK_environment_configurations_environment_name (environment_name IN ('DEVELOPMENT', 'TESTING', 'STAGING', 'PRODUCTION'))
+- CHK_environment_configurations_is_active (is_active IN (true, false))
+- CHK_environment_configurations_is_encrypted (is_encrypted IN (true, false))
+end note
+
+note right of configuration_history
+Indexes:
+- idx_configuration_history_config_type (config_type)
+- idx_configuration_history_config_id (config_id)
+- idx_configuration_history_config_key (config_key)
+- idx_configuration_history_changed_by (changed_by)
+- idx_configuration_history_changed_at (changed_at)
+- idx_configuration_history_created_at (created_at)
+
+Constraints:
+- CHK_configuration_history_config_type (config_type IN ('TENANT', 'SERVICE', 'FEATURE_FLAG', 'ENVIRONMENT', 'SCHEMA', 'TEMPLATE'))
+- CHK_configuration_history_changed_at (changed_at IS NOT NULL)
+end note
+
+note right of configuration_validations
+Indexes:
+- idx_configuration_validations_config_type (config_type)
+- idx_configuration_validations_config_key (config_key)
+- idx_configuration_validations_validation_type (validation_type)
+- idx_configuration_validations_is_active (is_active)
+- idx_configuration_validations_created_at (created_at)
+
+Constraints:
+- UK_configuration_validations_config_type_key (config_type, config_key)
+- CHK_configuration_validations_config_type (config_type IN ('TENANT', 'SERVICE', 'FEATURE_FLAG', 'ENVIRONMENT', 'SCHEMA'))
+- CHK_configuration_validations_validation_type (validation_type IN ('REGEX', 'RANGE', 'ENUM', 'CUSTOM', 'SCHEMA'))
+- CHK_configuration_validations_is_active (is_active IN (true, false))
+end note
+
+note right of configuration_dependencies
+Indexes:
+- idx_configuration_dependencies_parent_config_type (parent_config_type)
+- idx_configuration_dependencies_parent_config_key (parent_config_key)
+- idx_configuration_dependencies_child_config_type (child_config_type)
+- idx_configuration_dependencies_child_config_key (child_config_key)
+- idx_configuration_dependencies_dependency_type (dependency_type)
+- idx_configuration_dependencies_is_active (is_active)
+- idx_configuration_dependencies_created_at (created_at)
+
+Constraints:
+- UK_configuration_dependencies_parent_child (parent_config_type, parent_config_key, child_config_type, child_config_key)
+- CHK_configuration_dependencies_parent_config_type (parent_config_type IN ('TENANT', 'SERVICE', 'FEATURE_FLAG', 'ENVIRONMENT', 'SCHEMA'))
+- CHK_configuration_dependencies_child_config_type (child_config_type IN ('TENANT', 'SERVICE', 'FEATURE_FLAG', 'ENVIRONMENT', 'SCHEMA'))
+- CHK_configuration_dependencies_dependency_type (dependency_type IN ('REQUIRES', 'CONFLICTS_WITH', 'DEPENDS_ON', 'INCLUDES'))
+- CHK_configuration_dependencies_is_active (is_active IN (true, false))
+end note
+
+note right of configuration_schemas
+Indexes:
+- idx_configuration_schemas_schema_name (schema_name)
+- idx_configuration_schemas_schema_version (schema_version)
+- idx_configuration_schemas_schema_type (schema_type)
+- idx_configuration_schemas_is_active (is_active)
+- idx_configuration_schemas_created_at (created_at)
+
+Constraints:
+- UK_configuration_schemas_schema_name (schema_name)
+- CHK_configuration_schemas_schema_type (schema_type IN ('JSON_SCHEMA', 'XML_SCHEMA', 'YAML_SCHEMA', 'CUSTOM'))
+- CHK_configuration_schemas_is_active (is_active IN (true, false))
+- CHK_configuration_schemas_schema_version (schema_version ~ '^[0-9]+\.[0-9]+\.[0-9]+$')
+end note
+
+note right of configuration_deployments
+Indexes:
+- idx_configuration_deployments_deployment_name (deployment_name)
+- idx_configuration_deployments_environment (environment)
+- idx_configuration_deployments_config_type (config_type)
+- idx_configuration_deployments_config_id (config_id)
+- idx_configuration_deployments_deployment_status (deployment_status)
+- idx_configuration_deployments_deployed_by (deployed_by)
+- idx_configuration_deployments_deployed_at (deployed_at)
+- idx_configuration_deployments_created_at (created_at)
+
+Constraints:
+- CHK_configuration_deployments_environment (environment IN ('DEVELOPMENT', 'TESTING', 'STAGING', 'PRODUCTION'))
+- CHK_configuration_deployments_config_type (config_type IN ('TENANT', 'SERVICE', 'FEATURE_FLAG', 'ENVIRONMENT', 'SCHEMA'))
+- CHK_configuration_deployments_deployment_status (deployment_status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'ROLLED_BACK'))
+- CHK_configuration_deployments_deployed_at (deployed_at IS NOT NULL)
+end note
+
+note right of configuration_approvals
+Indexes:
+- idx_configuration_approvals_config_type (config_type)
+- idx_configuration_approvals_config_id (config_id)
+- idx_configuration_approvals_approval_type (approval_type)
+- idx_configuration_approvals_approver_id (approver_id)
+- idx_configuration_approvals_approval_status (approval_status)
+- idx_configuration_approvals_approved_at (approved_at)
+- idx_configuration_approvals_created_at (created_at)
+
+Constraints:
+- CHK_configuration_approvals_config_type (config_type IN ('TENANT', 'SERVICE', 'FEATURE_FLAG', 'ENVIRONMENT', 'SCHEMA'))
+- CHK_configuration_approvals_approval_type (approval_type IN ('DEPLOYMENT', 'CHANGE', 'ROLLBACK', 'EMERGENCY'))
+- CHK_configuration_approvals_approval_status (approval_status IN ('PENDING', 'APPROVED', 'REJECTED', 'EXPIRED'))
+- CHK_configuration_approvals_approved_at (approved_at IS NOT NULL)
+end note
+
+note right of configuration_audit_logs
+Indexes:
+- idx_configuration_audit_logs_config_type (config_type)
+- idx_configuration_audit_logs_config_id (config_id)
+- idx_configuration_audit_logs_action (action)
+- idx_configuration_audit_logs_user_id (user_id)
+- idx_configuration_audit_logs_ip_address (ip_address)
+- idx_configuration_audit_logs_created_at (created_at)
+
+Constraints:
+- CHK_configuration_audit_logs_config_type (config_type IN ('TENANT', 'SERVICE', 'FEATURE_FLAG', 'ENVIRONMENT', 'SCHEMA', 'TEMPLATE'))
+- CHK_configuration_audit_logs_action (action IN ('CREATE', 'READ', 'UPDATE', 'DELETE', 'DEPLOY', 'ROLLBACK', 'APPROVE', 'REJECT'))
+- CHK_configuration_audit_logs_created_at (created_at IS NOT NULL)
+end note
+
+@enduml

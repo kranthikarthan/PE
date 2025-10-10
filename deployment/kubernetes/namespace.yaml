@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: payment-engine
+  labels:
+    name: payment-engine
+    environment: production
+    version: v1.0.0
+  annotations:
+    description: "Payment Engine microservices namespace"
+    owner: "platform-team"
+    contact: "platform-team@company.com"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: payment-engine-quota
+  namespace: payment-engine
+spec:
+  hard:
+    requests.cpu: "10"
+    requests.memory: 20Gi
+    limits.cpu: "20"
+    limits.memory: 40Gi
+    persistentvolumeclaims: "10"
+    pods: "50"
+    services: "20"
+    secrets: "30"
+    configmaps: "30"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: payment-engine-limits
+  namespace: payment-engine
+spec:
+  limits:
+  - default:
+      cpu: "1"
+      memory: "2Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+    max:
+      cpu: "4"
+      memory: "8Gi"
+    min:
+      cpu: "50m"
+      memory: "128Mi"
+    type: Container
+  - default:
+      storage: "10Gi"
+    max:
+      storage: "100Gi"
+    min:
+      storage: "1Gi"
+    type: PersistentVolumeClaim

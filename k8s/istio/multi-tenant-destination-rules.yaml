@@ -1,0 +1,428 @@
+# Multi-Tenant Destination Rules Configuration
+# This configuration provides tenant-aware traffic management and load balancing
+
+---
+# Auth Service Destination Rule with tenant-aware configuration
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: auth-service-multitenant-dr
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: destination-rule
+    service: auth-service
+    version: v1
+spec:
+  host: auth-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 30s
+      http:
+        http1MaxPendingRequests: 10
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+        maxRetries: 3
+        h2UpgradePolicy: UPGRADE
+    circuitBreaker:
+      consecutiveErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    outlierDetection:
+      consecutive5xxErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    loadBalancer:
+      simple: LEAST_CONN
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 50
+        http:
+          http1MaxPendingRequests: 5
+          maxRequestsPerConnection: 2
+
+---
+# Config Service Destination Rule with tenant-aware configuration
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: config-service-multitenant-dr
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: destination-rule
+    service: config-service
+    version: v1
+spec:
+  host: config-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 30s
+      http:
+        http1MaxPendingRequests: 10
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+        maxRetries: 3
+        h2UpgradePolicy: UPGRADE
+    circuitBreaker:
+      consecutiveErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    outlierDetection:
+      consecutive5xxErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    loadBalancer:
+      simple: LEAST_CONN
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 50
+        http:
+          http1MaxPendingRequests: 5
+          maxRequestsPerConnection: 2
+
+---
+# Payment Processing Service Destination Rule with tenant-aware configuration
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: payment-processing-service-multitenant-dr
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: destination-rule
+    service: payment-processing-service
+    version: v1
+spec:
+  host: payment-processing-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 200
+        connectTimeout: 30s
+      http:
+        http1MaxPendingRequests: 20
+        http2MaxRequests: 200
+        maxRequestsPerConnection: 2
+        maxRetries: 3
+        h2UpgradePolicy: UPGRADE
+    circuitBreaker:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    loadBalancer:
+      simple: LEAST_CONN
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 100
+        http:
+          http1MaxPendingRequests: 10
+          maxRequestsPerConnection: 2
+  - name: tenant-001
+    labels:
+      tenant: tenant-001
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 50
+        http:
+          http1MaxPendingRequests: 5
+          maxRequestsPerConnection: 2
+  - name: tenant-002
+    labels:
+      tenant: tenant-002
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 50
+        http:
+          http1MaxPendingRequests: 5
+          maxRequestsPerConnection: 2
+  - name: tenant-003
+    labels:
+      tenant: tenant-003
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 50
+        http:
+          http1MaxPendingRequests: 5
+          maxRequestsPerConnection: 2
+
+---
+# Core Banking Service Destination Rule with tenant-aware configuration
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: core-banking-service-multitenant-dr
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: destination-rule
+    service: core-banking-service
+    version: v1
+spec:
+  host: core-banking-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 150
+        connectTimeout: 30s
+      http:
+        http1MaxPendingRequests: 15
+        http2MaxRequests: 150
+        maxRequestsPerConnection: 2
+        maxRetries: 3
+        h2UpgradePolicy: UPGRADE
+    circuitBreaker:
+      consecutiveErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    outlierDetection:
+      consecutive5xxErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    loadBalancer:
+      simple: LEAST_CONN
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 75
+        http:
+          http1MaxPendingRequests: 8
+          maxRequestsPerConnection: 2
+  - name: tenant-001
+    labels:
+      tenant: tenant-001
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 25
+        http:
+          http1MaxPendingRequests: 3
+          maxRequestsPerConnection: 2
+  - name: tenant-002
+    labels:
+      tenant: tenant-002
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 25
+        http:
+          http1MaxPendingRequests: 3
+          maxRequestsPerConnection: 2
+  - name: tenant-003
+    labels:
+      tenant: tenant-003
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 25
+        http:
+          http1MaxPendingRequests: 3
+          maxRequestsPerConnection: 2
+
+---
+# Frontend Service Destination Rule with tenant-aware configuration
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: frontend-service-multitenant-dr
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: destination-rule
+    service: frontend-service
+    version: v1
+spec:
+  host: frontend-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 300
+        connectTimeout: 30s
+      http:
+        http1MaxPendingRequests: 30
+        http2MaxRequests: 300
+        maxRequestsPerConnection: 2
+        maxRetries: 3
+        h2UpgradePolicy: UPGRADE
+    circuitBreaker:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    loadBalancer:
+      simple: LEAST_CONN
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 150
+        http:
+          http1MaxPendingRequests: 15
+          maxRequestsPerConnection: 2
+  - name: tenant-001
+    labels:
+      tenant: tenant-001
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 50
+        http:
+          http1MaxPendingRequests: 5
+          maxRequestsPerConnection: 2
+  - name: tenant-002
+    labels:
+      tenant: tenant-002
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 50
+        http:
+          http1MaxPendingRequests: 5
+          maxRequestsPerConnection: 2
+  - name: tenant-003
+    labels:
+      tenant: tenant-003
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 50
+        http:
+          http1MaxPendingRequests: 5
+          maxRequestsPerConnection: 2
+
+---
+# API Gateway Service Destination Rule with tenant-aware configuration
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: api-gateway-service-multitenant-dr
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: destination-rule
+    service: api-gateway-service
+    version: v1
+spec:
+  host: api-gateway-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 250
+        connectTimeout: 30s
+      http:
+        http1MaxPendingRequests: 25
+        http2MaxRequests: 250
+        maxRequestsPerConnection: 2
+        maxRetries: 3
+        h2UpgradePolicy: UPGRADE
+    circuitBreaker:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+    loadBalancer:
+      simple: LEAST_CONN
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 125
+        http:
+          http1MaxPendingRequests: 12
+          maxRequestsPerConnection: 2
+  - name: tenant-001
+    labels:
+      tenant: tenant-001
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 42
+        http:
+          http1MaxPendingRequests: 4
+          maxRequestsPerConnection: 2
+  - name: tenant-002
+    labels:
+      tenant: tenant-002
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 42
+        http:
+          http1MaxPendingRequests: 4
+          maxRequestsPerConnection: 2
+  - name: tenant-003
+    labels:
+      tenant: tenant-003
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 42
+        http:
+          http1MaxPendingRequests: 4
+          maxRequestsPerConnection: 2

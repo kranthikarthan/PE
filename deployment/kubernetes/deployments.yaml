@@ -1,0 +1,495 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: payment-engine
+  labels:
+    app: api-gateway
+    component: backend
+    version: v1.0.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        component: backend
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: payment-engine-sa
+      imagePullSecrets:
+        - name: registry-secret
+      containers:
+        - name: api-gateway
+          image: paymentengine.azurecr.io/api-gateway:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "production,multi-tenant"
+            - name: DATABASE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-engine-config
+                  key: DATABASE_HOST
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: payment-engine-secrets
+                  key: DATABASE_PASSWORD
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-engine-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-engine-config
+                  key: REDIS_HOST
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: payment-engine-secrets
+                  key: JWT_SECRET
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/config
+              readOnly: true
+      volumes:
+        - name: config-volume
+          configMap:
+            name: payment-engine-config
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-banking
+  namespace: payment-engine
+  labels:
+    app: core-banking
+    component: backend
+    version: v1.0.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: core-banking
+  template:
+    metadata:
+      labels:
+        app: core-banking
+        component: backend
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: payment-engine-sa
+      imagePullSecrets:
+        - name: registry-secret
+      containers:
+        - name: core-banking
+          image: paymentengine.azurecr.io/core-banking:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+              name: http
+              protocol: TCP
+            - containerPort: 9091
+              name: grpc
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "production,multi-tenant"
+            - name: DATABASE_URL
+              value: "jdbc:postgresql://$(DATABASE_HOST):$(DATABASE_PORT)/$(DATABASE_NAME)"
+            - name: DATABASE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-engine-config
+                  key: DATABASE_HOST
+            - name: DATABASE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-engine-config
+                  key: DATABASE_PORT
+            - name: DATABASE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-engine-config
+                  key: DATABASE_NAME
+            - name: DATABASE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-engine-config
+                  key: DATABASE_USERNAME
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: payment-engine-secrets
+                  key: DATABASE_PASSWORD
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-engine-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-engine-config
+                  key: REDIS_HOST
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: payment-engine-secrets
+                  key: JWT_SECRET
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 90
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/config
+              readOnly: true
+      volumes:
+        - name: config-volume
+          configMap:
+            name: payment-engine-config
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-processing
+  namespace: payment-engine
+  labels:
+    app: payment-processing
+    component: backend
+    version: v1.0.0
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: payment-processing
+  template:
+    metadata:
+      labels:
+        app: payment-processing
+        component: backend
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: payment-engine-sa
+      imagePullSecrets:
+        - name: registry-secret
+      containers:
+        - name: payment-processing
+          image: paymentengine.azurecr.io/payment-processing:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+              name: http
+              protocol: TCP
+            - containerPort: 9092
+              name: grpc
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "production,multi-tenant"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-engine-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-engine-config
+                  key: REDIS_HOST
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: payment-engine-secrets
+                  key: JWT_SECRET
+            - name: CORE_BANKING_SERVICE_URL
+              value: "http://core-banking-service:8081"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: payment-engine
+  labels:
+    app: frontend
+    component: frontend
+    version: v1.0.0
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        component: frontend
+        version: v1.0.0
+    spec:
+      imagePullSecrets:
+        - name: registry-secret
+      containers:
+        - name: frontend
+          image: paymentengine.azurecr.io/frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          env:
+            - name: REACT_APP_API_BASE_URL
+              value: "/api"
+            - name: REACT_APP_ENVIRONMENT
+              value: "production"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: payment-engine
+  labels:
+    app: prometheus
+    component: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        component: monitoring
+    spec:
+      serviceAccountName: prometheus-sa
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.45.0
+          args:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus/'
+            - '--web.console.libraries=/etc/prometheus/console_libraries'
+            - '--web.console.templates=/etc/prometheus/consoles'
+            - '--storage.tsdb.retention.time=15d'
+            - '--web.enable-lifecycle'
+            - '--web.enable-admin-api'
+          ports:
+            - containerPort: 9090
+              name: web
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
+              readOnly: true
+            - name: prometheus-storage
+              mountPath: /prometheus/
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        - name: prometheus-storage
+          emptyDir: {}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: payment-engine
+  labels:
+    app: grafana
+    component: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+        component: monitoring
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:10.0.0
+          ports:
+            - containerPort: 3000
+              name: web
+          env:
+            - name: GRAFANA_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secrets
+                  key: GRAFANA_ADMIN_PASSWORD
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "200m"
+          volumeMounts:
+            - name: grafana-config
+              mountPath: /etc/grafana/grafana.ini
+              subPath: grafana.ini
+              readOnly: true
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
+      volumes:
+        - name: grafana-config
+          configMap:
+            name: grafana-config
+        - name: grafana-storage
+          emptyDir: {}

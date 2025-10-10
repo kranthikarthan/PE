@@ -1,0 +1,210 @@
+# EnvoyFilter for Advanced Downstream Routing
+# This configuration uses EnvoyFilter to implement sophisticated routing
+# based on request content, headers, and tenant context
+
+---
+# EnvoyFilter for Tenant-Aware Downstream Routing
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: tenant-downstream-routing
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: envoy-filter
+    routing-type: downstream
+    version: v1
+spec:
+  configPatches:
+  # HTTP Connection Manager Filter
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_OUTBOUND
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.lua
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+          inline_code: |
+            function envoy_on_request(request_handle)
+              -- Get tenant ID from headers
+              local tenant_id = request_handle:headers():get("x-tenant-id")
+              local service_type = request_handle:headers():get("x-service-type")
+              local host = request_handle:headers():get(":authority")
+              
+              -- Log the request for debugging
+              request_handle:logInfo("Downstream routing - Tenant: " .. (tenant_id or "unknown") .. 
+                                   ", Service: " .. (service_type or "unknown") .. 
+                                   ", Host: " .. (host or "unknown"))
+              
+              -- Route based on tenant and service type
+              if tenant_id and service_type then
+                if service_type == "fraud" then
+                  -- Route to fraud system
+                  request_handle:headers():add("x-route-destination", "fraud-system")
+                  request_handle:headers():add("x-route-context", tenant_id .. "-fraud")
+                elseif service_type == "clearing" then
+                  -- Route to clearing system
+                  request_handle:headers():add("x-route-destination", "clearing-system")
+                  request_handle:headers():add("x-route-context", tenant_id .. "-clearing")
+                else
+                  -- Default routing
+                  request_handle:headers():add("x-route-destination", "default")
+                  request_handle:headers():add("x-route-context", tenant_id .. "-default")
+                end
+              end
+              
+              -- Add tenant-specific headers for downstream services
+              if tenant_id then
+                request_handle:headers():add("x-downstream-tenant", tenant_id)
+                request_handle:headers():add("x-request-id", tenant_id .. "-" .. os.time())
+              end
+            end
+
+---
+# EnvoyFilter for Request Body-Based Routing
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: request-body-routing
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: envoy-filter
+    routing-type: request-body
+    version: v1
+spec:
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_OUTBOUND
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.lua
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+          inline_code: |
+            function envoy_on_request(request_handle)
+              -- Get request body
+              local body = request_handle:body()
+              if body then
+                local body_str = body:getBytes(0, body:length())
+                
+                -- Parse JSON to determine routing
+                local json = require("cjson")
+                local success, data = pcall(json.decode, body_str)
+                
+                if success and data then
+                  -- Check for fraud-related fields
+                  if data.fraud_check or data.risk_assessment or data.suspicious_activity then
+                    request_handle:headers():add("x-service-type", "fraud")
+                    request_handle:headers():add("x-route-destination", "fraud-system")
+                  -- Check for clearing-related fields
+                  elseif data.clearing_reference or data.settlement or data.payment_instruction then
+                    request_handle:headers():add("x-service-type", "clearing")
+                    request_handle:headers():add("x-route-destination", "clearing-system")
+                  end
+                  
+                  -- Extract tenant ID from request body if not in headers
+                  if data.tenant_id and not request_handle:headers():get("x-tenant-id") then
+                    request_handle:headers():add("x-tenant-id", data.tenant_id)
+                  end
+                end
+              end
+            end
+
+---
+# EnvoyFilter for URL Path-Based Routing
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: url-path-routing
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: envoy-filter
+    routing-type: url-path
+    version: v1
+spec:
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_OUTBOUND
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.lua
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+          inline_code: |
+            function envoy_on_request(request_handle)
+              -- Get URL path
+              local path = request_handle:headers():get(":path")
+              
+              if path then
+                -- Route based on URL path patterns
+                if string.match(path, "/fraud/") or string.match(path, "/risk/") or string.match(path, "/suspicious/") then
+                  request_handle:headers():add("x-service-type", "fraud")
+                  request_handle:headers():add("x-route-destination", "fraud-system")
+                elseif string.match(path, "/clearing/") or string.match(path, "/settlement/") or string.match(path, "/payment/") then
+                  request_handle:headers():add("x-service-type", "clearing")
+                  request_handle:headers():add("x-route-destination", "clearing-system")
+                end
+              end
+            end
+
+---
+# EnvoyFilter for Response Handling
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: downstream-response-handling
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: envoy-filter
+    routing-type: response-handling
+    version: v1
+spec:
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_OUTBOUND
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.lua
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+          inline_code: |
+            function envoy_on_response(response_handle)
+              -- Add tenant context to response headers
+              local tenant_id = response_handle:headers():get("x-downstream-tenant")
+              if tenant_id then
+                response_handle:headers():add("x-response-tenant", tenant_id)
+                response_handle:headers():add("x-response-time", os.date("!%Y-%m-%dT%H:%M:%SZ"))
+              end
+              
+              -- Log response for monitoring
+              local status = response_handle:headers():get(":status")
+              response_handle:logInfo("Downstream response - Tenant: " .. (tenant_id or "unknown") .. 
+                                    ", Status: " .. (status or "unknown"))
+            end

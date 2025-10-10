@@ -1,0 +1,86 @@
+# Elasticsearch configuration for Payment Engine
+
+cluster.name: "payment-engine-cluster"
+node.name: "payment-engine-node-1"
+
+# Network settings
+network.host: 0.0.0.0
+http.port: 9200
+transport.port: 9300
+
+# Discovery settings
+discovery.type: single-node
+
+# Memory settings
+bootstrap.memory_lock: false
+
+# Security settings
+xpack.security.enabled: false
+xpack.security.enrollment.enabled: false
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false
+
+# Monitoring settings
+xpack.monitoring.collection.enabled: true
+
+# Index settings
+action.auto_create_index: true
+action.destructive_requires_name: true
+
+# Logging
+logger.level: INFO
+logger.org.elasticsearch.discovery: WARN
+
+# Index templates for Payment Engine logs
+index.template.payment-engine-logs:
+  index_patterns: ["payment-engine-logs-*"]
+  settings:
+    number_of_shards: 1
+    number_of_replicas: 0
+    index.refresh_interval: "5s"
+    index.max_result_window: 50000
+  mappings:
+    properties:
+      timestamp:
+        type: date
+        format: "yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX||yyyy-MM-dd'T'HH:mm:ss.SSSXXX||epoch_millis"
+      level:
+        type: keyword
+      logger:
+        type: keyword
+      message:
+        type: text
+        analyzer: standard
+      service:
+        type: keyword
+      correlationId:
+        type: keyword
+      userId:
+        type: keyword
+      transactionId:
+        type: keyword
+      accountId:
+        type: keyword
+      amount:
+        type: double
+      currency:
+        type: keyword
+      paymentType:
+        type: keyword
+      status:
+        type: keyword
+      errorCode:
+        type: keyword
+      processingTime:
+        type: long
+      clientIp:
+        type: ip
+      userAgent:
+        type: text
+      stackTrace:
+        type: text
+        index: false
+
+# Index lifecycle management
+index.lifecycle.name: "payment-engine-policy"
+index.lifecycle.rollover_alias: "payment-engine-logs"

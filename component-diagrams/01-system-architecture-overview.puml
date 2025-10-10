@@ -1,0 +1,222 @@
+@startuml SYSTEM_ARCHITECTURE_OVERVIEW
+!theme plain
+title ISO 20022 Payment Engine - System Architecture Overview
+
+!define RECTANGLE class
+
+package "Client Layer" {
+    [Web Client] as WC
+    [Mobile App] as MA
+    [Third Party Systems] as TPS
+    [Clearing Systems] as CS
+}
+
+package "API Gateway Layer" {
+    [Spring Cloud Gateway] as SCG
+    [Rate Limiter] as RL
+    [Circuit Breaker] as CB
+    [OAuth2/JWT] as OAuth
+    [Request Router] as RR
+}
+
+package "Application Services Layer" {
+    package "Core Services" {
+        [Payment Processing Service] as MS
+        [Core Banking Service] as CBS
+        [Notification Service] as NS
+    }
+    
+    package "ISO 20022 Services" {
+        [Message Flow Service] as MFS
+        [Transformation Service] as TS
+        [Validation Service] as VS
+        [Routing Service] as RS
+    }
+    
+    package "Fraud & Risk Services" {
+        [Fraud Risk Monitoring Service] as FRMS
+        [Fraud API Toggle Service] as FATS
+        [External Fraud API Service] as EFAS
+    }
+    
+    package "Configuration Services" {
+        [Scheme Config Service] as SCS
+        [Clearing System Config] as CSC
+        [Tenant Config Service] as TCS
+    }
+}
+
+package "Infrastructure Layer" {
+    package "Message Queue" {
+        [Apache Kafka] as K
+        [Dead Letter Queue] as DLQ
+        [Event Streaming] as ES
+    }
+    
+    package "Caching" {
+        [Redis Cluster] as RC
+        [Cache Manager] as CM
+    }
+    
+    package "Database" {
+        [PostgreSQL Primary] as PGP
+        [PostgreSQL Replica 1] as PGR1
+        [PostgreSQL Replica 2] as PGR2
+    }
+}
+
+package "Monitoring & Observability" {
+    [Spring Boot Actuator] as SBA
+    [Micrometer] as M
+    [Custom Metrics] as CM
+    [Structured Logging] as SL
+    [Custom Dashboards] as CD
+}
+
+package "Security & Compliance" {
+    [OAuth2 Server] as OAuth2S
+    [Audit Service] as AS
+    [Encryption Service] as ES
+    [Digital Signature Service] as DSS
+}
+
+' Client connections
+WC --> SCG : HTTPS/REST
+MA --> SCG : HTTPS/REST
+TPS --> SCG : HTTPS/REST
+CS --> SCG : HTTPS/REST
+
+' API Gateway internal connections
+SCG --> RL : Rate Limiting
+SCG --> CB : Circuit Breaking
+SCG --> OAuth : Authentication
+SCG --> RR : Request Routing
+
+' API Gateway to Services
+SCG --> MS : Load Balanced
+SCG --> CBS : Load Balanced
+SCG --> NS : Load Balanced
+
+' Payment Processing Service connections
+MS --> MFS : Message Processing
+MS --> TS : Message Transformation
+MS --> VS : Message Validation
+MS --> RS : Message Routing
+MS --> SCS : Scheme Configuration
+MS --> CSC : Clearing System Config
+MS --> TCS : Tenant Configuration
+MS --> FRMS : Fraud Risk Assessment
+MS --> FATS : Fraud API Toggle Check
+
+' Infrastructure connections
+MS --> K : Message Production
+MS --> RC : Cache Operations
+MS --> PGP : Data Persistence
+CBS --> PGP : Data Persistence
+NS --> K : Message Consumption
+
+' Database replication
+PGP --> PGR1 : Replication
+PGP --> PGR2 : Replication
+
+' Kafka connections
+K --> DLQ : Failed Messages
+K --> ES : Event Streaming
+NS --> K : Message Consumption
+
+' Redis connections
+RC --> CM : Cache Management
+
+' Monitoring connections
+MS --> SBA : Metrics Export
+CBS --> SBA : Metrics Export
+NS --> SBA : Metrics Export
+SCG --> SBA : Metrics Export
+
+SBA --> M : Metrics Query
+MS --> SL : Log Data
+CBS --> SL : Log Data
+NS --> SL : Log Data
+SCG --> SL : Log Data
+
+M --> CD : Dashboard Data
+SL --> CD : Dashboard Data
+
+' Security connections
+SCG --> OAuth2S : Token Validation
+MS --> AS : Audit Logging
+MS --> ES : Message Encryption
+MS --> DSS : Digital Signatures
+
+' Fraud Service connections
+FRMS --> FATS : Toggle Status Check
+FRMS --> EFAS : Bank's Fraud API Call
+EFAS --> CS : Bank's Fraud Engine
+
+' External system connections
+MS --> CS : ISO 20022 Messages
+CBS --> CS : Account Operations
+
+note right of SCG
+API Gateway Features:
+- Rate Limiting (100 req/sec)
+- Circuit Breaker Protection
+- OAuth2/JWT Authentication
+- Request/Response Transformation
+- Load Balancing
+- Health Checks
+end note
+
+note right of MS
+Payment Processing Service Features:
+- ISO 20022 Message Processing
+- Message Transformation
+- Business Logic Orchestration
+- External System Integration
+- Configuration Management
+- Audit Logging
+- Fraud Risk Assessment
+- Dynamic Fraud API Control
+end note
+
+note right of K
+Kafka Features:
+- Message Queuing
+- Event Streaming
+- Dead Letter Queues
+- Topic Management
+- Consumer Groups
+- Replication & Durability
+end note
+
+note right of RC
+Redis Features:
+- Caching Layer
+- Session Storage
+- Rate Limiting
+- Pub/Sub Messaging
+- High Availability
+- Performance Optimization
+end note
+
+note right of FRMS
+Fraud Risk Monitoring Features:
+- Real-time Risk Assessment
+- Bank's Fraud Engine Integration
+- Multi-level Configuration
+- Dynamic API Toggle Control
+- Risk Decision Management
+- Audit Trail & Compliance
+end note
+
+note right of P
+Monitoring Features:
+- Metrics Collection
+- Performance Monitoring
+- Health Checks
+- Alerting
+- Dashboards
+- SLA Monitoring
+end note
+
+@enduml

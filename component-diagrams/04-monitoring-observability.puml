@@ -1,0 +1,182 @@
+@startuml MONITORING_OBSERVABILITY
+!theme plain
+title Monitoring & Observability Architecture
+
+package "Application Layer" {
+    [Micrometer Metrics] as MM
+    [Brave Tracing] as BT
+    [Structured Logging] as SL
+    [Health Indicators] as HI
+}
+
+package "Metrics Collection" {
+    [Prometheus Server] as PS
+    [Metrics Scraper] as MS
+    [Metrics Storage] as MST
+    [Metrics Aggregator] as MA
+}
+
+package "Distributed Tracing" {
+    [Jaeger Collector] as JC
+    [Jaeger Query] as JQ
+    [Jaeger Storage] as JS
+    [Trace Analyzer] as TA
+}
+
+package "Log Management" {
+    [Elasticsearch] as ES
+    [Logstash] as LS
+    [Kibana] as K
+    [Log Parser] as LP
+}
+
+package "Alerting & Notification" {
+    [Alert Manager] as AM
+    [Notification Service] as NS
+    [Alert Rules Engine] as ARE
+    [Escalation Manager] as EM
+}
+
+package "Dashboards & Visualization" {
+    [Grafana] as G
+    [Grafana Dashboards] as GD
+    [Custom Dashboards] as CD
+    [Business Metrics] as BM
+    [Performance Metrics] as PM
+}
+
+package "Health Monitoring" {
+    [Health Check Service] as HCS
+    [Service Discovery] as SD
+    [Circuit Breaker Monitor] as CBM
+    [Dependency Monitor] as DM
+}
+
+' Application layer connections
+MM --> PS : Export Metrics
+BT --> JC : Send Traces
+SL --> LS : Send Logs
+HI --> HCS : Health Status
+
+' Metrics collection flow
+PS --> MS : Scrape Metrics
+MS --> MST : Store Metrics
+MST --> MA : Aggregate Metrics
+MA --> G : Query Metrics
+
+' Distributed tracing flow
+JC --> JS : Store Traces
+JS --> JQ : Query Traces
+JQ --> TA : Analyze Traces
+TA --> G : Display Traces
+
+' Log management flow
+LS --> LP : Parse Logs
+LP --> ES : Index Logs
+ES --> K : Query Logs
+K --> G : Display Logs
+
+' Alerting flow
+PS --> ARE : Evaluate Rules
+ARE --> AM : Trigger Alerts
+AM --> NS : Send Notifications
+NS --> EM : Escalate Alerts
+
+' Dashboard connections
+G --> CD : Custom Dashboards
+G --> BM : Business Metrics
+G --> PM : Performance Metrics
+
+' Health monitoring connections
+HCS --> SD : Service Discovery
+HCS --> CBM : Circuit Breaker Status
+HCS --> DM : Dependency Status
+HCS --> G : Health Dashboard
+
+' Cross-component connections
+MM --> AM : Metrics Alerts
+BT --> AM : Trace Alerts
+SL --> AM : Log Alerts
+HI --> AM : Health Alerts
+
+note right of MM
+Micrometer Metrics:
+- Application metrics
+- Business metrics
+- Custom metrics
+- Performance metrics
+- Error metrics
+- Throughput metrics
+end note
+
+note right of BT
+Brave Tracing:
+- Distributed tracing
+- Span creation
+- Context propagation
+- Trace correlation
+- Performance analysis
+- Error tracking
+end note
+
+note right of PS
+Prometheus Server:
+- Metrics collection
+- Time series storage
+- Query language
+- Alerting rules
+- Service discovery
+- High availability
+end note
+
+note right of JC
+Jaeger Collector:
+- Trace collection
+- Span processing
+- Trace storage
+- Query interface
+- Performance analysis
+- Dependency mapping
+end note
+
+note right of ES
+Elasticsearch:
+- Log indexing
+- Full-text search
+- Aggregation
+- Real-time analysis
+- Scalability
+- High availability
+end note
+
+note right of AM
+Alert Manager:
+- Alert evaluation
+- Alert routing
+- Alert grouping
+- Alert silencing
+- Escalation policies
+- Notification channels
+end note
+
+note right of G
+Grafana:
+- Dashboard creation
+- Metrics visualization
+- Alert management
+- User management
+- Plugin support
+- Multi-data source
+end note
+
+note right of HCS
+Health Check Service:
+- Service health monitoring
+- Dependency health
+- Circuit breaker status
+- Performance monitoring
+- SLA monitoring
+- Automated recovery
+end note
+
+@enduml

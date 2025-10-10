@@ -1,0 +1,549 @@
+# Azure DevOps CI/CD Pipeline for Payment Engine
+# Supports multi-stage deployment with automated testing and security scanning
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+      - release/*
+  paths:
+    exclude:
+      - docs/*
+      - README.md
+      - .gitignore
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    exclude:
+      - docs/*
+      - README.md
+
+variables:
+  # Container Registry
+  containerRegistry: 'paymentengine.azurecr.io'
+  containerRegistryConnection: 'PaymentEngineACR'
+  
+  # Kubernetes
+  kubernetesConnection: 'PaymentEngineAKS'
+  kubernetesNamespace: 'payment-engine'
+  
+  # Application
+  appName: 'payment-engine'
+  buildConfiguration: 'Release'
+  
+  # Versioning
+  majorVersion: 1
+  minorVersion: 0
+  patchVersion: $[counter(variables['Build.SourceBranchName'], 0)]
+  buildVersion: '$(majorVersion).$(minorVersion).$(patchVersion)'
+  
+  # Security
+  trivyVersion: '0.45.0'
+  sonarQubeConnection: 'SonarQube'
+
+stages:
+  # ============================================================================
+  # BUILD STAGE
+  # ============================================================================
+  - stage: Build
+    displayName: 'Build and Test'
+    jobs:
+      - job: BuildBackend
+        displayName: 'Build Backend Services'
+        pool:
+          vmImage: 'ubuntu-latest'
+        variables:
+          MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
+          MAVEN_OPTS: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
+        steps:
+          - checkout: self
+            displayName: 'Checkout source code'
+            
+          - task: Cache@2
+            displayName: 'Cache Maven dependencies'
+            inputs:
+              key: 'maven | "$(Agent.OS)" | services/**/pom.xml'
+              restoreKeys: |
+                maven | "$(Agent.OS)"
+                maven
+              path: $(MAVEN_CACHE_FOLDER)
+              
+          - task: JavaToolInstaller@0
+            displayName: 'Install Java 17'
+            inputs:
+              versionSpec: '17'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+              
+          - task: Maven@3
+            displayName: 'Build Shared Components'
+            inputs:
+              mavenPomFile: 'services/shared/pom.xml'
+              goals: 'clean compile install'
+              options: '-DskipTests=true'
+              javaHomeOption: 'JDKVersion'
+              
+          - task: Maven@3
+            displayName: 'Build Core Banking Service'
+            inputs:
+              mavenPomFile: 'services/core-banking/pom.xml'
+              goals: 'clean compile package'
+              options: '-DskipTests=false'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              codeCoverageToolOption: 'JaCoCo'
+              javaHomeOption: 'JDKVersion'
+              
+          - task: SonarQubePrepare@4
+            displayName: 'Prepare SonarQube Analysis'
+            inputs:
+              SonarQube: $(sonarQubeConnection)
+              scannerMode: 'Other'
+              extraProperties: |
+                sonar.projectKey=payment-engine-backend
+                sonar.projectName=Payment Engine Backend
+                sonar.projectVersion=$(buildVersion)
+                sonar.sources=services/*/src/main/java
+                sonar.tests=services/*/src/test/java
+                sonar.java.binaries=services/*/target/classes
+                sonar.coverage.jacoco.xmlReportPaths=services/*/target/site/jacoco/jacoco.xml
+                
+          - task: Maven@3
+            displayName: 'Run SonarQube Analysis'
+            inputs:
+              mavenPomFile: 'services/core-banking/pom.xml'
+              goals: 'sonar:sonar'
+              javaHomeOption: 'JDKVersion'
+              
+          - task: SonarQubePublish@4
+            displayName: 'Publish SonarQube Results'
+            inputs:
+              pollingTimeoutSec: '300'
+              
+          - task: Docker@2
+            displayName: 'Build Core Banking Docker Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              repository: 'core-banking'
+              command: 'build'
+              Dockerfile: 'services/core-banking/Dockerfile'
+              buildContext: 'services'
+              tags: |
+                $(buildVersion)
+                latest
+                
+          - task: Docker@2
+            displayName: 'Push Core Banking Docker Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              repository: 'core-banking'
+              command: 'push'
+              tags: |
+                $(buildVersion)
+                latest
+                
+          - task: PublishTestResults@2
+            displayName: 'Publish Test Results'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              
+          - task: PublishCodeCoverageResults@1
+            displayName: 'Publish Code Coverage'
+            inputs:
+              codeCoverageTool: 'JaCoCo'
+              summaryFileLocation: '**/target/site/jacoco/jacoco.xml'
+              reportDirectory: '**/target/site/jacoco'
+
+      - job: BuildFrontend
+        displayName: 'Build Frontend Application'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+            displayName: 'Checkout source code'
+            
+          - task: NodeTool@0
+            displayName: 'Install Node.js 18'
+            inputs:
+              versionSpec: '18.x'
+              
+          - task: Cache@2
+            displayName: 'Cache npm dependencies'
+            inputs:
+              key: 'npm | "$(Agent.OS)" | frontend/package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: ~/.npm
+              
+          - script: |
+              cd frontend
+              npm ci
+            displayName: 'Install dependencies'
+            
+          - script: |
+              cd frontend
+              npm run lint
+            displayName: 'Run ESLint'
+            
+          - script: |
+              cd frontend
+              npm run type-check
+            displayName: 'TypeScript type checking'
+            
+          - script: |
+              cd frontend
+              npm test -- --coverage --watchAll=false
+            displayName: 'Run tests with coverage'
+            
+          - task: PublishTestResults@2
+            displayName: 'Publish Test Results'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: 'frontend/junit.xml'
+              
+          - task: PublishCodeCoverageResults@1
+            displayName: 'Publish Code Coverage'
+            inputs:
+              codeCoverageTool: 'Cobertura'
+              summaryFileLocation: 'frontend/coverage/cobertura-coverage.xml'
+              reportDirectory: 'frontend/coverage/lcov-report'
+              
+          - script: |
+              cd frontend
+              npm run build
+            displayName: 'Build React application'
+            env:
+              REACT_APP_VERSION: $(buildVersion)
+              
+          - task: Docker@2
+            displayName: 'Build Frontend Docker Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              repository: 'frontend'
+              command: 'build'
+              Dockerfile: 'frontend/Dockerfile'
+              buildContext: 'frontend'
+              tags: |
+                $(buildVersion)
+                latest
+                
+          - task: Docker@2
+            displayName: 'Push Frontend Docker Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              repository: 'frontend'
+              command: 'push'
+              tags: |
+                $(buildVersion)
+                latest
+
+  # ============================================================================
+  # SECURITY SCANNING STAGE
+  # ============================================================================
+  - stage: SecurityScan
+    displayName: 'Security Scanning'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - job: ContainerScan
+        displayName: 'Container Security Scan'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: Docker@2
+            displayName: 'Pull Core Banking Image'
+            inputs:
+              containerRegistry: $(containerRegistryConnection)
+              command: 'pull'
+              arguments: '$(containerRegistry)/core-banking:$(buildVersion)'
+              
+          - script: |
+              wget https://github.com/aquasecurity/trivy/releases/download/v$(trivyVersion)/trivy_$(trivyVersion)_Linux-64bit.tar.gz
+              tar zxvf trivy_$(trivyVersion)_Linux-64bit.tar.gz
+              sudo mv trivy /usr/local/bin/
+            displayName: 'Install Trivy'
+            
+          - script: |
+              trivy image --format sarif --output trivy-results.sarif $(containerRegistry)/core-banking:$(buildVersion)
+            displayName: 'Scan Core Banking Image'
+            
+          - script: |
+              trivy image --format sarif --output trivy-frontend-results.sarif $(containerRegistry)/frontend:$(buildVersion)
+            displayName: 'Scan Frontend Image'
+            
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Trivy Results'
+            inputs:
+              pathToPublish: '*.sarif'
+              artifactName: 'trivy-results'
+
+      - job: DependencyScan
+        displayName: 'Dependency Security Scan'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+            displayName: 'Checkout source code'
+            
+          - task: JavaToolInstaller@0
+            displayName: 'Install Java 17'
+            inputs:
+              versionSpec: '17'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+              
+          - task: Maven@3
+            displayName: 'OWASP Dependency Check'
+            inputs:
+              mavenPomFile: 'services/core-banking/pom.xml'
+              goals: 'org.owasp:dependency-check-maven:check'
+              options: '-DfailBuildOnCVSS=7'
+              
+          - task: NodeTool@0
+            displayName: 'Install Node.js 18'
+            inputs:
+              versionSpec: '18.x'
+              
+          - script: |
+              cd frontend
+              npm audit --audit-level moderate
+            displayName: 'NPM Audit'
+            continueOnError: true
+
+  # ============================================================================
+  # DEPLOY TO DEVELOPMENT
+  # ============================================================================
+  - stage: DeployDev
+    displayName: 'Deploy to Development'
+    dependsOn: 
+      - Build
+      - SecurityScan
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+    variables:
+      environment: 'development'
+      kubernetesNamespace: 'payment-engine-dev'
+    jobs:
+      - deployment: DeployToDev
+        displayName: 'Deploy to Development Environment'
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: 'payment-engine-dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                  displayName: 'Checkout source code'
+                  
+                - task: KubernetesManifest@0
+                  displayName: 'Create Development Namespace'
+                  inputs:
+                    action: 'deploy'
+                    kubernetesServiceConnection: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    manifests: |
+                      deployment/kubernetes/namespace.yaml
+                      
+                - task: KubernetesManifest@0
+                  displayName: 'Deploy ConfigMaps and Secrets'
+                  inputs:
+                    action: 'deploy'
+                    kubernetesServiceConnection: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    manifests: |
+                      deployment/kubernetes/configmaps.yaml
+                      deployment/kubernetes/secrets.yaml
+                      
+                - task: KubernetesManifest@0
+                  displayName: 'Deploy Services'
+                  inputs:
+                    action: 'deploy'
+                    kubernetesServiceConnection: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    manifests: |
+                      deployment/kubernetes/services.yaml
+                      
+                - task: KubernetesManifest@0
+                  displayName: 'Deploy StatefulSets'
+                  inputs:
+                    action: 'deploy'
+                    kubernetesServiceConnection: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    manifests: |
+                      deployment/kubernetes/statefulsets.yaml
+                      
+                - task: KubernetesManifest@0
+                  displayName: 'Deploy Applications'
+                  inputs:
+                    action: 'deploy'
+                    kubernetesServiceConnection: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    manifests: |
+                      deployment/kubernetes/deployments.yaml
+                    containers: |
+                      $(containerRegistry)/core-banking:$(buildVersion)
+                      $(containerRegistry)/frontend:$(buildVersion)
+                      
+                - task: Kubernetes@1
+                  displayName: 'Wait for Deployment Rollout'
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceEndpoint: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    command: 'rollout'
+                    arguments: 'status deployment/core-banking --timeout=600s'
+
+  # ============================================================================
+  # INTEGRATION TESTS
+  # ============================================================================
+  - stage: IntegrationTests
+    displayName: 'Integration Tests'
+    dependsOn: DeployDev
+    condition: succeeded()
+    jobs:
+      - job: APITests
+        displayName: 'API Integration Tests'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+            displayName: 'Checkout source code'
+            
+          - task: JavaToolInstaller@0
+            displayName: 'Install Java 17'
+            inputs:
+              versionSpec: '17'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+              
+          - task: Maven@3
+            displayName: 'Run Integration Tests'
+            inputs:
+              mavenPomFile: 'services/core-banking/pom.xml'
+              goals: 'test'
+              options: '-Dtest=**/*IntegrationTest -Dspring.profiles.active=integration'
+              
+          - task: PublishTestResults@2
+            displayName: 'Publish Integration Test Results'
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/failsafe-reports/TEST-*.xml'
+
+      - job: LoadTests
+        displayName: 'Performance Load Tests'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - script: |
+              # Install k6
+              sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+              echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+              sudo apt-get update
+              sudo apt-get install k6
+            displayName: 'Install k6'
+            
+          - script: |
+              k6 run --out json=load-test-results.json tests/load/payment-api-load-test.js
+            displayName: 'Run Load Tests'
+            continueOnError: true
+            
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Load Test Results'
+            inputs:
+              pathToPublish: 'load-test-results.json'
+              artifactName: 'load-test-results'
+
+  # ============================================================================
+  # DEPLOY TO STAGING
+  # ============================================================================
+  - stage: DeployStaging
+    displayName: 'Deploy to Staging'
+    dependsOn: IntegrationTests
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    variables:
+      environment: 'staging'
+      kubernetesNamespace: 'payment-engine-staging'
+    jobs:
+      - deployment: DeployToStaging
+        displayName: 'Deploy to Staging Environment'
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: 'payment-engine-staging'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                  displayName: 'Checkout source code'
+                  
+                - task: KubernetesManifest@0
+                  displayName: 'Deploy to Staging'
+                  inputs:
+                    action: 'deploy'
+                    kubernetesServiceConnection: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    manifests: |
+                      deployment/kubernetes/*.yaml
+                    containers: |
+                      $(containerRegistry)/core-banking:$(buildVersion)
+                      $(containerRegistry)/frontend:$(buildVersion)
+
+  # ============================================================================
+  # DEPLOY TO PRODUCTION
+  # ============================================================================
+  - stage: DeployProduction
+    displayName: 'Deploy to Production'
+    dependsOn: DeployStaging
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    variables:
+      environment: 'production'
+      kubernetesNamespace: 'payment-engine'
+    jobs:
+      - deployment: DeployToProduction
+        displayName: 'Deploy to Production Environment'
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: 'payment-engine-production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                  displayName: 'Checkout source code'
+                  
+                - task: KubernetesManifest@0
+                  displayName: 'Deploy to Production'
+                  inputs:
+                    action: 'deploy'
+                    kubernetesServiceConnection: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    manifests: |
+                      deployment/kubernetes/*.yaml
+                    containers: |
+                      $(containerRegistry)/core-banking:$(buildVersion)
+                      $(containerRegistry)/frontend:$(buildVersion)
+                      
+                - task: Kubernetes@1
+                  displayName: 'Verify Production Deployment'
+                  inputs:
+                    connectionType: 'Kubernetes Service Connection'
+                    kubernetesServiceEndpoint: $(kubernetesConnection)
+                    namespace: $(kubernetesNamespace)
+                    command: 'get'
+                    arguments: 'pods -l app=core-banking'
+                    
+                - script: |
+                    echo "Deployment completed successfully!"
+                    echo "Version: $(buildVersion)"
+                    echo "Environment: Production"
+                    echo "Namespace: $(kubernetesNamespace)"
+                  displayName: 'Deployment Summary'

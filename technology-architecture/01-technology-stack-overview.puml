@@ -1,0 +1,261 @@
+@startuml TECHNOLOGY_STACK_OVERVIEW
+!theme plain
+title ISO 20022 Payment Engine - Technology Stack Overview
+
+package "Frontend Layer" {
+    [React 18] as React
+    [TypeScript] as TS
+    [Material-UI (MUI)] as MUI
+    [Redux Toolkit] as RTK
+    [React Query] as RQ
+    [Axios] as Axios
+    [React Router] as Router
+    [Formik] as Formik
+    [Yup] as Yup
+}
+
+package "API Gateway Layer" {
+    [Spring Cloud Gateway] as SCG
+    [Spring Security] as SS
+    [Spring Cloud LoadBalancer] as SCLB
+    [Resilience4j] as R4j
+    [Redis Rate Limiter] as RRL
+    [OAuth2 Resource Server] as OAuth2
+}
+
+package "Backend Services Layer" {
+    [Spring Boot 3.x] as SB
+    [Spring Web] as SW
+    [Spring Data JPA] as SDJ
+    [Spring Security] as SS2
+    [Spring Cloud OpenFeign] as SCOF
+    [Spring Cloud Sleuth] as SCS
+    [Micrometer] as Micrometer
+    [Spring Kafka] as SK
+    [Spring Cache] as SC
+}
+
+package "Message Processing Layer" {
+    [Apache Kafka] as Kafka
+    [Kafka Streams] as KS
+    [Kafka Connect] as KC
+    [Schema Registry] as SR
+    [Dead Letter Queues] as DLQ
+    [Kafka UI] as KUI
+}
+
+package "Data Layer" {
+    [PostgreSQL 15] as PG
+    [Redis 7] as Redis
+    [Flyway] as Flyway
+    [HikariCP] as HCP
+    [JPA/Hibernate] as JPA
+}
+
+package "Security Layer" {
+    [OAuth2 Authorization Server] as OAuth2AS
+    [JWT Tokens] as JWT
+    [AES-GCM Encryption] as AES
+    [RSA Digital Signatures] as RSA
+    [Spring Security] as SS3
+    [BCrypt] as BCrypt
+}
+
+package "Monitoring & Observability" {
+    [Prometheus] as P
+    [Grafana] as G
+    [Jaeger] as J
+    [ELK Stack] as ELK
+    [Alert Manager] as AM
+}
+
+package "Infrastructure Layer" {
+    [Docker] as Docker
+    [Docker Compose] as DC2
+    [Local Development] as LD2
+    [Spring Cloud Gateway] as SCG2
+    [Service Discovery] as SD
+}
+
+package "CI/CD Pipeline" {
+    [Azure DevOps] as AD
+    [Maven] as Maven
+    [Docker] as Docker
+    [SonarQube] as SQ
+    [Trivy] as Trivy
+}
+
+package "External Integrations" {
+    [Clearing Systems APIs] as CSA
+    [Third Party APIs] as TPA
+    [Webhook Endpoints] as WE
+    [SMTP Server] as SMTP
+    [SMS Gateway] as SMS
+    [Bank's Fraud/Risk Monitoring Engine] as BFRE
+}
+
+' Frontend connections
+React --> TS : "Type Safety"
+React --> MUI : "UI Components"
+React --> RTK : "State Management"
+React --> RQ : "Data Fetching"
+React --> Axios : "HTTP Client"
+React --> Router : "Navigation"
+React --> Formik : "Form Management"
+Formik --> Yup : "Validation"
+
+' API Gateway connections
+SCG --> SS : "Security"
+SCG --> SCLB : "Load Balancing"
+SCG --> R4j : "Resilience"
+SCG --> RRL : "Rate Limiting"
+SCG --> OAuth2 : "Authentication"
+
+' Backend connections
+SB --> SW : "Web Layer"
+SB --> SDJ : "Data Access"
+SB --> SS2 : "Security"
+SB --> SCOF : "HTTP Client"
+SB --> SCS : "Tracing"
+SB --> Micrometer : "Metrics"
+SB --> SK : "Messaging"
+SB --> SC : "Caching"
+
+' Message processing connections
+Kafka --> KS : "Stream Processing"
+Kafka --> KC : "Data Integration"
+Kafka --> SR : "Schema Management"
+Kafka --> DLQ : "Error Handling"
+Kafka --> KUI : "Management UI"
+
+' Data layer connections
+PG --> Flyway : "Migrations"
+PG --> HCP : "Connection Pooling"
+PG --> JPA : "ORM"
+Redis --> SC : "Caching"
+
+' Security connections
+OAuth2AS --> JWT : "Token Generation"
+JWT --> AES : "Message Encryption"
+JWT --> RSA : "Digital Signatures"
+SS3 --> BCrypt : "Password Hashing"
+
+' Monitoring connections
+SBA --> P : "Metrics Export"
+P --> G : "Metrics Query"
+SBA --> J : "Trace Data"
+SBA --> ELK : "Log Data"
+P --> AM : "Alert Rules"
+
+' Infrastructure connections
+Docker --> DC2 : "Container Orchestration"
+DC2 --> LD2 : "Local Development"
+LD2 --> SCG2 : "API Gateway"
+SCG2 --> SD : "Service Discovery"
+
+' CI/CD connections
+AD --> Maven : "Build Process"
+Maven --> Docker : "Container Build"
+Docker --> SQ : "Code Quality"
+Docker --> Trivy : "Security Scan"
+
+' External integrations
+SB --> CSA : "Clearing System APIs"
+SB --> TPA : "Third Party APIs"
+SB --> WE : "Webhook Delivery"
+SB --> SMTP : "Email Notifications"
+SB --> SMS : "SMS Notifications"
+SB --> BFRE : "Bank's Fraud/Risk API"
+
+note right of React
+Frontend Technology Stack:
+- React 18 with TypeScript
+- Material-UI for components
+- Redux Toolkit for state management
+- React Query for data fetching
+- Axios for HTTP communication
+- Formik + Yup for forms
+- React Router for navigation
+end note
+
+note right of SCG
+API Gateway Technology:
+- Spring Cloud Gateway
+- OAuth2 Resource Server
+- Redis Rate Limiting
+- Resilience4j Circuit Breakers
+- Load Balancing
+- Request/Response Transformation
+end note
+
+note right of SB
+Backend Technology Stack:
+- Spring Boot 3.x
+- Spring Data JPA
+- Spring Security
+- Spring Cloud OpenFeign
+- Spring Cloud Sleuth
+- Micrometer Metrics
+- Spring Kafka
+- Spring Cache
+end note
+
+note right of Kafka
+Message Processing Technology:
+- Apache Kafka for messaging
+- Kafka Streams for processing
+- Schema Registry for schemas
+- Dead Letter Queues for errors
+- Kafka UI for management
+end note
+
+note right of PG
+Data Technology Stack:
+- PostgreSQL 15 for persistence
+- Redis 7 for caching
+- Flyway for migrations
+- HikariCP for connection pooling
+- JPA/Hibernate for ORM
+end note
+
+note right of SBA
+Monitoring Technology:
+- Spring Boot Actuator for health checks
+- Micrometer for metrics collection
+- Custom metrics for business logic
+- Health checks for service monitoring
+- Audit logging for compliance
+- Structured logging with JSON
+end note
+
+note right of DC2
+Infrastructure Technology:
+- Docker for containerization
+- Docker Compose for local orchestration
+- Local development environment
+- Spring Cloud Gateway for API routing
+- Service discovery for microservices
+- Redis for caching and session management
+end note
+
+note right of Maven
+CI/CD Technology:
+- Maven for building and dependency management
+- Docker for containerization
+- Docker Compose for local development
+- Local development environment
+- Manual deployment process
+- Unit and integration testing
+end note
+
+note right of BFRE
+Bank's Fraud/Risk Monitoring Engine:
+- Real-time fraud risk assessment
+- Dynamic API configuration
+- Multi-level fraud control
+- Risk scoring and decision making
+- Integration with payment processing
+- Audit trail and compliance
+end note
+
+@enduml

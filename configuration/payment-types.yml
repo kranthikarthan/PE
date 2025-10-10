@@ -1,0 +1,262 @@
+# Payment Types Configuration
+# Defines all supported payment types and their configurations
+
+payment_types:
+  # Real-Time Payments
+  - code: "RTP"
+    name: "Real-Time Payment"
+    description: "Instant real-time payment processing"
+    is_synchronous: true
+    min_amount: 0.01
+    max_amount: 100000.00
+    processing_fee: 0.25
+    is_active: true
+    configuration:
+      processing_time_seconds: 10
+      cutoff_time: "23:59"
+      requires_compliance_check: false
+      supported_currencies: ["USD", "CAD"]
+      business_days_only: false
+      # Response configuration options
+      response_mode: "SYNCHRONOUS" # SYNCHRONOUS, ASYNCHRONOUS, KAFKA_TOPIC
+      kafka_response_config:
+        enabled: false
+        use_payment_type_specific_topic: true
+        topic_pattern: "payment-engine.{tenantId}.responses.{paymentType}.pain002"
+        include_original_message: true
+        priority: "HIGH"
+        retry_policy:
+          max_retries: 3
+          backoff_ms: 1000
+    
+  # ACH Credit Transfer
+  - code: "ACH_CREDIT"
+    name: "ACH Credit Transfer"
+    description: "Automated Clearing House credit transfer"
+    is_synchronous: false
+    min_amount: 0.01
+    max_amount: 1000000.00
+    processing_fee: 2.50
+    is_active: true
+    configuration:
+      processing_time_hours: 24
+      cutoff_time: "15:00"
+      requires_compliance_check: false
+      supported_currencies: ["USD"]
+      business_days_only: true
+      batch_processing: true
+      # Response configuration options
+      response_mode: "KAFKA_TOPIC" # Use Kafka for ACH responses
+      kafka_response_config:
+        enabled: true
+        use_payment_type_specific_topic: true
+        topic_pattern: "payment-engine.{tenantId}.responses.{paymentType}.pain002"
+        include_original_message: false # ACH doesn't need original message
+        priority: "NORMAL"
+        target_systems: ["ach-processor", "notification-service"]
+        retry_policy:
+          max_retries: 5
+          backoff_ms: 2000
+    
+  # ACH Debit Transfer
+  - code: "ACH_DEBIT"
+    name: "ACH Debit Transfer"
+    description: "Automated Clearing House debit transfer"
+    is_synchronous: false
+    min_amount: 0.01
+    max_amount: 1000000.00
+    processing_fee: 1.50
+    is_active: true
+    configuration:
+      processing_time_hours: 24
+      cutoff_time: "15:00"
+      requires_compliance_check: true
+      supported_currencies: ["USD"]
+      business_days_only: true
+      pre_authorization_required: true
+    
+  # Domestic Wire Transfer
+  - code: "WIRE_DOMESTIC"
+    name: "Domestic Wire Transfer"
+    description: "Same-day domestic wire transfer"
+    is_synchronous: true
+    min_amount: 1.00
+    max_amount: 10000000.00
+    processing_fee: 25.00
+    is_active: true
+    configuration:
+      processing_time_minutes: 30
+      cutoff_time: "16:00"
+      requires_compliance_check: true
+      supported_currencies: ["USD"]
+      business_days_only: true
+      high_value_threshold: 50000.00
+    
+  # International Wire Transfer
+  - code: "WIRE_INTERNATIONAL"
+    name: "International Wire Transfer"
+    description: "International wire transfer"
+    is_synchronous: false
+    min_amount: 1.00
+    max_amount: 5000000.00
+    processing_fee: 45.00
+    is_active: true
+    configuration:
+      processing_time_hours: 48
+      cutoff_time: "14:00"
+      requires_compliance_check: true
+      supported_currencies: ["USD", "EUR", "GBP", "CAD", "AUD"]
+      business_days_only: true
+      swift_required: true
+      correspondent_bank_fees: true
+    
+  # Zelle Transfer
+  - code: "ZELLE"
+    name: "Zelle Transfer"
+    description: "Zelle person-to-person transfer"
+    is_synchronous: true
+    min_amount: 1.00
+    max_amount: 5000.00
+    processing_fee: 0.00
+    is_active: true
+    configuration:
+      processing_time_seconds: 30
+      cutoff_time: "23:59"
+      requires_compliance_check: false
+      supported_currencies: ["USD"]
+      business_days_only: false
+      daily_limit: 2500.00
+      monthly_limit: 20000.00
+    
+  # Check Payment
+  - code: "CHECK"
+    name: "Check Payment"
+    description: "Traditional check payment processing"
+    is_synchronous: false
+    min_amount: 0.01
+    max_amount: 50000.00
+    processing_fee: 0.50
+    is_active: true
+    configuration:
+      processing_time_days: 3
+      cutoff_time: "17:00"
+      requires_compliance_check: false
+      supported_currencies: ["USD"]
+      business_days_only: true
+      hold_period_days: 2
+    
+  # Debit Card Payment
+  - code: "CARD_DEBIT"
+    name: "Debit Card Payment"
+    description: "Debit card transaction processing"
+    is_synchronous: true
+    min_amount: 0.01
+    max_amount: 10000.00
+    processing_fee: 0.35
+    is_active: true
+    configuration:
+      processing_time_seconds: 5
+      cutoff_time: "23:59"
+      requires_compliance_check: false
+      supported_currencies: ["USD", "CAD"]
+      business_days_only: false
+      pin_verification_required: true
+    
+  # Mobile Wallet Payment
+  - code: "MOBILE_WALLET"
+    name: "Mobile Wallet Payment"
+    description: "Mobile wallet payment (Apple Pay, Google Pay, etc.)"
+    is_synchronous: true
+    min_amount: 0.01
+    max_amount: 2500.00
+    processing_fee: 0.15
+    is_active: true
+    configuration:
+      processing_time_seconds: 3
+      cutoff_time: "23:59"
+      requires_compliance_check: false
+      supported_currencies: ["USD", "CAD", "EUR"]
+      business_days_only: false
+      tokenization_required: true
+      biometric_auth_supported: true
+
+# Payment Type Categories
+categories:
+  real_time:
+    name: "Real-Time Payments"
+    description: "Instant payment processing"
+    payment_types: ["RTP", "ZELLE", "CARD_DEBIT", "MOBILE_WALLET"]
+    
+  batch:
+    name: "Batch Payments"
+    description: "Batch processed payments"
+    payment_types: ["ACH_CREDIT", "ACH_DEBIT", "CHECK"]
+    
+  wire:
+    name: "Wire Transfers"
+    description: "Wire transfer payments"
+    payment_types: ["WIRE_DOMESTIC", "WIRE_INTERNATIONAL"]
+    
+  card:
+    name: "Card Payments"
+    description: "Card-based payments"
+    payment_types: ["CARD_DEBIT"]
+    
+  digital:
+    name: "Digital Payments"
+    description: "Digital and mobile payments"
+    payment_types: ["ZELLE", "MOBILE_WALLET", "RTP"]
+
+# Business Rules
+business_rules:
+  # Daily limits per account
+  daily_limits:
+    default: 50000.00
+    high_value_account: 1000000.00
+    business_account: 500000.00
+  
+  # Velocity checks
+  velocity_checks:
+    enabled: true
+    max_transactions_per_hour: 100
+    max_amount_per_hour: 25000.00
+    suspicious_pattern_detection: true
+  
+  # Compliance rules
+  compliance:
+    high_value_reporting_threshold: 10000.00
+    international_reporting_threshold: 3000.00
+    kyc_required_threshold: 2000.00
+    enhanced_due_diligence_threshold: 25000.00
+  
+  # Fraud detection
+  fraud_detection:
+    enabled: true
+    ml_scoring_enabled: true
+    real_time_monitoring: true
+    suspicious_activity_threshold: 0.85
+    
+# Fee Structures
+fee_structures:
+  standard:
+    name: "Standard Fee Structure"
+    description: "Default fee structure for retail customers"
+    applicable_account_types: ["CHECKING", "SAVINGS"]
+    
+  premium:
+    name: "Premium Fee Structure"
+    description: "Reduced fees for premium customers"
+    applicable_account_types: ["PREMIUM_CHECKING", "PREMIUM_SAVINGS"]
+    fee_discount_percentage: 50
+    
+  business:
+    name: "Business Fee Structure"
+    description: "Fee structure for business accounts"
+    applicable_account_types: ["BUSINESS"]
+    volume_discounts:
+      - threshold: 100000.00
+        discount_percentage: 10
+      - threshold: 500000.00
+        discount_percentage: 25
+      - threshold: 1000000.00
+        discount_percentage: 40

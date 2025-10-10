@@ -1,0 +1,200 @@
+@startuml CORE_ENTITIES_ERD
+!theme plain
+title ISO 20022 Payment Engine - Core Entities ERD
+
+' Core Business Entities
+entity "tenants" {
+  * id : UUID <<PK>>
+  --
+  * name : VARCHAR(100)
+  * code : VARCHAR(50) <<UK>>
+  * status : VARCHAR(20)
+  * contact_email : VARCHAR(255)
+  * contact_phone : VARCHAR(50)
+  * address : TEXT
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "scheme_configs" {
+  * id : UUID <<PK>>
+  --
+  * tenant_id : UUID <<FK>>
+  * scheme_code : VARCHAR(50)
+  * scheme_name : VARCHAR(100)
+  * processing_mode : VARCHAR(20)
+  * message_format : VARCHAR(10)
+  * response_mode : VARCHAR(20)
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "clearing_systems" {
+  * id : UUID <<PK>>
+  --
+  * name : VARCHAR(100)
+  * code : VARCHAR(50) <<UK>>
+  * description : TEXT
+  * endpoint_url : VARCHAR(500)
+  * timeout_seconds : INTEGER
+  * authentication_type : VARCHAR(20)
+  * is_active : BOOLEAN
+  * priority : INTEGER
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "clearing_system_endpoints" {
+  * id : UUID <<PK>>
+  --
+  * clearing_system_id : UUID <<FK>>
+  * name : VARCHAR(100)
+  * endpoint_type : VARCHAR(50)
+  * message_type : VARCHAR(50)
+  * message_format : VARCHAR(10)
+  * response_mode : VARCHAR(20)
+  * flow_direction : VARCHAR(30)
+  * url : VARCHAR(500)
+  * http_method : VARCHAR(10)
+  * timeout_ms : INTEGER
+  * retry_attempts : INTEGER
+  * authentication_type : VARCHAR(20)
+  * is_active : BOOLEAN
+  * priority : INTEGER
+  * description : VARCHAR(500)
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "tenant_clearing_system_mappings" {
+  * id : UUID <<PK>>
+  --
+  * tenant_id : UUID <<FK>>
+  * clearing_system_id : UUID <<FK>>
+  * payment_type : VARCHAR(50)
+  * local_instrument_code : VARCHAR(50)
+  * is_active : BOOLEAN
+  * priority : INTEGER
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "message_flows" {
+  * id : UUID <<PK>>
+  --
+  * tenant_id : UUID <<FK>>
+  * flow_name : VARCHAR(100)
+  * source_message_type : VARCHAR(50)
+  * target_message_type : VARCHAR(50)
+  * flow_direction : VARCHAR(30)
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+entity "routing_rules" {
+  * id : UUID <<PK>>
+  --
+  * tenant_id : UUID <<FK>>
+  * rule_name : VARCHAR(100)
+  * condition_type : VARCHAR(50)
+  * condition_value : VARCHAR(255)
+  * target_clearing_system_id : UUID <<FK>>
+  * priority : INTEGER
+  * is_active : BOOLEAN
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  * created_by : VARCHAR(100)
+  * updated_by : VARCHAR(100)
+}
+
+' Relationships
+tenants ||--o{ scheme_configs : "has"
+tenants ||--o{ tenant_clearing_system_mappings : "maps to"
+tenants ||--o{ message_flows : "defines"
+tenants ||--o{ routing_rules : "configures"
+
+clearing_systems ||--o{ clearing_system_endpoints : "has"
+clearing_systems ||--o{ tenant_clearing_system_mappings : "mapped by"
+clearing_systems ||--o{ routing_rules : "targeted by"
+
+' Indexes and constraints
+note right of tenants
+Indexes:
+- idx_tenants_code (code)
+- idx_tenants_status (status)
+- idx_tenants_created_at (created_at)
+
+Constraints:
+- UK_tenants_code (code)
+- CHK_tenants_status (status IN ('ACTIVE', 'INACTIVE', 'SUSPENDED'))
+end note
+
+note right of scheme_configs
+Indexes:
+- idx_scheme_configs_tenant_id (tenant_id)
+- idx_scheme_configs_scheme_code (scheme_code)
+- idx_scheme_configs_is_active (is_active)
+
+Constraints:
+- FK_scheme_configs_tenant_id (tenant_id)
+- CHK_scheme_configs_processing_mode (processing_mode IN ('SYNCHRONOUS', 'ASYNCHRONOUS', 'BATCH'))
+- CHK_scheme_configs_message_format (message_format IN ('JSON', 'XML'))
+- CHK_scheme_configs_response_mode (response_mode IN ('IMMEDIATE', 'ASYNC', 'KAFKA', 'WEBHOOK'))
+end note
+
+note right of clearing_systems
+Indexes:
+- idx_clearing_systems_code (code)
+- idx_clearing_systems_is_active (is_active)
+- idx_clearing_systems_priority (priority)
+
+Constraints:
+- UK_clearing_systems_code (code)
+- CHK_clearing_systems_authentication_type (authentication_type IN ('NONE', 'API_KEY', 'JWT', 'OAUTH2', 'MTLS'))
+- CHK_clearing_systems_is_active (is_active IN (true, false))
+end note
+
+note right of clearing_system_endpoints
+Indexes:
+- idx_clearing_system_endpoints_clearing_system_id (clearing_system_id)
+- idx_clearing_system_endpoints_message_type (message_type)
+- idx_clearing_system_endpoints_endpoint_type (endpoint_type)
+- idx_clearing_system_endpoints_is_active (is_active)
+
+Constraints:
+- FK_clearing_system_endpoints_clearing_system_id (clearing_system_id)
+- CHK_clearing_system_endpoints_endpoint_type (endpoint_type IN ('SYNC', 'ASYNC', 'POLLING', 'WEBHOOK'))
+- CHK_clearing_system_endpoints_message_type (message_type IN ('pacs008', 'pacs002', 'pacs004', 'pacs007', 'pacs028', 'pain001', 'pain002', 'camt054', 'camt055', 'camt056', 'camt029', 'status'))
+- CHK_clearing_system_endpoints_message_format (message_format IN ('JSON', 'XML'))
+- CHK_clearing_system_endpoints_response_mode (response_mode IN ('IMMEDIATE', 'ASYNC', 'KAFKA', 'WEBHOOK'))
+- CHK_clearing_system_endpoints_flow_direction (flow_direction IN ('CLIENT_TO_CLEARING', 'CLEARING_TO_CLIENT', 'BIDIRECTIONAL'))
+end note
+
+note right of tenant_clearing_system_mappings
+Indexes:
+- idx_tenant_clearing_system_mappings_tenant_id (tenant_id)
+- idx_tenant_clearing_system_mappings_clearing_system_id (clearing_system_id)
+- idx_tenant_clearing_system_mappings_payment_type (payment_type)
+- idx_tenant_clearing_system_mappings_local_instrument_code (local_instrument_code)
+- idx_tenant_clearing_system_mappings_is_active (is_active)
+
+Constraints:
+- FK_tenant_clearing_system_mappings_tenant_id (tenant_id)
+- FK_tenant_clearing_system_mappings_clearing_system_id (clearing_system_id)
+- UK_tenant_clearing_system_mappings_tenant_payment_instrument (tenant_id, payment_type, local_instrument_code)
+- CHK_tenant_clearing_system_mappings_is_active (is_active IN (true, false))
+end note
+
+@enduml
