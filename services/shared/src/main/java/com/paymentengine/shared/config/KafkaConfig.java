@@ -84,7 +84,7 @@ public class KafkaConfig {
         configProps.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
         
         // Custom ObjectMapper
-        configProps.put(JsonSerializer.OBJECT_MAPPER, kafkaObjectMapper());
+        configProps.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
         
         return new DefaultKafkaProducerFactory<>(configProps);
     }

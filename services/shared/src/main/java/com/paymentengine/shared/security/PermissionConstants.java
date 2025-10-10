@@ -1,5 +1,7 @@
 package com.paymentengine.shared.security;
 
+import java.util.List;
+
 /**
  * Constants for permissions used throughout the Payment Engine system
  */

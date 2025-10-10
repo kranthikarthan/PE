@@ -1,0 +1,4 @@
+com/paymentengine/paymentprocessing/controller/Iso20022Controller.class
+com/paymentengine/paymentprocessing/PaymentProcessingMinimalApplication.class
+com/paymentengine/paymentprocessing/config/WebConfig.class
+com/paymentengine/paymentprocessing/config/SecurityConfig.class
