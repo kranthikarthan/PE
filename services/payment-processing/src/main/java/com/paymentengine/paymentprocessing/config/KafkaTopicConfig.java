@@ -23,8 +23,14 @@ public class KafkaTopicConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    private static final int PARTITIONS = 3;
-    private static final short REPLICATION_FACTOR = 3;
+    @Value("${spring.kafka.topic.partitions:3}")
+    private int partitions;
+
+    @Value("${spring.kafka.topic.replication-factor:1}")
+    private short replicationFactor;
+
+    @Value("${spring.kafka.topic.min-insync-replicas:1}")
+    private String minInSyncReplicas;
 
     @Bean
     public KafkaAdmin kafkaAdmin() {
@@ -40,33 +46,33 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic paymentInboundTopicV1() {
         return TopicBuilder.name("payment.inbound.v1")
-                .partitions(PARTITIONS)
-                .replicas(REPLICATION_FACTOR)
+                .partitions(partitions)
+                .replicas(replicationFactor)
                 .config("retention.ms", "604800000")  // 7 days
                 .config("compression.type", "snappy")
-                .config("min.insync.replicas", "2")
+                .config("min.insync.replicas", minInSyncReplicas)
                 .build();
     }
 
     @Bean
     public NewTopic paymentOutboundTopicV1() {
         return TopicBuilder.name("payment.outbound.v1")
-                .partitions(PARTITIONS)
-                .replicas(REPLICATION_FACTOR)
+                .partitions(partitions)
+                .replicas(replicationFactor)
                 .config("retention.ms", "604800000")  // 7 days
                 .config("compression.type", "snappy")
-                .config("min.insync.replicas", "2")
+                .config("min.insync.replicas", minInSyncReplicas)
                 .build();
     }
 
     @Bean
     public NewTopic paymentAckTopicV1() {
         return TopicBuilder.name("payment.ack.v1")
-                .partitions(PARTITIONS)
-                .replicas(REPLICATION_FACTOR)
+                .partitions(partitions)
+                .replicas(replicationFactor)
                 .config("retention.ms", "259200000")  // 3 days
                 .config("compression.type", "snappy")
-                .config("min.insync.replicas", "2")
+                .config("min.insync.replicas", minInSyncReplicas)
                 .build();
     }
 
@@ -77,22 +83,22 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic paymentInboundDlqTopic() {
         return TopicBuilder.name("payment.inbound.dlq.v1")
-                .partitions(PARTITIONS)
-                .replicas(REPLICATION_FACTOR)
+                .partitions(partitions)
+                .replicas(replicationFactor)
                 .config("retention.ms", "2592000000")  // 30 days
                 .config("compression.type", "snappy")
-                .config("min.insync.replicas", "2")
+                .config("min.insync.replicas", minInSyncReplicas)
                 .build();
     }
 
     @Bean
     public NewTopic paymentOutboundDlqTopic() {
         return TopicBuilder.name("payment.outbound.dlq.v1")
-                .partitions(PARTITIONS)
-                .replicas(REPLICATION_FACTOR)
+                .partitions(partitions)
+                .replicas(replicationFactor)
                 .config("retention.ms", "2592000000")  // 30 days
                 .config("compression.type", "snappy")
-                .config("min.insync.replicas", "2")
+                .config("min.insync.replicas", minInSyncReplicas)
                 .build();
     }
 
@@ -103,44 +109,44 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic iso20022Pain001Topic() {
         return TopicBuilder.name("iso20022.pain001.v1")
-                .partitions(PARTITIONS)
-                .replicas(REPLICATION_FACTOR)
+                .partitions(partitions)
+                .replicas(replicationFactor)
                 .config("retention.ms", "604800000")  // 7 days
                 .config("compression.type", "snappy")
-                .config("min.insync.replicas", "2")
+                .config("min.insync.replicas", minInSyncReplicas)
                 .build();
     }
 
     @Bean
     public NewTopic iso20022Pacs008Topic() {
         return TopicBuilder.name("iso20022.pacs008.v1")
-                .partitions(PARTITIONS)
-                .replicas(REPLICATION_FACTOR)
+                .partitions(partitions)
+                .replicas(replicationFactor)
                 .config("retention.ms", "604800000")  // 7 days
                 .config("compression.type", "snappy")
-                .config("min.insync.replicas", "2")
+                .config("min.insync.replicas", minInSyncReplicas)
                 .build();
     }
 
     @Bean
     public NewTopic iso20022Pacs002Topic() {
         return TopicBuilder.name("iso20022.pacs002.v1")
-                .partitions(PARTITIONS)
-                .replicas(REPLICATION_FACTOR)
+                .partitions(partitions)
+                .replicas(replicationFactor)
                 .config("retention.ms", "604800000")  // 7 days
                 .config("compression.type", "snappy")
-                .config("min.insync.replicas", "2")
+                .config("min.insync.replicas", minInSyncReplicas)
                 .build();
     }
 
     @Bean
     public NewTopic iso20022DlqTopic() {
         return TopicBuilder.name("iso20022.dlq.v1")
-                .partitions(PARTITIONS)
-                .replicas(REPLICATION_FACTOR)
+                .partitions(partitions)
+                .replicas(replicationFactor)
                 .config("retention.ms", "2592000000")  // 30 days
                 .config("compression.type", "snappy")
-                .config("min.insync.replicas", "2")
+                .config("min.insync.replicas", minInSyncReplicas)
                 .build();
     }
 
@@ -151,11 +157,11 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic auditEventTopic() {
         return TopicBuilder.name("audit.event.v1")
-                .partitions(PARTITIONS)
-                .replicas(REPLICATION_FACTOR)
+                .partitions(partitions)
+                .replicas(replicationFactor)
                 .config("retention.ms", "2592000000")  // 30 days
                 .config("compression.type", "snappy")
-                .config("min.insync.replicas", "2")
+                .config("min.insync.replicas", minInSyncReplicas)
                 .build();
     }
 }

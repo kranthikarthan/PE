@@ -3,6 +3,26 @@
 -- Created: 2025-10-10
 
 -- =============================================================================
+-- TENANTS TABLE
+-- Multi-tenancy support
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS tenants (
+    id VARCHAR(100) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+    configuration JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT chk_tenant_status CHECK (status IN ('ACTIVE', 'SUSPENDED', 'INACTIVE'))
+);
+
+CREATE INDEX idx_tenants_status ON tenants(status);
+
+-- Insert default tenant
+INSERT INTO tenants (id, name, status) VALUES ('default', 'Default Tenant', 'ACTIVE');
+
+-- =============================================================================
 -- TRANSACTION REPAIR TABLE
 -- Handles failed transaction compensation and repair
 -- =============================================================================
@@ -219,8 +239,7 @@ CREATE TRIGGER update_transaction_repair_updated_at
 -- INITIAL DATA / SEED DATA
 -- =============================================================================
 
--- Insert default tenant (if needed)
--- INSERT INTO tenants (id, name, status) VALUES ('default', 'Default Tenant', 'ACTIVE');
+-- Default tenant already inserted above
 
 -- =============================================================================
 -- VIEWS FOR COMMON QUERIES

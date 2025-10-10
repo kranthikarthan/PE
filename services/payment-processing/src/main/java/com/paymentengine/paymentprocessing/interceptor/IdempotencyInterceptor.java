@@ -1,5 +1,6 @@
 package com.paymentengine.paymentprocessing.interceptor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paymentengine.paymentprocessing.entity.IdempotencyKey;
 import com.paymentengine.paymentprocessing.repository.IdempotencyKeyRepository;
@@ -18,6 +19,7 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -106,11 +108,72 @@ public class IdempotencyInterceptor implements HandlerInterceptor {
             return false; // Stop further processing
         }
 
-        // Store idempotency key in request attribute for postHandle
+        // Store idempotency key in request attribute for afterCompletion
         request.setAttribute("idempotencyKey", idempotencyKey);
         request.setAttribute("tenantId", tenantId);
+        request.setAttribute("shouldStoreIdempotency", true);
 
         return true;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, 
+                               Object handler, Exception ex) throws Exception {
+        
+        Boolean shouldStore = (Boolean) request.getAttribute("shouldStoreIdempotency");
+        if (shouldStore == null || !shouldStore) {
+            return;
+        }
+
+        String idempotencyKey = (String) request.getAttribute("idempotencyKey");
+        String tenantId = (String) request.getAttribute("tenantId");
+
+        if (idempotencyKey == null || tenantId == null) {
+            return;
+        }
+
+        // Only store successful responses (2xx status codes)
+        int status = response.getStatus();
+        if (status < 200 || status >= 300) {
+            logger.debug("Skipping idempotency storage for non-successful response: {}", status);
+            return;
+        }
+
+        try {
+            // Extract request details
+            String endpoint = request.getRequestURI();
+            String method = request.getMethod();
+            
+            // Parse request body if available
+            Map<String, Object> requestBody = Collections.emptyMap();
+            if (request instanceof ContentCachingRequestWrapper) {
+                ContentCachingRequestWrapper wrapper = (ContentCachingRequestWrapper) request;
+                byte[] content = wrapper.getContentAsByteArray();
+                if (content.length > 0) {
+                    String bodyStr = new String(content, StandardCharsets.UTF_8);
+                    try {
+                        requestBody = objectMapper.readValue(bodyStr, Map.class);
+                    } catch (JsonProcessingException e) {
+                        logger.warn("Could not parse request body as JSON for idempotency storage", e);
+                    }
+                }
+            }
+
+            // Response body is not easily accessible in afterCompletion without wrapping
+            // Store minimal info for now
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("status", status);
+            responseBody.put("timestamp", LocalDateTime.now().toString());
+
+            // Store the idempotency key
+            storeProcessedRequest(idempotencyKey, tenantId, endpoint, method, 
+                                requestBody, status, responseBody);
+            
+        } catch (Exception e) {
+            logger.error("Error in idempotency afterCompletion", e);
+        } finally {
+            MDC.remove("idempotencyKey");
+        }
     }
 
     /**
@@ -137,7 +200,7 @@ public class IdempotencyInterceptor implements HandlerInterceptor {
 
     /**
      * Store processed request for future idempotency checks
-     * Note: This should be called in a service layer after successful processing
+     * Can also be called manually from service layer for custom response storage
      */
     public void storeProcessedRequest(String idempotencyKey, String tenantId, 
                                      String endpoint, String method,
@@ -157,7 +220,14 @@ public class IdempotencyInterceptor implements HandlerInterceptor {
             key.setExpiresAt(LocalDateTime.now().plusHours(ttlHours));
             
             // Generate hash for duplicate detection
-            String requestBodyStr = objectMapper.writeValueAsString(requestBody);
+            String requestBodyStr;
+            try {
+                requestBodyStr = objectMapper.writeValueAsString(requestBody);
+            } catch (JsonProcessingException e) {
+                logger.warn("Failed to serialize request body for hashing", e);
+                requestBodyStr = requestBody.toString();
+            }
+            
             String hash = generateRequestHash(method, endpoint, requestBodyStr);
             key.setRequestHash(hash);
 
@@ -166,6 +236,7 @@ public class IdempotencyInterceptor implements HandlerInterceptor {
             logger.debug("Stored idempotency key: {} for tenant: {}", idempotencyKey, tenantId);
         } catch (Exception e) {
             logger.error("Error storing idempotency key: {}", idempotencyKey, e);
+            // Don't throw - idempotency storage failure shouldn't break the request
         }
     }
 }
