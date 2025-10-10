@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -195,15 +195,23 @@ public class JwsTokenService {
      * Extract user ID from JWS token
      */
     public UUID getUserIdFromToken(String token) {
-        String userIdStr = getClaimsFromToken(token).getStringClaim("userId");
-        return UUID.fromString(userIdStr);
+        try {
+            String userIdStr = getClaimsFromToken(token).getStringClaim("userId");
+            return UUID.fromString(userIdStr);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to extract userId from token", e);
+        }
     }
     
     /**
      * Extract email from JWS token
      */
     public String getEmailFromToken(String token) {
-        return getClaimsFromToken(token).getStringClaim("email");
+        try {
+            return getClaimsFromToken(token).getStringClaim("email");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to extract email from token", e);
+        }
     }
     
     /**
@@ -226,7 +234,11 @@ public class JwsTokenService {
      * Get token type from JWS token
      */
     public String getTokenType(String token) {
-        return getClaimsFromToken(token).getStringClaim("type");
+        try {
+            return getClaimsFromToken(token).getStringClaim("type");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to extract token type", e);
+        }
     }
     
     /**

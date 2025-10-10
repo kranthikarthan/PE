@@ -1,6 +1,7 @@
 package com.paymentengine.auth.config;
 
 import com.paymentengine.auth.service.JwtTokenService;
+import com.paymentengine.auth.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +39,9 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
     
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
@@ -49,7 +53,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/**").authenticated()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenService), 
+            .addFilterBefore(jwtAuthenticationFilter,
                            UsernamePasswordAuthenticationFilter.class);
         
         return http.build();

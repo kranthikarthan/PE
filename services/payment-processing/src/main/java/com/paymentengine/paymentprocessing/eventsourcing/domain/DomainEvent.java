@@ -183,13 +183,7 @@ public abstract class DomainEvent {
         this.version++;
     }
     
-    public void setCorrelationId(String correlationId) {
-        this.correlationId = correlationId;
-    }
-    
-    public void setCausationId(String causationId) {
-        this.causationId = causationId;
-    }
+    // setCorrelationId and setCausationId already defined above
     
     @Override
     public String toString() {

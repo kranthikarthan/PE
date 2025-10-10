@@ -4,8 +4,8 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.kafka.listener.ErrorHandler;
 import org.springframework.kafka.listener.MessageListenerContainer;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -17,12 +17,12 @@ import java.util.Map;
  * Custom error handler for Kafka message processing
  */
 @Component
-public class KafkaErrorHandler implements ErrorHandler {
+public class KafkaErrorHandler extends DefaultErrorHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaErrorHandler.class);
 
     @Override
-    public void handle(Exception thrownException, ConsumerRecord<?, ?> data, Consumer<?, ?> consumer) {
+    public void handleRemaining(Exception thrownException, ConsumerRecord<?, ?> data, Consumer<?, ?> consumer) {
         logger.error("Error processing Kafka message: {}", data, thrownException);
         
         // Log the error details
@@ -40,7 +40,7 @@ public class KafkaErrorHandler implements ErrorHandler {
     }
 
     @Override
-    public void handle(Exception thrownException, Message<?> message, MessageListenerContainer container) {
+    public void handleOtherException(Exception thrownException, Message<?> message, MessageListenerContainer container) {
         MessageHeaders headers = message.getHeaders();
         String topic = headers.get(KafkaHeaders.RECEIVED_TOPIC, String.class);
         Integer partition = headers.get(KafkaHeaders.RECEIVED_PARTITION, Integer.class);

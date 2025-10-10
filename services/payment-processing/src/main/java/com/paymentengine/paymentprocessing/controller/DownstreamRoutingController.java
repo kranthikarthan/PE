@@ -118,11 +118,11 @@ public class DownstreamRoutingController {
         try {
             // Validate tenant access
             if (!downstreamRoutingService.validateTenantAccess(tenantId, "auto")) {
-                return ResponseEntity.status(403).body(Map.of(
-                    "error", "Access denied",
-                    "message", "Tenant does not have access to external services",
-                    "tenantId", tenantId
-                ));
+                java.util.Map<String, Object> resp = new java.util.HashMap<>();
+                resp.put("error", "Access denied");
+                resp.put("message", "Tenant does not have access to external services");
+                resp.put("tenantId", tenantId);
+                return ResponseEntity.status(403).body(resp);
             }
             
             // Call external service with auto-routing
@@ -134,11 +134,11 @@ public class DownstreamRoutingController {
             
         } catch (Exception e) {
             logger.error("Auto-routing external service call failed for tenant: {}", tenantId, e);
-            return ResponseEntity.status(500).body(Map.of(
-                "error", "External service call failed",
-                "message", e.getMessage(),
-                "tenantId", tenantId
-            ));
+            java.util.Map<String, Object> resp = new java.util.HashMap<>();
+            resp.put("error", "External service call failed");
+            resp.put("message", e.getMessage());
+            resp.put("tenantId", tenantId);
+            return ResponseEntity.status(500).body(resp);
         }
     }
     

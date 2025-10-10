@@ -12,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -166,16 +168,16 @@ public class ResiliencyMonitoringController {
             
             if (tenantId != null && serviceName != null && status != null) {
                 messages = queuedMessageRepository.findByTenantIdAndServiceNameAndStatus(
-                        tenantId, serviceName, QueuedMessage.Status.valueOf(status), pageable);
+                        tenantId, serviceName, QueuedMessage.MessageStatus.valueOf(status), pageable);
             } else if (tenantId != null && serviceName != null) {
                 messages = queuedMessageRepository.findByTenantIdAndServiceName(tenantId, serviceName, pageable);
             } else if (tenantId != null && status != null) {
                 messages = queuedMessageRepository.findByTenantIdAndStatus(
-                        tenantId, QueuedMessage.Status.valueOf(status), pageable);
+                        tenantId, QueuedMessage.MessageStatus.valueOf(status), pageable);
             } else if (tenantId != null) {
                 messages = queuedMessageRepository.findByTenantId(tenantId, pageable);
             } else if (status != null) {
-                messages = queuedMessageRepository.findByStatus(QueuedMessage.Status.valueOf(status), pageable);
+                messages = queuedMessageRepository.findByStatus(QueuedMessage.MessageStatus.valueOf(status), pageable);
             } else {
                 messages = queuedMessageRepository.findAll(pageable).getContent();
             }

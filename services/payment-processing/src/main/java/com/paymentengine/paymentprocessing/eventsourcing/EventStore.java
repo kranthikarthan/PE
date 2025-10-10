@@ -4,6 +4,7 @@ import com.paymentengine.paymentprocessing.eventsourcing.domain.DomainEvent;
 import com.paymentengine.paymentprocessing.eventsourcing.domain.EventStream;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
