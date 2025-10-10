@@ -1,0 +1,55 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: payment-engine
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: payment-engine-authz
+  namespace: payment-engine
+spec:
+  selector:
+    matchLabels:
+      app: payment-engine
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/payment-engine/sa/auth-service"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/api/v1/*"]
+  - from:
+    - source:
+        principals: ["cluster.local/ns/payment-engine/sa/payment-processing-service"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/api/v1/iso20022/*"]
+  - from:
+    - source:
+        principals: ["cluster.local/ns/payment-engine/sa/core-banking-service"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/api/v1/banking/*"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: jwt-auth
+  namespace: payment-engine
+spec:
+  selector:
+    matchLabels:
+      app: payment-engine
+  jwtRules:
+  - issuer: "https://auth.payment-engine.local"
+    jwksUri: "https://auth.payment-engine.local/.well-known/jwks.json"
+    audiences:
+    - "payment-engine-api"

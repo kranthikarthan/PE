@@ -1,0 +1,178 @@
+@startuml MICROSERVICES_CONFIGURATION_FLOW
+!theme plain
+title Microservices Configuration Flow
+
+actor "Client" as C
+participant "API Gateway" as AG
+participant "Config Service" as CS
+participant "Payment Processing Service" as MS
+participant "Database" as DB
+participant "Redis Cache" as RC
+participant "Kafka" as K
+
+== Tenant Configuration Flow ==
+
+C -> AG: GET /api/v1/config/tenants/{tenantId}
+note right: Get tenant configuration
+
+AG -> AG: Validate JWT token
+AG -> CS: GET /api/v1/config/tenants/{tenantId}
+
+CS -> RC: Check cache for tenant config
+alt Config in cache
+    RC --> CS: Cached configuration
+    CS --> AG: Tenant configuration
+else Config not in cache
+    CS -> DB: Query tenant configuration
+    DB --> CS: Configuration data
+    
+    CS -> RC: Cache configuration
+    CS --> AG: Tenant configuration
+end
+
+AG --> C: Tenant configuration
+
+== Feature Flag Management ==
+
+C -> AG: POST /api/v1/config/feature-flags
+note right: Create feature flag
+
+AG -> CS: POST /api/v1/config/feature-flags
+
+CS -> CS: Validate feature flag data
+CS -> DB: Create feature flag
+DB --> CS: Feature flag created
+
+CS -> K: Publish configuration change event
+note right: Notify other services
+
+CS -> RC: Invalidate related cache
+CS --> AG: Feature flag created
+AG --> C: Feature flag created
+
+== Dynamic Configuration Update ==
+
+C -> AG: PUT /api/v1/config/tenants/{tenantId}/config
+note right: Update tenant configuration
+
+AG -> CS: PUT /api/v1/config/tenants/{tenantId}/config
+
+CS -> CS: Validate configuration changes
+CS -> DB: Update configuration
+DB --> CS: Configuration updated
+
+CS -> DB: Log configuration history
+CS -> K: Publish configuration change event
+
+CS -> RC: Invalidate tenant cache
+CS --> AG: Configuration updated
+AG --> C: Configuration updated
+
+== Configuration Change Notification ==
+
+note over K, MS
+Configuration change events are published to Kafka
+and consumed by interested services
+end note
+
+K -> MS: Configuration change event
+MS -> MS: Process configuration update
+MS -> RC: Update local cache
+MS -> MS: Apply new configuration
+
+== Configuration Validation ==
+
+C -> AG: POST /api/v1/config/validate
+note right: Validate configuration
+
+AG -> CS: POST /api/v1/config/validate
+
+CS -> CS: Validate configuration syntax
+CS -> CS: Check configuration dependencies
+CS -> CS: Validate business rules
+
+alt Configuration valid
+    CS --> AG: Validation successful
+    AG --> C: Configuration valid
+else Configuration invalid
+    CS --> AG: Validation errors
+    AG --> C: Validation failed with errors
+end
+
+== Configuration Rollback ==
+
+C -> AG: POST /api/v1/config/tenants/{tenantId}/rollback
+note right: Rollback to previous version
+
+AG -> CS: POST /api/v1/config/tenants/{tenantId}/rollback
+
+CS -> DB: Get configuration history
+DB --> CS: Previous configuration
+
+CS -> DB: Restore previous configuration
+CS -> K: Publish rollback event
+CS -> RC: Invalidate cache
+
+CS --> AG: Rollback successful
+AG --> C: Configuration rolled back
+
+== Multi-Tenant Configuration ==
+
+C -> AG: GET /api/v1/config/tenants/{tenantId}/inherited
+note right: Get inherited configuration
+
+AG -> CS: GET /api/v1/config/tenants/{tenantId}/inherited
+
+CS -> DB: Query tenant hierarchy
+CS -> DB: Query parent configurations
+CS -> CS: Merge configurations
+CS -> CS: Apply inheritance rules
+
+CS --> AG: Inherited configuration
+AG --> C: Inherited configuration
+
+== Configuration Audit ==
+
+C -> AG: GET /api/v1/config/audit/{tenantId}
+note right: Get configuration audit trail
+
+AG -> CS: GET /api/v1/config/audit/{tenantId}
+
+CS -> DB: Query configuration history
+DB --> CS: Audit trail
+
+CS --> AG: Configuration audit
+AG --> C: Configuration audit
+
+== Error Handling ==
+
+alt Configuration service unavailable
+    AG -> AG: Circuit breaker open
+    AG --> C: Configuration service unavailable
+else Database connection error
+    CS -> CS: Log error
+    CS --> AG: Database error
+    AG --> C: 500 Internal Server Error
+else Invalid configuration
+    CS -> CS: Validate configuration
+    CS --> AG: Validation errors
+    AG --> C: 400 Bad Request
+end
+
+== Performance Optimization ==
+
+note over C, RC
+Performance Features:
+1. Configuration caching
+2. Lazy loading
+3. Batch updates
+4. Event-driven updates
+5. Configuration inheritance
+6. Delta updates
+end note
+
+CS -> RC: Cache frequently accessed configs
+CS -> K: Publish only changed configurations
+CS -> CS: Batch multiple configuration updates
+
+@enduml

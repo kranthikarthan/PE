@@ -1,0 +1,309 @@
+@startuml DEPLOYMENT_ARCHITECTURE
+!theme plain
+title Deployment Architecture & Infrastructure
+
+package "Load Balancer Layer" {
+    [HAProxy] as HA
+    [SSL Termination] as ST
+    [Health Checks] as HC
+    [Session Persistence] as SP
+}
+
+package "API Gateway Cluster" {
+    node "Gateway Node 1" {
+        [Spring Cloud Gateway 1] as SCG1
+        [Rate Limiter 1] as RL1
+        [Circuit Breaker 1] as CB1
+    }
+    
+    node "Gateway Node 2" {
+        [Spring Cloud Gateway 2] as SCG2
+        [Rate Limiter 2] as RL2
+        [Circuit Breaker 2] as CB2
+    }
+    
+    node "Gateway Node 3" {
+        [Spring Cloud Gateway 3] as SCG3
+        [Rate Limiter 3] as RL3
+        [Circuit Breaker 3] as CB3
+    }
+}
+
+package "Application Services Cluster" {
+    node "Payment Processing Node 1" {
+        [Payment Processing Service 1] as MS1
+        [JVM 1] as JVM1
+        [Health Check 1] as HC1
+    }
+    
+    node "Payment Processing Node 2" {
+        [Payment Processing Service 2] as MS2
+        [JVM 2] as JVM2
+        [Health Check 2] as HC2
+    }
+    
+    node "Payment Processing Node 3" {
+        [Payment Processing Service 3] as MS3
+        [JVM 3] as JVM3
+        [Health Check 3] as HC3
+    }
+    
+    node "Core Banking Node" {
+        [Core Banking Service] as CBS
+        [JVM 4] as JVM4
+        [Health Check 4] as HC4
+    }
+}
+
+package "Data Layer Cluster" {
+    node "Database Cluster" {
+        [PostgreSQL Primary] as PGP
+        [PostgreSQL Replica 1] as PGR1
+        [PostgreSQL Replica 2] as PGR2
+        [Connection Pool] as CP
+    }
+    
+    node "Redis Cluster" {
+        [Redis Master 1] as RM1
+        [Redis Replica 1] as RR1
+        [Redis Master 2] as RM2
+        [Redis Replica 2] as RR2
+        [Redis Master 3] as RM3
+        [Redis Replica 3] as RR3
+        [Redis Sentinel] as RS
+    }
+    
+    node "Kafka Cluster" {
+        [Kafka Broker 1] as KB1
+        [Kafka Broker 2] as KB2
+        [Kafka Broker 3] as KB3
+        [Zookeeper] as ZK
+    }
+}
+
+package "Monitoring Cluster" {
+    node "Monitoring Node 1" {
+        [Prometheus] as P
+        [Grafana] as G
+        [Alert Manager] as AM
+    }
+    
+    node "Monitoring Node 2" {
+        [Jaeger] as J
+        [ELK Stack] as ELK
+        [Log Aggregator] as LA
+    }
+}
+
+package "Security Layer" {
+    [OAuth2 Server] as OAuth2S
+    [Certificate Authority] as CA
+    [Key Management] as KM
+    [Security Gateway] as SG
+}
+
+package "External Systems" {
+    [Clearing Systems] as CS
+    [Client Systems] as ClientSys
+    [Third Party APIs] as TPA
+}
+
+' Load balancer connections
+HA --> ST : SSL Termination
+HA --> HC : Health Checks
+HA --> SP : Session Persistence
+
+' API Gateway cluster connections
+HA --> SCG1 : Load Balance
+HA --> SCG2 : Load Balance
+HA --> SCG3 : Load Balance
+
+SCG1 --> RL1 : Rate Limiting
+SCG1 --> CB1 : Circuit Breaking
+SCG2 --> RL2 : Rate Limiting
+SCG2 --> CB2 : Circuit Breaking
+SCG3 --> RL3 : Rate Limiting
+SCG3 --> CB3 : Circuit Breaking
+
+' Application services connections
+SCG1 --> MS1 : Route Requests
+SCG2 --> MS2 : Route Requests
+SCG3 --> MS3 : Route Requests
+
+MS1 --> JVM1 : JVM Management
+MS2 --> JVM2 : JVM Management
+MS3 --> JVM3 : JVM Management
+
+MS1 --> HC1 : Health Check
+MS2 --> HC2 : Health Check
+MS3 --> HC3 : Health Check
+
+MS1 --> CBS : Service Call
+MS2 --> CBS : Service Call
+MS3 --> CBS : Service Call
+
+' Data layer connections
+MS1 --> CP : Database Connection
+MS2 --> CP : Database Connection
+MS3 --> CP : Database Connection
+CBS --> CP : Database Connection
+
+CP --> PGP : Primary Database
+CP --> PGR1 : Read Replica
+CP --> PGR2 : Read Replica
+
+PGP --> PGR1 : Replication
+PGP --> PGR2 : Replication
+
+MS1 --> RM1 : Cache Operations
+MS2 --> RM2 : Cache Operations
+MS3 --> RM3 : Cache Operations
+
+RM1 --> RR1 : Replication
+RM2 --> RR2 : Replication
+RM3 --> RR3 : Replication
+
+RS --> RM1 : Sentinel
+RS --> RM2 : Sentinel
+RS --> RM3 : Sentinel
+
+MS1 --> KB1 : Message Production
+MS2 --> KB2 : Message Production
+MS3 --> KB3 : Message Production
+
+KB1 --> ZK : Coordination
+KB2 --> ZK : Coordination
+KB3 --> ZK : Coordination
+
+' Monitoring connections
+MS1 --> P : Metrics Export
+MS2 --> P : Metrics Export
+MS3 --> P : Metrics Export
+CBS --> P : Metrics Export
+
+SCG1 --> J : Trace Data
+SCG2 --> J : Trace Data
+SCG3 --> J : Trace Data
+MS1 --> J : Trace Data
+MS2 --> J : Trace Data
+MS3 --> J : Trace Data
+
+MS1 --> ELK : Log Data
+MS2 --> ELK : Log Data
+MS3 --> ELK : Log Data
+CBS --> ELK : Log Data
+
+MS1 --> P : Metrics Query
+MS2 --> P : Metrics Query
+MS3 --> P : Metrics Query
+CBS --> P : Metrics Query
+
+P --> G : Metrics Data
+J --> G : Trace Data
+ELK --> G : Log Data
+
+P --> AM : Alert Rules
+AM --> G : Alert Dashboard
+
+' Security connections
+SCG1 --> OAuth2S : Token Validation
+SCG2 --> OAuth2S : Token Validation
+SCG3 --> OAuth2S : Token Validation
+
+OAuth2S --> CA : Certificate Validation
+OAuth2S --> KM : Key Management
+
+SG --> CS : Secure Communication
+SG --> ClientSys : Secure Communication
+SG --> TPA : Secure Communication
+
+' External system connections
+MS1 --> CS : ISO 20022 Messages
+MS2 --> CS : ISO 20022 Messages
+MS3 --> CS : ISO 20022 Messages
+
+ClientSys --> HA : Client Requests
+CS --> HA : Clearing System Requests
+TPA --> HA : Third Party Requests
+
+note right of HA
+HAProxy Features:
+- Load balancing
+- SSL termination
+- Health checks
+- Session persistence
+- High availability
+- Performance optimization
+end note
+
+note right of SCG1
+Spring Cloud Gateway:
+- API routing
+- Rate limiting
+- Circuit breaking
+- Authentication
+- Request transformation
+- Health monitoring
+end note
+
+note right of MS1
+Payment Processing Service:
+- ISO 20022 processing
+- Business logic
+- External integration
+- Configuration management
+- Audit logging
+- Performance optimization
+end note
+
+note right of PGP
+PostgreSQL Primary:
+- ACID compliance
+- High availability
+- Replication
+- Performance tuning
+- Backup and recovery
+- Security features
+end note
+
+note right of RM1
+Redis Master:
+- High performance
+- Data persistence
+- Clustering
+- Memory optimization
+- Pub/Sub messaging
+- Session storage
+end note
+
+note right of KB1
+Kafka Broker:
+- High throughput
+- Durability
+- Replication
+- Partitioning
+- Consumer groups
+- Message retention
+end note
+
+note right of P
+Prometheus:
+- Metrics collection
+- Time series storage
+- Query language
+- Alerting rules
+- Service discovery
+- High availability
+end note
+
+note right of OAuth2S
+OAuth2 Server:
+- Token generation
+- Token validation
+- Scope management
+- Client management
+- Security features
+- High availability
+end note
+
+@enduml

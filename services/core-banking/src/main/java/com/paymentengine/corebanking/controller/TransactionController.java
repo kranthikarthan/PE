@@ -3,6 +3,9 @@ package com.paymentengine.corebanking.controller;
 import com.paymentengine.corebanking.dto.CreateTransactionRequest;
 import com.paymentengine.corebanking.dto.TransactionResponse;
 import com.paymentengine.corebanking.entity.Transaction;
+import com.paymentengine.corebanking.exception.AccountException;
+import com.paymentengine.corebanking.exception.TransactionException;
+import com.paymentengine.corebanking.exception.ValidationException;
 import com.paymentengine.corebanking.service.TransactionService;
 import io.micrometer.core.annotation.Timed;
 import jakarta.servlet.http.HttpServletRequest;
@@ -64,12 +67,37 @@ public class TransactionController {
             logger.info("Transaction created successfully: {}", response.getTransactionReference());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
             
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid transaction request: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
+        } catch (ValidationException e) {
+            logger.warn("Transaction validation error: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(Map.of(
+                    "error", "VALIDATION_ERROR",
+                    "message", e.getMessage(),
+                    "validationErrors", e.getValidationErrors()
+                ));
+        } catch (AccountException e) {
+            logger.warn("Account error: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(Map.of(
+                    "error", e.getErrorCode(),
+                    "message", e.getMessage(),
+                    "accountId", e.getAccountId()
+                ));
+        } catch (TransactionException e) {
+            logger.error("Transaction error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "error", e.getErrorCode(),
+                    "message", e.getMessage(),
+                    "transactionReference", e.getTransactionReference()
+                ));
         } catch (Exception e) {
-            logger.error("Error creating transaction: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            logger.error("Unexpected error creating transaction: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "error", "INTERNAL_ERROR",
+                    "message", "An unexpected error occurred"
+                ));
         }
     }
     

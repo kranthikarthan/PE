@@ -108,8 +108,8 @@ INSERT INTO config.api_endpoints (endpoint_path, http_method, service_name, rate
     ('/api/v1/payment-types', 'GET', 'core-banking', 1000, true, '{"timeout_seconds": 5, "cache_ttl_seconds": 3600}'),
     ('/api/v1/customers', 'GET', 'core-banking', 200, true, '{"timeout_seconds": 10, "cache_ttl_seconds": 600}'),
     ('/api/v1/customers/{id}', 'GET', 'core-banking', 1000, true, '{"timeout_seconds": 5, "cache_ttl_seconds": 300}'),
-    ('/api/v1/auth/login', 'POST', 'middleware', 10, false, '{"timeout_seconds": 10, "rate_limit_per_ip": 5}'),
-    ('/api/v1/auth/refresh', 'POST', 'middleware', 50, true, '{"timeout_seconds": 5}'),
+    ('/api/v1/auth/login', 'POST', 'payment-processing', 10, false, '{"timeout_seconds": 10, "rate_limit_per_ip": 5}'),
+    ('/api/v1/auth/refresh', 'POST', 'payment-processing', 50, true, '{"timeout_seconds": 5}'),
     ('/api/v1/health', 'GET', 'api-gateway', 10000, false, '{"timeout_seconds": 2}'),
     ('/api/v1/metrics', 'GET', 'api-gateway', 100, true, '{"timeout_seconds": 10}');
 

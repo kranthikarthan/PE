@@ -46,7 +46,7 @@ class PaymentEngineDocumentationGenerator {
         const controllers = [];
         const controllerPaths = [
             'services/core-banking/src/main/java/com/paymentengine/corebanking/controller',
-            'services/middleware/src/main/java/com/paymentengine/middleware/controller',
+            'services/payment-processing/src/main/java/com/paymentengine/payment-processing/controller',
             'services/api-gateway/src/main/java/com/paymentengine/gateway/controller'
         ];
 

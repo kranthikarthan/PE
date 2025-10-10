@@ -1,0 +1,202 @@
+@startuml DATA_ARCHITECTURE
+!theme plain
+title Data Architecture & Persistence Layer
+
+package "Application Layer" {
+    [JPA Entities] as JPA
+    [Repository Layer] as RL
+    [Service Layer] as SL
+    [DTO Layer] as DTO
+}
+
+package "Database Layer" {
+    [PostgreSQL Primary] as PGP
+    [PostgreSQL Replica 1] as PGR1
+    [PostgreSQL Replica 2] as PGR2
+    [Connection Pool] as CP
+    [Transaction Manager] as TM
+}
+
+package "Caching Layer" {
+    [Redis Cluster] as RC
+    [Cache Manager] as CM
+    [Cache Configuration] as CC
+    [Cache Eviction] as CE
+}
+
+package "Message Queue" {
+    [Apache Kafka] as K
+    [Kafka Topics] as KT
+    [Dead Letter Queue] as DLQ
+    [Message Serialization] as MS
+}
+
+package "Data Models" {
+    [Tenant Entity] as TE
+    [Scheme Config Entity] as SCE
+    [Clearing System Entity] as CSE
+    [Message Flow Entity] as MFE
+    [Audit Log Entity] as ALE
+}
+
+package "Data Access Patterns" {
+    [Repository Pattern] as RP
+    [Unit of Work] as UOW
+    [Lazy Loading] as LL
+    [Eager Loading] as EL
+    [Query Optimization] as QO
+}
+
+package "Data Migration" {
+    [Flyway Migrations] as FM
+    [Schema Versioning] as SV
+    [Data Migration Scripts] as DMS
+    [Rollback Scripts] as RS
+}
+
+package "Backup & Recovery" {
+    [Database Backup] as DB
+    [Point-in-Time Recovery] as PITR
+    [Disaster Recovery] as DR
+    [Data Replication] as DR2
+}
+
+' Application layer connections
+JPA --> RL : Entity Mapping
+RL --> SL : Data Access
+SL --> DTO : Data Transfer
+DTO --> JPA : Entity Creation
+
+' Database connections
+RL --> CP : Connection Management
+CP --> PGP : Primary Database
+CP --> PGR1 : Read Replica
+CP --> PGR2 : Read Replica
+TM --> PGP : Transaction Management
+
+' Caching connections
+SL --> CM : Cache Operations
+CM --> RC : Cache Storage
+CM --> CC : Cache Configuration
+CM --> CE : Cache Eviction
+
+' Message queue connections
+SL --> MS : Message Serialization
+MS --> K : Message Production
+K --> KT : Topic Storage
+K --> DLQ : Failed Messages
+
+' Data model connections
+JPA --> TE : Tenant Data
+JPA --> SCE : Scheme Configuration
+JPA --> CSE : Clearing System Data
+JPA --> MFE : Message Flow Data
+JPA --> ALE : Audit Log Data
+
+' Data access pattern connections
+RL --> RP : Repository Implementation
+RP --> UOW : Transaction Management
+RP --> LL : Lazy Loading
+RP --> EL : Eager Loading
+RP --> QO : Query Optimization
+
+' Data migration connections
+FM --> SV : Schema Versioning
+FM --> DMS : Migration Scripts
+FM --> RS : Rollback Scripts
+FM --> PGP : Database Updates
+
+' Backup and recovery connections
+DB --> PGP : Database Backup
+PITR --> PGP : Point-in-Time Recovery
+DR --> PGP : Disaster Recovery
+DR2 --> PGR1 : Data Replication
+DR2 --> PGR2 : Data Replication
+
+' Cross-component connections
+PGP --> PGR1 : Master-Slave Replication
+PGP --> PGR2 : Master-Slave Replication
+RC --> CM : Cache Management
+K --> MS : Message Deserialization
+
+note right of PGP
+PostgreSQL Primary:
+- ACID compliance
+- High availability
+- Replication support
+- Performance optimization
+- Security features
+- Backup and recovery
+end note
+
+note right of RC
+Redis Cluster:
+- High performance
+- Data persistence
+- Clustering support
+- Memory optimization
+- Pub/Sub messaging
+- Session storage
+end note
+
+note right of K
+Apache Kafka:
+- High throughput
+- Durability
+- Replication
+- Partitioning
+- Consumer groups
+- Dead letter queues
+end note
+
+note right of JPA
+JPA Entities:
+- Object-relational mapping
+- Lazy loading
+- Caching support
+- Validation
+- Relationships
+- Inheritance
+end note
+
+note right of RL
+Repository Layer:
+- Data access abstraction
+- Query methods
+- Custom queries
+- Transaction management
+- Performance optimization
+- Error handling
+end note
+
+note right of CM
+Cache Manager:
+- Cache-aside pattern
+- Write-through caching
+- Cache invalidation
+- TTL management
+- Performance optimization
+- Memory management
+end note
+
+note right of FM
+Flyway Migrations:
+- Version control
+- Schema evolution
+- Data migration
+- Rollback support
+- Environment management
+- Team collaboration
+end note
+
+note right of DB
+Backup & Recovery:
+- Automated backups
+- Point-in-time recovery
+- Disaster recovery
+- Data replication
+- High availability
+- Business continuity
+end note
+
+@enduml

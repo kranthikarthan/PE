@@ -1,0 +1,224 @@
+@startuml MICROSERVICES_TECHNOLOGY_STACK
+!theme plain
+title Microservices Technology Stack
+
+package "Frontend Layer" {
+    [React 18] as R18
+    [TypeScript] as TS
+    [Material-UI] as MUI
+    [Redux Toolkit] as RTK
+    [React Query] as RQ
+    [Axios] as AX
+}
+
+package "API Gateway Layer" {
+    [Spring Cloud Gateway] as SCG
+    [Redis Rate Limiter] as RRL
+    [Resilience4j] as R4J
+    [OAuth2 Resource Server] as O2RS
+}
+
+package "Service Mesh Layer" {
+    [Istio] as ISTIO
+    [Envoy Proxy] as EP
+    [Pilot] as PILOT
+    [Citadel] as CITADEL
+    [Galley] as GALLEY
+    [Mixer] as MIXER
+}
+
+package "Core Services" {
+    [Spring Boot 3.x] as SB3
+    [Spring Data JPA] as SDJ
+    [Spring Security] as SS
+    [Spring Cloud OpenFeign] as SCOF
+    [Spring Cloud Sleuth] as SCS
+}
+
+package "Authentication Services" {
+    [OAuth2 Authorization Server] as O2AS
+    [JWT] as JWT
+    [Spring Security OAuth2] as SSO2
+    [BCrypt] as BC
+}
+
+package "Configuration Services" {
+    [Spring Cloud Config] as SCC
+    [Consul] as CONSUL
+    [Etcd] as ETCD
+    [Zookeeper] as ZK
+}
+
+package "Message Processing" {
+    [Apache Kafka] as AK
+    [Kafka Streams] as KS
+    [Schema Registry] as SR
+    [Dead Letter Queues] as DLQ
+}
+
+package "Data Layer" {
+    [PostgreSQL 15] as PG15
+    [HikariCP] as HCP
+    [Flyway] as FW
+    [Redis] as REDIS
+    [Hazelcast] as HZ
+}
+
+package "Monitoring & Observability" {
+    [Prometheus] as PROM
+    [Grafana] as GRAF
+    [Jaeger] as JAEG
+    [ELK Stack] as ELK
+    [Micrometer] as MICRO
+    [Spring Boot Actuator] as SBA
+}
+
+package "Security" {
+    [Vault] as VAULT
+    [Cert-Manager] as CM
+    [Falco] as FALCO
+    [OPA Gatekeeper] as OPA
+    [Network Policies] as NP
+}
+
+package "Infrastructure" {
+    [Docker] as DOCKER
+    [Kubernetes] as K8S
+    [Helm] as HELM
+    [NGINX Ingress] as NI
+    [CloudFlare CDN] as CF
+    [AWS ALB] as ALB
+}
+
+package "CI/CD Pipeline" {
+    [GitHub Actions] as GA
+    [Maven] as MAVEN
+    [Docker Registry] as DR
+    [ArgoCD] as ARGO
+    [SonarQube] as SQ
+    [Trivy] as TRIVY
+}
+
+' Frontend connections
+R18 --> TS
+R18 --> MUI
+R18 --> RTK
+R18 --> RQ
+R18 --> AX
+
+' API Gateway connections
+SCG --> RRL
+SCG --> R4J
+SCG --> O2RS
+
+' Service Mesh connections
+ISTIO --> EP
+ISTIO --> PILOT
+ISTIO --> CITADEL
+ISTIO --> GALLEY
+ISTIO --> MIXER
+
+' Core Services connections
+SB3 --> SDJ
+SB3 --> SS
+SB3 --> SCOF
+SB3 --> SCS
+
+' Authentication connections
+O2AS --> JWT
+O2AS --> SSO2
+O2AS --> BC
+
+' Configuration connections
+SCC --> CONSUL
+SCC --> ETCD
+SCC --> ZK
+
+' Message Processing connections
+AK --> KS
+AK --> SR
+AK --> DLQ
+
+' Data Layer connections
+PG15 --> HCP
+PG15 --> FW
+REDIS --> HZ
+
+' Monitoring connections
+PROM --> GRAF
+JAEG --> ELK
+MICRO --> SBA
+
+' Security connections
+VAULT --> CM
+FALCO --> OPA
+OPA --> NP
+
+' Infrastructure connections
+DOCKER --> K8S
+K8S --> HELM
+K8S --> NI
+NI --> CF
+CF --> ALB
+
+' CI/CD connections
+GA --> MAVEN
+MAVEN --> DR
+DR --> ARGO
+ARGO --> SQ
+SQ --> TRIVY
+
+' Technology stack benefits
+note right of ISTIO
+Service Mesh Benefits:
+- Automatic mTLS
+- Traffic management
+- Observability
+- Security
+- Service discovery
+- Load balancing
+- Circuit breaking
+- Retry logic
+- Timeout management
+- Fault injection
+- A/B testing
+- Canary deployments
+end note
+
+note right of PROM
+Monitoring Stack:
+- Metrics collection
+- Distributed tracing
+- Log aggregation
+- Alerting
+- Dashboards
+- Performance monitoring
+- Error tracking
+- SLA monitoring
+end note
+
+note right of VAULT
+Security Stack:
+- Secret management
+- Certificate management
+- Encryption
+- Digital signatures
+- Audit logging
+- Compliance monitoring
+- Access control
+- Network security
+end note
+
+note right of K8S
+Infrastructure Stack:
+- Container orchestration
+- Service mesh
+- Load balancing
+- Auto-scaling
+- Rolling updates
+- Health checking
+- Resource management
+- Multi-cloud support
+end note
+
+@enduml

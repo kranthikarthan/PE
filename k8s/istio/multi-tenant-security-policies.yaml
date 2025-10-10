@@ -1,0 +1,451 @@
+# Multi-Tenant Security Policies Configuration
+# This configuration provides tenant isolation and security enforcement
+
+---
+# Default Peer Authentication - STRICT mTLS
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: security
+    version: v1
+spec:
+  mtls:
+    mode: STRICT
+
+---
+# Tenant-specific Peer Authentication for tenant-001
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: tenant-001-peer-auth
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: security
+    tenant: tenant-001
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      tenant: tenant-001
+  mtls:
+    mode: STRICT
+
+---
+# Tenant-specific Peer Authentication for tenant-002
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: tenant-002-peer-auth
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: security
+    tenant: tenant-002
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      tenant: tenant-002
+  mtls:
+    mode: STRICT
+
+---
+# Tenant-specific Peer Authentication for tenant-003
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: tenant-003-peer-auth
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: security
+    tenant: tenant-003
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      tenant: tenant-003
+  mtls:
+    mode: STRICT
+
+---
+# Main Authorization Policy for Payment Engine
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: payment-engine-main-authz
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: security
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: payment-engine
+  rules:
+  # Allow health checks
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+    to:
+    - operation:
+        methods: ["GET"]
+        paths: ["/health", "/actuator/health"]
+  # Allow metrics collection
+  - from:
+    - source:
+        principals: ["cluster.local/ns/monitoring/sa/prometheus"]
+    to:
+    - operation:
+        methods: ["GET"]
+        paths: ["/actuator/prometheus", "/metrics"]
+
+---
+# Tenant-001 Authorization Policy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: tenant-001-authz
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: security
+    tenant: tenant-001
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      tenant: tenant-001
+  rules:
+  # Allow ingress gateway to access tenant-001 services
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        paths: ["/api/v1/*"]
+    when:
+    - key: request.headers[x-tenant-id]
+      values: ["tenant-001"]
+  # Allow inter-service communication within tenant-001
+  - from:
+    - source:
+        principals: 
+        - "cluster.local/ns/payment-engine/sa/auth-service"
+        - "cluster.local/ns/payment-engine/sa/config-service"
+        - "cluster.local/ns/payment-engine/sa/payment-processing-service"
+        - "cluster.local/ns/payment-engine/sa/core-banking-service"
+        - "cluster.local/ns/payment-engine/sa/api-gateway-service"
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        paths: ["/api/v1/*"]
+    when:
+    - key: request.headers[x-tenant-id]
+      values: ["tenant-001"]
+
+---
+# Tenant-002 Authorization Policy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: tenant-002-authz
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: security
+    tenant: tenant-002
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      tenant: tenant-002
+  rules:
+  # Allow ingress gateway to access tenant-002 services
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        paths: ["/api/v1/*"]
+    when:
+    - key: request.headers[x-tenant-id]
+      values: ["tenant-002"]
+  # Allow inter-service communication within tenant-002
+  - from:
+    - source:
+        principals: 
+        - "cluster.local/ns/payment-engine/sa/auth-service"
+        - "cluster.local/ns/payment-engine/sa/config-service"
+        - "cluster.local/ns/payment-engine/sa/payment-processing-service"
+        - "cluster.local/ns/payment-engine/sa/core-banking-service"
+        - "cluster.local/ns/payment-engine/sa/api-gateway-service"
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        paths: ["/api/v1/*"]
+    when:
+    - key: request.headers[x-tenant-id]
+      values: ["tenant-002"]
+
+---
+# Tenant-003 Authorization Policy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: tenant-003-authz
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: security
+    tenant: tenant-003
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      tenant: tenant-003
+  rules:
+  # Allow ingress gateway to access tenant-003 services
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        paths: ["/api/v1/*"]
+    when:
+    - key: request.headers[x-tenant-id]
+      values: ["tenant-003"]
+  # Allow inter-service communication within tenant-003
+  - from:
+    - source:
+        principals: 
+        - "cluster.local/ns/payment-engine/sa/auth-service"
+        - "cluster.local/ns/payment-engine/sa/config-service"
+        - "cluster.local/ns/payment-engine/sa/payment-processing-service"
+        - "cluster.local/ns/payment-engine/sa/core-banking-service"
+        - "cluster.local/ns/payment-engine/sa/api-gateway-service"
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        paths: ["/api/v1/*"]
+    when:
+    - key: request.headers[x-tenant-id]
+      values: ["tenant-003"]
+
+---
+# Development Environment Authorization Policy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: dev-environment-authz
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: security
+    environment: development
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      environment: development
+  rules:
+  # Allow ingress gateway to access dev services
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        paths: ["/api/v1/*"]
+    when:
+    - key: request.headers[x-tenant-id]
+      values: ["tenant-001", "tenant-002", "tenant-003"]
+  # Allow inter-service communication in dev environment
+  - from:
+    - source:
+        principals: 
+        - "cluster.local/ns/payment-engine/sa/auth-service"
+        - "cluster.local/ns/payment-engine/sa/config-service"
+        - "cluster.local/ns/payment-engine/sa/payment-processing-service"
+        - "cluster.local/ns/payment-engine/sa/core-banking-service"
+        - "cluster.local/ns/payment-engine/sa/api-gateway-service"
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        paths: ["/api/v1/*"]
+
+---
+# Staging Environment Authorization Policy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: staging-environment-authz
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: security
+    environment: staging
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      environment: staging
+  rules:
+  # Allow ingress gateway to access staging services
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        paths: ["/api/v1/*"]
+    when:
+    - key: request.headers[x-tenant-id]
+      values: ["tenant-001", "tenant-002", "tenant-003"]
+  # Allow inter-service communication in staging environment
+  - from:
+    - source:
+        principals: 
+        - "cluster.local/ns/payment-engine/sa/auth-service"
+        - "cluster.local/ns/payment-engine/sa/config-service"
+        - "cluster.local/ns/payment-engine/sa/payment-processing-service"
+        - "cluster.local/ns/payment-engine/sa/core-banking-service"
+        - "cluster.local/ns/payment-engine/sa/api-gateway-service"
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        paths: ["/api/v1/*"]
+
+---
+# Production Environment Authorization Policy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: production-environment-authz
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: security
+    environment: production
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      environment: production
+  rules:
+  # Allow ingress gateway to access production services
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        paths: ["/api/v1/*"]
+    when:
+    - key: request.headers[x-tenant-id]
+      values: ["tenant-001", "tenant-002", "tenant-003"]
+  # Allow inter-service communication in production environment
+  - from:
+    - source:
+        principals: 
+        - "cluster.local/ns/payment-engine/sa/auth-service"
+        - "cluster.local/ns/payment-engine/sa/config-service"
+        - "cluster.local/ns/payment-engine/sa/payment-processing-service"
+        - "cluster.local/ns/payment-engine/sa/core-banking-service"
+        - "cluster.local/ns/payment-engine/sa/api-gateway-service"
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        paths: ["/api/v1/*"]
+
+---
+# JWT Request Authentication for all tenants
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: jwt-auth-multitenant
+  namespace: payment-engine
+  labels:
+    app: payment-engine
+    component: security
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: payment-engine
+  jwtRules:
+  # JWT rules for tenant-001
+  - issuer: "https://tenant-001.payment-engine.local/auth"
+    jwksUri: "https://tenant-001.payment-engine.local/auth/.well-known/jwks.json"
+    audiences:
+    - "payment-engine-api"
+    - "tenant-001-api"
+    fromHeaders:
+    - name: "Authorization"
+      prefix: "Bearer "
+    fromParams:
+    - "access_token"
+  # JWT rules for tenant-002
+  - issuer: "https://tenant-002.payment-engine.local/auth"
+    jwksUri: "https://tenant-002.payment-engine.local/auth/.well-known/jwks.json"
+    audiences:
+    - "payment-engine-api"
+    - "tenant-002-api"
+    fromHeaders:
+    - name: "Authorization"
+      prefix: "Bearer "
+    fromParams:
+    - "access_token"
+  # JWT rules for tenant-003
+  - issuer: "https://tenant-003.payment-engine.local/auth"
+    jwksUri: "https://tenant-003.payment-engine.local/auth/.well-known/jwks.json"
+    audiences:
+    - "payment-engine-api"
+    - "tenant-003-api"
+    fromHeaders:
+    - name: "Authorization"
+      prefix: "Bearer "
+    fromParams:
+    - "access_token"
+  # JWT rules for development environment
+  - issuer: "https://*.dev.payment-engine.local/auth"
+    jwksUri: "https://auth.dev.payment-engine.local/.well-known/jwks.json"
+    audiences:
+    - "payment-engine-api"
+    - "dev-api"
+    fromHeaders:
+    - name: "Authorization"
+      prefix: "Bearer "
+    fromParams:
+    - "access_token"
+  # JWT rules for staging environment
+  - issuer: "https://*.staging.payment-engine.local/auth"
+    jwksUri: "https://auth.staging.payment-engine.local/.well-known/jwks.json"
+    audiences:
+    - "payment-engine-api"
+    - "staging-api"
+    fromHeaders:
+    - name: "Authorization"
+      prefix: "Bearer "
+    fromParams:
+    - "access_token"
+  # JWT rules for production environment
+  - issuer: "https://*.prod.payment-engine.local/auth"
+    jwksUri: "https://auth.prod.payment-engine.local/.well-known/jwks.json"
+    audiences:
+    - "payment-engine-api"
+    - "prod-api"
+    fromHeaders:
+    - name: "Authorization"
+      prefix: "Bearer "
+    fromParams:
+    - "access_token"

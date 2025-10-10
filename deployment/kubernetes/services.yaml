@@ -51,10 +51,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: middleware-service
+  name: payment-processing-service
   namespace: payment-engine
   labels:
-    app: middleware
+    app: payment-processing
     component: service
   annotations:
     prometheus.io/scrape: "true"
@@ -62,7 +62,7 @@ metadata:
     prometheus.io/path: "/actuator/prometheus"
 spec:
   selector:
-    app: middleware
+    app: payment-processing
   ports:
     - name: http
       port: 8082

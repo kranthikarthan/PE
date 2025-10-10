@@ -53,7 +53,7 @@ spring:
       routes:
         # Authentication routes
         - id: auth-login
-          uri: lb://middleware-service
+          uri: lb://payment-processing-service
           predicates:
             - Path=/api/v1/auth/login
             - Method=POST
@@ -68,7 +68,7 @@ spring:
                 message: "Authentication login attempt"
         
         - id: auth-refresh
-          uri: lb://middleware-service
+          uri: lb://payment-processing-service
           predicates:
             - Path=/api/v1/auth/refresh
             - Method=POST
@@ -79,10 +79,20 @@ spring:
                 window-size-in-seconds: 60
         
         - id: auth-logout
-          uri: lb://middleware-service
+          uri: lb://payment-processing-service
           predicates:
             - Path=/api/v1/auth/logout
             - Method=POST
+          filters:
+            - name: Authentication
+              args:
+                excluded-paths: []
+        
+        # Tenant Management routes
+        - id: tenant-management
+          uri: lb://payment-processing-service
+          predicates:
+            - Path=/api/tenant-management/**
           filters:
             - name: Authentication
               args:
@@ -507,7 +517,7 @@ spring:
         
         # Dashboard and reporting routes
         - id: dashboard
-          uri: lb://middleware-service
+          uri: lb://payment-processing-service
           predicates:
             - Path=/api/v1/dashboard/**
           filters:
@@ -521,7 +531,7 @@ spring:
         
         # Webhook routes (no authentication for external systems)
         - id: webhooks
-          uri: lb://middleware-service
+          uri: lb://payment-processing-service
           predicates:
             - Path=/api/v1/webhooks/**
           filters:

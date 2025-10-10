@@ -19,7 +19,7 @@ filebeat.inputs:
     fields_under_root: true
     
     # Only collect logs from Payment Engine containers
-    include_lines: ['payment-engine', 'core-banking', 'middleware', 'api-gateway']
+    include_lines: ['payment-engine', 'core-banking', 'payment-processing', 'api-gateway']
     
   # Application log files (if mounted)
   - type: log

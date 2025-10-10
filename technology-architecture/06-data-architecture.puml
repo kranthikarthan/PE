@@ -1,0 +1,322 @@
+@startuml DATA_ARCHITECTURE
+!theme plain
+title ISO 20022 Payment Engine - Data Architecture
+
+package "Data Sources" {
+    [Client Applications] as CA
+    [Clearing Systems] as CS
+    [Third Party APIs] as TPA
+    [Internal Services] as IS
+    [External Databases] as ED
+    [File Systems] as FS
+}
+
+package "Data Ingestion" {
+    [API Gateway] as AG
+    [Message Queue] as MQ
+    [Data Pipeline] as DP
+    [ETL Processes] as ETL
+    [Stream Processing] as SP
+    [Batch Processing] as BP
+}
+
+package "Data Processing" {
+    [Message Transformation] as MT
+    [Data Validation] as DV
+    [Business Logic] as BL
+    [Data Enrichment] as DE
+    [Data Aggregation] as DA
+    [Data Cleansing] as DC
+}
+
+package "Data Storage" {
+    package "Operational Database" {
+        [PostgreSQL Primary] as PGP
+        [PostgreSQL Replica 1] as PGR1
+        [PostgreSQL Replica 2] as PGR2
+        [PostgreSQL Replica 3] as PGR3
+        [Connection Pooler] as CP
+    }
+    
+    package "Cache Layer" {
+        [Redis Master 1] as RM1
+        [Redis Replica 1] as RR1
+        [Redis Master 2] as RM2
+        [Redis Replica 2] as RR2
+        [Redis Master 3] as RM3
+        [Redis Replica 3] as RR3
+        [Redis Sentinel] as RS
+    }
+    
+    package "Message Queue" {
+        [Kafka Broker 1] as KB1
+        [Kafka Broker 2] as KB2
+        [Kafka Broker 3] as KB3
+        [Zookeeper] as ZK
+        [Schema Registry] as SR
+        [Dead Letter Queue] as DLQ
+    }
+    
+    package "File Storage" {
+        [Object Storage] as OS
+        [File System] as FS2
+        [Backup Storage] as BS
+        [Archive Storage] as AS
+    }
+}
+
+package "Data Analytics" {
+    [Data Warehouse] as DW
+    [OLAP Cubes] as OC
+    [Data Marts] as DM
+    [Analytics Engine] as AE
+    [Reporting Engine] as RE
+    [Business Intelligence] as BI
+}
+
+package "Data Security" {
+    [Data Encryption] as DE2
+    [Data Masking] as DM2
+    [Access Control] as AC
+    [Audit Logging] as AL
+    [Data Classification] as DC2
+    [Compliance] as C
+}
+
+package "Data Governance" {
+    [Data Catalog] as DC3
+    [Data Lineage] as DL
+    [Data Quality] as DQ
+    [Data Stewardship] as DS
+    [Data Policies] as DP2
+    [Data Standards] as DS2
+}
+
+package "Data Operations" {
+    [Backup & Recovery] as BR
+    [Data Migration] as DM3
+    [Data Archival] as DA2
+    [Data Retention] as DR
+    [Disaster Recovery] as DR2
+    [Data Monitoring] as DM4
+}
+
+' Data source connections
+CA --> AG : "Client Data"
+CS --> AG : "Clearing System Data"
+TPA --> AG : "Third Party Data"
+IS --> MQ : "Internal Service Data"
+ED --> DP : "External Database Data"
+FS --> DP : "File System Data"
+
+' Data ingestion connections
+AG --> MQ : "Message Queue"
+MQ --> DP : "Data Pipeline"
+DP --> ETL : "ETL Processes"
+ETL --> SP : "Stream Processing"
+ETL --> BP : "Batch Processing"
+
+' Data processing connections
+DP --> MT : "Message Transformation"
+MT --> DV : "Data Validation"
+DV --> BL : "Business Logic"
+BL --> DE : "Data Enrichment"
+DE --> DA : "Data Aggregation"
+DA --> DC : "Data Cleansing"
+
+' Data storage connections
+DC --> PGP : "Primary Database"
+PGP --> PGR1 : "Replication"
+PGP --> PGR2 : "Replication"
+PGP --> PGR3 : "Replication"
+CP --> PGP : "Connection Pooling"
+
+DC --> RM1 : "Cache Storage"
+RM1 --> RR1 : "Replication"
+RM2 --> RR2 : "Replication"
+RM3 --> RR3 : "Replication"
+RS --> RM1 : "Sentinel"
+
+DC --> KB1 : "Message Queue"
+KB1 --> ZK : "Coordination"
+KB1 --> SR : "Schema Registry"
+KB1 --> DLQ : "Dead Letter Queue"
+
+DC --> OS : "Object Storage"
+OS --> FS2 : "File System"
+OS --> BS : "Backup Storage"
+OS --> AS : "Archive Storage"
+
+' Data analytics connections
+PGP --> DW : "Data Warehouse"
+DW --> OC : "OLAP Cubes"
+OC --> DM : "Data Marts"
+DM --> AE : "Analytics Engine"
+AE --> RE : "Reporting Engine"
+RE --> BI : "Business Intelligence"
+
+' Data security connections
+PGP --> DE2 : "Data Encryption"
+DE2 --> DM2 : "Data Masking"
+DM2 --> AC : "Access Control"
+AC --> AL : "Audit Logging"
+AL --> DC2 : "Data Classification"
+DC2 --> C : "Compliance"
+
+' Data governance connections
+DW --> DC3 : "Data Catalog"
+DC3 --> DL : "Data Lineage"
+DL --> DQ : "Data Quality"
+DQ --> DS : "Data Stewardship"
+DS --> DP2 : "Data Policies"
+DP2 --> DS2 : "Data Standards"
+
+' Data operations connections
+PGP --> BR : "Backup & Recovery"
+BR --> DM3 : "Data Migration"
+DM3 --> DA2 : "Data Archival"
+DA2 --> DR : "Data Retention"
+DR --> DR2 : "Disaster Recovery"
+DR2 --> DM4 : "Data Monitoring"
+
+' Cross-component connections
+MT --> DE2 : "Data Encryption"
+DV --> AL : "Audit Logging"
+BL --> DQ : "Data Quality"
+DE --> DL : "Data Lineage"
+DA --> DC3 : "Data Catalog"
+DC --> DM4 : "Data Monitoring"
+
+note right of CA
+Data Sources:
+- Client applications
+- Clearing systems
+- Third party APIs
+- Internal services
+- External databases
+- File systems
+- Real-time data streams
+- Batch data files
+end note
+
+note right of AG
+Data Ingestion:
+- API Gateway for real-time data
+- Message queue for asynchronous data
+- Data pipeline for batch processing
+- ETL processes for data transformation
+- Stream processing for real-time data
+- Batch processing for historical data
+- Data validation and cleansing
+- Error handling and retry logic
+end note
+
+note right of MT
+Data Processing:
+- Message transformation
+- Data validation
+- Business logic processing
+- Data enrichment
+- Data aggregation
+- Data cleansing
+- Data normalization
+- Data standardization
+end note
+
+note right of PGP
+Operational Database:
+- PostgreSQL primary database
+- Read replicas for scaling
+- Connection pooling
+- High availability
+- ACID compliance
+- Backup and recovery
+- Performance optimization
+- Security features
+end note
+
+note right of RM1
+Cache Layer:
+- Redis cluster for caching
+- Master-replica architecture
+- High availability
+- Performance optimization
+- Session storage
+- Rate limiting
+- Pub/Sub messaging
+- Memory optimization
+end note
+
+note right of KB1
+Message Queue:
+- Kafka cluster for messaging
+- High throughput
+- Durability
+- Replication
+- Schema registry
+- Dead letter queues
+- Consumer groups
+- Partitioning
+end note
+
+note right of OS
+File Storage:
+- Object storage for files
+- File system for local storage
+- Backup storage for data protection
+- Archive storage for long-term retention
+- Data compression
+- Data deduplication
+- Access controls
+- Versioning
+end note
+
+note right of DW
+Data Analytics:
+- Data warehouse for analytics
+- OLAP cubes for multidimensional analysis
+- Data marts for specific domains
+- Analytics engine for processing
+- Reporting engine for reports
+- Business intelligence for insights
+- Machine learning integration
+- Real-time analytics
+end note
+
+note right of DE2
+Data Security:
+- Data encryption at rest and in transit
+- Data masking for sensitive data
+- Access control and authorization
+- Audit logging for compliance
+- Data classification
+- Compliance with regulations
+- Key management
+- Digital signatures
+end note
+
+note right of DC3
+Data Governance:
+- Data catalog for metadata
+- Data lineage for tracking
+- Data quality management
+- Data stewardship
+- Data policies and standards
+- Data lifecycle management
+- Data privacy
+- Data ethics
+end note
+
+note right of BR
+Data Operations:
+- Backup and recovery procedures
+- Data migration processes
+- Data archival strategies
+- Data retention policies
+- Disaster recovery planning
+- Data monitoring and alerting
+- Performance optimization
+- Capacity planning
+end note
+
+@enduml

@@ -1,0 +1,198 @@
+@startuml MICROSERVICES_ARCHITECTURE_DETAILED
+!theme plain
+title Detailed Microservices Architecture
+
+package "Client Layer" {
+    [React Frontend] as RF
+    [Mobile App] as MA
+    [External Systems] as ES
+}
+
+package "Load Balancer Layer" {
+    [Spring Cloud Gateway] as SCG_LB
+    [Load Balancer] as LB
+}
+
+package "Service Mesh Layer" {
+    [Istio Gateway] as IG
+    [Istio Control Plane] as ICP
+    [Envoy Proxy] as EP1
+    [Envoy Proxy] as EP2
+    [Envoy Proxy] as EP3
+    [Envoy Proxy] as EP4
+    [Envoy Proxy] as EP5
+}
+
+package "API Gateway Layer" {
+    [Spring Cloud Gateway] as SCG
+    [Rate Limiter] as RL
+    [Circuit Breaker] as CB
+    [Authentication Filter] as AF
+}
+
+package "Core Business Services" {
+    [Payment Processing Service] as MS
+    [ISO 20022 Service] as IS
+    [Message Processing Service] as MPS
+    [Routing Service] as RS
+}
+
+package "Authentication Services" {
+    [Auth Service] as AS
+    [User Management] as UM
+    [JWT Token Service] as JTS
+    [OAuth2 Server] as OAS
+}
+
+package "Configuration Services" {
+    [Config Service] as CS
+    [Tenant Management] as TM
+    [Feature Flag Service] as FFS
+    [Configuration History] as CH
+}
+
+package "Integration Services" {
+    [Clearing System Adapter] as CSA
+    [Webhook Service] as WS
+    [Kafka Producer] as KP
+    [Kafka Consumer] as KC
+}
+
+package "Infrastructure Services" {
+    [Database Service] as DS
+    [Cache Service] as CachS
+    [Message Queue Service] as MQS
+    [File Storage Service] as FSS
+}
+
+package "Monitoring Services" {
+    [Metrics Service] as MetS
+    [Logging Service] as LS
+    [Tracing Service] as TS
+    [Alerting Service] as AS2
+}
+
+package "Security Services" {
+    [Encryption Service] as EncS
+    [Digital Signature Service] as DSS
+    [Audit Service] as AudS
+    [Compliance Service] as CompS
+}
+
+package "Data Layer" {
+    database "PostgreSQL" as PG
+    database "Redis" as R
+    database "Kafka" as K
+    database "Azure Key Vault" as AKV
+}
+
+package "External Systems" {
+    [Clearing Systems] as CS2
+    [Payment Schemes] as PS
+    [Regulatory Systems] as RS2
+    [Third-party APIs] as TPA
+}
+
+' Client connections
+RF --> SCG_LB
+MA --> SCG_LB
+ES --> SCG_LB
+
+' Load balancer connections
+SCG_LB --> LB
+LB --> IG
+
+' Service mesh connections
+IG --> EP1
+EP1 --> SCG
+SCG --> EP2
+EP2 --> MS
+SCG --> EP3
+EP3 --> AS
+SCG --> EP4
+EP4 --> CS
+
+' Service connections
+MS --> IS
+MS --> MPS
+MS --> RS
+MS --> CSA
+MS --> WS
+MS --> KP
+MS --> KC
+
+AS --> UM
+AS --> JTS
+AS --> OAS
+
+CS --> TM
+CS --> FFS
+CS --> CH
+
+' Infrastructure connections
+MS --> DS
+AS --> DS
+CS --> DS
+DS --> PG
+
+MS --> CachS
+AS --> CachS
+CS --> CachS
+CachS --> R
+
+MS --> MQS
+MQS --> K
+
+' Monitoring connections
+MS --> MetS
+AS --> MetS
+CS --> MetS
+MetS --> LS
+MetS --> TS
+MetS --> AS2
+
+' Security connections
+MS --> EncS
+MS --> DSS
+MS --> AudS
+MS --> CompS
+EncS --> AKV
+DSS --> AKV
+
+' External connections
+CSA --> CS2
+CSA --> PS
+CSA --> RS2
+CSA --> TPA
+
+' Service mesh policies
+note right of IG
+Service Mesh Policies:
+- mTLS enforcement
+- Traffic management
+- Security policies
+- Observability
+- Service discovery
+end note
+
+' Resilience patterns
+note right of SCG
+Resilience Patterns:
+- Circuit breaker
+- Retry logic
+- Timeout management
+- Bulkhead isolation
+- Rate limiting
+end note
+
+' Security measures
+note right of EncS
+Security Measures:
+- Message encryption
+- Digital signatures
+- Audit logging
+- Compliance monitoring
+- Access control
+end note
+
+@enduml

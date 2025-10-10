@@ -32,7 +32,7 @@ The Payment Engine is a comprehensive, cloud-native banking solution designed fo
 │  ┌─────────────────────────────────────────────────────────────┤
 │  │                 AKS Cluster                                 │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
-│  │  │API Gateway  │  │ Middleware  │  │Core Banking │        │
+│  │  │API Gateway  │  │ Payment Processing  │  │Core Banking │        │
 │  │  │   Service   │◄─┤   Service   │◄─┤   Service   │        │
 │  │  └─────────────┘  └─────────────┘  └─────────────┘        │
 │  │           │               │               │                │
@@ -73,7 +73,7 @@ The Payment Engine is a comprehensive, cloud-native banking solution designed fo
   - API versioning
   - Monitoring and logging
 
-#### Middleware Layer
+#### Payment Processing Layer
 - **Technology**: Spring Boot microservices
 - **Purpose**: Business logic orchestration and integration
 - **Features**:

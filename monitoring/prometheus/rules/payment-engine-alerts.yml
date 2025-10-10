@@ -23,15 +23,15 @@ groups:
       - record: payment_engine:system_availability
         expr: |
           (
-            sum(up{job=~"api-gateway|core-banking|middleware"}) /
-            count(up{job=~"api-gateway|core-banking|middleware"})
+            sum(up{job=~"api-gateway|core-banking|payment-processing"}) /
+            count(up{job=~"api-gateway|core-banking|payment-processing"})
           ) * 100
 
   - name: payment-engine-alerts
     rules:
       # Critical Alerts
       - alert: ServiceDown
-        expr: up{job=~"api-gateway|core-banking|middleware"} == 0
+        expr: up{job=~"api-gateway|core-banking|payment-processing"} == 0
         for: 1m
         labels:
           severity: critical

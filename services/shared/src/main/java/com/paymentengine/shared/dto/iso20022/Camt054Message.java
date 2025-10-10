@@ -251,7 +251,7 @@ public class Camt054Message {
         @JsonProperty("Amt")
         @NotNull
         @Valid
-        private ActiveCurrencyAndAmount amount;
+        private CommonTypes.ActiveCurrencyAndAmount amount;
         
         @JsonProperty("CdtDbtInd")
         @NotNull
@@ -290,7 +290,7 @@ public class Camt054Message {
         
         @JsonProperty("AddtlInfInd")
         @Valid
-        private MessageIdentification additionalInformationIndicator;
+        private CommonTypes.MessageIdentification additionalInformationIndicator;
         
         @JsonProperty("AmtDtls")
         @Valid
@@ -298,7 +298,7 @@ public class Camt054Message {
         
         @JsonProperty("Chrgs")
         @Valid
-        private List<ChargesInformation> charges;
+        private List<CommonTypes.ChargesInformation> charges;
         
         @JsonProperty("TechInptChanl")
         @Valid
@@ -327,11 +327,11 @@ public class Camt054Message {
             this.entryReference = entryReference;
         }
         
-        public ActiveCurrencyAndAmount getAmount() {
+        public CommonTypes.ActiveCurrencyAndAmount getAmount() {
             return amount;
         }
         
-        public void setAmount(ActiveCurrencyAndAmount amount) {
+        public void setAmount(CommonTypes.ActiveCurrencyAndAmount amount) {
             this.amount = amount;
         }
         
@@ -557,7 +557,7 @@ public class Camt054Message {
         private RateType type;
         
         @JsonProperty("VldtyRg")
-        private CurrencyAndAmountRange validityRange;
+        private CommonTypes.CurrencyAndAmountRange validityRange;
         
         public RateType getType() { return type; }
         public void setType(RateType type) { this.type = type; }
@@ -582,7 +582,7 @@ public class Camt054Message {
         private BigDecimal rate;
         
         @JsonProperty("Amt")
-        private ActiveCurrencyAndAmount amount;
+        private CommonTypes.ActiveCurrencyAndAmount amount;
         
         public String getIdentification() { return identification; }
         public void setIdentification(String identification) { this.identification = identification; }
@@ -627,13 +627,13 @@ public class Camt054Message {
     
     public static class AmountAndDirection {
         @JsonProperty("Amt")
-        private ActiveCurrencyAndAmount amount;
+        private CommonTypes.ActiveCurrencyAndAmount amount;
         
         @JsonProperty("CdtDbtInd")
         private String creditDebitIndicator;
         
-        public ActiveCurrencyAndAmount getAmount() { return amount; }
-        public void setAmount(ActiveCurrencyAndAmount amount) { this.amount = amount; }
+        public CommonTypes.ActiveCurrencyAndAmount getAmount() { return amount; }
+        public void setAmount(CommonTypes.ActiveCurrencyAndAmount amount) { this.amount = amount; }
         public String getCreditDebitIndicator() { return creditDebitIndicator; }
         public void setCreditDebitIndicator(String creditDebitIndicator) { this.creditDebitIndicator = creditDebitIndicator; }
     }
@@ -687,7 +687,7 @@ public class Camt054Message {
         private TransactionReferences references;
         
         @JsonProperty("Amt")
-        private ActiveCurrencyAndAmount amount;
+        private CommonTypes.ActiveCurrencyAndAmount amount;
         
         @JsonProperty("CdtDbtInd")
         private String creditDebitIndicator;
@@ -702,7 +702,7 @@ public class Camt054Message {
         private BankTransactionCode bankTransactionCode;
         
         @JsonProperty("Chrgs")
-        private List<ChargesInformation> charges;
+        private List<CommonTypes.ChargesInformation> charges;
         
         @JsonProperty("Intrst")
         private TransactionInterest interest;
@@ -714,16 +714,16 @@ public class Camt054Message {
         private TransactionAgents relatedAgents;
         
         @JsonProperty("LclInstrm")
-        private LocalInstrument localInstrument;
+        private CommonTypes.LocalInstrument localInstrument;
         
         @JsonProperty("Purp")
-        private Purpose purpose;
+        private CommonTypes.Purpose purpose;
         
         @JsonProperty("RltdRmtInf")
-        private List<RemittanceLocation> relatedRemittanceInformation;
+        private List<CommonTypes.RemittanceLocation> relatedRemittanceInformation;
         
         @JsonProperty("RmtInf")
-        private RemittanceInformation remittanceInformation;
+        private CommonTypes.RemittanceInformation remittanceInformation;
         
         @JsonProperty("RltdDts")
         private TransactionDates relatedDates;
@@ -738,7 +738,7 @@ public class Camt054Message {
         private SecurityIdentification financialInstrumentIdentification;
         
         @JsonProperty("Tax")
-        private TaxInformation tax;
+        private CommonTypes.TaxInformation tax;
         
         @JsonProperty("RtrInf")
         private PaymentReturnInformation returnInformation;
@@ -760,7 +760,7 @@ public class Camt054Message {
         private String additionalTransactionInformation;
         
         @JsonProperty("SplmtryData")
-        private List<SupplementaryData> supplementaryData;
+        private List<CommonTypes.SupplementaryData> supplementaryData;
         
         public EntryTransaction() {}
         
@@ -773,11 +773,11 @@ public class Camt054Message {
             this.references = references;
         }
         
-        public ActiveCurrencyAndAmount getAmount() {
+        public CommonTypes.ActiveCurrencyAndAmount getAmount() {
             return amount;
         }
         
-        public void setAmount(ActiveCurrencyAndAmount amount) {
+        public void setAmount(CommonTypes.ActiveCurrencyAndAmount amount) {
             this.amount = amount;
         }
         
@@ -797,11 +797,11 @@ public class Camt054Message {
             this.relatedParties = relatedParties;
         }
         
-        public RemittanceInformation getRemittanceInformation() {
+        public CommonTypes.RemittanceInformation getRemittanceInformation() {
             return remittanceInformation;
         }
         
-        public void setRemittanceInformation(RemittanceInformation remittanceInformation) {
+        public void setRemittanceInformation(CommonTypes.RemittanceInformation remittanceInformation) {
             this.remittanceInformation = remittanceInformation;
         }
     }
@@ -1019,15 +1019,15 @@ public class Camt054Message {
         private CashAvailabilityDate date;
         
         @JsonProperty("Amt")
-        private ActiveCurrencyAndAmount amount;
+        private CommonTypes.ActiveCurrencyAndAmount amount;
         
         @JsonProperty("CdtDbtInd")
         private String creditDebitIndicator;
         
         public CashAvailabilityDate getDate() { return date; }
         public void setDate(CashAvailabilityDate date) { this.date = date; }
-        public ActiveCurrencyAndAmount getAmount() { return amount; }
-        public void setAmount(ActiveCurrencyAndAmount amount) { this.amount = amount; }
+        public CommonTypes.ActiveCurrencyAndAmount getAmount() { return amount; }
+        public void setAmount(CommonTypes.ActiveCurrencyAndAmount amount) { this.amount = amount; }
     }
     
     public static class CashAvailabilityDate {
@@ -1045,24 +1045,24 @@ public class Camt054Message {
     
     public static class AmountAndCurrencyExchange {
         @JsonProperty("InstdAmt")
-        private ActiveCurrencyAndAmount instructedAmount;
+        private CommonTypes.ActiveCurrencyAndAmount instructedAmount;
         
         @JsonProperty("TxAmt")
-        private ActiveCurrencyAndAmount transactionAmount;
+        private CommonTypes.ActiveCurrencyAndAmount transactionAmount;
         
         @JsonProperty("CntrValAmt")
-        private ActiveCurrencyAndAmount counterValueAmount;
+        private CommonTypes.ActiveCurrencyAndAmount counterValueAmount;
         
         @JsonProperty("AnncdPstngAmt")
-        private ActiveCurrencyAndAmount announcedPostingAmount;
+        private CommonTypes.ActiveCurrencyAndAmount announcedPostingAmount;
         
         @JsonProperty("PrtryAmt")
         private List<ProprietaryAmount> proprietaryAmount;
         
-        public ActiveCurrencyAndAmount getInstructedAmount() { return instructedAmount; }
-        public void setInstructedAmount(ActiveCurrencyAndAmount instructedAmount) { this.instructedAmount = instructedAmount; }
-        public ActiveCurrencyAndAmount getTransactionAmount() { return transactionAmount; }
-        public void setTransactionAmount(ActiveCurrencyAndAmount transactionAmount) { this.transactionAmount = transactionAmount; }
+        public CommonTypes.ActiveCurrencyAndAmount getInstructedAmount() { return instructedAmount; }
+        public void setInstructedAmount(CommonTypes.ActiveCurrencyAndAmount instructedAmount) { this.instructedAmount = instructedAmount; }
+        public CommonTypes.ActiveCurrencyAndAmount getTransactionAmount() { return transactionAmount; }
+        public void setTransactionAmount(CommonTypes.ActiveCurrencyAndAmount transactionAmount) { this.transactionAmount = transactionAmount; }
     }
     
     public static class ProprietaryAmount {
@@ -1070,12 +1070,12 @@ public class Camt054Message {
         private String type;
         
         @JsonProperty("Amt")
-        private ActiveCurrencyAndAmount amount;
+        private CommonTypes.ActiveCurrencyAndAmount amount;
         
         public String getType() { return type; }
         public void setType(String type) { this.type = type; }
-        public ActiveCurrencyAndAmount getAmount() { return amount; }
-        public void setAmount(ActiveCurrencyAndAmount amount) { this.amount = amount; }
+        public CommonTypes.ActiveCurrencyAndAmount getAmount() { return amount; }
+        public void setAmount(CommonTypes.ActiveCurrencyAndAmount amount) { this.amount = amount; }
     }
     
     public static class TechnicalInputChannel {
@@ -1093,20 +1093,20 @@ public class Camt054Message {
     
     public static class TransactionInterest {
         @JsonProperty("TtlIntrstAndTaxAmt")
-        private ActiveCurrencyAndAmount totalInterestAndTaxAmount;
+        private CommonTypes.ActiveCurrencyAndAmount totalInterestAndTaxAmount;
         
         @JsonProperty("Rcrd")
         private List<InterestRecord> record;
         
-        public ActiveCurrencyAndAmount getTotalInterestAndTaxAmount() { return totalInterestAndTaxAmount; }
-        public void setTotalInterestAndTaxAmount(ActiveCurrencyAndAmount totalInterestAndTaxAmount) { this.totalInterestAndTaxAmount = totalInterestAndTaxAmount; }
+        public CommonTypes.ActiveCurrencyAndAmount getTotalInterestAndTaxAmount() { return totalInterestAndTaxAmount; }
+        public void setTotalInterestAndTaxAmount(CommonTypes.ActiveCurrencyAndAmount totalInterestAndTaxAmount) { this.totalInterestAndTaxAmount = totalInterestAndTaxAmount; }
         public List<InterestRecord> getRecord() { return record; }
         public void setRecord(List<InterestRecord> record) { this.record = record; }
     }
     
     public static class InterestRecord {
         @JsonProperty("Amt")
-        private ActiveCurrencyAndAmount amount;
+        private CommonTypes.ActiveCurrencyAndAmount amount;
         
         @JsonProperty("CdtDbtInd")
         private String creditDebitIndicator;
@@ -1126,8 +1126,8 @@ public class Camt054Message {
         @JsonProperty("Tax")
         private TaxCharges tax;
         
-        public ActiveCurrencyAndAmount getAmount() { return amount; }
-        public void setAmount(ActiveCurrencyAndAmount amount) { this.amount = amount; }
+        public CommonTypes.ActiveCurrencyAndAmount getAmount() { return amount; }
+        public void setAmount(CommonTypes.ActiveCurrencyAndAmount amount) { this.amount = amount; }
         public String getCreditDebitIndicator() { return creditDebitIndicator; }
         public void setCreditDebitIndicator(String creditDebitIndicator) { this.creditDebitIndicator = creditDebitIndicator; }
     }
@@ -1205,7 +1205,7 @@ public class Camt054Message {
         private String code;
         
         @JsonProperty("Prtry")
-        private GenericIdentification proprietary;
+        private CommonTypes.GenericOrganisationIdentification proprietary;
         
         public String getCode() { return code; }
         public void setCode(String code) { this.code = code; }
@@ -1216,12 +1216,12 @@ public class Camt054Message {
         private BigDecimal rate;
         
         @JsonProperty("Amt")
-        private ActiveCurrencyAndAmount amount;
+        private CommonTypes.ActiveCurrencyAndAmount amount;
         
         public BigDecimal getRate() { return rate; }
         public void setRate(BigDecimal rate) { this.rate = rate; }
-        public ActiveCurrencyAndAmount getAmount() { return amount; }
-        public void setAmount(ActiveCurrencyAndAmount amount) { this.amount = amount; }
+        public CommonTypes.ActiveCurrencyAndAmount getAmount() { return amount; }
+        public void setAmount(CommonTypes.ActiveCurrencyAndAmount amount) { this.amount = amount; }
     }
     
     public static class ProprietaryPrice {
@@ -1310,7 +1310,7 @@ public class Camt054Message {
         private BankTransactionCode originalBankTransactionCode;
         
         @JsonProperty("Orgtr")
-        private PartyIdentification originator;
+        private CommonTypes.PartyIdentification originator;
         
         @JsonProperty("Rsn")
         private ReturnReason reason;
@@ -1366,7 +1366,7 @@ public class Camt054Message {
         private String identification;
         
         @JsonProperty("Tp")
-        private GenericIdentification type;
+        private CommonTypes.GenericOrganisationIdentification type;
         
         @JsonProperty("Nm")
         private String name;
@@ -1379,39 +1379,39 @@ public class Camt054Message {
     
     public static class CashDeposit {
         @JsonProperty("NoteDnmtn")
-        private ActiveCurrencyAndAmount noteDenomination;
+        private CommonTypes.ActiveCurrencyAndAmount noteDenomination;
         
         @JsonProperty("NbOfNotes")
         private String numberOfNotes;
         
         @JsonProperty("Amt")
-        private ActiveCurrencyAndAmount amount;
+        private CommonTypes.ActiveCurrencyAndAmount amount;
         
-        public ActiveCurrencyAndAmount getNoteDenomination() { return noteDenomination; }
-        public void setNoteDenomination(ActiveCurrencyAndAmount noteDenomination) { this.noteDenomination = noteDenomination; }
+        public CommonTypes.ActiveCurrencyAndAmount getNoteDenomination() { return noteDenomination; }
+        public void setNoteDenomination(CommonTypes.ActiveCurrencyAndAmount noteDenomination) { this.noteDenomination = noteDenomination; }
         public String getNumberOfNotes() { return numberOfNotes; }
         public void setNumberOfNotes(String numberOfNotes) { this.numberOfNotes = numberOfNotes; }
-        public ActiveCurrencyAndAmount getAmount() { return amount; }
-        public void setAmount(ActiveCurrencyAndAmount amount) { this.amount = amount; }
+        public CommonTypes.ActiveCurrencyAndAmount getAmount() { return amount; }
+        public void setAmount(CommonTypes.ActiveCurrencyAndAmount amount) { this.amount = amount; }
     }
     
     public static class CardTransaction {
         @JsonProperty("Card")
-        private PaymentCard card;
+        private CommonTypes.PaymentCard card;
         
         @JsonProperty("POI")
-        private PointOfInteraction pointOfInteraction;
+        private CommonTypes.PointOfInteraction pointOfInteraction;
         
         @JsonProperty("Tx")
-        private CardTransactionDetail transaction;
+        private CommonTypes.CardTransactionDetail transaction;
         
         @JsonProperty("PrePdAcct")
-        private CashAccount prepaidAccount;
+        private CommonTypes.CashAccount prepaidAccount;
         
-        public PaymentCard getCard() { return card; }
-        public void setCard(PaymentCard card) { this.card = card; }
-        public PointOfInteraction getPointOfInteraction() { return pointOfInteraction; }
-        public void setPointOfInteraction(PointOfInteraction pointOfInteraction) { this.pointOfInteraction = pointOfInteraction; }
+        public CommonTypes.PaymentCard getCard() { return card; }
+        public void setCard(CommonTypes.PaymentCard card) { this.card = card; }
+        public CommonTypes.PointOfInteraction getPointOfInteraction() { return pointOfInteraction; }
+        public void setPointOfInteraction(CommonTypes.PointOfInteraction pointOfInteraction) { this.pointOfInteraction = pointOfInteraction; }
     }
     
     // Additional classes would continue following the same pattern...

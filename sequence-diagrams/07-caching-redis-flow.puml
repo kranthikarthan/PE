@@ -1,0 +1,231 @@
+@startuml CACHING_REDIS_FLOW
+!theme plain
+title Redis Caching & Performance Optimization Flow
+
+actor Client as C
+participant "API Gateway" as AG
+participant "Payment Processing Service" as MS
+participant "Redis Cache" as RC
+participant "Database" as DB
+participant "Cache Manager" as CM
+participant "Monitoring" as M
+
+== Cache-Aside Pattern Implementation ==
+
+C -> AG: POST /api/v1/iso20022/comprehensive/pain001
+AG -> MS: Forward Request
+MS -> MS: Extract Tenant ID
+MS -> CM: Check Cache for Tenant Config
+note right: Cache Key: tenant-config:<tenant-id>\nTTL: 4 hours\nStrategy: Cache-Aside
+
+CM -> RC: GET tenant-config:<tenant-id>
+RC -> RC: Check Cache Entry
+note right: Key: tenant-config:<tenant-id>\nValue: <tenant-config>\nTTL: 3.5 hours\nHit: true
+
+RC --> CM: Return Cached Value
+note right: Status: HIT\nValue: <tenant-config>\nTTL: 3.5 hours
+
+CM -> M: Record Cache Hit
+note right: Metrics:\n- redis_cache_hits_total: +1\n- redis_cache_hit_rate: 85%\n- redis_cache_response_time_ms: 2
+
+CM --> MS: Return Tenant Configuration
+MS -> MS: Use Cached Configuration
+MS -> MS: Process Request
+
+== Cache Miss Scenario ==
+
+MS -> CM: Check Cache for Clearing System Config
+note right: Cache Key: clearing-system-config:<system-id>\nTTL: 2 hours\nStrategy: Cache-Aside
+
+CM -> RC: GET clearing-system-config:<system-id>
+RC -> RC: Check Cache Entry
+note right: Key: clearing-system-config:<system-id>\nValue: null\nStatus: MISS
+
+RC --> CM: Return Cache Miss
+note right: Status: MISS\nValue: null
+
+CM -> M: Record Cache Miss
+note right: Metrics:\n- redis_cache_misses_total: +1\n- redis_cache_hit_rate: 84%\n- redis_cache_response_time_ms: 1
+
+CM -> DB: Query Database
+note right: Query: SELECT * FROM clearing_systems WHERE id = <system-id>\nTimeout: 5s
+
+DB -> DB: Execute Query
+DB --> CM: Return Configuration Data
+note right: Status: SUCCESS\nData: <clearing-system-config>\nRows: 1
+
+CM -> RC: SET clearing-system-config:<system-id>
+note right: Key: clearing-system-config:<system-id>\nValue: <clearing-system-config>\nTTL: 2 hours\nNX: false
+
+RC -> RC: Store Cache Entry
+note right: Key: clearing-system-config:<system-id>\nValue: <clearing-system-config>\nTTL: 2 hours\nStatus: STORED
+
+RC --> CM: Return Storage Success
+CM -> M: Record Cache Write
+note right: Metrics:\n- redis_cache_writes_total: +1\n- redis_cache_size_bytes: +<size>\n- redis_cache_entries_total: +1
+
+CM --> MS: Return Configuration Data
+MS -> MS: Use Configuration Data
+MS -> MS: Process Request
+
+== Write-Through Caching ==
+
+MS -> MS: Update Tenant Configuration
+MS -> CM: Update Cache and Database
+note right: Cache Key: tenant-config:<tenant-id>\nStrategy: Write-Through\nTTL: 4 hours
+
+CM -> RC: SET tenant-config:<tenant-id>
+note right: Key: tenant-config:<tenant-id>\nValue: <updated-config>\nTTL: 4 hours\nXX: true
+
+RC -> RC: Update Cache Entry
+note right: Key: tenant-config:<tenant-id>\nValue: <updated-config>\nTTL: 4 hours\nStatus: UPDATED
+
+RC --> CM: Return Update Success
+CM -> DB: UPDATE tenant_configurations
+note right: Query: UPDATE tenant_configurations SET config = <updated-config> WHERE tenant_id = <tenant-id>\nTimeout: 5s
+
+DB -> DB: Execute Update
+DB --> CM: Return Update Success
+note right: Status: SUCCESS\nRows Affected: 1
+
+CM -> M: Record Cache Update
+note right: Metrics:\n- redis_cache_updates_total: +1\n- redis_cache_write_through_total: +1\n- redis_cache_consistency: 100%
+
+CM --> MS: Return Update Success
+MS -> MS: Continue Processing
+
+== Cache Invalidation ==
+
+MS -> MS: Delete Tenant Configuration
+MS -> CM: Invalidate Cache Entry
+note right: Cache Key: tenant-config:<tenant-id>\nStrategy: Cache Invalidation
+
+CM -> RC: DEL tenant-config:<tenant-id>
+RC -> RC: Delete Cache Entry
+note right: Key: tenant-config:<tenant-id>\nStatus: DELETED
+
+RC --> CM: Return Deletion Success
+CM -> DB: DELETE FROM tenant_configurations
+note right: Query: DELETE FROM tenant_configurations WHERE tenant_id = <tenant-id>\nTimeout: 5s
+
+DB -> DB: Execute Deletion
+DB --> CM: Return Deletion Success
+note right: Status: SUCCESS\nRows Affected: 1
+
+CM -> M: Record Cache Invalidation
+note right: Metrics:\n- redis_cache_invalidations_total: +1\n- redis_cache_entries_total: -1\n- redis_cache_size_bytes: -<size>
+
+CM --> MS: Return Invalidation Success
+MS -> MS: Continue Processing
+
+== Cache Warming ==
+
+MS -> CM: Warm Cache for Tenant
+note right: Tenant ID: <tenant-id>\nStrategy: Cache Warming\nTTL: 4 hours
+
+CM -> DB: Query All Tenant Data
+note right: Queries:\n- SELECT * FROM tenant_configurations WHERE tenant_id = <tenant-id>\n- SELECT * FROM clearing_system_mappings WHERE tenant_id = <tenant-id>\n- SELECT * FROM routing_rules WHERE tenant_id = <tenant-id>
+
+DB -> DB: Execute Queries
+DB --> CM: Return All Tenant Data
+note right: Status: SUCCESS\nData: [config, mappings, rules]\nRows: 3
+
+CM -> RC: MSET Multiple Cache Entries
+note right: Keys:\n- tenant-config:<tenant-id>\n- tenant-mappings:<tenant-id>\n- tenant-rules:<tenant-id>\nTTL: 4 hours
+
+RC -> RC: Store Multiple Cache Entries
+note right: Entries: 3\nStatus: ALL_STORED\nTTL: 4 hours
+
+RC --> CM: Return Storage Success
+CM -> M: Record Cache Warming
+note right: Metrics:\n- redis_cache_warming_total: +1\n- redis_cache_entries_total: +3\n- redis_cache_size_bytes: +<total-size>
+
+CM --> MS: Return Warming Success
+MS -> MS: Continue Processing
+
+== Cache Performance Monitoring ==
+
+M -> RC: Check Cache Performance
+note right: Metrics:\n- Memory usage\n- Hit rate\n- Response time\n- Connection count\n- Key count
+
+RC -> RC: Collect Performance Data
+note right: Memory: 512MB / 1GB\nHit Rate: 85%\nResponse Time: 2ms\nConnections: 25\nKeys: 10,000
+
+RC --> M: Return Performance Data
+M -> M: Update Cache Metrics
+note right: Metrics:\n- redis_memory_usage_bytes: 536870912\n- redis_hit_rate_percent: 85\n- redis_response_time_ms: 2\n- redis_connections_active: 25\n- redis_keys_total: 10000
+
+== Cache Health Checks ==
+
+M -> RC: Perform Health Check
+note right: Health Checks:\n- PING command\n- Memory usage\n- Connection status\n- Replication status
+
+RC -> RC: Execute Health Checks
+note right: PING: PONG\nMemory: OK\nConnections: OK\nReplication: OK
+
+RC --> M: Return Health Status
+note right: Status: HEALTHY\nChecks: All passed\nResponse Time: 1ms
+
+M -> M: Update Health Metrics
+note right: Metrics:\n- redis_health_status: 1\n- redis_health_check_duration_ms: 1\n- redis_health_check_success_total: +1
+
+== Cache Cluster Management ==
+
+M -> RC: Check Cluster Status
+note right: Cluster:\n- Master: redis-master\n- Replicas: redis-replica-1, redis-replica-2\n- Sentinels: redis-sentinel-1, redis-sentinel-2
+
+RC -> RC: Check Cluster Health
+note right: Master: UP\nReplicas: UP (2/2)\nSentinels: UP (2/2)\nReplication Lag: 0ms
+
+RC --> M: Return Cluster Status
+note right: Status: HEALTHY\nMaster: UP\nReplicas: 2/2 UP\nSentinels: 2/2 UP\nReplication: SYNC
+
+M -> M: Update Cluster Metrics
+note right: Metrics:\n- redis_cluster_health_status: 1\n- redis_master_status: 1\n- redis_replicas_active: 2\n- redis_sentinels_active: 2\n- redis_replication_lag_ms: 0
+
+== Cache Security & Authentication ==
+
+MS -> RC: Authenticate Cache Access
+note right: Authentication: AUTH <password>\nUser: default\nPassword: <redis-password>
+
+RC -> RC: Validate Credentials
+note right: User: default\nPassword: Valid\nPermissions: [read, write, delete]
+
+RC --> MS: Return Authentication Success
+MS -> RC: Execute Cache Operations
+note right: Operations: [GET, SET, DEL, MSET]\nACL: Allow\nUser: default
+
+RC -> RC: Execute Operations
+note right: Operations: Executed\nStatus: SUCCESS\nACL: Validated
+
+RC --> MS: Return Operation Results
+MS -> M: Record Security Metrics
+note right: Metrics:\n- redis_auth_success_total: +1\n- redis_operations_total: +4\n- redis_security_status: 1
+
+== Cache Features Summary ==
+
+note over C,M
+Redis Caching Features:
+- Cache-Aside Pattern
+- Write-Through Caching
+- Write-Behind Caching
+- Cache Invalidation
+- Cache Warming
+- Performance Monitoring
+- Health Checks
+- Cluster Management
+- Security & Authentication
+- TTL Management
+- Memory Optimization
+- Connection Pooling
+- Replication & High Availability
+- Sentinel Support
+- Persistence Options
+- Pub/Sub Messaging
+- Lua Scripting
+- Transaction Support
+- Memory Eviction Policies
+- Compression Support
+end note
+
+@enduml
