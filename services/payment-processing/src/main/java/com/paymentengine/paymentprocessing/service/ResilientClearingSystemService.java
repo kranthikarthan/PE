@@ -109,6 +109,28 @@ public class ResilientClearingSystemService {
     }
 
     private boolean isProxy(Object candidate) {
-        return candidate != null && Proxy.isProxyClass(candidate.getClass());
+        if (candidate == null) {
+            return false;
+        }
+        
+        Class<?> clazz = candidate.getClass();
+        
+        // Check for JDK dynamic proxy
+        if (Proxy.isProxyClass(clazz)) {
+            return true;
+        }
+        
+        // Check for CGLIB proxy (class name contains $$)
+        String className = clazz.getName();
+        if (className.contains("$$")) {
+            return true;
+        }
+        
+        // Check for ByteBuddy/Mockito proxy
+        if (className.contains("$ByteBuddy$") || className.contains("$MockitoMock$")) {
+            return true;
+        }
+        
+        return false;
     }
 }
