@@ -75,14 +75,13 @@ payment-engine/
 
 2. **Start infrastructure services**
    ```bash
-   docker-compose up -d postgres redis kafka
+   make up
    ```
 
 3. **Run backend services**
    ```bash
-   cd services
-   mvn spring-boot:run -pl payment-processing
-   mvn spring-boot:run -pl payment-engine
+   ./mvnw spring-boot:run -pl services/payment-processing
+   ./mvnw spring-boot:run -pl services/api-gateway
    ```
 
 4. **Run frontend**
@@ -96,6 +95,13 @@ payment-engine/
    - Frontend: http://localhost:3000
    - API Gateway: http://localhost:8080
    - API Documentation: http://localhost:8080/swagger-ui.html
+
+6. **Shut everything down**
+   ```bash
+   make down
+   ```
+
+To execute the full backend test suite from the root of the repository, run `make test`. End-to-end ISO20022 tests can be executed with `make e2e` once the services are configured for the `test-e2e` profile.
 
 ### Production Deployment
 
