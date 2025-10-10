@@ -4,7 +4,6 @@ import com.paymentengine.paymentprocessing.config.FeatureToggleProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -40,7 +39,6 @@ import org.springframework.context.annotation.ComponentScan;
     "com.paymentengine.paymentprocessing.controller",
     "com.paymentengine.shared"
 })
-@EnableEurekaClient
 @EnableFeignClients
 @EnableKafka
 @EnableAsync

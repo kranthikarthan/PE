@@ -1,5 +1,9 @@
 package com.paymentengine.paymentprocessing.entity;
 
+import com.paymentengine.paymentprocessing.entity.Status;
+
+import com.paymentengine.paymentprocessing.entity.Status;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

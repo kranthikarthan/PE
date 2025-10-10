@@ -372,84 +372,110 @@ public class DashboardService {
     // Default data methods
     
     private Map<String, Object> getDefaultDashboardStats() {
-        return Map.of(
-            "totalTransactions", 0,
-            "totalAmount", 0.0,
-            "successfulTransactions", 0,
-            "failedTransactions", 0,
-            "pendingTransactions", 0,
-            "averageTransactionAmount", 0.0,
-            "transactionVolumeToday", 0.0,
-            "activeAccounts", 0,
-            "totalCustomers", 0,
-            "fallback", true,
-            "message", "Using cached or default data due to service unavailability"
-        );
+        Map<String, Object> map = new java.util.HashMap<>();
+        map.put("totalTransactions", 0);
+        map.put("totalAmount", 0.0);
+        map.put("successfulTransactions", 0);
+        map.put("failedTransactions", 0);
+        map.put("pendingTransactions", 0);
+        map.put("averageTransactionAmount", 0.0);
+        map.put("transactionVolumeToday", 0.0);
+        map.put("activeAccounts", 0);
+        map.put("totalCustomers", 0);
+        map.put("fallback", true);
+        map.put("message", "Using cached or default data due to service unavailability");
+        return map;
     }
     
     private Map<String, Object> getDefaultVolumeData() {
         List<Map<String, Object>> defaultData = new ArrayList<>();
         for (int i = 6; i >= 0; i--) {
-            defaultData.add(Map.of(
-                "date", LocalDateTime.now().minusDays(i).toString(),
-                "value", 0,
-                "count", 0
-            ));
+            Map<String, Object> entry = new java.util.HashMap<>();
+            entry.put("date", LocalDateTime.now().minusDays(i).toString());
+            entry.put("value", 0);
+            entry.put("count", 0);
+            defaultData.add(entry);
         }
-        
-        return Map.of(
-            "data", defaultData,
-            "fallback", true
-        );
+        Map<String, Object> map = new java.util.HashMap<>();
+        map.put("data", defaultData);
+        map.put("fallback", true);
+        return map;
     }
     
     private Map<String, Object> getDefaultStatusDistribution() {
-        return Map.of(
-            "data", List.of(
-                Map.of("status", "COMPLETED", "count", 0, "percentage", 0.0),
-                Map.of("status", "PENDING", "count", 0, "percentage", 0.0),
-                Map.of("status", "FAILED", "count", 0, "percentage", 0.0)
-            ),
-            "total", 0,
-            "fallback", true
-        );
+        List<Map<String, Object>> dataList = new ArrayList<>();
+        Map<String, Object> completed = new java.util.HashMap<>();
+        completed.put("status", "COMPLETED");
+        completed.put("count", 0);
+        completed.put("percentage", 0.0);
+        dataList.add(completed);
+        Map<String, Object> pending = new java.util.HashMap<>();
+        pending.put("status", "PENDING");
+        pending.put("count", 0);
+        pending.put("percentage", 0.0);
+        dataList.add(pending);
+        Map<String, Object> failed = new java.util.HashMap<>();
+        failed.put("status", "FAILED");
+        failed.put("count", 0);
+        failed.put("percentage", 0.0);
+        dataList.add(failed);
+        Map<String, Object> map = new java.util.HashMap<>();
+        map.put("data", dataList);
+        map.put("total", 0);
+        map.put("fallback", true);
+        return map;
     }
     
     private Map<String, Object> getDefaultPaymentTypeStats() {
-        return Map.of(
-            "data", List.of(
-                Map.of("type", "ACH", "count", 0, "amount", 0.0, "successRate", 0.0),
-                Map.of("type", "Wire", "count", 0, "amount", 0.0, "successRate", 0.0),
-                Map.of("type", "RTP", "count", 0, "amount", 0.0, "successRate", 0.0)
-            ),
-            "fallback", true
-        );
+        List<Map<String, Object>> dataList = new ArrayList<>();
+        Map<String, Object> ach = new java.util.HashMap<>();
+        ach.put("type", "ACH");
+        ach.put("count", 0);
+        ach.put("amount", 0.0);
+        ach.put("successRate", 0.0);
+        dataList.add(ach);
+        Map<String, Object> wire = new java.util.HashMap<>();
+        wire.put("type", "Wire");
+        wire.put("count", 0);
+        wire.put("amount", 0.0);
+        wire.put("successRate", 0.0);
+        dataList.add(wire);
+        Map<String, Object> rtp = new java.util.HashMap<>();
+        rtp.put("type", "RTP");
+        rtp.put("count", 0);
+        rtp.put("amount", 0.0);
+        rtp.put("successRate", 0.0);
+        dataList.add(rtp);
+        Map<String, Object> map = new java.util.HashMap<>();
+        map.put("data", dataList);
+        map.put("fallback", true);
+        return map;
     }
     
     private Map<String, Object> getDefaultRealTimeMetrics() {
-        return Map.of(
-            "activeConnections", 0,
-            "requestsPerSecond", 0.0,
-            "averageResponseTime", 0.0,
-            "errorRate", 0.0,
-            "lastUpdated", LocalDateTime.now().toString(),
-            "fallback", true
-        );
+        Map<String, Object> map = new java.util.HashMap<>();
+        map.put("activeConnections", 0);
+        map.put("requestsPerSecond", 0.0);
+        map.put("averageResponseTime", 0.0);
+        map.put("errorRate", 0.0);
+        map.put("lastUpdated", LocalDateTime.now().toString());
+        map.put("fallback", true);
+        return map;
     }
     
     private Map<String, Object> getDefaultPerformanceMetrics() {
         Runtime runtime = Runtime.getRuntime();
         
-        return Map.of(
-            "jvm", Map.of(
-                "totalMemory", runtime.totalMemory(),
-                "freeMemory", runtime.freeMemory(),
-                "usedMemory", runtime.totalMemory() - runtime.freeMemory(),
-                "maxMemory", runtime.maxMemory(),
-                "processors", runtime.availableProcessors()
-            ),
-            "fallback", true
-        );
+        Map<String, Object> jvm = new java.util.HashMap<>();
+        jvm.put("totalMemory", runtime.totalMemory());
+        jvm.put("freeMemory", runtime.freeMemory());
+        jvm.put("usedMemory", runtime.totalMemory() - runtime.freeMemory());
+        jvm.put("maxMemory", runtime.maxMemory());
+        jvm.put("processors", runtime.availableProcessors());
+        Map<String, Object> map = new java.util.HashMap<>();
+        map.put("jvm", jvm);
+        map.put("fallback", true);
+        return map;
     }
     
     private Map<String, Object> getDefaultErrorAnalytics() {

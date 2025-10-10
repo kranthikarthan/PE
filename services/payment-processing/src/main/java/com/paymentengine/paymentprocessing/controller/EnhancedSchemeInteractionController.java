@@ -74,11 +74,11 @@ public class EnhancedSchemeInteractionController {
             // Validate PAIN.001 message
             Map<String, Object> validation = transformationService.validatePain001Message(pain001Message);
             if (!(Boolean) validation.get("valid")) {
-                return ResponseEntity.badRequest().body(Map.of(
-                        "error", "Invalid PAIN.001 message",
-                        "errors", validation.get("errors"),
-                        "timestamp", Instant.now().toString()
-                ));
+        Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("error", "Invalid PAIN.001 message");
+        resp.put("errors", validation.get("errors"));
+        resp.put("timestamp", Instant.now().toString());
+        return ResponseEntity.badRequest().body(resp);
             }
             
             // Process through scheme
@@ -89,16 +89,15 @@ public class EnhancedSchemeInteractionController {
             SchemeProcessingService.SchemeProcessingResult result = future.get();
             
             // Return PAIN.002 response
-            Map<String, Object> response = Map.of(
-                    "messageId", result.getMessageId(),
-                    "correlationId", result.getCorrelationId(),
-                    "status", result.getStatus(),
-                    "clearingSystemCode", result.getClearingSystemCode(),
-                    "transactionId", result.getTransactionId(),
-                    "pain002Response", result.getPain002Response(),
-                    "processingTimeMs", result.getProcessingTimeMs(),
-                    "timestamp", Instant.now().toString()
-            );
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("messageId", result.getMessageId());
+        response.put("correlationId", result.getCorrelationId());
+        response.put("status", result.getStatus());
+        response.put("clearingSystemCode", result.getClearingSystemCode());
+        response.put("transactionId", result.getTransactionId());
+        response.put("pain002Response", result.getPain002Response());
+        response.put("processingTimeMs", result.getProcessingTimeMs());
+        response.put("timestamp", Instant.now().toString());
             
             if ("SUCCESS".equals(result.getStatus())) {
                 return ResponseEntity.ok(response);

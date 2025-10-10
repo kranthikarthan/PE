@@ -1,5 +1,7 @@
 package com.paymentengine.paymentprocessing.service.impl;
 
+import com.paymentengine.paymentprocessing.entity.Status;
+
 import com.paymentengine.paymentprocessing.entity.QueuedMessage;
 import com.paymentengine.paymentprocessing.repository.QueuedMessageRepository;
 import com.paymentengine.paymentprocessing.service.MessageQueueService;

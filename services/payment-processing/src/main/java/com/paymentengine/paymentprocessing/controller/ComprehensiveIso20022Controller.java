@@ -61,19 +61,18 @@ public class ComprehensiveIso20022Controller {
             
             Iso20022MessageFlowService.MessageFlowResult result = future.get();
             
-            Map<String, Object> response = Map.of(
-                    "messageId", result.getMessageId(),
-                    "correlationId", result.getCorrelationId(),
-                    "status", result.getStatus(),
-                    "clearingSystemCode", result.getClearingSystemCode(),
-                    "transactionId", result.getTransactionId(),
-                    "transformedMessage", result.getTransformedMessage(),
-                    "clearingSystemResponse", result.getClearingSystemResponse(),
-                    "clientResponse", result.getClientResponse(),
-                    "processingTimeMs", result.getProcessingTimeMs(),
-                    "metadata", result.getMetadata(),
-                    "timestamp", Instant.now().toString()
-            );
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("messageId", result.getMessageId());
+        response.put("correlationId", result.getCorrelationId());
+        response.put("status", result.getStatus());
+        response.put("clearingSystemCode", result.getClearingSystemCode());
+        response.put("transactionId", result.getTransactionId());
+        response.put("transformedMessage", result.getTransformedMessage());
+        response.put("clearingSystemResponse", result.getClearingSystemResponse());
+        response.put("clientResponse", result.getClientResponse());
+        response.put("processingTimeMs", result.getProcessingTimeMs());
+        response.put("metadata", result.getMetadata());
+        response.put("timestamp", Instant.now().toString());
             
             if ("SUCCESS".equals(result.getStatus())) {
                 return ResponseEntity.ok(response);
@@ -114,19 +113,18 @@ public class ComprehensiveIso20022Controller {
             
             Iso20022MessageFlowService.MessageFlowResult result = future.get();
             
-            Map<String, Object> response = Map.of(
-                    "messageId", result.getMessageId(),
-                    "correlationId", result.getCorrelationId(),
-                    "status", result.getStatus(),
-                    "clearingSystemCode", result.getClearingSystemCode(),
-                    "transactionId", result.getTransactionId(),
-                    "transformedMessage", result.getTransformedMessage(),
-                    "clearingSystemResponse", result.getClearingSystemResponse(),
-                    "clientResponse", result.getClientResponse(),
-                    "processingTimeMs", result.getProcessingTimeMs(),
-                    "metadata", result.getMetadata(),
-                    "timestamp", Instant.now().toString()
-            );
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("messageId", result.getMessageId());
+        response.put("correlationId", result.getCorrelationId());
+        response.put("status", result.getStatus());
+        response.put("clearingSystemCode", result.getClearingSystemCode());
+        response.put("transactionId", result.getTransactionId());
+        response.put("transformedMessage", result.getTransformedMessage());
+        response.put("clearingSystemResponse", result.getClearingSystemResponse());
+        response.put("clientResponse", result.getClientResponse());
+        response.put("processingTimeMs", result.getProcessingTimeMs());
+        response.put("metadata", result.getMetadata());
+        response.put("timestamp", Instant.now().toString());
             
             if ("SUCCESS".equals(result.getStatus())) {
                 return ResponseEntity.ok(response);
@@ -167,19 +165,18 @@ public class ComprehensiveIso20022Controller {
             
             Iso20022MessageFlowService.MessageFlowResult result = future.get();
             
-            Map<String, Object> response = Map.of(
-                    "messageId", result.getMessageId(),
-                    "correlationId", result.getCorrelationId(),
-                    "status", result.getStatus(),
-                    "clearingSystemCode", result.getClearingSystemCode(),
-                    "transactionId", result.getTransactionId(),
-                    "transformedMessage", result.getTransformedMessage(),
-                    "clearingSystemResponse", result.getClearingSystemResponse(),
-                    "clientResponse", result.getClientResponse(),
-                    "processingTimeMs", result.getProcessingTimeMs(),
-                    "metadata", result.getMetadata(),
-                    "timestamp", Instant.now().toString()
-            );
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("messageId", result.getMessageId());
+        response.put("correlationId", result.getCorrelationId());
+        response.put("status", result.getStatus());
+        response.put("clearingSystemCode", result.getClearingSystemCode());
+        response.put("transactionId", result.getTransactionId());
+        response.put("transformedMessage", result.getTransformedMessage());
+        response.put("clearingSystemResponse", result.getClearingSystemResponse());
+        response.put("clientResponse", result.getClientResponse());
+        response.put("processingTimeMs", result.getProcessingTimeMs());
+        response.put("metadata", result.getMetadata());
+        response.put("timestamp", Instant.now().toString());
             
             if ("SUCCESS".equals(result.getStatus())) {
                 return ResponseEntity.ok(response);
@@ -270,12 +267,12 @@ public class ComprehensiveIso20022Controller {
         try {
             Map<String, Object> response = messageFlowService.processPacs008FromClearingSystem(pacs008Message, tenantId);
             
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", response,
-                    "tenantId", tenantId,
-                    "timestamp", Instant.now().toString()
-            ));
+        Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("success", true);
+        resp.put("data", response);
+        resp.put("tenantId", tenantId);
+        resp.put("timestamp", Instant.now().toString());
+        return ResponseEntity.ok(resp);
             
         } catch (Exception e) {
             logger.error("Error processing PACS.008 from clearing system: {}", e.getMessage());
@@ -303,12 +300,12 @@ public class ComprehensiveIso20022Controller {
         try {
             Map<String, Object> response = messageFlowService.processPacs002FromClearingSystem(pacs002Message, tenantId);
             
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", response,
-                    "tenantId", tenantId,
-                    "timestamp", Instant.now().toString()
-            ));
+        Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("success", true);
+        resp.put("data", response);
+        resp.put("tenantId", tenantId);
+        resp.put("timestamp", Instant.now().toString());
+        return ResponseEntity.ok(resp);
             
         } catch (Exception e) {
             logger.error("Error processing PACS.002 from clearing system: {}", e.getMessage());

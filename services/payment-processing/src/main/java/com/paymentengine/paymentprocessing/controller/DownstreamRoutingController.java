@@ -40,11 +40,11 @@ public class DownstreamRoutingController {
         try {
             // Validate tenant access
             if (!downstreamRoutingService.validateTenantAccess(tenantId, "fraud")) {
-                return ResponseEntity.status(403).body(Map.of(
-                    "error", "Access denied",
-                    "message", "Tenant does not have access to fraud system",
-                    "tenantId", tenantId
-                ));
+                Map<String, Object> resp = new HashMap<>();
+                resp.put("error", "Access denied");
+                resp.put("message", "Tenant does not have access to fraud system");
+                resp.put("tenantId", tenantId);
+                return ResponseEntity.status(403).body(resp);
             }
             
             // Call fraud system
@@ -56,11 +56,11 @@ public class DownstreamRoutingController {
             
         } catch (Exception e) {
             logger.error("Fraud system call failed for tenant: {}", tenantId, e);
-            return ResponseEntity.status(500).body(Map.of(
-                "error", "Fraud system call failed",
-                "message", e.getMessage(),
-                "tenantId", tenantId
-            ));
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("error", "Fraud system call failed");
+            resp.put("message", e.getMessage());
+            resp.put("tenantId", tenantId);
+            return ResponseEntity.status(500).body(resp);
         }
     }
     
@@ -79,11 +79,11 @@ public class DownstreamRoutingController {
         try {
             // Validate tenant access
             if (!downstreamRoutingService.validateTenantAccess(tenantId, "clearing")) {
-                return ResponseEntity.status(403).body(Map.of(
-                    "error", "Access denied",
-                    "message", "Tenant does not have access to clearing system",
-                    "tenantId", tenantId
-                ));
+                Map<String, Object> resp = new HashMap<>();
+                resp.put("error", "Access denied");
+                resp.put("message", "Tenant does not have access to clearing system");
+                resp.put("tenantId", tenantId);
+                return ResponseEntity.status(403).body(resp);
             }
             
             // Call clearing system
@@ -95,11 +95,11 @@ public class DownstreamRoutingController {
             
         } catch (Exception e) {
             logger.error("Clearing system call failed for tenant: {}", tenantId, e);
-            return ResponseEntity.status(500).body(Map.of(
-                "error", "Clearing system call failed",
-                "message", e.getMessage(),
-                "tenantId", tenantId
-            ));
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("error", "Clearing system call failed");
+            resp.put("message", e.getMessage());
+            resp.put("tenantId", tenantId);
+            return ResponseEntity.status(500).body(resp);
         }
     }
     

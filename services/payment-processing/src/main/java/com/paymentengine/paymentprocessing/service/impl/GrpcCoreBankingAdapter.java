@@ -7,6 +7,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.paymentengine.paymentprocessing.entity.AccountHolder;
+import com.paymentengine.paymentprocessing.entity.HoldFundsRequest;
+import com.paymentengine.paymentprocessing.entity.ReleaseFundsRequest;
+import com.paymentengine.paymentprocessing.entity.TransactionStatus;
+import com.paymentengine.paymentprocessing.entity.Iso20022ResponseRequest;
+import com.paymentengine.paymentprocessing.entity.Iso20022PaymentResponse;
+import com.paymentengine.paymentprocessing.entity.BatchTransactionRequest;
+import com.paymentengine.paymentprocessing.entity.BatchTransactionResult;
+import com.paymentengine.paymentprocessing.entity.BatchStatus;
+import com.paymentengine.paymentprocessing.entity.ReconciliationRequest;
+import com.paymentengine.paymentprocessing.entity.ReconciliationResult;
+import com.paymentengine.paymentprocessing.entity.TransactionHistoryRequest;
+import com.paymentengine.paymentprocessing.entity.TransactionRecord;
+import com.paymentengine.paymentprocessing.entity.AccountStatementRequest;
+import com.paymentengine.paymentprocessing.entity.AccountStatement;
+import com.paymentengine.paymentprocessing.entity.PaymentStatisticsRequest;
+import com.paymentengine.paymentprocessing.entity.PaymentStatistics;
+
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;

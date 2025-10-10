@@ -48,14 +48,14 @@ public class EnhancedDownstreamRoutingController {
         try {
             // Validate tenant access
             if (!enhancedDownstreamRoutingService.validateTenantAccess(tenantId, serviceType, endpoint, paymentType)) {
-                return ResponseEntity.status(403).body(Map.of(
-                    "error", "Access denied",
-                    "message", "Tenant does not have access to this service",
-                    "tenantId", tenantId,
-                    "serviceType", serviceType,
-                    "endpoint", endpoint,
-                    "paymentType", paymentType
-                ));
+                Map<String, Object> resp = new HashMap<>();
+                resp.put("error", "Access denied");
+                resp.put("message", "Tenant does not have access to this service");
+                resp.put("tenantId", tenantId);
+                resp.put("serviceType", serviceType);
+                resp.put("endpoint", endpoint);
+                resp.put("paymentType", paymentType);
+                return ResponseEntity.status(403).body(resp);
             }
             
             // Call external service
@@ -69,14 +69,14 @@ public class EnhancedDownstreamRoutingController {
         } catch (Exception e) {
             logger.error("Enhanced downstream call failed - tenant: {}, service: {}, endpoint: {}", 
                         tenantId, serviceType, endpoint, e);
-            return ResponseEntity.status(500).body(Map.of(
-                "error", "Enhanced downstream call failed",
-                "message", e.getMessage(),
-                "tenantId", tenantId,
-                "serviceType", serviceType,
-                "endpoint", endpoint,
-                "paymentType", paymentType
-            ));
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("error", "Enhanced downstream call failed");
+            resp.put("message", e.getMessage());
+            resp.put("tenantId", tenantId);
+            resp.put("serviceType", serviceType);
+            resp.put("endpoint", endpoint);
+            resp.put("paymentType", paymentType);
+            return ResponseEntity.status(500).body(resp);
         }
     }
     
@@ -96,12 +96,12 @@ public class EnhancedDownstreamRoutingController {
         try {
             // Validate tenant access
             if (!enhancedDownstreamRoutingService.validateTenantAccess(tenantId, "fraud", "/fraud", paymentType)) {
-                return ResponseEntity.status(403).body(Map.of(
-                    "error", "Access denied",
-                    "message", "Tenant does not have access to fraud system",
-                    "tenantId", tenantId,
-                    "paymentType", paymentType
-                ));
+                Map<String, Object> resp = new HashMap<>();
+                resp.put("error", "Access denied");
+                resp.put("message", "Tenant does not have access to fraud system");
+                resp.put("tenantId", tenantId);
+                resp.put("paymentType", paymentType);
+                return ResponseEntity.status(403).body(resp);
             }
             
             // Call fraud system
