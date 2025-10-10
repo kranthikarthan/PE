@@ -9,6 +9,7 @@
         <groupId>com.paymentengine</groupId>
         <artifactId>payment-engine-parent</artifactId>
         <version>1.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>auth-service</artifactId>

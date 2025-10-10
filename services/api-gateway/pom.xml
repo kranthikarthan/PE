@@ -5,15 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.1</version>
-        <relativePath/>
+        <groupId>com.paymentengine</groupId>
+        <artifactId>payment-engine-parent</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <groupId>com.paymentengine</groupId>
     <artifactId>api-gateway</artifactId>
-    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>Payment Engine - API Gateway</name>

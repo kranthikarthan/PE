@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: ${PROD_DATABASE_URL:jdbc:postgresql://payment-db.prod.svc.cluster.local:5432/payment_engine}
+    username: ${PROD_DATABASE_USERNAME:payment_engine}
+    password: ${PROD_DATABASE_PASSWORD:change-me}
+  kafka:
+    bootstrap-servers: ${PROD_KAFKA_BOOTSTRAP_SERVERS:kafka.prod.svc.cluster.local:9092}
+
+features:
+  kafka:
+    enabled: true
+  fraud:
+    enabled: true
+  validation:
+    heavy:
+      enabled: true
