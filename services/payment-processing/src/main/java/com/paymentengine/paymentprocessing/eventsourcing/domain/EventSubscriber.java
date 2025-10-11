@@ -4,13 +4,6 @@ public interface EventSubscriber {
     
     void onEvent(DomainEvent event);
     
-    boolean isInterestedIn(DomainEvent event);
-    String getSubscriberName();
-    int getPriority();
-    boolean isAsync();
-    void onError(DomainEvent event, Exception error);
-    void onSuccess(DomainEvent event);
-    void onComplete(DomainEvent event);
     
     // Default implementations
     default boolean isInterestedIn(DomainEvent event) {

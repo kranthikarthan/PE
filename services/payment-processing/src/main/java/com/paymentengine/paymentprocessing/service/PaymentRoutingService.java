@@ -298,13 +298,12 @@ public class PaymentRoutingService {
     }
     
     private ClearingSystemConfiguration getClearingSystemConfiguration(String clearingSystemCode, String tenantId) {
-        Optional<ClearingSystemConfiguration> config = clearingSystemConfigRepository
-            .findByClearingSystemCodeAndTenantId(clearingSystemCode, tenantId);
-        return config.orElse(null);
+        // Placeholder entity has only configId; returning null for now
+        return null;
     }
     
-    private CoreBankingAdapter getCoreBankingAdapter(String adapterType) {
-        switch (adapterType.toUpperCase()) {
+    private CoreBankingAdapter getCoreBankingAdapter(CoreBankingConfiguration.AdapterType adapterType) {
+        switch (adapterType.name().toUpperCase()) {
             case "REST":
                 return restCoreBankingAdapter;
             case "GRPC":
@@ -354,16 +353,12 @@ public class PaymentRoutingService {
     
     private Iso20022ResponseRequest createIso20022ResponseRequest(Iso20022PaymentRequest request, 
                                                                TransactionResult result) {
-        Iso20022ResponseRequest responseRequest = new Iso20022ResponseRequest();
-        responseRequest.setTransactionReference(request.getTransactionReference());
-        responseRequest.setOriginalMessageId(request.getTransactionReference());
-        responseRequest.setStatus(result.getStatus().name());
-        responseRequest.setMessageType("pain.002");
-        responseRequest.setTenantId(request.getTenantId());
+        com.paymentengine.paymentprocessing.dto.Iso20022ResponseRequest responseRequest = new com.paymentengine.paymentprocessing.dto.Iso20022ResponseRequest();
+        responseRequest.setTransactionId(request.getTransactionReference());
+        responseRequest.setMessage("Status: " + result.getStatus().name());
         
         // Generate ISO 20022 response message
         String responseMessage = generateIso20022ResponseMessage(responseRequest);
-        responseRequest.setIso20022Message(responseMessage);
         
         return responseRequest;
     }

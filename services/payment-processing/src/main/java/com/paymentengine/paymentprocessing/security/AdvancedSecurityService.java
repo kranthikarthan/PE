@@ -24,7 +24,7 @@ public interface AdvancedSecurityService {
     
     void monitorIntrusions();
     
-    void detectIntrusions();
+    // Duplicate removed
     
     void respondToIntrusions();
     
@@ -165,7 +165,7 @@ public interface AdvancedSecurityService {
     
     void orchestrateSecurity();
     
-    void automateSecurity();
+    // Duplicate removed
     
     void respondToSecurity();
     

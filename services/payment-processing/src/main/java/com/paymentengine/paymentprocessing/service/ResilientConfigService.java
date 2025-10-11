@@ -50,7 +50,7 @@ public class ResilientConfigService {
                 .decorateSupplier(configServiceCircuitBreaker, supplier);
         
         decoratedSupplier = Retry.decorateSupplier(configServiceRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(configServiceTimeLimiter, decoratedSupplier);
+        decoratedSupplier = TimeLimiter.decorateFutureSupplier(configServiceTimeLimiter, () -> java.util.concurrent.CompletableFuture.supplyAsync(decoratedSupplier::get));
         decoratedSupplier = Bulkhead.decorateSupplier(configServiceBulkhead, decoratedSupplier);
         decoratedSupplier = RateLimiter.decorateSupplier(configServiceRateLimiter, decoratedSupplier);
         
@@ -69,7 +69,7 @@ public class ResilientConfigService {
                 .decorateSupplier(configServiceCircuitBreaker, supplier);
         
         decoratedSupplier = Retry.decorateSupplier(configServiceRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(configServiceTimeLimiter, decoratedSupplier);
+        decoratedSupplier = TimeLimiter.decorateFutureSupplier(configServiceTimeLimiter, () -> java.util.concurrent.CompletableFuture.supplyAsync(decoratedSupplier::get));
         decoratedSupplier = Bulkhead.decorateSupplier(configServiceBulkhead, decoratedSupplier);
         decoratedSupplier = RateLimiter.decorateSupplier(configServiceRateLimiter, decoratedSupplier);
         
@@ -89,7 +89,7 @@ public class ResilientConfigService {
                 .decorateSupplier(configServiceCircuitBreaker, supplier);
         
         decoratedSupplier = Retry.decorateSupplier(configServiceRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(configServiceTimeLimiter, decoratedSupplier);
+        decoratedSupplier = TimeLimiter.decorateFutureSupplier(configServiceTimeLimiter, () -> java.util.concurrent.CompletableFuture.supplyAsync(decoratedSupplier::get));
         decoratedSupplier = Bulkhead.decorateSupplier(configServiceBulkhead, decoratedSupplier);
         decoratedSupplier = RateLimiter.decorateSupplier(configServiceRateLimiter, decoratedSupplier);
         
@@ -108,7 +108,7 @@ public class ResilientConfigService {
                 .decorateSupplier(configServiceCircuitBreaker, supplier);
         
         decoratedSupplier = Retry.decorateSupplier(configServiceRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(configServiceTimeLimiter, decoratedSupplier);
+        decoratedSupplier = TimeLimiter.decorateFutureSupplier(configServiceTimeLimiter, () -> java.util.concurrent.CompletableFuture.supplyAsync(decoratedSupplier::get));
         decoratedSupplier = Bulkhead.decorateSupplier(configServiceBulkhead, decoratedSupplier);
         decoratedSupplier = RateLimiter.decorateSupplier(configServiceRateLimiter, decoratedSupplier);
         

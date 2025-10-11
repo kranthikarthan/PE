@@ -8,6 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import java.util.List;
+import java.util.Set;
 
 import java.time.Instant;
 import java.util.Map;
@@ -23,10 +27,15 @@ public class WebhookController {
     private static final Logger logger = LoggerFactory.getLogger(WebhookController.class);
     
     private final WebhookService webhookService;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    @Value("webhook:configs")
+    private String WEBHOOK_CONFIG_KEY;
     
     @Autowired
-    public WebhookController(WebhookService webhookService) {
+    public WebhookController(WebhookService webhookService, RedisTemplate<String, Object> redisTemplate) {
         this.webhookService = webhookService;
+        this.redisTemplate = redisTemplate;
     }
     
     /**
@@ -177,6 +186,7 @@ public class WebhookController {
             // Store webhook configuration in Redis
             String configKey = WEBHOOK_CONFIG_KEY + ":" + name;
             redisTemplate.opsForHash().putAll(configKey, request);
+            redisTemplate.opsForSet().add(WEBHOOK_CONFIG_KEY + ":keys", configKey);
             
             return ResponseEntity.ok(Map.of(
                 "success", true,

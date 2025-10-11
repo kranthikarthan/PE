@@ -126,7 +126,7 @@ public interface PerformanceOptimizationService {
     Map<String, Object> getBatchProcessingMetrics();
     
     // Async Processing Optimization
-    void optimizeAsyncProcessing();
+    // Duplicate removed
     
     void configureAsyncThreadPools();
     

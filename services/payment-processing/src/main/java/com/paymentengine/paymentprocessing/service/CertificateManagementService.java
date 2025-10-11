@@ -162,7 +162,7 @@ public class CertificateManagementService {
             
             // Update validation status in database
             certInfo.setLastValidated(LocalDateTime.now());
-            certInfo.setValidationStatus(result.getStatus());
+            certInfo.setValidationStatus(CertificateInfo.ValidationStatus.valueOf(result.getStatus()));
             certInfo.setValidationMessage(result.getMessage());
             certificateInfoRepository.save(certInfo);
             
@@ -241,8 +241,8 @@ public class CertificateManagementService {
             CertificateGenerationResult newCert = generateCertificate(request);
             
             // Mark old certificate as rotated
-            existingCert.setStatus("ROTATED");
-            existingCert.setRotatedTo(newCert.getCertificateId());
+            existingCert.setStatus(CertificateInfo.CertificateStatus.ROTATED);
+            existingCert.setRotatedTo(UUID.fromString(newCert.getCertificateId()));
             existingCert.setRotatedAt(LocalDateTime.now());
             certificateInfoRepository.save(existingCert);
             
@@ -270,8 +270,8 @@ public class CertificateManagementService {
             CertificateGenerationResult newCert = generateCertificate(request);
             
             // Mark old certificate as renewed
-            existingCert.setStatus("RENEWED");
-            existingCert.setRotatedTo(newCert.getCertificateId());
+            existingCert.setStatus(CertificateInfo.CertificateStatus.RENEWED);
+            existingCert.setRotatedTo(UUID.fromString(newCert.getCertificateId()));
             existingCert.setRotatedAt(LocalDateTime.now());
             certificateInfoRepository.save(existingCert);
             
@@ -300,12 +300,12 @@ public class CertificateManagementService {
                 .orElseThrow(() -> new CertificateException("No previous certificate found for rollback"));
             
             // Mark current certificate as rolled back
-            currentCert.setStatus("ROLLED_BACK");
+            currentCert.setStatus(CertificateInfo.CertificateStatus.REVOKED);
             currentCert.setRolledBackAt(LocalDateTime.now());
             certificateInfoRepository.save(currentCert);
             
             // Reactivate previous certificate
-            previousCert.setStatus("ACTIVE");
+            previousCert.setStatus(CertificateInfo.CertificateStatus.ACTIVE);
             previousCert.setRotatedTo(null);
             previousCert.setRotatedAt(null);
             certificateInfoRepository.save(previousCert);
@@ -354,14 +354,21 @@ public class CertificateManagementService {
             List<String> keyUsage,
             List<String> extendedKeyUsage) throws Exception {
         
-        // Create certificate builder
-        X509CertificatBuilder builder = X509CertificatBuilder.builder()
-            .setSubjectDN(new X500Principal(subjectDN))
-            .setIssuerDN(new X500Principal(subjectDN)) // Self-signed
-            .setPublicKey(keyPair.getPublic())
-            .setSerialNumber(BigInteger.valueOf(System.currentTimeMillis()))
-            .setNotBefore(new Date())
-            .setNotAfter(new Date(System.currentTimeMillis() + validityDays * 24L * 60L * 60L * 1000L));
+        // Create certificate using BouncyCastle builder
+        long validityMillis = validityDays * 24L * 60L * 60L * 1000L;
+        Date notBefore = new Date();
+        Date notAfter = new Date(System.currentTimeMillis() + validityMillis);
+
+        org.bouncycastle.asn1.x500.X500Name subject = new org.bouncycastle.asn1.x500.X500Name(subjectDN);
+        org.bouncycastle.asn1.x500.X500Name issuer = subject; // self-signed
+        org.bouncycastle.cert.X509v3CertificateBuilder builder = new org.bouncycastle.cert.X509v3CertificateBuilder(
+                issuer,
+                BigInteger.valueOf(System.currentTimeMillis()),
+                notBefore,
+                notAfter,
+                subject,
+                org.bouncycastle.asn1.x509.SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded())
+        );
         
         // Add key usage extensions
         if (keyUsage != null && !keyUsage.isEmpty()) {
@@ -371,11 +378,12 @@ public class CertificateManagementService {
         
         // Add extended key usage
         if (extendedKeyUsage != null && !extendedKeyUsage.isEmpty()) {
-            List<ASN1ObjectIdentifier> oids = extendedKeyUsage.stream()
-                .map(ExtendedKeyUsage::getOID)
-                .collect(Collectors.toList());
-            builder.addExtension(Extension.extendedKeyUsage, false, 
-                new ExtendedKeyUsage(oids.toArray(new ASN1ObjectIdentifier[0])));
+            List<org.bouncycastle.asn1.x509.KeyPurposeId> keyPurposeIds = extendedKeyUsage.stream()
+                    .map(oid -> new org.bouncycastle.asn1.ASN1ObjectIdentifier(oid))
+                    .map(org.bouncycastle.asn1.x509.KeyPurposeId::getInstance)
+                    .collect(Collectors.toList());
+            builder.addExtension(Extension.extendedKeyUsage, false,
+                    new ExtendedKeyUsage(keyPurposeIds.toArray(new org.bouncycastle.asn1.x509.KeyPurposeId[0])));
         }
         
         // Sign certificate
@@ -522,9 +530,10 @@ public class CertificateManagementService {
         certInfo.setPublicKeyAlgorithm(certificate.getPublicKey().getAlgorithm());
         certInfo.setKeySize(keySize);
         certInfo.setSignatureAlgorithm(certificate.getSigAlgName());
-        certInfo.setCertificateType(request.getCertificateType());
+        // Map incoming type to enum name if provided
+        certInfo.setCertificateType(request.getCertificateType() != null ? request.getCertificateType() : "GENERATED");
         certInfo.setTenantId(request.getTenantId());
-        certInfo.setStatus("ACTIVE");
+        certInfo.setStatus(CertificateInfo.CertificateStatus.ACTIVE);
         certInfo.setCreatedAt(LocalDateTime.now());
         certInfo.setUpdatedAt(LocalDateTime.now());
         
@@ -570,7 +579,7 @@ public class CertificateManagementService {
         certInfo.setSignatureAlgorithm(result.getSignatureAlgorithm());
         certInfo.setCertificateType("PFX_IMPORTED");
         certInfo.setTenantId(request.getTenantId());
-        certInfo.setStatus("ACTIVE");
+        certInfo.setStatus(CertificateInfo.CertificateStatus.ACTIVE);
         certInfo.setCreatedAt(LocalDateTime.now());
         certInfo.setUpdatedAt(LocalDateTime.now());
         certInfo.setAlias(result.getAlias());
@@ -583,7 +592,7 @@ public class CertificateManagementService {
      */
     private void savePfxToFileSystem(PfxImportResult result, MultipartFile pfxFile, PfxImportRequest request) throws Exception {
         // Create directory if not exists
-        File certDir = new File(certificateStoragePath, result.getCertificateId().toString());
+        File certDir = new File(certificateStoragePath, result.getCertificateId());
         certDir.mkdirs();
         
         // Save original PFX file
