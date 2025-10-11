@@ -58,7 +58,6 @@ public class ClearingSystemService {
     public ClearingSystemTestResponse testClearingSystemEndpoint(ClearingSystemTestRequest request) {
         ClearingSystemTestResponse resp = new ClearingSystemTestResponse();
         resp.setSuccess(true);
-        resp.setMessage("Test executed");
         return resp;
     }
 }

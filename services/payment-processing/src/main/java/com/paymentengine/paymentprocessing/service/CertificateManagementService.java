@@ -270,7 +270,7 @@ public class CertificateManagementService {
             CertificateGenerationResult newCert = generateCertificate(request);
             
             // Mark old certificate as renewed
-            existingCert.setStatus(CertificateInfo.CertificateStatus.RENEWED);
+            existingCert.setStatus(CertificateInfo.CertificateStatus.ACTIVE);
             existingCert.setRotatedTo(UUID.fromString(newCert.getCertificateId()));
             existingCert.setRotatedAt(LocalDateTime.now());
             certificateInfoRepository.save(existingCert);
@@ -592,7 +592,7 @@ public class CertificateManagementService {
      */
     private void savePfxToFileSystem(PfxImportResult result, MultipartFile pfxFile, PfxImportRequest request) throws Exception {
         // Create directory if not exists
-        File certDir = new File(certificateStoragePath, result.getCertificateId());
+        File certDir = new File(certificateStoragePath, result.getCertificateId().toString());
         certDir.mkdirs();
         
         // Save original PFX file

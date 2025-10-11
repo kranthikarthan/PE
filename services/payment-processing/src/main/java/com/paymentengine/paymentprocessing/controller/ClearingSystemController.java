@@ -337,7 +337,7 @@ public class ClearingSystemController {
     public ResponseEntity<Map<String, Object>> testClearingSystemEndpoint(
             @Valid @RequestBody ClearingSystemTestRequest request) {
         
-        logger.info("Testing clearing system endpoint: {}", request.getClearingSystemId());
+        logger.info("Testing clearing system endpoint: {}", request.getTestId());
         
         try {
             ClearingSystemTestResponse testResponse = clearingSystemService.testClearingSystemEndpoint(request);
