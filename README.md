@@ -38,6 +38,7 @@ This repository contains the complete architecture design for a **highly modular
 | **[17-SERVICE-MESH-ISTIO.md](docs/17-SERVICE-MESH-ISTIO.md)** | **Service Mesh with Istio (Phase 2)** | ✅ Complete |
 | **[18-REACTIVE-ARCHITECTURE.md](docs/18-REACTIVE-ARCHITECTURE.md)** | **Reactive Architecture design (Phase 2)** | ✅ Complete |
 | **[19-GITOPS-ARGOCD.md](docs/19-GITOPS-ARGOCD.md)** | **GitOps with ArgoCD (Phase 2)** | ✅ Complete |
+| **[20-CELL-BASED-ARCHITECTURE.md](docs/20-CELL-BASED-ARCHITECTURE.md)** | **Cell-Based Architecture (Phase 3)** | ✅ Complete |
 
 ---
 

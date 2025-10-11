@@ -24,6 +24,7 @@
 | [17-SERVICE-MESH-ISTIO](17-SERVICE-MESH-ISTIO.md) | **Service Mesh (Phase 2)** |
 | [18-REACTIVE-ARCHITECTURE](18-REACTIVE-ARCHITECTURE.md) | **Reactive Architecture (Phase 2)** |
 | [19-GITOPS-ARGOCD](19-GITOPS-ARGOCD.md) | **GitOps (Phase 2)** |
+| [20-CELL-BASED-ARCHITECTURE](20-CELL-BASED-ARCHITECTURE.md) | **Cell-Based Architecture (Phase 3)** |
 
 ---
 
