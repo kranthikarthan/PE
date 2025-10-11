@@ -25,6 +25,7 @@
 | [18-REACTIVE-ARCHITECTURE](18-REACTIVE-ARCHITECTURE.md) | **Reactive Architecture (Phase 2)** |
 | [19-GITOPS-ARGOCD](19-GITOPS-ARGOCD.md) | **GitOps (Phase 2)** |
 | [20-CELL-BASED-ARCHITECTURE](20-CELL-BASED-ARCHITECTURE.md) | **Cell-Based Architecture (Phase 3)** |
+| [21-SECURITY-ARCHITECTURE](21-SECURITY-ARCHITECTURE.md) | **Security Architecture (Enterprise)** |
 
 ---
 
