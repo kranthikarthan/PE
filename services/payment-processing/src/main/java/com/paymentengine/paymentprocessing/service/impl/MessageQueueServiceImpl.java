@@ -1,7 +1,5 @@
 package com.paymentengine.paymentprocessing.service.impl;
 
-import com.paymentengine.paymentprocessing.entity.Status;
-
 import com.paymentengine.paymentprocessing.entity.QueuedMessage;
 import com.paymentengine.paymentprocessing.repository.QueuedMessageRepository;
 import com.paymentengine.paymentprocessing.service.MessageQueueService;
@@ -67,7 +65,7 @@ public class MessageQueueServiceImpl implements MessageQueueService {
             queuedMessage.setPayload(payload);
             queuedMessage.setHeaders(headers);
             queuedMessage.setMetadata(metadata);
-            queuedMessage.setStatus(QueuedMessage.Status.PENDING);
+            queuedMessage.setStatus(QueuedMessage.MessageStatus.PENDING);
             queuedMessage.setPriority(1);
             queuedMessage.setRetryCount(0);
             queuedMessage.setMaxRetries(3);
@@ -109,7 +107,7 @@ public class MessageQueueServiceImpl implements MessageQueueService {
                 
                 // Check if message has expired
                 if (message.getExpiresAt() != null && LocalDateTime.now().isAfter(message.getExpiresAt())) {
-                    message.setStatus(QueuedMessage.Status.EXPIRED);
+                    message.setStatus(QueuedMessage.MessageStatus.EXPIRED);
                     message.setErrorMessage("Message expired");
                     message.setUpdatedAt(LocalDateTime.now());
                     queuedMessageRepository.save(message);
@@ -117,7 +115,7 @@ public class MessageQueueServiceImpl implements MessageQueueService {
                 }
 
                 // Update status to processing
-                message.setStatus(QueuedMessage.Status.PROCESSING);
+                message.setStatus(QueuedMessage.MessageStatus.PROCESSING);
                 message.setProcessingStartedAt(LocalDateTime.now());
                 message.setUpdatedAt(LocalDateTime.now());
                 queuedMessageRepository.save(message);
@@ -126,7 +124,7 @@ public class MessageQueueServiceImpl implements MessageQueueService {
                 Map<String, Object> result = executeQueuedCall(message);
 
                 // Update message with success result
-                message.setStatus(QueuedMessage.Status.PROCESSED);
+                message.setStatus(QueuedMessage.MessageStatus.PROCESSED);
                 message.setProcessingCompletedAt(LocalDateTime.now());
                 message.setProcessingTimeMs(ChronoUnit.MILLIS.between(message.getProcessingStartedAt(), message.getProcessingCompletedAt()));
                 message.setResult(result);
@@ -146,7 +144,7 @@ public class MessageQueueServiceImpl implements MessageQueueService {
 
     @Override
     public List<QueuedMessage> getQueuedMessages(String tenantId, String serviceName, 
-                                                QueuedMessage.Status status, int limit) {
+                                                QueuedMessage.MessageStatus status, int limit) {
         logger.debug("Retrieving queued messages for tenant: {} service: {} status: {} limit: {}", 
                     tenantId, serviceName, status, limit);
 
@@ -173,7 +171,7 @@ public class MessageQueueServiceImpl implements MessageQueueService {
 
         LocalDateTime now = LocalDateTime.now();
         return queuedMessageRepository.findByStatusAndNextRetryAtBeforeAndRetryCountLessThan(
-                QueuedMessage.Status.FAILED, now, 3);
+                QueuedMessage.MessageStatus.FAILED, now, 3);
     }
 
     @Override
@@ -206,7 +204,7 @@ public class MessageQueueServiceImpl implements MessageQueueService {
             Optional<QueuedMessage> messageOpt = queuedMessageRepository.findByMessageId(messageId);
             if (messageOpt.isPresent()) {
                 QueuedMessage message = messageOpt.get();
-                message.setStatus(QueuedMessage.Status.CANCELLED);
+                message.setStatus(QueuedMessage.MessageStatus.CANCELLED);
                 message.setErrorMessage("Cancelled: " + reason);
                 message.setUpdatedAt(LocalDateTime.now());
                 queuedMessageRepository.save(message);
@@ -333,7 +331,7 @@ public class MessageQueueServiceImpl implements MessageQueueService {
                 // Update retry count and next retry time
                 message.setRetryCount(message.getRetryCount() + 1);
                 message.setNextRetryAt(calculateNextRetryTime(message.getRetryCount()));
-                message.setStatus(QueuedMessage.Status.RETRY);
+                message.setStatus(QueuedMessage.MessageStatus.RETRY);
                 message.setUpdatedAt(LocalDateTime.now());
                 queuedMessageRepository.save(message);
 
@@ -355,7 +353,7 @@ public class MessageQueueServiceImpl implements MessageQueueService {
                 
                 if (message.getRetryCount() < message.getMaxRetries()) {
                     // Schedule for retry
-                    message.setStatus(QueuedMessage.Status.FAILED);
+                    message.setStatus(QueuedMessage.MessageStatus.FAILED);
                     message.setNextRetryAt(calculateNextRetryTime(message.getRetryCount()));
                     message.setErrorMessage(exception.getMessage());
                     message.setErrorDetails(Map.of(
@@ -364,7 +362,7 @@ public class MessageQueueServiceImpl implements MessageQueueService {
                     ));
                 } else {
                     // Max retries exceeded
-                    message.setStatus(QueuedMessage.Status.FAILED);
+                    message.setStatus(QueuedMessage.MessageStatus.FAILED);
                     message.setErrorMessage("Max retries exceeded: " + exception.getMessage());
                     message.setErrorDetails(Map.of(
                             "exceptionType", exception.getClass().getSimpleName(),
