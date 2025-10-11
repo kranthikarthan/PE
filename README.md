@@ -26,6 +26,8 @@ This repository contains the complete architecture design for a **highly modular
 | **[05-DATABASE-SCHEMAS.md](docs/05-DATABASE-SCHEMAS.md)** | Complete database designs for all services | ✅ Complete |
 | **[06-SOUTH-AFRICA-CLEARING.md](docs/06-SOUTH-AFRICA-CLEARING.md)** | Integration with SAMOS, BankservAfrica, RTC, SASWITCH | ✅ Complete |
 | **[07-AZURE-INFRASTRUCTURE.md](docs/07-AZURE-INFRASTRUCTURE.md)** | Azure infrastructure (AKS, networking, security) | ✅ Complete |
+| **[08-CORE-BANKING-INTEGRATION.md](docs/08-CORE-BANKING-INTEGRATION.md)** | **Integration with external core banking systems** | ✅ Complete |
+| **[09-LIMIT-MANAGEMENT.md](docs/09-LIMIT-MANAGEMENT.md)** | **Customer transaction limit management system** | ✅ Complete |
 
 ---
 
@@ -65,7 +67,7 @@ This repository contains the complete architecture design for a **highly modular
 |---|---------|---------|----------|---------------|
 | 1 | Payment Initiation | Accept payment requests | PostgreSQL | ~400 |
 | 2 | Validation Service | Business rules, fraud detection | PostgreSQL + Redis | ~450 |
-| 3 | Account Service | Account management, holds | PostgreSQL | ~350 |
+| 3 | Account Adapter | **Orchestrate** calls to external core banking systems | PostgreSQL + Redis | ~400 |
 | 4 | Routing Service | Determine clearing channel | Redis | ~300 |
 | 5 | Transaction Processing | State machine, ledger | PostgreSQL | ~500 |
 | 6-8 | Clearing Adapters | SAMOS, Bankserv, RTC | PostgreSQL | ~400 each |
@@ -331,13 +333,15 @@ kubectl apply -f ../kubernetes/
 ### For Business Stakeholders
 1. **[00-ARCHITECTURE-OVERVIEW.md](docs/00-ARCHITECTURE-OVERVIEW.md)** - System overview
 2. **[01-ASSUMPTIONS.md](docs/01-ASSUMPTIONS.md)** - **Critical: Review all assumptions**
-3. **[06-SOUTH-AFRICA-CLEARING.md](docs/06-SOUTH-AFRICA-CLEARING.md)** - Clearing system integration
+3. **[08-CORE-BANKING-INTEGRATION.md](docs/08-CORE-BANKING-INTEGRATION.md)** - **External systems integration**
+4. **[06-SOUTH-AFRICA-CLEARING.md](docs/06-SOUTH-AFRICA-CLEARING.md)** - Clearing system integration
 
 ### For Architects
 1. **[00-ARCHITECTURE-OVERVIEW.md](docs/00-ARCHITECTURE-OVERVIEW.md)** - Architecture patterns
-2. **[02-MICROSERVICES-BREAKDOWN.md](docs/02-MICROSERVICES-BREAKDOWN.md)** - Service specifications
-3. **[03-EVENT-SCHEMAS.md](docs/03-EVENT-SCHEMAS.md)** - Event-driven design
-4. **[07-AZURE-INFRASTRUCTURE.md](docs/07-AZURE-INFRASTRUCTURE.md)** - Cloud architecture
+2. **[08-CORE-BANKING-INTEGRATION.md](docs/08-CORE-BANKING-INTEGRATION.md)** - **Core banking integration**
+3. **[02-MICROSERVICES-BREAKDOWN.md](docs/02-MICROSERVICES-BREAKDOWN.md)** - Service specifications
+4. **[03-EVENT-SCHEMAS.md](docs/03-EVENT-SCHEMAS.md)** - Event-driven design
+5. **[07-AZURE-INFRASTRUCTURE.md](docs/07-AZURE-INFRASTRUCTURE.md)** - Cloud architecture
 
 ### For Developers
 1. **[04-AI-AGENT-TASK-BREAKDOWN.md](docs/04-AI-AGENT-TASK-BREAKDOWN.md)** - **Task assignments**

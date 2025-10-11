@@ -232,17 +232,18 @@ These services have NO dependencies on other services and can be built completel
 
 ---
 
-#### Task 1.1: Account Service
+#### Task 1.1: Account Adapter Service
 **Assigned to**: Agent Service-1  
 **Priority**: High  
-**Estimated Time**: 2 hours
+**Estimated Time**: 3 hours
 
 **Service Specification**:
-- **Purpose**: Manage account information, balances, holds
-- **Database**: PostgreSQL (accounts, account_holds tables)
-- **API Endpoints**: 6 REST endpoints
+- **Purpose**: Orchestrate calls to external core banking systems (Current, Savings, Investment, Cards, Loans, etc.)
+- **Database**: PostgreSQL (account_routing, backend_systems, api_call_log tables) + Redis (caching)
+- **API Endpoints**: 7 REST endpoints (proxy to backend systems)
 - **Events Published**: FundsReservedEvent, InsufficientFundsEvent
 - **Events Consumed**: None
+- **Key Responsibility**: Acts as an adapter/orchestrator, NOT a system of record
 
 **Folder Structure**:
 ```
@@ -285,79 +286,117 @@ services/account-service/
 **AI Agent Instructions**:
 ```yaml
 agent_id: "Agent Service-1"
-task: "Build Account Service microservice"
+task: "Build Account Adapter Service microservice"
 reference_documents:
   - docs/02-MICROSERVICES-BREAKDOWN.md (Section 3)
-  - docs/01-ASSUMPTIONS.md
+  - docs/01-ASSUMPTIONS.md (Section 1.5 - External Core Banking Systems)
 
 requirements:
-  service_name: "account-service"
+  service_name: "account-adapter-service"
   port: 8081
   database: 
-    type: "PostgreSQL"
-    tables: ["accounts", "account_holds"]
+    type: "PostgreSQL + Redis"
+    tables: ["account_routing", "backend_systems", "account_cache", "api_call_log", "circuit_breaker_state"]
+  
+  external_systems:
+    - Current Accounts System (CURRENT, CHEQUE)
+    - Savings System (SAVINGS, MONEY_MARKET)
+    - Investment System (INVESTMENT, UNIT_TRUST)
+    - Card System (CREDIT_CARD, DEBIT_CARD)
+    - Home Loan System (HOME_LOAN, MORTGAGE)
+    - Car Loan System (CAR_LOAN, VEHICLE_FINANCE)
+    - Personal Loan System (PERSONAL_LOAN)
+    - Business Banking (BUSINESS_CURRENT, BUSINESS_SAVINGS)
   
   api_endpoints:
-    - "GET /api/v1/accounts/{accountNumber}"
-    - "POST /api/v1/accounts/{accountNumber}/holds"
-    - "DELETE /api/v1/accounts/holds/{holdId}"
-    - "POST /api/v1/accounts/verify"
-    - "GET /api/v1/accounts/{accountNumber}/balance"
-    - "GET /api/v1/accounts/{accountNumber}/holds"
+    - "GET /api/v1/accounts/{accountNumber}" (proxy to backend)
+    - "POST /api/v1/accounts/{accountNumber}/debit" (proxy to backend)
+    - "POST /api/v1/accounts/{accountNumber}/credit" (proxy to backend)
+    - "POST /api/v1/accounts/{accountNumber}/holds" (proxy to backend)
+    - "DELETE /api/v1/accounts/holds/{holdId}" (proxy to backend)
+    - "POST /api/v1/accounts/verify" (proxy to backend)
+    - "GET /api/v1/accounts/route/{accountNumber}" (routing info)
   
   business_logic:
-    - Check account status (ACTIVE, SUSPENDED, CLOSED)
-    - Calculate available balance (balance - holds)
-    - Place holds with expiry time (30 minutes default)
-    - Auto-expire holds (scheduled job)
-    - Verify account ownership using ID number
+    - Route account requests to appropriate backend system based on account routing table
+    - Handle circuit breaking for backend system failures
+    - Cache account data to reduce backend calls (TTL: 30 seconds)
+    - Log all API calls to external systems for audit
+    - Support idempotency for debit/credit operations
+    - Aggregate responses from multiple backend systems if needed
+    - **IMPORTANT**: DO NOT store account balances or transaction data
+  
+  backend_integration:
+    - Use RestTemplate with OAuth 2.0 client credentials
+    - Configure circuit breaker with Resilience4j
+    - Add retry logic (3 attempts, exponential backoff)
+    - Timeout: 5 seconds for backend calls
+    - Add idempotency headers (Idempotency-Key)
   
   events_to_publish:
-    - "FundsReservedEvent" (when hold placed)
-    - "InsufficientFundsEvent" (when insufficient balance)
+    - "FundsReservedEvent" (when hold placed via backend)
+    - "InsufficientFundsEvent" (when backend returns insufficient funds)
   
   technology_stack:
     - Spring Boot 3.x
-    - Spring Data JPA
+    - Spring Cloud (Circuit Breaker, Resilience4j)
+    - Spring Data JPA (for routing metadata)
     - PostgreSQL driver
+    - Redis (Spring Cache)
+    - RestTemplate / WebClient
+    - OAuth 2.0 Client
     - Flyway (database migrations)
     - Azure Service Bus SDK (event publishing)
     - Spring Boot Actuator
     - Spring Boot Test
-    - Testcontainers (integration tests)
+    - WireMock (mock backend systems in tests)
   
   validation_rules:
     - Account number: 10-20 digits
     - Amount: positive, max 999999999.99
-    - Hold expiry: minimum 5 minutes, maximum 24 hours
+    - Backend system must be active and healthy
   
   caching:
-    - Cache account balance lookups (TTL: 30 seconds)
-    - Use Spring Cache abstraction
+    - Cache account data (TTL: 30 seconds)
+    - Cache routing metadata (TTL: 5 minutes)
+    - Use Redis for distributed cache
   
   error_handling:
     - AccountNotFoundException
-    - InsufficientFundsException
-    - AccountSuspendedException
-    - HoldExpiredException
+    - BackendSystemUnavailableException
+    - CircuitBreakerOpenException
+    - BackendTimeoutException
+    - InvalidRoutingException
+  
+  circuit_breaker_config:
+    - Failure threshold: 5 failures
+    - Wait duration: 60 seconds
+    - Ring buffer size: 10
+    - Fallback: return cached data if available
   
   testing_requirements:
     - Unit tests for service layer (all business logic)
-    - Integration tests for repository layer (use Testcontainers)
+    - Mock backend system calls using WireMock
+    - Test circuit breaker behavior
+    - Test retry logic
+    - Test caching
     - Controller tests (MockMvc)
     - Minimum 80% code coverage
     - Test scenarios:
-      - Place hold on account with sufficient funds
-      - Place hold on account with insufficient funds
-      - Release hold
-      - Auto-expire holds (scheduled job test)
-      - Verify account ownership (positive and negative)
+      - Successful backend call (debit/credit)
+      - Backend system timeout
+      - Backend system returns error
+      - Circuit breaker open (fallback to cache)
+      - Idempotency (duplicate request)
+      - Routing to correct backend system
   
   documentation:
     - README.md with:
-      - Service description
+      - Service description (emphasize adapter role)
+      - List of external backend systems
       - API endpoints (brief)
       - How to run locally
+      - How to configure backend systems
       - How to run tests
       - Environment variables required
     - OpenAPI spec generation (springdoc-openapi)
@@ -366,7 +405,9 @@ requirements:
 deliverables:
   - Complete Spring Boot microservice
   - Database migration scripts (Flyway)
-  - Unit and integration tests
+  - REST client configurations for each backend system
+  - Circuit breaker configuration
+  - Unit and integration tests (with WireMock mocks)
   - Dockerfile
   - README.md
   - OpenAPI specification (auto-generated)
@@ -377,20 +418,40 @@ validation_checklist:
   - Service starts without errors
   - Health endpoint accessible: GET /actuator/health
   - OpenAPI UI accessible: GET /swagger-ui.html
-  - Can create account hold via API
-  - Can retrieve account balance via API
-  - Events are published to mock event bus
+  - Can route requests to mock backend systems
+  - Circuit breaker opens after failures
+  - Caching works correctly
+  - Idempotency prevents duplicate backend calls
 
-estimated_time: "2 hours"
-complexity: "LOW"
+estimated_time: "3 hours"
+complexity: "MEDIUM"
 ```
 
 **Sample Data for Testing**:
 ```sql
-INSERT INTO accounts (account_number, account_holder, account_type, status, balance, available_balance, currency, created_at, updated_at)
+-- Backend system configuration
+INSERT INTO backend_systems (system_id, system_name, base_url, auth_type, timeout_ms, is_active, health_status)
 VALUES 
-  ('1234567890', 'John Doe', 'CURRENT', 'ACTIVE', 10000.00, 10000.00, 'ZAR', NOW(), NOW()),
-  ('0987654321', 'Jane Smith', 'SAVINGS', 'ACTIVE', 50000.00, 50000.00, 'ZAR', NOW(), NOW());
+  ('CURRENT_ACCOUNTS', 'Current Accounts System', 'https://current-accounts.bank.internal/api/v1', 'OAUTH2', 5000, TRUE, 'HEALTHY'),
+  ('SAVINGS', 'Savings System', 'https://savings.bank.internal/api/v1', 'OAUTH2', 5000, TRUE, 'HEALTHY'),
+  ('INVESTMENTS', 'Investment System', 'https://investments.bank.internal/api/v1', 'OAUTH2', 5000, TRUE, 'HEALTHY');
+
+-- Account routing
+INSERT INTO account_routing (account_number, backend_system, account_type, base_url, is_active)
+VALUES 
+  ('1234567890', 'CURRENT_ACCOUNTS', 'CURRENT', 'https://current-accounts.bank.internal/api/v1', TRUE),
+  ('0987654321', 'SAVINGS', 'SAVINGS', 'https://savings.bank.internal/api/v1', TRUE),
+  ('1122334455', 'INVESTMENTS', 'INVESTMENT', 'https://investments.bank.internal/api/v1', TRUE);
+```
+
+**WireMock Stub for Testing**:
+```java
+// Mock backend system response
+stubFor(get(urlEqualTo("/api/v1/accounts/1234567890"))
+    .willReturn(aResponse()
+        .withStatus(200)
+        .withHeader("Content-Type", "application/json")
+        .withBody("{\"accountNumber\":\"1234567890\",\"balance\":10000.00,\"status\":\"ACTIVE\"}")));
 ```
 
 ---

@@ -78,28 +78,52 @@ This document outlines a **highly modular, AI-agent-buildable payments engine** 
 │                                                               │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐       │
 │  │Account   │ │Settlement│ │Clearing  │ │Notification│      │
-│  │Service   │ │Service   │ │Adapter   │ │Service   │       │
+│  │Adapter   │ │Service   │ │Adapter   │ │Service   │       │
+│  │(Orchestr)│ │          │ │          │ │            │       │
 │  └──────────┘ └──────────┘ └──────────┘ └──────────┘       │
 └──────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌──────────────────────────────────────────────────────────────┐
-│                  INFRASTRUCTURE LAYER                         │
-│  ┌──────────────────┐  ┌──────────────────┐                 │
-│  │ Event Bus        │  │ Audit & Logging  │                 │
-│  │ (Azure Service   │  │ (Application     │                 │
-│  │  Bus)            │  │  Insights)       │                 │
-│  └──────────────────┘  └──────────────────┘                 │
-└──────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌──────────────────────────────────────────────────────────────┐
-│                   EXTERNAL SYSTEMS                            │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │ SAMOS/SASWITCH│ │  BankservAfrica│ │  RTC (Real-Time│    │
-│  │ (Real-time)  │  │  (ACH/EFT)    │  │   Clearing)   │    │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-└──────────────────────────────────────────────────────────────┘
+            │                       │
+            │                       ▼
+            │       ┌──────────────────────────────────────────┐
+            │       │   INFRASTRUCTURE LAYER                   │
+            │       │  ┌────────────┐  ┌──────────────────┐   │
+            │       │  │ Event Bus  │  │ Audit & Logging  │   │
+            │       │  │ (Azure     │  │ (Application     │   │
+            │       │  │ Service    │  │  Insights)       │   │
+            │       │  │  Bus)      │  │                  │   │
+            │       │  └────────────┘  └──────────────────┘   │
+            │       └──────────────────────────────────────────┘
+            │                       │
+            ▼                       ▼
+┌─────────────────────────┐ ┌──────────────────────────────────┐
+│ CORE BANKING SYSTEMS    │ │   CLEARING SYSTEMS                │
+│ (External - REST APIs)  │ │                                   │
+├─────────────────────────┤ │ ┌──────────────┐                 │
+│ ┌─────────────────────┐ │ │ │SAMOS/SASWITCH│                 │
+│ │ Current Accounts    │ │ │ │(Real-time)   │                 │
+│ │ /debit  /credit     │ │ │ └──────────────┘                 │
+│ └─────────────────────┘ │ │                                   │
+│ ┌─────────────────────┐ │ │ ┌──────────────┐                 │
+│ │ Savings Accounts    │ │ │ │BankservAfrica│                 │
+│ │ /debit  /credit     │ │ │ │(ACH/EFT)     │                 │
+│ └─────────────────────┘ │ │ └──────────────┘                 │
+│ ┌─────────────────────┐ │ │                                   │
+│ │ Investment Accounts │ │ │ ┌──────────────┐                 │
+│ │ /debit  /credit     │ │ │ │RTC (Real-Time│                 │
+│ └─────────────────────┘ │ │ │ Clearing)    │                 │
+│ ┌─────────────────────┐ │ │ └──────────────┘                 │
+│ │ Card Accounts       │ │ │                                   │
+│ │ /debit  /credit     │ │ └──────────────────────────────────┘
+│ └─────────────────────┘ │
+│ ┌─────────────────────┐ │
+│ │ Home Loan           │ │
+│ │ /debit  /credit     │ │
+│ └─────────────────────┘ │
+│ ┌─────────────────────┐ │
+│ │ Car Loan            │ │
+│ │ /debit  /credit     │ │
+│ └─────────────────────┘ │
+└─────────────────────────┘
 ```
 
 ## Microservices Breakdown
@@ -118,11 +142,13 @@ This document outlines a **highly modular, AI-agent-buildable payments engine** 
    - Compliance checks (FICA)
    - Tech: Spring Boot, Redis (caching rules)
 
-3. **Account Service**
-   - Account balance queries
-   - Account holds/reserves
-   - Account verification
-   - Tech: Spring Boot, PostgreSQL
+3. **Account Adapter Service** (formerly Account Service)
+   - **Orchestrates** calls to external core banking systems
+   - Routes requests to appropriate system (Current, Savings, Investment, etc.)
+   - Aggregates responses from multiple systems
+   - Caches account metadata and routing information
+   - Does NOT store account balances or transaction data
+   - Tech: Spring Boot, Redis (caching), REST clients
 
 4. **Routing Service**
    - Determine payment channel (EFT, RTC, Card)

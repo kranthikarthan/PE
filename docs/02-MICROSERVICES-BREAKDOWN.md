@@ -146,7 +146,10 @@ CREATE TABLE payments (
 ## 2. Validation Service
 
 ### Responsibilities
-- Validate business rules (daily limits, transaction limits)
+- Validate business rules and compliance
+- **Check customer transaction limits (per payment type, daily, monthly)**
+- **Track and update used limits**
+- **Enforce limit controls to prevent overspending**
 - Check account status and KYC compliance
 - Integrate with fraud detection system
 - Check FICA compliance
@@ -156,22 +159,185 @@ CREATE TABLE payments (
 
 ```yaml
 POST /api/v1/validate/payment
-  Description: Validate a payment
+  Description: Comprehensive payment validation including limit checks
   Request Body:
     {
       "paymentId": "PAY-2025-XXXXXX",
+      "customerId": "CUST-123456",
       "sourceAccount": "1234567890",
       "destinationAccount": "0987654321",
       "amount": 1000.00,
+      "currency": "ZAR",
       "paymentType": "EFT"
     }
-  Response: 200 OK
+  Response: 200 OK (Valid)
     {
       "valid": true,
       "validationErrors": [],
       "fraudScore": 0.15,
-      "riskLevel": "LOW"
+      "riskLevel": "LOW",
+      "limitCheck": {
+        "dailyLimitAvailable": 49000.00,
+        "monthlyLimitAvailable": 199000.00,
+        "paymentTypeLimitAvailable": 24000.00,
+        "sufficientLimit": true
+      }
     }
+  Response: 400 Bad Request (Limit Exceeded)
+    {
+      "valid": false,
+      "validationErrors": [
+        {
+          "code": "DAILY_LIMIT_EXCEEDED",
+          "message": "Daily limit exceeded. Available: R5000, Requested: R10000",
+          "field": "amount"
+        }
+      ],
+      "fraudScore": 0.15,
+      "riskLevel": "LOW",
+      "limitCheck": {
+        "dailyLimitAvailable": 5000.00,
+        "monthlyLimitAvailable": 50000.00,
+        "paymentTypeLimitAvailable": 5000.00,
+        "sufficientLimit": false
+      }
+    }
+
+GET /api/v1/limits/customer/{customerId}
+  Description: Get customer's limit configuration and usage
+  Response: 200 OK
+    {
+      "customerId": "CUST-123456",
+      "customerProfile": "INDIVIDUAL_PREMIUM",
+      "limits": {
+        "daily": {
+          "limit": 100000.00,
+          "used": 45000.00,
+          "available": 55000.00,
+          "resetsAt": "2025-10-12T00:00:00Z"
+        },
+        "monthly": {
+          "limit": 500000.00,
+          "used": 180000.00,
+          "available": 320000.00,
+          "resetsAt": "2025-11-01T00:00:00Z"
+        },
+        "perTransaction": {
+          "limit": 50000.00
+        },
+        "byPaymentType": [
+          {
+            "paymentType": "EFT",
+            "dailyLimit": 50000.00,
+            "dailyUsed": 15000.00,
+            "dailyAvailable": 35000.00
+          },
+          {
+            "paymentType": "RTC",
+            "dailyLimit": 100000.00,
+            "dailyUsed": 30000.00,
+            "dailyAvailable": 70000.00
+          }
+        ]
+      },
+      "lastUpdated": "2025-10-11T10:30:00Z"
+    }
+
+POST /api/v1/limits/customer/{customerId}/check
+  Description: Check if customer has sufficient limit for a payment
+  Request Body:
+    {
+      "amount": 10000.00,
+      "paymentType": "EFT"
+    }
+  Response: 200 OK
+    {
+      "sufficient": true,
+      "dailyLimitCheck": {
+        "limit": 100000.00,
+        "used": 45000.00,
+        "available": 55000.00,
+        "afterTransaction": 45000.00,
+        "withinLimit": true
+      },
+      "monthlyLimitCheck": {
+        "limit": 500000.00,
+        "used": 180000.00,
+        "available": 320000.00,
+        "afterTransaction": 310000.00,
+        "withinLimit": true
+      },
+      "paymentTypeLimitCheck": {
+        "paymentType": "EFT",
+        "limit": 50000.00,
+        "used": 15000.00,
+        "available": 35000.00,
+        "afterTransaction": 25000.00,
+        "withinLimit": true
+      }
+    }
+
+POST /api/v1/limits/customer/{customerId}/reserve
+  Description: Reserve limit for a payment (before execution)
+  Request Body:
+    {
+      "paymentId": "PAY-2025-XXXXXX",
+      "amount": 10000.00,
+      "paymentType": "EFT"
+    }
+  Response: 201 Created
+    {
+      "reservationId": "RES-XXXXX",
+      "status": "RESERVED",
+      "expiresAt": "2025-10-11T11:00:00Z"
+    }
+
+POST /api/v1/limits/customer/{customerId}/consume
+  Description: Consume (use) limit after successful payment
+  Request Body:
+    {
+      "paymentId": "PAY-2025-XXXXXX",
+      "reservationId": "RES-XXXXX",
+      "amount": 10000.00,
+      "paymentType": "EFT"
+    }
+  Response: 200 OK
+    {
+      "status": "CONSUMED",
+      "newDailyUsed": 55000.00,
+      "newMonthlyUsed": 190000.00
+    }
+
+POST /api/v1/limits/customer/{customerId}/release
+  Description: Release reserved limit (if payment fails/cancelled)
+  Request Body:
+    {
+      "reservationId": "RES-XXXXX"
+    }
+  Response: 200 OK
+    {
+      "status": "RELEASED"
+    }
+
+PUT /api/v1/limits/customer/{customerId}
+  Description: Update customer limit configuration (admin only)
+  Request Body:
+    {
+      "dailyLimit": 150000.00,
+      "monthlyLimit": 600000.00,
+      "perTransactionLimit": 75000.00,
+      "paymentTypeLimits": [
+        {
+          "paymentType": "EFT",
+          "dailyLimit": 75000.00
+        },
+        {
+          "paymentType": "RTC",
+          "dailyLimit": 150000.00
+        }
+      ]
+    }
+  Response: 200 OK
 
 GET /api/v1/validate/rules
   Description: Get current validation rules
@@ -193,25 +359,107 @@ GET /api/v1/validate/rules
 
 ### Events Published
 ```json
+// Validation Success
 {
   "eventType": "PaymentValidatedEvent",
   "paymentId": "PAY-2025-XXXXXX",
   "validationResult": {
     "valid": true,
     "fraudScore": 0.15,
-    "riskLevel": "LOW"
+    "riskLevel": "LOW",
+    "limitReservationId": "RES-XXXXX"
   }
+}
+
+// Validation Failure - Limit Exceeded
+{
+  "eventType": "ValidationFailedEvent",
+  "paymentId": "PAY-2025-XXXXXX",
+  "failureReason": "DAILY_LIMIT_EXCEEDED",
+  "validationResult": {
+    "valid": false,
+    "failureReasons": [
+      {
+        "code": "DAILY_LIMIT_EXCEEDED",
+        "message": "Daily limit exceeded",
+        "currentLimit": 100000.00,
+        "usedAmount": 95000.00,
+        "requestedAmount": 10000.00
+      }
+    ]
+  }
+}
+
+// Limit Consumed (after successful payment)
+{
+  "eventType": "LimitConsumedEvent",
+  "customerId": "CUST-123456",
+  "paymentId": "PAY-2025-XXXXXX",
+  "amount": 10000.00,
+  "paymentType": "EFT",
+  "newDailyUsed": 55000.00,
+  "newMonthlyUsed": 190000.00
 }
 ```
 
-### Validation Rules (Examples)
-1. **Daily Limit**: Maximum R50,000 per day per account
-2. **Single Transaction**: Maximum R5,000,000 for RTC
-3. **Account Status**: Must be ACTIVE
-4. **KYC Status**: Must be VERIFIED
-5. **FICA Status**: Must be COMPLIANT
-6. **Fraud Score**: Must be < 0.7 (70%)
-7. **Velocity Check**: Max 10 transactions per hour
+### Validation Rules & Limit Checks
+
+#### 1. Limit Validation (NEW)
+- **Daily Limit Check**: `usedToday + paymentAmount <= customerDailyLimit`
+- **Monthly Limit Check**: `usedThisMonth + paymentAmount <= customerMonthlyLimit`
+- **Payment Type Limit**: `usedTodayForType + paymentAmount <= paymentTypeDailyLimit`
+- **Per Transaction Limit**: `paymentAmount <= perTransactionLimit`
+- **Transaction Count Limit**: `countToday < maxTransactionsPerDay`
+
+#### 2. Compliance Validation
+- **Account Status**: Must be ACTIVE
+- **KYC Status**: Must be VERIFIED
+- **FICA Status**: Must be COMPLIANT
+
+#### 3. Fraud & Risk Validation
+- **Fraud Score**: Must be < 0.7 (70%)
+- **Velocity Check**: Max transactions per hour
+- **Suspicious Pattern Detection**: Unusual transaction patterns
+
+#### 4. Business Rules
+- **Amount Validation**: Positive, within clearing system limits
+- **Currency**: Must be ZAR
+- **Account Verification**: Source account must exist and be accessible
+
+### Limit Check Flow
+
+```
+1. Payment Initiated
+   ↓
+2. Validation Service receives PaymentInitiatedEvent
+   ↓
+3. Load Customer Limits (from database/cache)
+   ↓
+4. Calculate Available Limits
+   - Daily: limit - used
+   - Monthly: limit - used
+   - Payment Type: limit - used
+   ↓
+5. Check if Payment Amount <= Available Limit
+   ↓
+6a. If SUFFICIENT:
+    - Reserve limit (temporary hold)
+    - Mark reservation with paymentId
+    - Publish PaymentValidatedEvent
+   ↓
+6b. If INSUFFICIENT:
+    - Publish ValidationFailedEvent (LIMIT_EXCEEDED)
+    - Payment flow stops
+   ↓
+7. After successful payment:
+    - Convert reservation to consumed
+    - Update used limits
+    - Publish LimitConsumedEvent
+   ↓
+8. If payment fails:
+    - Release reservation
+    - Restore available limit
+```
 
 ### Database Schema
 ```sql
@@ -246,20 +494,37 @@ CREATE TABLE validation_results (
 
 ---
 
-## 3. Account Service
+## 3. Account Adapter Service
 
 ### Responsibilities
-- Manage account information
-- Check account balances
-- Place holds/reserves on accounts
-- Release holds
-- Verify account ownership
+- **Orchestrate** calls to external core banking systems
+- Route account requests to appropriate backend system
+- Aggregate responses from multiple systems
+- Cache account metadata and routing rules
+- Provide unified API interface for all account types
+- Handle circuit breaking and failover for external systems
+- **Does NOT store** account balances, transactions, or account master data
+
+### External Core Banking Systems
+
+The Account Adapter integrates with multiple backend systems:
+
+| System | Account Types | Base URL Pattern | Authentication |
+|--------|---------------|------------------|----------------|
+| Current Accounts System | CURRENT, CHEQUE | `https://current-accounts.bank.internal/api/v1` | OAuth 2.0 |
+| Savings System | SAVINGS, MONEY_MARKET | `https://savings.bank.internal/api/v1` | OAuth 2.0 |
+| Investment System | INVESTMENT, UNIT_TRUST | `https://investments.bank.internal/api/v1` | OAuth 2.0 |
+| Card System | CREDIT_CARD, DEBIT_CARD | `https://cards.bank.internal/api/v1` | OAuth 2.0 |
+| Home Loan System | HOME_LOAN, MORTGAGE | `https://home-loans.bank.internal/api/v1` | OAuth 2.0 |
+| Car Loan System | CAR_LOAN, VEHICLE_FINANCE | `https://vehicle-finance.bank.internal/api/v1` | OAuth 2.0 |
+| Personal Loan System | PERSONAL_LOAN | `https://personal-loans.bank.internal/api/v1` | OAuth 2.0 |
+| Business Banking | BUSINESS_CURRENT, BUSINESS_SAVINGS | `https://business-banking.bank.internal/api/v1` | OAuth 2.0 |
 
 ### API Endpoints
 
 ```yaml
 GET /api/v1/accounts/{accountNumber}
-  Description: Get account details
+  Description: Get account details (proxies to backend system)
   Response: 200 OK
     {
       "accountNumber": "1234567890",
@@ -268,21 +533,58 @@ GET /api/v1/accounts/{accountNumber}
       "status": "ACTIVE",
       "balance": 10000.00,
       "availableBalance": 9500.00,
-      "currency": "ZAR"
+      "currency": "ZAR",
+      "backendSystem": "CURRENT_ACCOUNTS_SYSTEM"
+    }
+
+POST /api/v1/accounts/{accountNumber}/debit
+  Description: Debit account (calls backend system)
+  Request Body:
+    {
+      "idempotencyKey": "uuid",
+      "amount": 1000.00,
+      "currency": "ZAR",
+      "reference": "PAY-2025-XXXXXX",
+      "description": "Payment to merchant"
+    }
+  Response: 200 OK
+    {
+      "transactionId": "TXN-BACKEND-XXXXX",
+      "status": "COMPLETED",
+      "newBalance": 9000.00
+    }
+
+POST /api/v1/accounts/{accountNumber}/credit
+  Description: Credit account (calls backend system)
+  Request Body:
+    {
+      "idempotencyKey": "uuid",
+      "amount": 1000.00,
+      "currency": "ZAR",
+      "reference": "PAY-2025-XXXXXX",
+      "description": "Payment received"
+    }
+  Response: 200 OK
+    {
+      "transactionId": "TXN-BACKEND-XXXXX",
+      "status": "COMPLETED",
+      "newBalance": 11000.00
     }
 
 POST /api/v1/accounts/{accountNumber}/holds
-  Description: Place a hold on account
+  Description: Place a hold on account (calls backend system)
   Request Body:
     {
+      "idempotencyKey": "uuid",
       "amount": 1000.00,
       "reference": "PAY-2025-XXXXXX",
       "expiryMinutes": 30
     }
   Response: 201 Created
     {
-      "holdId": "HOLD-XXXXX",
-      "status": "PLACED"
+      "holdId": "HOLD-BACKEND-XXXXX",
+      "status": "PLACED",
+      "expiresAt": "2025-10-11T11:00:00Z"
     }
 
 DELETE /api/v1/accounts/holds/{holdId}
@@ -301,43 +603,216 @@ POST /api/v1/accounts/verify
       "verified": true,
       "accountHolder": "John Doe"
     }
+
+GET /api/v1/accounts/route/{accountNumber}
+  Description: Get routing information for an account
+  Response: 200 OK
+    {
+      "accountNumber": "1234567890",
+      "backendSystem": "CURRENT_ACCOUNTS_SYSTEM",
+      "baseUrl": "https://current-accounts.bank.internal/api/v1",
+      "accountType": "CURRENT"
+    }
 ```
 
-### Database Schema
+### Database Schema (Minimal - Routing & Caching Only)
+
 ```sql
-CREATE TABLE accounts (
+-- Account routing metadata (determines which backend system to call)
+CREATE TABLE account_routing (
     account_number VARCHAR(50) PRIMARY KEY,
-    account_holder VARCHAR(200) NOT NULL,
-    account_type VARCHAR(20) NOT NULL,
-    status VARCHAR(20) NOT NULL,
-    balance DECIMAL(18,2) NOT NULL,
-    available_balance DECIMAL(18,2) NOT NULL,
-    currency VARCHAR(3) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
-    INDEX idx_status (status)
+    backend_system VARCHAR(50) NOT NULL,
+    account_type VARCHAR(30) NOT NULL,
+    base_url VARCHAR(200) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    last_verified TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_backend_system (backend_system),
+    INDEX idx_account_type (account_type)
 );
 
-CREATE TABLE account_holds (
-    hold_id VARCHAR(50) PRIMARY KEY,
-    account_number VARCHAR(50) NOT NULL,
-    amount DECIMAL(18,2) NOT NULL,
-    reference VARCHAR(100),
-    status VARCHAR(20) NOT NULL,
-    placed_at TIMESTAMP NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    released_at TIMESTAMP,
-    INDEX idx_account_number (account_number),
-    INDEX idx_expires_at (expires_at),
-    FOREIGN KEY (account_number) REFERENCES accounts(account_number)
+-- Backend system configuration
+CREATE TABLE backend_systems (
+    system_id VARCHAR(50) PRIMARY KEY,
+    system_name VARCHAR(100) NOT NULL,
+    base_url VARCHAR(200) NOT NULL,
+    auth_type VARCHAR(20) NOT NULL,
+    oauth_client_id VARCHAR(100),
+    timeout_ms INTEGER DEFAULT 5000,
+    retry_attempts INTEGER DEFAULT 3,
+    circuit_breaker_enabled BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
+    health_check_url VARCHAR(200),
+    last_health_check TIMESTAMP,
+    health_status VARCHAR(20),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Cache of recent account inquiries (to reduce backend calls)
+CREATE TABLE account_cache (
+    account_number VARCHAR(50) PRIMARY KEY,
+    account_data JSONB NOT NULL,
+    cached_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    INDEX idx_expires_at (expires_at)
+);
+
+-- API call audit trail
+CREATE TABLE api_call_log (
+    call_id VARCHAR(50) PRIMARY KEY,
+    account_number VARCHAR(50) NOT NULL,
+    backend_system VARCHAR(50) NOT NULL,
+    operation VARCHAR(50) NOT NULL,
+    request_data JSONB,
+    response_status INTEGER,
+    response_time_ms INTEGER,
+    success BOOLEAN,
+    error_message TEXT,
+    called_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_account_number (account_number),
+    INDEX idx_backend_system (backend_system),
+    INDEX idx_called_at (called_at DESC)
+);
+```
+
+### Backend System Integration
+
+#### REST Client Configuration
+
+```java
+@Configuration
+public class BackendSystemClientConfig {
+    
+    @Bean
+    public RestTemplate currentAccountsClient() {
+        return createRestTemplate("CURRENT_ACCOUNTS_SYSTEM");
+    }
+    
+    @Bean
+    public RestTemplate savingsClient() {
+        return createRestTemplate("SAVINGS_SYSTEM");
+    }
+    
+    // ... other clients
+    
+    private RestTemplate createRestTemplate(String systemId) {
+        RestTemplate restTemplate = new RestTemplate();
+        
+        // Add interceptors
+        restTemplate.getInterceptors().add(new OAuth2Interceptor(systemId));
+        restTemplate.getInterceptors().add(new LoggingInterceptor());
+        restTemplate.getInterceptors().add(new IdempotencyInterceptor());
+        
+        // Configure timeout
+        HttpComponentsClientHttpRequestFactory factory = 
+            new HttpComponentsClientHttpRequestFactory();
+        factory.setConnectTimeout(5000);
+        factory.setReadTimeout(5000);
+        restTemplate.setRequestFactory(factory);
+        
+        return restTemplate;
+    }
+}
+```
+
+#### Service Implementation
+
+```java
+@Service
+public class AccountAdapterService {
+    
+    @Autowired
+    private AccountRoutingRepository routingRepository;
+    
+    @Autowired
+    private Map<String, RestTemplate> backendClients;
+    
+    @Cacheable(value = "accounts", key = "#accountNumber", unless = "#result == null")
+    public AccountDTO getAccount(String accountNumber) {
+        // 1. Determine which backend system to call
+        AccountRouting routing = routingRepository.findByAccountNumber(accountNumber)
+            .orElseThrow(() -> new AccountNotFoundException(accountNumber));
+        
+        // 2. Get appropriate REST client
+        RestTemplate client = backendClients.get(routing.getBackendSystem());
+        
+        // 3. Call backend system
+        String url = routing.getBaseUrl() + "/accounts/" + accountNumber;
+        
+        try {
+            ResponseEntity<AccountDTO> response = client.getForEntity(url, AccountDTO.class);
+            return response.getBody();
+        } catch (RestClientException e) {
+            handleBackendError(routing.getBackendSystem(), e);
+            throw new BackendSystemUnavailableException(routing.getBackendSystem());
+        }
+    }
+    
+    public DebitResponse debitAccount(String accountNumber, DebitRequest request) {
+        AccountRouting routing = getRouting(accountNumber);
+        RestTemplate client = backendClients.get(routing.getBackendSystem());
+        
+        String url = routing.getBaseUrl() + "/accounts/" + accountNumber + "/debit";
+        
+        // Add idempotency key
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Idempotency-Key", request.getIdempotencyKey());
+        
+        HttpEntity<DebitRequest> httpEntity = new HttpEntity<>(request, headers);
+        
+        return client.postForObject(url, httpEntity, DebitResponse.class);
+    }
+    
+    public CreditResponse creditAccount(String accountNumber, CreditRequest request) {
+        AccountRouting routing = getRouting(accountNumber);
+        RestTemplate client = backendClients.get(routing.getBackendSystem());
+        
+        String url = routing.getBaseUrl() + "/accounts/" + accountNumber + "/credit";
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Idempotency-Key", request.getIdempotencyKey());
+        
+        HttpEntity<CreditRequest> httpEntity = new HttpEntity<>(request, headers);
+        
+        return client.postForObject(url, httpEntity, CreditResponse.class);
+    }
+}
+```
+
+#### Circuit Breaker Pattern
+
+```java
+@Service
+public class ResilientAccountAdapterService {
+    
+    @Autowired
+    private AccountAdapterService accountService;
+    
+    @CircuitBreaker(name = "currentAccountsSystem", fallbackMethod = "getAccountFallback")
+    @Retry(name = "currentAccountsSystem")
+    @Bulkhead(name = "currentAccountsSystem")
+    public AccountDTO getAccount(String accountNumber) {
+        return accountService.getAccount(accountNumber);
+    }
+    
+    private AccountDTO getAccountFallback(String accountNumber, Exception e) {
+        // Return cached data if available
+        return accountCacheService.getCachedAccount(accountNumber)
+            .orElseThrow(() -> new ServiceUnavailableException(
+                "Backend system unavailable and no cached data available"));
+    }
+}
 ```
 
 ### Technology Stack
 - Spring Boot 3.x
-- Spring Data JPA
-- PostgreSQL
-- Redis (caching balances)
+- Spring Cloud (Circuit Breaker, Resilience4j)
+- Redis (caching account data, routing metadata)
+- PostgreSQL (routing configuration, audit logs)
+- REST Template / WebClient
+- OAuth 2.0 Client
 
 ---
 

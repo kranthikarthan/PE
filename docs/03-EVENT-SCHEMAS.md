@@ -132,6 +132,18 @@ channels:
       message:
         $ref: '#/components/messages/PaymentFailed'
   
+  limit/consumed:
+    description: Limit consumed (used) events
+    subscribe:
+      message:
+        $ref: '#/components/messages/LimitConsumed'
+  
+  limit/released:
+    description: Limit released (reservation cancelled) events
+    subscribe:
+      message:
+        $ref: '#/components/messages/LimitReleased'
+  
   settlement/batch-created:
     description: Settlement batch creation events
     subscribe:
@@ -329,6 +341,22 @@ components:
       contentType: application/json
       payload:
         $ref: '#/components/schemas/SagaCompletedPayload'
+    
+    LimitConsumed:
+      name: LimitConsumed
+      title: Limit Consumed Event
+      summary: Published when customer limit is consumed after successful payment
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/LimitConsumedPayload'
+    
+    LimitReleased:
+      name: LimitReleased
+      title: Limit Released Event
+      summary: Published when reserved limit is released (payment failed/cancelled)
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/LimitReleasedPayload'
 
   schemas:
     EventMetadata:
@@ -856,20 +884,93 @@ components:
             completedAt:
               type: string
               format: date-time
+    
+    LimitConsumedPayload:
+      allOf:
+        - $ref: '#/components/schemas/EventMetadata'
+        - type: object
+          required:
+            - customerId
+            - paymentId
+            - amount
+            - paymentType
+          properties:
+            customerId:
+              type: string
+            paymentId:
+              type: string
+            amount:
+              type: number
+              format: double
+            paymentType:
+              type: string
+              enum: [EFT, RTC, RTGS, DEBIT_ORDER, CARD]
+            reservationId:
+              type: string
+            dailyUsedBefore:
+              type: number
+              format: double
+            dailyUsedAfter:
+              type: number
+              format: double
+            monthlyUsedBefore:
+              type: number
+              format: double
+            monthlyUsedAfter:
+              type: number
+              format: double
+            dailyAvailable:
+              type: number
+              format: double
+            monthlyAvailable:
+              type: number
+              format: double
+            consumedAt:
+              type: string
+              format: date-time
+    
+    LimitReleasedPayload:
+      allOf:
+        - $ref: '#/components/schemas/EventMetadata'
+        - type: object
+          required:
+            - customerId
+            - paymentId
+            - amount
+            - reservationId
+          properties:
+            customerId:
+              type: string
+            paymentId:
+              type: string
+            amount:
+              type: number
+              format: double
+            paymentType:
+              type: string
+              enum: [EFT, RTC, RTGS, DEBIT_ORDER, CARD]
+            reservationId:
+              type: string
+            releaseReason:
+              type: string
+              enum: [PAYMENT_FAILED, PAYMENT_CANCELLED, VALIDATION_FAILED, TIMEOUT]
+            releasedAt:
+              type: string
+              format: date-time
 ```
 
 ---
 
 ## Event Flow Diagram
 
-### Happy Path: Successful Payment
+### Happy Path: Successful Payment (with Limit Check)
 
 ```
 1. PaymentInitiatedEvent
    ↓
-2. PaymentValidatedEvent
+2. PaymentValidatedEvent (includes limit reservation)
    ↓
-3. FundsReservedEvent
+3. FundsReservedEvent (hold on account)
    ↓
 4. RoutingDeterminedEvent
    ↓
@@ -883,31 +984,49 @@ components:
    ↓
 9. ClearingCompletedEvent
    ↓
-10. SettlementCompletedEvent
+10. LimitConsumedEvent (reservation converted to actual usage)
     ↓
-11. PaymentCompletedEvent
+11. SettlementCompletedEvent
+    ↓
+12. PaymentCompletedEvent
 ```
 
-### Failure Path: Validation Failed
+### Failure Path: Limit Exceeded
 
 ```
 1. PaymentInitiatedEvent
    ↓
-2. ValidationFailedEvent
+2. ValidationFailedEvent (DAILY_LIMIT_EXCEEDED / MONTHLY_LIMIT_EXCEEDED / PAYMENT_TYPE_LIMIT_EXCEEDED)
+   ↓
+3. PaymentFailedEvent
+   (No limit reservation created, no compensation needed)
+```
+
+### Failure Path: Other Validation Failed
+
+```
+1. PaymentInitiatedEvent
+   ↓
+2. ValidationFailedEvent (KYC, FICA, Fraud, etc.)
    ↓
 3. PaymentFailedEvent
 ```
 
-### Compensation Path: Clearing Failed
+### Compensation Path: Payment Failed After Validation
 
 ```
-1-7. [Normal flow up to ClearingSubmittedEvent]
+1-2. [Normal flow up to PaymentValidatedEvent - Limit Reserved]
+   ↓
+3-7. [Continue processing]
    ↓
 8. ClearingFailedEvent
    ↓
 9. SagaCompensatingEvent
    ↓
-10. [Reverse steps: Release funds, cancel transaction]
+10. [Compensation steps:]
+    - Release funds hold (FundsReleasedEvent)
+    - Release limit reservation (LimitReleasedEvent)
+    - Cancel transaction
     ↓
 11. PaymentFailedEvent
 ```
@@ -919,13 +1038,13 @@ components:
 | Service | Subscribes To | Publishes |
 |---------|---------------|-----------|
 | Payment Initiation | - | PaymentInitiatedEvent |
-| Validation Service | PaymentInitiatedEvent | PaymentValidatedEvent, ValidationFailedEvent |
-| Account Service | - | FundsReservedEvent, InsufficientFundsEvent |
+| Validation Service | PaymentInitiatedEvent | PaymentValidatedEvent, ValidationFailedEvent, LimitConsumedEvent, LimitReleasedEvent |
+| Account Adapter | - | FundsReservedEvent, InsufficientFundsEvent |
 | Routing Service | PaymentValidatedEvent | RoutingDeterminedEvent |
 | Transaction Processing | RoutingDeterminedEvent | TransactionCreatedEvent, TransactionProcessingEvent |
 | Clearing Adapters | TransactionCreatedEvent | ClearingSubmittedEvent, ClearingAcknowledgedEvent, ClearingCompletedEvent, ClearingFailedEvent |
 | Settlement Service | ClearingCompletedEvent | SettlementBatchCreatedEvent, SettlementCompletedEvent |
-| Notification Service | PaymentCompletedEvent, PaymentFailedEvent | - |
+| Notification Service | PaymentCompletedEvent, PaymentFailedEvent, ValidationFailedEvent (limit exceeded) | - |
 | Saga Orchestrator | All Events | SagaStartedEvent, SagaStepCompletedEvent, SagaCompensatingEvent, SagaCompletedEvent |
 | Audit Service | All Events | - |
 

@@ -214,126 +214,511 @@ CREATE TABLE fraud_detection_log (
 
 CREATE INDEX idx_fraud_log_payment_id ON fraud_detection_log(payment_id);
 CREATE INDEX idx_fraud_log_score ON fraud_detection_log(fraud_score DESC);
-```
 
----
-
-## 3. Account Service Database
-
-### Database Name: `account_db`
-
-```sql
 -- =====================================================
--- ACCOUNTS
+-- CUSTOMER LIMITS (Limit Configuration per Customer)
 -- =====================================================
-CREATE TABLE accounts (
-    account_number VARCHAR(50) PRIMARY KEY,
-    account_holder VARCHAR(200) NOT NULL,
-    id_number VARCHAR(20) NOT NULL,
-    account_type VARCHAR(20) NOT NULL CHECK (account_type IN ('CURRENT', 'SAVINGS', 'CREDIT', 'MONEY_MARKET')),
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'SUSPENDED', 'CLOSED', 'DORMANT')),
-    balance DECIMAL(18,2) NOT NULL DEFAULT 0.00,
-    available_balance DECIMAL(18,2) NOT NULL DEFAULT 0.00,
-    currency VARCHAR(3) NOT NULL DEFAULT 'ZAR',
-    overdraft_limit DECIMAL(18,2) DEFAULT 0.00,
-    kyc_status VARCHAR(20) DEFAULT 'PENDING' CHECK (kyc_status IN ('PENDING', 'VERIFIED', 'REJECTED')),
-    kyc_verified_at TIMESTAMP,
-    fica_status VARCHAR(20) DEFAULT 'PENDING' CHECK (fica_status IN ('PENDING', 'COMPLIANT', 'NON_COMPLIANT')),
-    fica_verified_at TIMESTAMP,
-    opened_date DATE NOT NULL,
-    closed_date DATE,
+CREATE TABLE customer_limits (
+    customer_id VARCHAR(50) PRIMARY KEY,
+    customer_profile VARCHAR(50) NOT NULL CHECK (customer_profile IN ('INDIVIDUAL_STANDARD', 'INDIVIDUAL_PREMIUM', 'SME', 'CORPORATE')),
+    daily_limit DECIMAL(18,2) NOT NULL,
+    monthly_limit DECIMAL(18,2) NOT NULL,
+    per_transaction_limit DECIMAL(18,2) NOT NULL,
+    max_transactions_per_day INTEGER DEFAULT 100,
+    max_transactions_per_hour INTEGER DEFAULT 20,
+    is_active BOOLEAN DEFAULT TRUE,
+    effective_from DATE NOT NULL,
+    effective_to DATE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100),
+    updated_by VARCHAR(100)
+);
+
+CREATE INDEX idx_customer_limits_profile ON customer_limits(customer_profile);
+CREATE INDEX idx_customer_limits_active ON customer_limits(is_active);
+
+-- =====================================================
+-- PAYMENT TYPE LIMITS (Limits per Payment Type per Customer)
+-- =====================================================
+CREATE TABLE payment_type_limits (
+    limit_id BIGSERIAL PRIMARY KEY,
+    customer_id VARCHAR(50) NOT NULL,
+    payment_type VARCHAR(20) NOT NULL CHECK (payment_type IN ('EFT', 'RTC', 'RTGS', 'DEBIT_ORDER', 'CARD')),
+    daily_limit DECIMAL(18,2) NOT NULL,
+    per_transaction_limit DECIMAL(18,2),
+    max_transactions_per_day INTEGER,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
-    CONSTRAINT chk_balance_non_negative CHECK (balance >= -overdraft_limit),
-    CONSTRAINT chk_available_balance CHECK (available_balance <= balance + overdraft_limit)
+    CONSTRAINT fk_payment_type_limits_customer FOREIGN KEY (customer_id) 
+        REFERENCES customer_limits(customer_id) ON DELETE CASCADE,
+    CONSTRAINT uk_customer_payment_type UNIQUE (customer_id, payment_type)
 );
 
-CREATE INDEX idx_accounts_status ON accounts(status);
-CREATE INDEX idx_accounts_account_holder ON accounts(account_holder);
-CREATE INDEX idx_accounts_id_number ON accounts(id_number);
-CREATE INDEX idx_accounts_kyc_status ON accounts(kyc_status);
-CREATE INDEX idx_accounts_fica_status ON accounts(fica_status);
+CREATE INDEX idx_payment_type_limits_customer_id ON payment_type_limits(customer_id);
+CREATE INDEX idx_payment_type_limits_payment_type ON payment_type_limits(payment_type);
 
 -- =====================================================
--- ACCOUNT HOLDS (temporary reservations)
+-- CUSTOMER LIMIT USAGE (Track Used Limits - Daily/Monthly)
 -- =====================================================
-CREATE TABLE account_holds (
-    hold_id VARCHAR(50) PRIMARY KEY,
-    account_number VARCHAR(50) NOT NULL,
+CREATE TABLE customer_limit_usage (
+    usage_id BIGSERIAL PRIMARY KEY,
+    customer_id VARCHAR(50) NOT NULL,
+    usage_date DATE NOT NULL,
+    daily_used DECIMAL(18,2) NOT NULL DEFAULT 0.00,
+    daily_transaction_count INTEGER NOT NULL DEFAULT 0,
+    monthly_used DECIMAL(18,2) NOT NULL DEFAULT 0.00,
+    monthly_transaction_count INTEGER NOT NULL DEFAULT 0,
+    last_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_limit_usage_customer FOREIGN KEY (customer_id) 
+        REFERENCES customer_limits(customer_id) ON DELETE CASCADE,
+    CONSTRAINT uk_customer_usage_date UNIQUE (customer_id, usage_date)
+);
+
+CREATE INDEX idx_limit_usage_customer_id ON customer_limit_usage(customer_id);
+CREATE INDEX idx_limit_usage_date ON customer_limit_usage(usage_date DESC);
+
+-- =====================================================
+-- PAYMENT TYPE LIMIT USAGE (Track Used Limits per Payment Type)
+-- =====================================================
+CREATE TABLE payment_type_limit_usage (
+    usage_id BIGSERIAL PRIMARY KEY,
+    customer_id VARCHAR(50) NOT NULL,
+    payment_type VARCHAR(20) NOT NULL,
+    usage_date DATE NOT NULL,
+    daily_used DECIMAL(18,2) NOT NULL DEFAULT 0.00,
+    daily_transaction_count INTEGER NOT NULL DEFAULT 0,
+    last_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_payment_type_usage_customer FOREIGN KEY (customer_id) 
+        REFERENCES customer_limits(customer_id) ON DELETE CASCADE,
+    CONSTRAINT uk_customer_payment_type_usage UNIQUE (customer_id, payment_type, usage_date)
+);
+
+CREATE INDEX idx_payment_type_usage_customer ON payment_type_limit_usage(customer_id);
+CREATE INDEX idx_payment_type_usage_date ON payment_type_limit_usage(usage_date DESC);
+
+-- =====================================================
+-- LIMIT RESERVATIONS (Temporary Holds on Limits Before Payment Execution)
+-- =====================================================
+CREATE TABLE limit_reservations (
+    reservation_id VARCHAR(50) PRIMARY KEY,
+    customer_id VARCHAR(50) NOT NULL,
+    payment_id VARCHAR(50) NOT NULL UNIQUE,
     amount DECIMAL(18,2) NOT NULL CHECK (amount > 0),
-    reference VARCHAR(100),
-    status VARCHAR(20) NOT NULL DEFAULT 'PLACED' CHECK (status IN ('PLACED', 'RELEASED', 'EXPIRED', 'CONSUMED')),
-    placed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    payment_type VARCHAR(20) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'RESERVED' 
+        CHECK (status IN ('RESERVED', 'CONSUMED', 'RELEASED', 'EXPIRED')),
+    reserved_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NOT NULL,
+    consumed_at TIMESTAMP,
     released_at TIMESTAMP,
-    released_by VARCHAR(100),
-    release_reason TEXT,
     
-    CONSTRAINT fk_hold_account FOREIGN KEY (account_number) 
-        REFERENCES accounts(account_number) ON DELETE CASCADE
+    CONSTRAINT fk_reservation_customer FOREIGN KEY (customer_id) 
+        REFERENCES customer_limits(customer_id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_holds_account_number ON account_holds(account_number);
-CREATE INDEX idx_holds_status ON account_holds(status);
-CREATE INDEX idx_holds_expires_at ON account_holds(expires_at);
-CREATE INDEX idx_holds_reference ON account_holds(reference);
+CREATE INDEX idx_reservations_customer_id ON limit_reservations(customer_id);
+CREATE INDEX idx_reservations_payment_id ON limit_reservations(payment_id);
+CREATE INDEX idx_reservations_status ON limit_reservations(status);
+CREATE INDEX idx_reservations_expires_at ON limit_reservations(expires_at);
 
 -- =====================================================
--- ACCOUNT BALANCE HISTORY (for auditing)
+-- LIMIT USAGE HISTORY (Audit Trail of Limit Operations)
 -- =====================================================
-CREATE TABLE account_balance_history (
+CREATE TABLE limit_usage_history (
     history_id BIGSERIAL PRIMARY KEY,
-    account_number VARCHAR(50) NOT NULL,
-    old_balance DECIMAL(18,2) NOT NULL,
-    new_balance DECIMAL(18,2) NOT NULL,
-    change_amount DECIMAL(18,2) NOT NULL,
-    change_type VARCHAR(20) NOT NULL CHECK (change_type IN ('DEBIT', 'CREDIT', 'HOLD', 'RELEASE')),
-    reference VARCHAR(100),
-    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    changed_by VARCHAR(100),
+    customer_id VARCHAR(50) NOT NULL,
+    payment_id VARCHAR(50) NOT NULL,
+    payment_type VARCHAR(20) NOT NULL,
+    amount DECIMAL(18,2) NOT NULL,
+    operation VARCHAR(20) NOT NULL CHECK (operation IN ('RESERVE', 'CONSUME', 'RELEASE')),
+    daily_used_before DECIMAL(18,2) NOT NULL,
+    daily_used_after DECIMAL(18,2) NOT NULL,
+    monthly_used_before DECIMAL(18,2) NOT NULL,
+    monthly_used_after DECIMAL(18,2) NOT NULL,
+    occurred_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
-    CONSTRAINT fk_balance_history_account FOREIGN KEY (account_number) 
-        REFERENCES accounts(account_number) ON DELETE CASCADE
+    CONSTRAINT fk_limit_history_customer FOREIGN KEY (customer_id) 
+        REFERENCES customer_limits(customer_id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_balance_history_account ON account_balance_history(account_number);
-CREATE INDEX idx_balance_history_changed_at ON account_balance_history(changed_at DESC);
+CREATE INDEX idx_limit_history_customer ON limit_usage_history(customer_id);
+CREATE INDEX idx_limit_history_payment_id ON limit_usage_history(payment_id);
+CREATE INDEX idx_limit_history_occurred_at ON limit_usage_history(occurred_at DESC);
 
 -- =====================================================
--- TRIGGERS
+-- TRIGGERS & FUNCTIONS
 -- =====================================================
--- Auto-expire holds
-CREATE OR REPLACE FUNCTION auto_expire_holds()
+
+-- Auto-expire limit reservations
+CREATE OR REPLACE FUNCTION auto_expire_limit_reservations()
 RETURNS void AS $$
 BEGIN
-    UPDATE account_holds 
-    SET status = 'EXPIRED'
-    WHERE status = 'PLACED' 
+    UPDATE limit_reservations 
+    SET status = 'EXPIRED',
+        released_at = CURRENT_TIMESTAMP
+    WHERE status = 'RESERVED' 
       AND expires_at < CURRENT_TIMESTAMP;
 END;
 $$ LANGUAGE plpgsql;
 
--- Schedule this function to run every minute via pg_cron or application scheduler
-
--- Track balance changes
-CREATE OR REPLACE FUNCTION track_balance_change()
-RETURNS TRIGGER AS $$
+-- Function to check if customer has sufficient limit
+CREATE OR REPLACE FUNCTION check_customer_limit(
+    p_customer_id VARCHAR(50),
+    p_amount DECIMAL(18,2),
+    p_payment_type VARCHAR(20)
+) RETURNS TABLE (
+    sufficient BOOLEAN,
+    daily_available DECIMAL(18,2),
+    monthly_available DECIMAL(18,2),
+    payment_type_available DECIMAL(18,2)
+) AS $$
+DECLARE
+    v_daily_limit DECIMAL(18,2);
+    v_monthly_limit DECIMAL(18,2);
+    v_daily_used DECIMAL(18,2) := 0;
+    v_monthly_used DECIMAL(18,2) := 0;
+    v_payment_type_limit DECIMAL(18,2);
+    v_payment_type_used DECIMAL(18,2) := 0;
+    v_daily_avail DECIMAL(18,2);
+    v_monthly_avail DECIMAL(18,2);
+    v_payment_type_avail DECIMAL(18,2);
 BEGIN
-    IF OLD.balance != NEW.balance THEN
-        INSERT INTO account_balance_history 
-            (account_number, old_balance, new_balance, change_amount, change_type, reference)
-        VALUES 
-            (NEW.account_number, OLD.balance, NEW.balance, NEW.balance - OLD.balance, 
-             CASE WHEN NEW.balance > OLD.balance THEN 'CREDIT' ELSE 'DEBIT' END, 'Balance update');
+    -- Get customer limits
+    SELECT daily_limit, monthly_limit
+    INTO v_daily_limit, v_monthly_limit
+    FROM customer_limits
+    WHERE customer_id = p_customer_id AND is_active = TRUE;
+    
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Customer % not found', p_customer_id;
     END IF;
-    RETURN NEW;
+    
+    -- Get current usage
+    SELECT COALESCE(daily_used, 0), COALESCE(monthly_used, 0)
+    INTO v_daily_used, v_monthly_used
+    FROM customer_limit_usage
+    WHERE customer_id = p_customer_id AND usage_date = CURRENT_DATE;
+    
+    -- Get payment type limits
+    SELECT ptl.daily_limit, COALESCE(ptlu.daily_used, 0)
+    INTO v_payment_type_limit, v_payment_type_used
+    FROM payment_type_limits ptl
+    LEFT JOIN payment_type_limit_usage ptlu 
+        ON ptl.customer_id = ptlu.customer_id 
+        AND ptl.payment_type = ptlu.payment_type 
+        AND ptlu.usage_date = CURRENT_DATE
+    WHERE ptl.customer_id = p_customer_id 
+      AND ptl.payment_type = p_payment_type
+      AND ptl.is_active = TRUE;
+    
+    -- Calculate available limits
+    v_daily_avail := v_daily_limit - v_daily_used;
+    v_monthly_avail := v_monthly_limit - v_monthly_used;
+    v_payment_type_avail := v_payment_type_limit - v_payment_type_used;
+    
+    -- Return results
+    RETURN QUERY SELECT 
+        (v_daily_avail >= p_amount AND v_monthly_avail >= p_amount AND v_payment_type_avail >= p_amount),
+        v_daily_avail,
+        v_monthly_avail,
+        v_payment_type_avail;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER track_balance 
-    AFTER UPDATE OF balance ON accounts
-    FOR EACH ROW EXECUTE FUNCTION track_balance_change();
+-- =====================================================
+-- VIEWS FOR REPORTING
+-- =====================================================
+
+-- View for customer limit summary with real-time usage
+CREATE VIEW customer_limit_summary AS
+SELECT 
+    cl.customer_id,
+    cl.customer_profile,
+    cl.daily_limit,
+    COALESCE(clu.daily_used, 0) AS daily_used,
+    cl.daily_limit - COALESCE(clu.daily_used, 0) AS daily_available,
+    cl.monthly_limit,
+    COALESCE(clu.monthly_used, 0) AS monthly_used,
+    cl.monthly_limit - COALESCE(clu.monthly_used, 0) AS monthly_available,
+    cl.per_transaction_limit,
+    COALESCE(clu.daily_transaction_count, 0) AS transactions_today,
+    cl.max_transactions_per_day,
+    cl.max_transactions_per_day - COALESCE(clu.daily_transaction_count, 0) AS transactions_remaining,
+    clu.usage_date,
+    cl.is_active
+FROM customer_limits cl
+LEFT JOIN customer_limit_usage clu ON cl.customer_id = clu.customer_id 
+    AND clu.usage_date = CURRENT_DATE;
+
+-- View for payment type limit summary
+CREATE VIEW payment_type_limit_summary AS
+SELECT 
+    ptl.customer_id,
+    ptl.payment_type,
+    ptl.daily_limit,
+    COALESCE(ptlu.daily_used, 0) AS daily_used,
+    ptl.daily_limit - COALESCE(ptlu.daily_used, 0) AS daily_available,
+    ptl.per_transaction_limit,
+    COALESCE(ptlu.daily_transaction_count, 0) AS transactions_today,
+    ptl.max_transactions_per_day,
+    ptlu.usage_date,
+    ptl.is_active
+FROM payment_type_limits ptl
+LEFT JOIN payment_type_limit_usage ptlu ON ptl.customer_id = ptlu.customer_id 
+    AND ptl.payment_type = ptlu.payment_type 
+    AND ptlu.usage_date = CURRENT_DATE;
+
+-- =====================================================
+-- SEED DATA (Example Customer Profiles)
+-- =====================================================
+
+-- Example: Individual Standard customer
+INSERT INTO customer_limits (customer_id, customer_profile, daily_limit, monthly_limit, per_transaction_limit, effective_from)
+VALUES ('CUST-EXAMPLE-001', 'INDIVIDUAL_STANDARD', 50000.00, 200000.00, 25000.00, CURRENT_DATE);
+
+-- Example payment type limits for the customer
+INSERT INTO payment_type_limits (customer_id, payment_type, daily_limit, per_transaction_limit)
+VALUES 
+    ('CUST-EXAMPLE-001', 'EFT', 25000.00, 10000.00),
+    ('CUST-EXAMPLE-001', 'RTC', 50000.00, 25000.00),
+    ('CUST-EXAMPLE-001', 'RTGS', 50000.00, 50000.00);
+```
+
+---
+
+## 3. Account Adapter Service Database
+
+### Database Name: `account_adapter_db`
+
+**Note**: This service does NOT store account balances or transaction data. It only stores routing metadata and caches responses from external core banking systems.
+
+```sql
+-- =====================================================
+-- ACCOUNT ROUTING (determines which backend system to call)
+-- =====================================================
+CREATE TABLE account_routing (
+    account_number VARCHAR(50) PRIMARY KEY,
+    backend_system VARCHAR(50) NOT NULL,
+    account_type VARCHAR(30) NOT NULL,
+    base_url VARCHAR(200) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    last_verified TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_routing_backend_system ON account_routing(backend_system);
+CREATE INDEX idx_routing_account_type ON account_routing(account_type);
+CREATE INDEX idx_routing_is_active ON account_routing(is_active);
+
+-- =====================================================
+-- BACKEND SYSTEMS (external core banking systems)
+-- =====================================================
+CREATE TABLE backend_systems (
+    system_id VARCHAR(50) PRIMARY KEY,
+    system_name VARCHAR(100) NOT NULL UNIQUE,
+    base_url VARCHAR(200) NOT NULL,
+    auth_type VARCHAR(20) NOT NULL CHECK (auth_type IN ('OAUTH2', 'MTLS', 'BASIC', 'API_KEY')),
+    oauth_token_url VARCHAR(200),
+    oauth_client_id VARCHAR(100),
+    oauth_client_secret_key_vault_ref VARCHAR(200),
+    timeout_ms INTEGER DEFAULT 5000,
+    retry_attempts INTEGER DEFAULT 3,
+    circuit_breaker_enabled BOOLEAN DEFAULT TRUE,
+    circuit_breaker_failure_threshold INTEGER DEFAULT 5,
+    circuit_breaker_wait_duration_ms INTEGER DEFAULT 60000,
+    is_active BOOLEAN DEFAULT TRUE,
+    health_check_url VARCHAR(200),
+    last_health_check TIMESTAMP,
+    health_status VARCHAR(20) CHECK (health_status IN ('HEALTHY', 'DEGRADED', 'DOWN', 'UNKNOWN')),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_backend_systems_is_active ON backend_systems(is_active);
+CREATE INDEX idx_backend_systems_health_status ON backend_systems(health_status);
+
+-- Example data
+INSERT INTO backend_systems (system_id, system_name, base_url, auth_type, health_check_url) VALUES
+    ('CURRENT_ACCOUNTS', 'Current Accounts System', 'https://current-accounts.bank.internal/api/v1', 'OAUTH2', 'https://current-accounts.bank.internal/health'),
+    ('SAVINGS', 'Savings System', 'https://savings.bank.internal/api/v1', 'OAUTH2', 'https://savings.bank.internal/health'),
+    ('INVESTMENTS', 'Investment System', 'https://investments.bank.internal/api/v1', 'OAUTH2', 'https://investments.bank.internal/health'),
+    ('CARDS', 'Card System', 'https://cards.bank.internal/api/v1', 'OAUTH2', 'https://cards.bank.internal/health'),
+    ('HOME_LOANS', 'Home Loan System', 'https://home-loans.bank.internal/api/v1', 'OAUTH2', 'https://home-loans.bank.internal/health'),
+    ('CAR_LOANS', 'Car Loan System', 'https://vehicle-finance.bank.internal/api/v1', 'OAUTH2', 'https://vehicle-finance.bank.internal/health'),
+    ('PERSONAL_LOANS', 'Personal Loan System', 'https://personal-loans.bank.internal/api/v1', 'OAUTH2', 'https://personal-loans.bank.internal/health'),
+    ('BUSINESS_BANKING', 'Business Banking System', 'https://business-banking.bank.internal/api/v1', 'OAUTH2', 'https://business-banking.bank.internal/health');
+
+-- =====================================================
+-- ACCOUNT CACHE (temporary cache of account data)
+-- =====================================================
+CREATE TABLE account_cache (
+    account_number VARCHAR(50) PRIMARY KEY,
+    account_data JSONB NOT NULL,
+    backend_system VARCHAR(50) NOT NULL,
+    cached_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    hit_count INTEGER DEFAULT 0
+);
+
+CREATE INDEX idx_cache_expires_at ON account_cache(expires_at);
+CREATE INDEX idx_cache_backend_system ON account_cache(backend_system);
+
+-- Auto-cleanup expired cache entries
+CREATE OR REPLACE FUNCTION cleanup_expired_cache()
+RETURNS void AS $$
+BEGIN
+    DELETE FROM account_cache WHERE expires_at < CURRENT_TIMESTAMP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
+-- API CALL LOG (audit trail of external system calls)
+-- =====================================================
+CREATE TABLE api_call_log (
+    call_id VARCHAR(50) PRIMARY KEY,
+    account_number VARCHAR(50),
+    backend_system VARCHAR(50) NOT NULL,
+    operation VARCHAR(50) NOT NULL,
+    http_method VARCHAR(10),
+    endpoint_url VARCHAR(500),
+    request_data JSONB,
+    response_status INTEGER,
+    response_data JSONB,
+    response_time_ms INTEGER,
+    success BOOLEAN NOT NULL,
+    error_message TEXT,
+    idempotency_key VARCHAR(100),
+    correlation_id VARCHAR(100),
+    called_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_api_log_account_number ON api_call_log(account_number);
+CREATE INDEX idx_api_log_backend_system ON api_call_log(backend_system);
+CREATE INDEX idx_api_log_operation ON api_call_log(operation);
+CREATE INDEX idx_api_log_called_at ON api_call_log(called_at DESC);
+CREATE INDEX idx_api_log_success ON api_call_log(success);
+CREATE INDEX idx_api_log_idempotency_key ON api_call_log(idempotency_key);
+
+-- Partition by month for better performance
+-- CREATE TABLE api_call_log_2025_10 PARTITION OF api_call_log
+--     FOR VALUES FROM ('2025-10-01') TO ('2025-11-01');
+
+-- =====================================================
+-- BACKEND SYSTEM METRICS (monitoring)
+-- =====================================================
+CREATE TABLE backend_system_metrics (
+    metric_id BIGSERIAL PRIMARY KEY,
+    backend_system VARCHAR(50) NOT NULL,
+    metric_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    total_calls INTEGER NOT NULL DEFAULT 0,
+    successful_calls INTEGER NOT NULL DEFAULT 0,
+    failed_calls INTEGER NOT NULL DEFAULT 0,
+    avg_response_time_ms INTEGER,
+    p95_response_time_ms INTEGER,
+    p99_response_time_ms INTEGER,
+    circuit_breaker_status VARCHAR(20),
+    error_rate DECIMAL(5,2),
+    
+    CONSTRAINT fk_metrics_backend_system FOREIGN KEY (backend_system) 
+        REFERENCES backend_systems(system_id)
+);
+
+CREATE INDEX idx_metrics_backend_system ON backend_system_metrics(backend_system);
+CREATE INDEX idx_metrics_timestamp ON backend_system_metrics(metric_timestamp DESC);
+
+-- =====================================================
+-- IDEMPOTENCY TRACKING (for backend calls)
+-- =====================================================
+CREATE TABLE idempotency_records (
+    idempotency_key VARCHAR(100) PRIMARY KEY,
+    account_number VARCHAR(50),
+    operation VARCHAR(50) NOT NULL,
+    backend_system VARCHAR(50) NOT NULL,
+    request_hash VARCHAR(64) NOT NULL,
+    response_data JSONB,
+    status VARCHAR(20) NOT NULL CHECK (status IN ('PROCESSING', 'COMPLETED', 'FAILED')),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL
+);
+
+CREATE INDEX idx_idempotency_expires_at ON idempotency_records(expires_at);
+CREATE INDEX idx_idempotency_account_number ON idempotency_records(account_number);
+
+-- Auto-cleanup expired idempotency records
+CREATE OR REPLACE FUNCTION cleanup_expired_idempotency()
+RETURNS void AS $$
+BEGIN
+    DELETE FROM idempotency_records WHERE expires_at < CURRENT_TIMESTAMP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
+-- CIRCUIT BREAKER STATE (track circuit breaker status)
+-- =====================================================
+CREATE TABLE circuit_breaker_state (
+    backend_system VARCHAR(50) PRIMARY KEY,
+    state VARCHAR(20) NOT NULL CHECK (state IN ('CLOSED', 'OPEN', 'HALF_OPEN')),
+    failure_count INTEGER DEFAULT 0,
+    last_failure TIMESTAMP,
+    last_success TIMESTAMP,
+    state_changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    next_retry_at TIMESTAMP,
+    
+    CONSTRAINT fk_circuit_backend_system FOREIGN KEY (backend_system) 
+        REFERENCES backend_systems(system_id)
+);
+
+CREATE INDEX idx_circuit_state ON circuit_breaker_state(state);
+
+-- =====================================================
+-- VIEWS
+-- =====================================================
+
+-- View for backend system health dashboard
+CREATE VIEW backend_system_health AS
+SELECT 
+    bs.system_id,
+    bs.system_name,
+    bs.base_url,
+    bs.is_active,
+    bs.health_status,
+    bs.last_health_check,
+    cbs.state AS circuit_breaker_state,
+    cbs.failure_count,
+    (SELECT COUNT(*) FROM api_call_log 
+     WHERE backend_system = bs.system_id 
+       AND called_at > NOW() - INTERVAL '1 hour') AS calls_last_hour,
+    (SELECT COUNT(*) FROM api_call_log 
+     WHERE backend_system = bs.system_id 
+       AND success = false 
+       AND called_at > NOW() - INTERVAL '1 hour') AS failures_last_hour,
+    (SELECT AVG(response_time_ms) FROM api_call_log 
+     WHERE backend_system = bs.system_id 
+       AND called_at > NOW() - INTERVAL '1 hour') AS avg_response_time_ms
+FROM backend_systems bs
+LEFT JOIN circuit_breaker_state cbs ON bs.system_id = cbs.backend_system;
+
+-- View for account routing lookup
+CREATE VIEW account_routing_info AS
+SELECT 
+    ar.account_number,
+    ar.account_type,
+    ar.backend_system,
+    bs.system_name,
+    bs.base_url,
+    bs.is_active AS system_active,
+    bs.health_status,
+    ar.is_active AS routing_active,
+    ar.last_verified
+FROM account_routing ar
+JOIN backend_systems bs ON ar.backend_system = bs.system_id;
 ```
 
 ---
@@ -1175,13 +1560,15 @@ CREATE INDEX idx_auth_audit_occurred_at ON auth_audit_log(occurred_at DESC);
 | Database | Size (Year 1) | Growth Rate | Backup Strategy |
 |----------|---------------|-------------|-----------------|
 | payment_initiation_db | 500 GB | 40 GB/month | Daily full + hourly incremental |
-| account_db | 100 GB | 5 GB/month | Daily full + hourly incremental |
+| account_adapter_db | 50 GB | 3 GB/month | Daily full + hourly incremental |
 | transaction_db | 1 TB | 80 GB/month | Daily full + hourly incremental |
 | clearing_db | 800 GB | 60 GB/month | Daily full + hourly incremental |
 | settlement_db | 300 GB | 25 GB/month | Daily full + hourly incremental |
 | reconciliation_db | 200 GB | 15 GB/month | Daily full + hourly incremental |
 | saga_db | 150 GB | 10 GB/month | Daily full + hourly incremental |
 | audit_db (CosmosDB) | 2 TB | 150 GB/month | Continuous (built-in) |
+
+**Note**: Account Adapter DB is much smaller as it only stores routing metadata and API call logs, not account balances or transactions.
 
 ---
 

@@ -12,6 +12,8 @@
 | [05-DATABASE-SCHEMAS](05-DATABASE-SCHEMAS.md) | Creating database migrations |
 | [06-SOUTH-AFRICA-CLEARING](06-SOUTH-AFRICA-CLEARING.md) | Integrating with clearing systems |
 | [07-AZURE-INFRASTRUCTURE](07-AZURE-INFRASTRUCTURE.md) | Deploying to Azure |
+| [08-CORE-BANKING-INTEGRATION](08-CORE-BANKING-INTEGRATION.md) | **Integrating with external account systems** |
+| [09-LIMIT-MANAGEMENT](09-LIMIT-MANAGEMENT.md) | **Implementing customer limits** |
 
 ---
 
@@ -20,8 +22,8 @@
 | Service | Port | Database | Key Endpoints | Events Published | Events Consumed |
 |---------|------|----------|---------------|------------------|-----------------|
 | Payment Initiation | 8085 | PostgreSQL | POST /api/v1/payments | PaymentInitiatedEvent | - |
-| Validation | 8086 | PostgreSQL + Redis | POST /api/v1/validate/payment | PaymentValidatedEvent | PaymentInitiatedEvent |
-| Account | 8081 | PostgreSQL | GET /api/v1/accounts/{id} | FundsReservedEvent | - |
+| Validation | 8086 | PostgreSQL + Redis | POST /api/v1/validate/payment, GET /api/v1/limits/customer/{id} | PaymentValidatedEvent, LimitConsumedEvent | PaymentInitiatedEvent |
+| Account Adapter | 8081 | PostgreSQL + Redis | GET /api/v1/accounts/{id}, POST /debit, POST /credit | FundsReservedEvent | - |
 | Routing | 8083 | Redis | POST /api/v1/routing/determine | RoutingDeterminedEvent | PaymentValidatedEvent |
 | Transaction Processing | 8087 | PostgreSQL | POST /api/v1/transactions | TransactionCreatedEvent | RoutingDeterminedEvent |
 | SAMOS Adapter | 8088 | PostgreSQL | POST /api/v1/clearing/submit | ClearingSubmittedEvent | TransactionCreatedEvent |

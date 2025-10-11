@@ -11,6 +11,7 @@ This document lists ALL assumptions made during the architecture design. Review 
 - **ASSUMPTION**: Building for a licensed financial institution in South Africa
 - **ASSUMPTION**: Organization has existing banking license from SARB (South African Reserve Bank)
 - **ASSUMPTION**: Organization is a registered participant in South African clearing systems
+- **ASSUMPTION**: Organization has multiple existing core banking systems managing different account types
 - **RATIONALE**: Required for direct integration with SAMOS, BankservAfrica, RTC
 
 ### 1.2 Payment Types in Scope
@@ -38,6 +39,54 @@ This document lists ALL assumptions made during the architecture design. Review 
 - **ASSUMPTION**: Users are primarily individuals and SMEs
 - **ASSUMPTION**: Users access via web and mobile applications
 - **ASSUMPTION**: Support for both technical (APIs) and non-technical users (UI)
+
+### 1.4.1 Customer Limits and Controls
+- **ASSUMPTION**: Each customer has configurable transaction limits
+- **ASSUMPTION**: Limits are enforced at multiple levels:
+  - **Per Payment Type**: Different limits for EFT, RTC, RTGS, Debit Orders
+  - **Daily Limits**: Maximum amount per day across all payment types
+  - **Monthly Limits**: Maximum amount per month across all payment types
+  - **Per Transaction Limits**: Maximum amount per single transaction
+  - **Transaction Count Limits**: Maximum number of transactions per period
+- **ASSUMPTION**: Default limits by customer profile:
+  - **Individual - Standard**: Daily R50,000, Monthly R200,000
+  - **Individual - Premium**: Daily R100,000, Monthly R500,000
+  - **SME**: Daily R500,000, Monthly R2,000,000
+  - **Corporate**: Daily R5,000,000, Monthly R50,000,000
+- **ASSUMPTION**: Limits are checked in real-time before payment execution
+- **ASSUMPTION**: Used limits are tracked and updated immediately after successful payment
+- **ASSUMPTION**: Limits reset automatically based on period (daily at midnight, monthly on 1st)
+- **ASSUMPTION**: Payments fail if used limit + payment amount exceeds configured limit
+- **ASSUMPTION**: Customers can view their limits and usage via API/UI
+- **ASSUMPTION**: Limit increases require approval workflow (out of scope for initial release)
+- **RATIONALE**: Risk management, regulatory compliance, fraud prevention
+
+### 1.5 External Core Banking Systems
+- **ASSUMPTION**: Accounts are NOT stored in the payments engine
+- **ASSUMPTION**: Multiple external "Store of Value" systems exist:
+  - **Current Accounts System**: Manages transactional current accounts
+  - **Savings Accounts System**: Manages savings accounts
+  - **Investment Accounts System**: Manages investment portfolios
+  - **Card Accounts System**: Manages credit/debit card accounts
+  - **Home Loan System**: Manages home loan accounts
+  - **Car Loan System**: Manages vehicle finance accounts
+  - **Personal Loan System**: Manages personal loans
+  - **Business Banking System**: Manages corporate accounts
+- **ASSUMPTION**: Each system exposes REST APIs for:
+  - Account inquiry (balance, status, details)
+  - Debit operations (withdraw funds)
+  - Credit operations (deposit funds)
+  - Account holds/reserves (temporary locks)
+- **ASSUMPTION**: Each system manages its own:
+  - Account balances
+  - Transaction history
+  - Account limits and rules
+  - Account ownership and KYC
+- **ASSUMPTION**: APIs are synchronous (REST) with < 500ms response time
+- **ASSUMPTION**: All systems support idempotency via idempotency keys
+- **ASSUMPTION**: All systems provide real-time balance updates
+- **ASSUMPTION**: Each system may have different availability (99.9%+ expected)
+- **RATIONALE**: Common enterprise banking architecture with specialized systems
 
 ---
 
@@ -213,22 +262,70 @@ This document lists ALL assumptions made during the architecture design. Review 
 
 ## 7. Integration Assumptions
 
-### 7.1 External System Integration
-- **ASSUMPTION**: All external systems provide API/message-based integration
-- **ASSUMPTION**: External systems may be synchronous or asynchronous
-- **ASSUMPTION**: Timeout for external calls: 30 seconds
+### 7.1 External Core Banking Systems Integration
+- **ASSUMPTION**: Each core banking system provides REST APIs with JSON payload
+- **ASSUMPTION**: Standard API contract across all systems (unified interface)
+- **ASSUMPTION**: Authentication via OAuth 2.0 client credentials or mTLS
+- **ASSUMPTION**: Response time SLA: < 500ms (p95) for balance inquiry, < 2s for debit/credit
+- **ASSUMPTION**: Each system supports circuit breaker pattern for resilience
+- **ASSUMPTION**: Retry logic: 3 attempts with exponential backoff for transient errors
+- **ASSUMPTION**: Timeout for core banking calls: 5 seconds
+- **ASSUMPTION**: Each system provides health check endpoints
+- **ASSUMPTION**: Account numbers are unique across ALL systems (or prefixed by system ID)
+- **ASSUMPTION**: API versioning supported (v1, v2, etc.)
+
+#### Core Banking API Contract Example
+```json
+// Debit Request
+POST /api/v1/accounts/{accountNumber}/debit
+{
+  "idempotencyKey": "uuid",
+  "amount": 1000.00,
+  "currency": "ZAR",
+  "reference": "PAY-2025-XXXXXX",
+  "description": "Payment to merchant"
+}
+
+// Credit Request
+POST /api/v1/accounts/{accountNumber}/credit
+{
+  "idempotencyKey": "uuid",
+  "amount": 1000.00,
+  "currency": "ZAR",
+  "reference": "PAY-2025-XXXXXX",
+  "description": "Payment received"
+}
+
+// Balance Inquiry
+GET /api/v1/accounts/{accountNumber}/balance
+
+// Hold/Reserve Funds
+POST /api/v1/accounts/{accountNumber}/holds
+{
+  "amount": 1000.00,
+  "reference": "PAY-2025-XXXXXX",
+  "expiryMinutes": 30
+}
+```
+
+### 7.2 Clearing System Integration
+- **ASSUMPTION**: All clearing systems provide API/message-based integration
+- **ASSUMPTION**: Clearing systems may be synchronous or asynchronous
+- **ASSUMPTION**: Timeout for clearing calls: 30 seconds
 - **ASSUMPTION**: Retry logic: 3 attempts with exponential backoff
 
-### 7.2 Message Formats
+### 7.3 Message Formats
 - **ASSUMPTION**: ISO 20022 for SAMOS and RTC
 - **ASSUMPTION**: ISO 8583 for card payments
 - **ASSUMPTION**: Proprietary formats for some BankservAfrica messages
 - **ASSUMPTION**: Internal services use JSON for events
+- **ASSUMPTION**: Core banking systems use JSON/REST (not ISO 20022)
 
-### 7.3 Idempotency
+### 7.4 Idempotency
 - **ASSUMPTION**: All external system calls are idempotent
 - **ASSUMPTION**: Using unique transaction IDs for deduplication
 - **ASSUMPTION**: Idempotency key stored for 24 hours
+- **ASSUMPTION**: Core banking systems deduplicate using idempotency keys
 
 ---
 
