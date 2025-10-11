@@ -32,6 +32,9 @@ This repository contains the complete architecture design for a **highly modular
 | **[11-KAFKA-SAGA-IMPLEMENTATION.md](docs/11-KAFKA-SAGA-IMPLEMENTATION.md)** | **Confluent Kafka option for Saga pattern** | ✅ Complete |
 | **[12-TENANT-MANAGEMENT.md](docs/12-TENANT-MANAGEMENT.md)** | **Multi-tenancy & tenant hierarchy implementation** | ✅ Complete |
 | **[13-MODERN-ARCHITECTURE-PATTERNS.md](docs/13-MODERN-ARCHITECTURE-PATTERNS.md)** | **Modern architecture patterns analysis & recommendations** | ✅ Complete |
+| **[14-DDD-IMPLEMENTATION.md](docs/14-DDD-IMPLEMENTATION.md)** | **Domain-Driven Design implementation (Phase 1)** | ✅ Complete |
+| **[15-BFF-IMPLEMENTATION.md](docs/15-BFF-IMPLEMENTATION.md)** | **Backend for Frontend pattern (Phase 1)** | ✅ Complete |
+| **[16-DISTRIBUTED-TRACING.md](docs/16-DISTRIBUTED-TRACING.md)** | **OpenTelemetry distributed tracing (Phase 1)** | ✅ Complete |
 
 ---
 
