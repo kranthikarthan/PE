@@ -1,475 +1,463 @@
-# Payment Engine - ISO 20022 Financial Messaging System
-
-A comprehensive payment processing system built with Spring Boot and React, supporting ISO 20022 standards for financial messaging with advanced resiliency, security, and air-gapped deployment capabilities.
-
-## 🚀 Features
-
-### Core Functionality
-- **ISO 20022 Message Support**: pain.001, pacs.008, pacs.002, pain.002, pacs.028, pacs.004, pacs.007, camt.054, camt.055, camt.056, camt.029, status
-- **Multi-Scheme Processing**: Support for various clearing systems and payment schemes
-- **UETR Management**: Unique End-to-End Transaction Reference tracking and reconciliation
-- **Advanced Payload Mapping**: Flexible value assignment with static, derived, and auto-generated values
-- **Fraud & Risk Monitoring**: Configurable integration with external fraud APIs
-- **Core Banking Integration**: REST API and gRPC support for external core banking systems
-- **Tenant Cloning & Migration**: Complete tenant configuration management with versioning, cloning, and environment migration capabilities
-- **Advanced Authentication**: JWS (JSON Web Signature) support as alternative to JWT with configurable client headers for outgoing requests
-
-### Architecture & Infrastructure
-- **Microservices Architecture**: Service mesh with Istio, dedicated services for auth, config, and monitoring
-- **Multi-Tenant Istio**: Host-based routing with automatic conflict resolution for same host + same port scenarios
-- **Downstream Routing**: Header-based routing for external services using same host:port with tenant isolation
-- **Multi-Level Auth Configuration**: Granular authentication configuration at clearing system, tenant, payment type, and downstream call levels
-- **Event Sourcing & CQRS**: Event-driven architecture with event store and projections
-- **Resiliency & Self-Healing**: Circuit breakers, retry mechanisms, bulkhead patterns, and automated recovery
-- **Security**: OAuth2/JWT/JWS, message encryption, digital signatures, configurable client headers, and comprehensive audit logging
-- **Monitoring & Observability**: Prometheus, Grafana, Jaeger, ELK Stack with custom metrics and alerting
-- **Air-Gapped Deployment**: Complete offline build and deployment capabilities
-
-### Technology Stack
-- **Backend**: Spring Boot 3.x, Spring Data JPA, Spring Security, Spring Cloud OpenFeign
-- **Frontend**: React 18, TypeScript, Material-UI, Redux Toolkit, React Query
-- **Database**: PostgreSQL 15 with HikariCP connection pooling
-- **Message Queue**: Apache Kafka with Schema Registry and Dead Letter Queues
-- **Containerization**: Docker with multi-stage builds and security hardening
-- **Orchestration**: Kubernetes with Helm charts and Istio service mesh
-- **CI/CD**: Azure DevOps with comprehensive testing and security scanning
-
-## 📁 Project Structure
-
-```
-payment-engine/
-├── services/                    # Backend microservices
-│   ├── payment-processing/             # API Gateway and payment-processing services
-│   ├── payment-engine/         # Core payment processing service
-│   ├── auth-service/           # Authentication and authorization
-│   ├── config-service/         # Configuration management
-│   └── monitoring-service/     # Metrics and monitoring
-├── frontend/                   # React frontend application
-├── database/                   # Database migrations and schemas
-├── infrastructure/             # Infrastructure as Code
-│   ├── kubernetes/            # Kubernetes manifests
-│   ├── helm/                  # Helm charts
-│   ├── docker/                # Docker configurations
-│   └── air-gapped/            # Air-gapped deployment scripts
-├── azure-pipelines/           # CI/CD pipeline definitions
-├── docs/                      # Documentation
-└── tests/                     # Test suites and test data
-```
-
-## 🛠️ Quick Start
-
-### Prerequisites
-- Java 17+
-- Node.js 18+
-- Docker & Docker Compose
-- Kubernetes cluster (or Docker Desktop with Kubernetes)
-- Helm 3.8+
-
-### Local Development
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd payment-engine
-   ```
-
-2. **Start infrastructure services**
-   ```bash
-   make up
-   ```
-
-3. **Run backend services**
-   ```bash
-   ./mvnw spring-boot:run -pl services/payment-processing
-   ./mvnw spring-boot:run -pl services/api-gateway
-   ```
-
-4. **Run frontend**
-   ```bash
-   cd frontend
-   npm install
-   npm start
-   ```
-
-5. **Access the application**
-   - Frontend: http://localhost:3000
-   - API Gateway: http://localhost:8080
-   - API Documentation: http://localhost:8080/swagger-ui.html
-
-6. **Shut everything down**
-   ```bash
-   make down
-   ```
-
-To execute the full backend test suite from the root of the repository, run `make test`. End-to-end ISO20022 tests can be executed with `make e2e` once the services are configured for the `test-e2e` profile.
-
-### Production Deployment
-
-#### Standard Deployment
-```bash
-# Build and deploy using Helm
-helm upgrade --install payment-engine helm/payment-engine \
-  --values helm/values-production.yaml \
-  --namespace payment-engine \
-  --create-namespace
-```
-
-#### Air-Gapped Deployment
-```bash
-# Set up air-gapped environment
-sudo ./infrastructure/air-gapped/registry-mirror-setup.sh
-sudo ./infrastructure/air-gapped/nexus-setup.sh
-sudo ./infrastructure/air-gapped/package-repository-setup.sh
-
-# Deploy in air-gapped environment
-sudo ./infrastructure/air-gapped/offline-deploy.sh
-```
-
-## 📚 Documentation
-
-### Architecture & Design
-- [System Architecture](docs/ARCHITECTURE.md) - Overall system design and components
-- [Microservices Architecture](docs/MICROSERVICES_ARCHITECTURE.md) - Service decomposition and communication
-- [Security Architecture](docs/SECURITY_ARCHITECTURE.md) - Security patterns and implementations
-- [Resiliency & Self-Healing](RESILIENCY_AND_SELF_HEALING_GUIDE.md) - Fault tolerance and recovery mechanisms
-
-### Deployment & Operations
-- [Air-Gapped Deployment Guide](AIR_GAPPED_DEPLOYMENT_GUIDE.md) - Complete offline deployment procedures
-- [Kubernetes Deployment](docs/KUBERNETES_DEPLOYMENT.md) - Container orchestration and management
-- [Monitoring & Observability](docs/MONITORING_GUIDE.md) - Metrics, logging, and alerting setup
-- [Disaster Recovery](docs/DISASTER_RECOVERY.md) - Backup, restore, and business continuity
-
-### Development & Integration
-- [API Documentation](docs/API_DOCUMENTATION.md) - REST API specifications and examples
-- [ISO 20022 Message Formats](docs/ISO_20022_MESSAGES.md) - Supported message types and schemas
-- [Core Banking Integration](docs/CORE_BANKING_INTEGRATION.md) - External system integration patterns
-- [Fraud & Risk Integration](docs/FRAUD_RISK_INTEGRATION.md) - Fraud detection and risk management
-- [Tenant Cloning and Migration Guide](TENANT_CLONING_AND_MIGRATION_GUIDE.md) - Complete tenant configuration management
-- [JWS and Client Headers Implementation Guide](JWS_AND_CLIENT_HEADERS_IMPLEMENTATION_GUIDE.md) - Advanced authentication and client header configuration
-- [Istio Multi-Tenancy Solution](ISTIO_MULTITENANCY_SOLUTION.md) - Multi-tenant Istio configuration with conflict resolution
-- [Downstream Routing Solution](DOWNSTREAM_ROUTING_SOLUTION.md) - Same host/port routing conflicts resolution for external services
-- [Multi-Level Auth Configuration Guide](MULTI_LEVEL_AUTH_CONFIGURATION_GUIDE.md) - Granular authentication configuration at multiple levels
-
-### Configuration & Customization
-- [Configuration Management](docs/CONFIGURATION_GUIDE.md) - Environment-specific configurations
-- [Payload Mapping](docs/PAYLOAD_MAPPING.md) - Advanced mapping system documentation
-- [UETR Management](docs/UETR_MANAGEMENT.md) - Transaction reference tracking
-- [Multi-Tenancy](docs/MULTI_TENANCY.md) - Tenant isolation and configuration
-
-## 🔧 Configuration
-
-### Environment Variables
-```bash
-# Database Configuration
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=payment_engine
-DB_USER=payment_user
-DB_PASSWORD=secure_password
-
-# Redis Configuration
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-# Kafka Configuration
-KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-KAFKA_SCHEMA_REGISTRY_URL=http://localhost:8081
-
-# Security Configuration
-JWT_SECRET=your-super-secret-jwt-key
-JWS_SECRET=your-super-secret-jws-key
-JWS_ALGORITHM=HS256
-ENCRYPTION_KEY=your-encryption-key
-
-# External Services
-FRAUD_API_URL=https://fraud-api.company.com
-CORE_BANKING_API_URL=https://core-banking.company.com
-```
-
-### Application Properties
-```yaml
-# application.yml
-spring:
-  profiles:
-    active: production
-  datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
-  redis:
-    host: ${REDIS_HOST}
-    port: ${REDIS_PORT}
-
-resilience4j:
-  circuitbreaker:
-    instances:
-      fraud-api:
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 30s
-        sliding-window-size: 10
-```
-
-## 🧪 Testing
-
-### Unit Tests
-```bash
-# Run all unit tests
-mvn test
-
-# Run specific test suite
-mvn test -Dtest=PaymentEngineServiceTest
-```
-
-### Integration Tests
-```bash
-# Run integration tests with TestContainers
-mvn verify -P integration-tests
-```
-
-### Load Tests
-```bash
-# Run load tests with k6
-k6 run tests/load/payment-processing-load-test.js
-```
-
-### Security Tests
-```bash
-# Run security scans
-mvn org.owasp:dependency-check-maven:check
-npm audit
-```
-
-## 🔐 Advanced Authentication & Security
-
-### JWS (JSON Web Signature) Support
-- **Enhanced Security**: JWS provides stronger cryptographic signatures compared to standard JWT
-- **Algorithm Flexibility**: Support for HMAC (HS256/HS384/HS512) and RSA (RS256/RS384/RS512) algorithms
-- **Public Key Verification**: External systems can verify tokens without shared secrets
-- **Auto-Detection**: Automatic token type detection for seamless integration
-
-### Configurable Client Headers
-- **Tenant-Specific Configuration**: Per-tenant authentication and header configuration
-- **Custom Header Names**: Configurable client ID and secret header names
-- **Outgoing Request Enhancement**: Automatic inclusion of client credentials in HTTP requests
-- **Multiple Auth Methods**: Support for JWT, JWS, OAuth2, API Key, and Basic Authentication
-
-### Authentication Configuration Management
-- **Frontend Interface**: React-based configuration management UI
-- **Real-time Updates**: Dynamic configuration changes without service restart
-- **Audit Trail**: Complete audit logging of configuration changes
-- **Role-based Access**: Secure access control for configuration management
-
-### Example Configuration
-```json
-{
-  "tenantId": "tenant-001",
-  "authMethod": "JWS",
-  "jwsAlgorithm": "RS256",
-  "includeClientHeaders": true,
-  "clientId": "client-123",
-  "clientSecret": "secret-456",
-  "clientIdHeaderName": "X-Client-ID",
-  "clientSecretHeaderName": "X-Client-Secret"
-}
-```
-
-## 🌐 Multi-Tenant Istio Configuration
-
-### Host-Based Routing
-- **Tenant Isolation**: Each tenant gets unique subdomains (tenant-001.payment-engine.local)
-- **Environment Separation**: Different environments (dev, staging, prod) with separate routing
-- **Conflict Resolution**: Automatic resolution of same host + same port conflicts
-- **Security Isolation**: Tenant-specific security policies and mTLS enforcement
-
-### Deployment Commands
-```bash
-# Deploy multi-tenant Istio configuration
-./scripts/deploy-multitenant-istio.sh
-
-# Generate configuration for new tenant
-./scripts/generate-tenant-istio-config.sh tenant-001 --environment dev
-
-# Test multi-tenancy setup
-./scripts/test-istio-multitenancy.sh --ingress-ip <gateway-ip>
-```
-
-### Access URLs
-- **Tenant-001**: https://tenant-001.payment-engine.local
-- **Tenant-002**: https://tenant-002.payment-engine.local
-- **Development**: https://tenant-001.dev.payment-engine.local
-- **Staging**: https://tenant-001.staging.payment-engine.local
-- **Production**: https://tenant-001.prod.payment-engine.local
-
-## 🔄 Downstream Routing Solution
-
-### Same Host/Port Conflict Resolution
-- **Header-Based Routing**: Uses HTTP headers to route to different services via same host:port
-- **Tenant Isolation**: Complete isolation between tenants using X-Tenant-ID headers
-- **Service Type Routing**: Automatic routing based on X-Service-Type headers
-- **External Service Integration**: Seamless integration with bank's NGINX and external systems
-
-### Deployment Commands
-```bash
-# Deploy downstream routing solution
-./scripts/deploy-downstream-routing.sh --host bank-nginx.example.com --port 443
-
-# Test downstream routing
-./scripts/test-downstream-routing.sh --url https://payment-engine.local
-```
-
-### API Endpoints
-- **Fraud System**: `POST /api/v1/downstream/fraud/{tenantId}`
-- **Clearing System**: `POST /api/v1/downstream/clearing/{tenantId}`
-- **Auto-Routing**: `POST /api/v1/downstream/auto/{tenantId}`
-- **Specific Service**: `POST /api/v1/downstream/service/{tenantId}/{serviceType}`
-
-### Routing Headers
-- **X-Tenant-ID**: Identifies the tenant
-- **X-Service-Type**: Identifies the service (fraud/clearing)
-- **X-Route-Context**: Combines tenant and service
-- **X-Downstream-Route**: Final routing destination
-- **X-Bank-Route**: Bank-specific routing path
-
-## 🔐 Multi-Level Authentication Configuration
-
-### Granular Configuration Levels
-- **Clearing System Level**: Global environment configuration (dev/staging/prod)
-- **Tenant Level**: Tenant-specific authentication and client headers
-- **Payment Type Level**: Payment type specific configuration (SEPA, SWIFT, ACH, etc.)
-- **Downstream Call Level**: Most granular configuration for specific service calls
-
-### Authentication Methods
-- **JWT**: JSON Web Token with configurable issuer, audience, and expiration
-- **JWS**: JSON Web Signature with multiple algorithms (HS256, HS384, HS512, RS256, RS384, RS512)
-- **OAuth2**: Industry standard OAuth2 with configurable endpoints and scopes
-- **API Key**: Simple API key authentication with custom header names
-- **Basic Auth**: HTTP Basic Authentication for legacy system integration
-
-### Configuration Hierarchy
-```
-Priority 1: Downstream Call Level (Highest)
-├── Tenant + Service Type + Endpoint + Payment Type
-├── Example: tenant-001/fraud//fraud/SEPA
-└── Overrides all other levels
-
-Priority 2: Payment Type Level
-├── Tenant + Payment Type
-├── Example: tenant-001/SEPA
-└── Overrides tenant and clearing system levels
-
-Priority 3: Tenant Level
-├── Tenant Only
-├── Example: tenant-001
-└── Overrides clearing system level
-
-Priority 4: Clearing System Level (Lowest)
-├── Environment Only
-├── Example: dev/staging/prod
-└── Used as fallback when no higher-level config exists
-```
-
-### API Endpoints
-- **Enhanced Routing**: `POST /api/v1/enhanced-downstream/call/{tenantId}/{serviceType}/{endpoint}`
-- **Fraud System**: `POST /api/v1/enhanced-downstream/fraud/{tenantId}`
-- **Clearing System**: `POST /api/v1/enhanced-downstream/clearing/{tenantId}`
-- **Banking System**: `POST /api/v1/enhanced-downstream/banking/{tenantId}`
-- **Auto-Routing**: `POST /api/v1/enhanced-downstream/auto/{tenantId}`
-- **Configuration**: `GET /api/v1/enhanced-downstream/config/{tenantId}/{serviceType}/{endpoint}`
-
-### Testing Commands
-```bash
-# Test multi-level authentication configuration
-./scripts/test-multi-level-auth-config.sh
-
-# Test specific tenant and level
-./scripts/test-multi-level-auth-config.sh --test-tenant tenant-001 --test-level payment-type
-```
-
-## 📊 Monitoring & Observability
-
-### Metrics
-- **Application Metrics**: Custom business metrics via Micrometer
-- **Infrastructure Metrics**: System metrics via Prometheus
-- **Performance Metrics**: Response times, throughput, and error rates
-
-### Logging
-- **Structured Logging**: JSON format with correlation IDs
-- **Centralized Logging**: ELK Stack for log aggregation and analysis
-- **Audit Logging**: Comprehensive audit trail for compliance
-
-### Tracing
-- **Distributed Tracing**: Jaeger for request flow analysis
-- **Span Management**: Automatic instrumentation and context propagation
-- **Trace Analytics**: Performance bottleneck identification
-
-### Alerting
-- **Health Checks**: Application and infrastructure health monitoring
-- **Custom Alerts**: Business logic and performance threshold alerts
-- **Incident Response**: Automated escalation and notification
-
-## 🔒 Security
-
-### Authentication & Authorization
-- **OAuth2/JWT**: Token-based authentication with refresh tokens
-- **Role-Based Access Control**: Granular permissions and access control
-- **Multi-Factor Authentication**: Enhanced security for sensitive operations
-
-### Data Protection
-- **Message Encryption**: AES-GCM encryption for sensitive data
-- **Digital Signatures**: RSA signatures for message integrity
-- **Key Management**: Azure Key Vault integration for secure key storage
-
-### Compliance
-- **Audit Logging**: Comprehensive audit trail for regulatory compliance
-- **Data Retention**: Configurable data retention policies
-- **Privacy Controls**: GDPR and data protection compliance
-
-## 🚀 CI/CD Pipeline
-
-### Azure DevOps Pipeline
-- **Build Stages**: Multi-stage builds with dependency caching
-- **Test Stages**: Unit, integration, and security testing
-- **Deploy Stages**: Environment-specific deployments
-- **Quality Gates**: Code quality and security checks
-
-### Air-Gapped Pipeline
-- **Offline Package Management**: Complete offline dependency resolution
-- **Container Registry Mirroring**: Local registry for air-gapped environments
-- **Deployment Packages**: Self-contained deployment artifacts
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-- Follow the existing code style and conventions
-- Write comprehensive tests for new features
-- Update documentation for any API changes
-- Ensure all security checks pass
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-### Documentation
-- [FAQ](docs/FAQ.md) - Frequently asked questions
-- [Troubleshooting Guide](docs/TROUBLESHOOTING.md) - Common issues and solutions
-- [Performance Tuning](docs/PERFORMANCE_TUNING.md) - Optimization guidelines
-
-### Community
-- [GitHub Issues](https://github.com/your-org/payment-engine/issues) - Bug reports and feature requests
-- [Discussions](https://github.com/your-org/payment-engine/discussions) - Community discussions
-- [Wiki](https://github.com/your-org/payment-engine/wiki) - Community-maintained documentation
-
-### Professional Support
-For enterprise support, training, or consulting services, please contact the development team.
+# Payments Engine for South Africa - Architecture Documentation
+
+## 🎯 Project Overview
+
+This repository contains the complete architecture design for a **highly modular, AI-agent-buildable payments engine** designed specifically for the South African financial ecosystem. The system integrates with SAMOS, BankservAfrica, and other clearing systems while maintaining compliance with local regulations (POPIA, FICA, SARB).
+
+### Key Design Principles
+- ✅ **AI-Agent Friendly**: Each module < 500 lines, can be built independently
+- ✅ **Microservices Architecture**: 16 independent services
+- ✅ **Event-Driven**: Asynchronous communication via Azure Service Bus
+- ✅ **Hexagonal Architecture**: Clean separation of concerns
+- ✅ **Saga Pattern**: Distributed transaction management
+- ✅ **Cloud-Native**: Designed for Azure (AKS, PostgreSQL, CosmosDB, Redis)
 
 ---
 
-**Built with ❤️ for the financial services industry**
+## 📚 Documentation Structure
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| **[00-ARCHITECTURE-OVERVIEW.md](docs/00-ARCHITECTURE-OVERVIEW.md)** | High-level system architecture, patterns, and design | ✅ Complete |
+| **[01-ASSUMPTIONS.md](docs/01-ASSUMPTIONS.md)** | **ALL assumptions made** - Review this first! | ✅ Complete |
+| **[02-MICROSERVICES-BREAKDOWN.md](docs/02-MICROSERVICES-BREAKDOWN.md)** | Detailed specs for all 16 microservices | ✅ Complete |
+| **[03-EVENT-SCHEMAS.md](docs/03-EVENT-SCHEMAS.md)** | AsyncAPI 2.0 event schemas | ✅ Complete |
+| **[04-AI-AGENT-TASK-BREAKDOWN.md](docs/04-AI-AGENT-TASK-BREAKDOWN.md)** | **Task breakdown for AI agents** - Critical for AI development | ✅ Complete |
+| **[05-DATABASE-SCHEMAS.md](docs/05-DATABASE-SCHEMAS.md)** | Complete database designs for all services | ✅ Complete |
+| **[06-SOUTH-AFRICA-CLEARING.md](docs/06-SOUTH-AFRICA-CLEARING.md)** | Integration with SAMOS, BankservAfrica, RTC, SASWITCH | ✅ Complete |
+| **[07-AZURE-INFRASTRUCTURE.md](docs/07-AZURE-INFRASTRUCTURE.md)** | Azure infrastructure (AKS, networking, security) | ✅ Complete |
+
+---
+
+## 🏗️ System Architecture
+
+### High-Level View
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      FRONTEND LAYER                              │
+│   React Web Portal  │  Mobile App  │  API Gateway (APIM)       │
+└────────────────────────────────────┬────────────────────────────┘
+                                     │
+┌────────────────────────────────────▼────────────────────────────┐
+│                   ORCHESTRATION LAYER                            │
+│   API Gateway (Spring Cloud)  │  Saga Orchestrator             │
+└────────────────────────────────────┬────────────────────────────┘
+                                     │
+┌────────────────────────────────────▼────────────────────────────┐
+│                    CORE SERVICES (11 Microservices)             │
+│  Payment Initiation │ Validation │ Account │ Routing │ ...     │
+└────────────────────────────────────┬────────────────────────────┘
+                                     │
+┌────────────────────────────────────▼────────────────────────────┐
+│                   EVENT BUS (Azure Service Bus)                 │
+└────────────────────────────────────┬────────────────────────────┘
+                                     │
+┌────────────────────────────────────▼────────────────────────────┐
+│              SOUTH AFRICAN CLEARING SYSTEMS                     │
+│   SAMOS (RTGS)  │  BankservAfrica (ACH/RTC)  │  SASWITCH       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Microservices
+
+| # | Service | Purpose | Database | Lines of Code |
+|---|---------|---------|----------|---------------|
+| 1 | Payment Initiation | Accept payment requests | PostgreSQL | ~400 |
+| 2 | Validation Service | Business rules, fraud detection | PostgreSQL + Redis | ~450 |
+| 3 | Account Service | Account management, holds | PostgreSQL | ~350 |
+| 4 | Routing Service | Determine clearing channel | Redis | ~300 |
+| 5 | Transaction Processing | State machine, ledger | PostgreSQL | ~500 |
+| 6-8 | Clearing Adapters | SAMOS, Bankserv, RTC | PostgreSQL | ~400 each |
+| 9 | Settlement Service | Net settlement, batching | PostgreSQL | ~450 |
+| 10 | Reconciliation Service | Match transactions | PostgreSQL | ~400 |
+| 11 | Notification Service | SMS, Email, Push | PostgreSQL | ~250 |
+| 12 | Reporting Service | Reports, analytics | PostgreSQL + Synapse | ~350 |
+| 13 | Saga Orchestrator | Distributed transactions | PostgreSQL | ~500 |
+| 14 | API Gateway | Routing, auth, rate limiting | Redis | ~300 |
+| 15 | IAM Service | Authentication, RBAC | PostgreSQL | ~400 |
+| 16 | Audit Service | Compliance logging | CosmosDB | ~300 |
+
+---
+
+## 🤖 AI Agent Development
+
+### Why This Design is Perfect for AI Agents
+
+1. **Small, Focused Modules**: Each service < 500 lines of core logic
+2. **Clear Contracts**: OpenAPI/AsyncAPI specifications provided
+3. **No Circular Dependencies**: Services communicate only via events/APIs
+4. **Self-Contained**: Each service has its own database, tests, documentation
+5. **Parallel Development**: Most services can be built simultaneously
+
+### Development Phases
+
+```
+Phase 0: Foundation (4 agents, 8 hours)
+  ├─ Common libraries
+  ├─ Event contracts
+  ├─ API contracts
+  └─ Infrastructure as Code
+
+Phase 1: Independent Services (4 agents, 10 hours) - PARALLEL
+  ├─ Account Service
+  ├─ Notification Service
+  ├─ Routing Service
+  └─ Reporting Service
+
+Phase 2: Core Payment Services (3 agents, 10 hours)
+  ├─ Payment Initiation
+  ├─ Validation Service
+  └─ Transaction Processing
+
+Phase 3: Clearing Adapters (3 agents, 9 hours) - PARALLEL
+  ├─ SAMOS Adapter
+  ├─ Bankserv Adapter
+  └─ RTC Adapter
+
+Phase 4: Supporting Services (2 agents, 6 hours) - PARALLEL
+  ├─ Settlement Service
+  └─ Reconciliation Service
+
+Phase 5: Orchestration (1 agent, 4 hours)
+  └─ Saga Orchestrator
+
+Phase 6: Gateway & Security (3 agents, 8 hours) - PARALLEL
+  ├─ API Gateway
+  ├─ IAM Service
+  └─ Audit Service
+
+Phase 7: Frontend (4 agents, 18 hours) - PARALLEL
+  ├─ Payment Initiation UI
+  ├─ Transaction History UI
+  ├─ Reporting Dashboard
+  └─ Admin Console
+
+Phase 8: Consolidation (1 master agent, 16 hours)
+  ├─ Integration testing
+  ├─ Performance testing
+  └─ Deployment
+
+Total: 25 agents, ~89 hours (40-50 hours with parallelization)
+```
+
+See **[04-AI-AGENT-TASK-BREAKDOWN.md](docs/04-AI-AGENT-TASK-BREAKDOWN.md)** for detailed instructions for each AI agent.
+
+---
+
+## 🔐 Security & Compliance
+
+### South African Regulations
+- ✅ **POPIA**: Protection of Personal Information Act
+- ✅ **FICA**: Financial Intelligence Centre Act
+- ✅ **SARB**: South African Reserve Bank regulations
+- ✅ **PCI DSS**: Payment Card Industry Data Security Standard
+
+### Security Layers
+1. **Network**: Azure VNet, NSG, Azure Firewall, WAF
+2. **API**: OAuth2, JWT tokens, API Management
+3. **Application**: Spring Security, RBAC, input validation
+4. **Data**: Encryption at rest (AES-256), TLS 1.3 in transit
+5. **Secrets**: Azure Key Vault with HSM
+
+---
+
+## 🚀 Technology Stack
+
+### Backend
+- **Framework**: Spring Boot 3.x (Java 17+)
+- **Database**: Azure PostgreSQL Flexible Server, CosmosDB
+- **Cache**: Azure Cache for Redis Premium
+- **Messaging**: Azure Service Bus Premium
+- **API**: REST (Spring Web) + gRPC (high-throughput)
+
+### Frontend
+- **Framework**: React 18 + TypeScript
+- **State Management**: Redux Toolkit + RTK Query
+- **UI Library**: Material-UI (MUI)
+- **Forms**: React Hook Form + Zod
+
+### Cloud (Azure)
+- **Compute**: Azure Kubernetes Service (AKS)
+- **Networking**: VNet, Application Gateway (WAF)
+- **Identity**: Azure AD B2C
+- **Monitoring**: Azure Monitor, Application Insights
+- **Analytics**: Azure Synapse Analytics
+
+### DevOps
+- **CI/CD**: Azure DevOps Pipelines
+- **IaC**: Terraform
+- **Containers**: Docker, Kubernetes
+- **Monitoring**: Prometheus, Grafana, Application Insights
+
+---
+
+## 💰 Cost Estimate
+
+### Production Environment (Monthly)
+
+| Category | Cost (USD) |
+|----------|------------|
+| Compute (AKS) | $4,800 |
+| Databases | $1,800 |
+| Caching | $1,400 |
+| Messaging | $650 |
+| Monitoring | $2,300 |
+| API Management | $3,000 |
+| Other | $1,100 |
+| **Total** | **~$15,050/month** |
+
+**Optimization**: Use reserved instances, auto-scaling, and spot instances to reduce costs by 30-40%.
+
+---
+
+## 📊 Performance Targets
+
+| Metric | Target | Measurement |
+|--------|--------|-------------|
+| API Response Time | < 200ms (p95) | Application Insights |
+| End-to-End Payment (RTC) | < 10 seconds | Business metric |
+| Throughput | 10,000 TPS | Load testing |
+| Availability | 99.95% | Azure Monitor |
+| Database Query Time | < 50ms (p95) | PostgreSQL stats |
+| Event Processing | < 1 second | Service Bus metrics |
+
+---
+
+## 🔄 Payment Flow (Example)
+
+### Happy Path: Successful RTC Payment
+
+```
+1. User submits payment via React frontend
+   ↓
+2. API Gateway → Payment Initiation Service
+   - Generate Payment ID: PAY-2025-XXXXXX
+   - Publish: PaymentInitiatedEvent
+   ↓
+3. Saga Orchestrator receives event
+   - Create Saga Instance
+   ↓
+4. Validation Service (Step 1)
+   - Validate rules, fraud check
+   - Publish: PaymentValidatedEvent
+   ↓
+5. Account Service (Step 2)
+   - Place hold on funds
+   - Publish: FundsReservedEvent
+   ↓
+6. Routing Service (Step 3)
+   - Select RTC clearing
+   - Publish: RoutingDeterminedEvent
+   ↓
+7. Transaction Processing Service (Step 4)
+   - Create transaction records
+   - Publish: TransactionCreatedEvent
+   ↓
+8. RTC Clearing Adapter (Step 5)
+   - Format ISO 20022 message
+   - Send to BankservAfrica RTC API
+   - Publish: ClearingSubmittedEvent
+   ↓
+9. Receive response from RTC (< 10 seconds)
+   - Publish: ClearingCompletedEvent
+   ↓
+10. Settlement Service (Step 6)
+    - Update settlement position
+    ↓
+11. Notification Service (Step 7)
+    - Send SMS/Email to user
+    ↓
+12. Saga Orchestrator
+    - Mark saga as COMPLETED
+
+Total Time: < 10 seconds (RTC), < 24 hours (ACH)
+```
+
+---
+
+## 📋 Getting Started
+
+### Prerequisites
+- Docker Desktop
+- Java 17+
+- Node.js 18+
+- Azure Subscription
+- Maven 3.8+
+- kubectl
+
+### Quick Start (Local Development)
+
+```bash
+# Clone repository
+git clone https://github.com/your-org/payments-engine.git
+cd payments-engine
+
+# Start infrastructure (PostgreSQL, Redis, Service Bus emulator)
+docker-compose up -d
+
+# Build all services
+mvn clean install
+
+# Run a single service
+cd services/payment-initiation
+mvn spring-boot:run
+
+# Access Swagger UI
+open http://localhost:8085/swagger-ui.html
+
+# Run tests
+mvn test
+```
+
+### Deploy to Azure
+
+```bash
+# Set up Azure resources
+cd infrastructure/terraform
+terraform init
+terraform plan
+terraform apply
+
+# Deploy to AKS
+az aks get-credentials --resource-group payments-rg --name payments-aks
+kubectl apply -f ../kubernetes/
+```
+
+---
+
+## 📖 Key Documents to Review
+
+### For Business Stakeholders
+1. **[00-ARCHITECTURE-OVERVIEW.md](docs/00-ARCHITECTURE-OVERVIEW.md)** - System overview
+2. **[01-ASSUMPTIONS.md](docs/01-ASSUMPTIONS.md)** - **Critical: Review all assumptions**
+3. **[06-SOUTH-AFRICA-CLEARING.md](docs/06-SOUTH-AFRICA-CLEARING.md)** - Clearing system integration
+
+### For Architects
+1. **[00-ARCHITECTURE-OVERVIEW.md](docs/00-ARCHITECTURE-OVERVIEW.md)** - Architecture patterns
+2. **[02-MICROSERVICES-BREAKDOWN.md](docs/02-MICROSERVICES-BREAKDOWN.md)** - Service specifications
+3. **[03-EVENT-SCHEMAS.md](docs/03-EVENT-SCHEMAS.md)** - Event-driven design
+4. **[07-AZURE-INFRASTRUCTURE.md](docs/07-AZURE-INFRASTRUCTURE.md)** - Cloud architecture
+
+### For Developers
+1. **[04-AI-AGENT-TASK-BREAKDOWN.md](docs/04-AI-AGENT-TASK-BREAKDOWN.md)** - **Task assignments**
+2. **[05-DATABASE-SCHEMAS.md](docs/05-DATABASE-SCHEMAS.md)** - Database designs
+3. **[02-MICROSERVICES-BREAKDOWN.md](docs/02-MICROSERVICES-BREAKDOWN.md)** - API specs
+
+### For DevOps
+1. **[07-AZURE-INFRASTRUCTURE.md](docs/07-AZURE-INFRASTRUCTURE.md)** - Infrastructure setup
+2. Terraform scripts in `infrastructure/terraform/`
+3. Kubernetes manifests in `infrastructure/kubernetes/`
+
+---
+
+## ⚠️ Critical: Review Assumptions
+
+Before proceeding with implementation, **MUST REVIEW** [01-ASSUMPTIONS.md](docs/01-ASSUMPTIONS.md) to validate:
+- Business context (organization type, payment types, volumes)
+- Technology choices (Azure, Java, React)
+- Clearing system assumptions (SAMOS, BankservAfrica access)
+- Security & compliance requirements
+- Performance targets
+- Cost estimates
+
+**Any changes to assumptions will require architecture adjustments.**
+
+---
+
+## 🤝 Development Workflow
+
+### For AI Agents
+
+1. **Receive Task Assignment**: Read [04-AI-AGENT-TASK-BREAKDOWN.md](docs/04-AI-AGENT-TASK-BREAKDOWN.md)
+2. **Understand Requirements**: Review service specification
+3. **Build Service**: Follow coding standards, implement tests
+4. **Validate**: Run tests, verify OpenAPI spec
+5. **Submit**: Create PR with service code, tests, README
+
+### For Human Developers
+
+1. **Choose a Service**: Select from [02-MICROSERVICES-BREAKDOWN.md](docs/02-MICROSERVICES-BREAKDOWN.md)
+2. **Review Dependencies**: Check event contracts, API contracts
+3. **Develop**: Implement service following hexagonal architecture
+4. **Test**: Unit tests (80%+ coverage), integration tests
+5. **Document**: Update README, OpenAPI spec
+6. **Deploy**: Create Kubernetes manifests, Terraform configs
+
+---
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+**Service can't connect to database**
+- Check VNet service endpoints
+- Verify connection string in Key Vault
+- Ensure managed identity has access
+
+**Events not being consumed**
+- Verify Service Bus subscription exists
+- Check dead letter queue for failed messages
+- Validate event schema matches consumer
+
+**High latency in payments**
+- Check database query performance
+- Review Redis cache hit ratio
+- Verify Service Bus is not throttling
+
+---
+
+## 📞 Support & Contact
+
+- **Architecture Questions**: [Architecture Team Email]
+- **Infrastructure Issues**: [DevOps Team Email]
+- **Security Concerns**: [Security Team Email]
+- **Clearing System Integration**: [Payments Team Email]
+
+---
+
+## 📅 Project Status
+
+| Phase | Status | Completion |
+|-------|--------|------------|
+| Architecture Design | ✅ Complete | 100% |
+| Infrastructure Setup | ⏳ Pending | 0% |
+| Service Development | ⏳ Pending | 0% |
+| Integration Testing | ⏳ Pending | 0% |
+| Production Deployment | ⏳ Pending | 0% |
+
+---
+
+## 📝 License
+
+[Your License Here]
+
+---
+
+## 🙏 Acknowledgments
+
+This architecture design incorporates:
+- **Microservices Patterns**: Chris Richardson
+- **Event-Driven Architecture**: Martin Fowler
+- **Hexagonal Architecture**: Alistair Cockburn
+- **Saga Pattern**: Distributed transactions best practices
+- **South African Payment Standards**: PASA, SARB guidelines
+
+---
+
+**Last Updated**: 2025-10-11  
+**Version**: 1.0  
+**Architect**: MAANG Software Architect with Banking Domain Expertise
+
+---
+
+## Quick Navigation
+
+- [Architecture Overview](docs/00-ARCHITECTURE-OVERVIEW.md)
+- [⚠️ Assumptions (Read First!)](docs/01-ASSUMPTIONS.md)
+- [Microservices Breakdown](docs/02-MICROSERVICES-BREAKDOWN.md)
+- [Event Schemas](docs/03-EVENT-SCHEMAS.md)
+- [🤖 AI Agent Tasks](docs/04-AI-AGENT-TASK-BREAKDOWN.md)
+- [Database Schemas](docs/05-DATABASE-SCHEMAS.md)
+- [South Africa Clearing](docs/06-SOUTH-AFRICA-CLEARING.md)
+- [Azure Infrastructure](docs/07-AZURE-INFRASTRUCTURE.md)
