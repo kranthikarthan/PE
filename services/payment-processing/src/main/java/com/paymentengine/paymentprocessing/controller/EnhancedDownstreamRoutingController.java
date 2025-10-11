@@ -113,12 +113,12 @@ public class EnhancedDownstreamRoutingController {
             
         } catch (Exception e) {
             logger.error("Enhanced fraud system call failed - tenant: {}, paymentType: {}", tenantId, paymentType, e);
-            return ResponseEntity.status(500).body(Map.of(
-                "error", "Enhanced fraud system call failed",
-                "message", e.getMessage(),
-                "tenantId", tenantId,
-                "paymentType", paymentType
-            ));
+            java.util.Map<String, Object> resp = new java.util.HashMap<>();
+            resp.put("error", "Enhanced fraud system call failed");
+            resp.put("message", e.getMessage());
+            resp.put("tenantId", tenantId);
+            resp.put("paymentType", paymentType);
+            return ResponseEntity.status(500).body(resp);
         }
     }
     
@@ -138,12 +138,12 @@ public class EnhancedDownstreamRoutingController {
         try {
             // Validate tenant access
             if (!enhancedDownstreamRoutingService.validateTenantAccess(tenantId, "clearing", "/clearing", paymentType)) {
-                return ResponseEntity.status(403).body(Map.of(
-                    "error", "Access denied",
-                    "message", "Tenant does not have access to clearing system",
-                    "tenantId", tenantId,
-                    "paymentType", paymentType
-                ));
+                java.util.Map<String, Object> resp = new java.util.HashMap<>();
+                resp.put("error", "Access denied");
+                resp.put("message", "Tenant does not have access to clearing system");
+                resp.put("tenantId", tenantId);
+                resp.put("paymentType", paymentType);
+                return ResponseEntity.status(403).body(resp);
             }
             
             // Call clearing system
@@ -155,12 +155,12 @@ public class EnhancedDownstreamRoutingController {
             
         } catch (Exception e) {
             logger.error("Enhanced clearing system call failed - tenant: {}, paymentType: {}", tenantId, paymentType, e);
-            return ResponseEntity.status(500).body(Map.of(
-                "error", "Enhanced clearing system call failed",
-                "message", e.getMessage(),
-                "tenantId", tenantId,
-                "paymentType", paymentType
-            ));
+            java.util.Map<String, Object> resp2 = new java.util.HashMap<>();
+            resp2.put("error", "Enhanced clearing system call failed");
+            resp2.put("message", e.getMessage());
+            resp2.put("tenantId", tenantId);
+            resp2.put("paymentType", paymentType);
+            return ResponseEntity.status(500).body(resp2);
         }
     }
     
@@ -180,12 +180,12 @@ public class EnhancedDownstreamRoutingController {
         try {
             // Validate tenant access
             if (!enhancedDownstreamRoutingService.validateTenantAccess(tenantId, "banking", "/banking", paymentType)) {
-                return ResponseEntity.status(403).body(Map.of(
-                    "error", "Access denied",
-                    "message", "Tenant does not have access to banking system",
-                    "tenantId", tenantId,
-                    "paymentType", paymentType
-                ));
+                java.util.Map<String, Object> resp3 = new java.util.HashMap<>();
+                resp3.put("error", "Access denied");
+                resp3.put("message", "Tenant does not have access to banking system");
+                resp3.put("tenantId", tenantId);
+                resp3.put("paymentType", paymentType);
+                return ResponseEntity.status(403).body(resp3);
             }
             
             // Call banking system
@@ -197,12 +197,12 @@ public class EnhancedDownstreamRoutingController {
             
         } catch (Exception e) {
             logger.error("Enhanced banking system call failed - tenant: {}, paymentType: {}", tenantId, paymentType, e);
-            return ResponseEntity.status(500).body(Map.of(
-                "error", "Enhanced banking system call failed",
-                "message", e.getMessage(),
-                "tenantId", tenantId,
-                "paymentType", paymentType
-            ));
+            java.util.Map<String, Object> resp4 = new java.util.HashMap<>();
+            resp4.put("error", "Enhanced banking system call failed");
+            resp4.put("message", e.getMessage());
+            resp4.put("tenantId", tenantId);
+            resp4.put("paymentType", paymentType);
+            return ResponseEntity.status(500).body(resp4);
         }
     }
     
@@ -229,12 +229,12 @@ public class EnhancedDownstreamRoutingController {
             
         } catch (Exception e) {
             logger.error("Enhanced auto-routing call failed - tenant: {}, paymentType: {}", tenantId, paymentType, e);
-            return ResponseEntity.status(500).body(Map.of(
-                "error", "Enhanced auto-routing call failed",
-                "message", e.getMessage(),
-                "tenantId", tenantId,
-                "paymentType", paymentType
-            ));
+            java.util.Map<String, Object> resp5 = new java.util.HashMap<>();
+            resp5.put("error", "Enhanced auto-routing call failed");
+            resp5.put("message", e.getMessage());
+            resp5.put("tenantId", tenantId);
+            resp5.put("paymentType", paymentType);
+            return ResponseEntity.status(500).body(resp5);
         }
     }
     
@@ -284,14 +284,14 @@ public class EnhancedDownstreamRoutingController {
         } catch (Exception e) {
             logger.error("Failed to get downstream statistics - tenant: {}, service: {}, endpoint: {}", 
                         tenantId, serviceType, endpoint, e);
-            return ResponseEntity.status(500).body(Map.of(
-                "error", "Failed to get statistics",
-                "message", e.getMessage(),
-                "tenantId", tenantId,
-                "serviceType", serviceType,
-                "endpoint", endpoint,
-                "paymentType", paymentType
-            ));
+            java.util.Map<String, Object> resp6 = new java.util.HashMap<>();
+            resp6.put("error", "Failed to get statistics");
+            resp6.put("message", e.getMessage());
+            resp6.put("tenantId", tenantId);
+            resp6.put("serviceType", serviceType);
+            resp6.put("endpoint", endpoint);
+            resp6.put("paymentType", paymentType);
+            return ResponseEntity.status(500).body(resp6);
         }
     }
     
@@ -325,14 +325,14 @@ public class EnhancedDownstreamRoutingController {
         } catch (Exception e) {
             logger.error("Failed to validate tenant access - tenant: {}, service: {}, endpoint: {}", 
                         tenantId, serviceType, endpoint, e);
-            return ResponseEntity.status(500).body(Map.of(
-                "error", "Failed to validate access",
-                "message", e.getMessage(),
-                "tenantId", tenantId,
-                "serviceType", serviceType,
-                "endpoint", endpoint,
-                "paymentType", paymentType
-            ));
+            java.util.Map<String, Object> resp7 = new java.util.HashMap<>();
+            resp7.put("error", "Failed to validate access");
+            resp7.put("message", e.getMessage());
+            resp7.put("tenantId", tenantId);
+            resp7.put("serviceType", serviceType);
+            resp7.put("endpoint", endpoint);
+            resp7.put("paymentType", paymentType);
+            return ResponseEntity.status(500).body(resp7);
         }
     }
     

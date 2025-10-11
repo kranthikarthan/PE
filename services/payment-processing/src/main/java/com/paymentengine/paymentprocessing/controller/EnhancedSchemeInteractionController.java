@@ -154,17 +154,16 @@ public class EnhancedSchemeInteractionController {
                             pain001Message, tenantId, paymentType, localInstrumentCode, responseMode);
             
             // Return immediate response
-            Map<String, Object> immediateResponse = Map.of(
-                    "messageId", paymentInfo.getMessageId(),
-                    "correlationId", correlationId,
-                    "status", "ACCEPTED",
-                    "tenantId", tenantId,
-                    "paymentType", paymentType,
-                    "localInstrumentCode", localInstrumentCode,
-                    "responseMode", responseMode,
-                    "pollUrl", "/api/v1/scheme/enhanced/poll/" + correlationId,
-                    "timestamp", Instant.now().toString()
-            );
+            Map<String, Object> immediateResponse = new java.util.HashMap<>();
+            immediateResponse.put("messageId", paymentInfo.getMessageId());
+            immediateResponse.put("correlationId", correlationId);
+            immediateResponse.put("status", "ACCEPTED");
+            immediateResponse.put("tenantId", tenantId);
+            immediateResponse.put("paymentType", paymentType);
+            immediateResponse.put("localInstrumentCode", localInstrumentCode);
+            immediateResponse.put("responseMode", responseMode);
+            immediateResponse.put("pollUrl", "/api/v1/scheme/enhanced/poll/" + correlationId);
+            immediateResponse.put("timestamp", Instant.now().toString());
             
             logger.info("PAIN.001 accepted for async processing: {} - CorrelationId: {}", 
                     paymentInfo.getMessageId(), correlationId);
@@ -202,12 +201,11 @@ public class EnhancedSchemeInteractionController {
             // Process PACS.008 and generate PACS.002 response
             Map<String, Object> pacs002Response = schemeProcessingService.processPacs008FromScheme(pacs008Message, tenantId);
             
-            Map<String, Object> response = Map.of(
-                    "status", "PROCESSED",
-                    "pacs002Response", pacs002Response,
-                    "tenantId", tenantId,
-                    "timestamp", Instant.now().toString()
-            );
+            Map<String, Object> response = new java.util.HashMap<>();
+            response.put("status", "PROCESSED");
+            response.put("pacs002Response", pacs002Response);
+            response.put("tenantId", tenantId);
+            response.put("timestamp", Instant.now().toString());
             
             logger.info("Successfully processed PACS.008 from scheme for tenant: {}", tenantId);
             
@@ -242,12 +240,11 @@ public class EnhancedSchemeInteractionController {
         try {
             // In a real implementation, this would check a database or cache for the result
             // For now, return a mock response
-            Map<String, Object> result = Map.of(
-                    "correlationId", correlationId,
-                    "status", "COMPLETED",
-                    "message", "Processing completed successfully",
-                    "timestamp", Instant.now().toString()
-            );
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("correlationId", correlationId);
+            result.put("status", "COMPLETED");
+            result.put("message", "Processing completed successfully");
+            result.put("timestamp", Instant.now().toString());
             
             return ResponseEntity.ok(result);
             
@@ -378,14 +375,13 @@ public class EnhancedSchemeInteractionController {
             Map<String, Object> pacs008Message = transformationService.transformPain001ToPacs008(
                     pain001Message, tenantId, paymentType, localInstrumentCode);
             
-            Map<String, Object> response = Map.of(
-                    "originalMessage", pain001Message,
-                    "transformedMessage", pacs008Message,
-                    "tenantId", tenantId,
-                    "paymentType", paymentType,
-                    "localInstrumentCode", localInstrumentCode,
-                    "timestamp", Instant.now().toString()
-            );
+            Map<String, Object> response = new java.util.HashMap<>();
+            response.put("originalMessage", pain001Message);
+            response.put("transformedMessage", pacs008Message);
+            response.put("tenantId", tenantId);
+            response.put("paymentType", paymentType);
+            response.put("localInstrumentCode", localInstrumentCode);
+            response.put("timestamp", Instant.now().toString());
             
             logger.info("Successfully transformed PAIN.001 to PACS.008 for tenant: {}", tenantId);
             
@@ -490,18 +486,18 @@ public class EnhancedSchemeInteractionController {
     @GetMapping("/health")
     @Timed(value = "scheme.enhanced.health", description = "Time taken for enhanced scheme health check")
     public ResponseEntity<Map<String, Object>> health() {
-        return ResponseEntity.ok(Map.of(
-                "status", "UP",
-                "service", "enhanced-scheme-service",
-                "timestamp", Instant.now().toString(),
-                "version", "1.0.0",
-                "features", Map.of(
-                        "pain001Processing", true,
-                        "pacs008Processing", true,
-                        "clearingSystemRouting", true,
-                        "asyncProcessing", true,
-                        "transformation", true
-                )
-        ));
+        java.util.Map<String, Object> features = new java.util.HashMap<>();
+        features.put("pain001Processing", true);
+        features.put("pacs008Processing", true);
+        features.put("clearingSystemRouting", true);
+        features.put("asyncProcessing", true);
+        features.put("transformation", true);
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        body.put("status", "UP");
+        body.put("service", "enhanced-scheme-service");
+        body.put("timestamp", Instant.now().toString());
+        body.put("version", "1.0.0");
+        body.put("features", features);
+        return ResponseEntity.ok(body);
     }
 }

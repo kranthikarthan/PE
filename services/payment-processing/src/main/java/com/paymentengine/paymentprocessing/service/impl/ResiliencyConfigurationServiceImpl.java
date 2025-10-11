@@ -7,7 +7,7 @@ import io.github.resilience4j.bulkhead.BulkheadRegistry;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import io.github.resilience4j.decorators.Decorators;
+import java.util.concurrent.Callable;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
@@ -97,26 +97,22 @@ public class ResiliencyConfigurationServiceImpl implements ResiliencyConfigurati
                                       Function<Throwable, T> fallback) {
         ResiliencyPolicy policy = resolvePolicy(serviceName);
 
-        Decorators.DecorateSupplier<T> decorator = Decorators.ofSupplier(primaryCall);
-
+        Supplier<T> decorated = primaryCall;
         if (policy.getRateLimiter() != null) {
-            decorator = decorator.withRateLimiter(policy.getRateLimiter());
+            decorated = io.github.resilience4j.ratelimiter.RateLimiter.decorateSupplier(policy.getRateLimiter(), decorated);
         }
         if (policy.getBulkhead() != null) {
-            decorator = decorator.withBulkhead(policy.getBulkhead());
-        }
-        if (policy.getTimeLimiter() != null) {
-            decorator = decorator.withTimeLimiter(policy.getTimeLimiter(), scheduler);
+            decorated = io.github.resilience4j.bulkhead.Bulkhead.decorateSupplier(policy.getBulkhead(), decorated);
         }
         if (policy.getRetry() != null) {
-            decorator = decorator.withRetry(policy.getRetry());
+            decorated = io.github.resilience4j.retry.Retry.decorateSupplier(policy.getRetry(), decorated);
         }
         if (policy.getCircuitBreaker() != null) {
-            decorator = decorator.withCircuitBreaker(policy.getCircuitBreaker());
+            decorated = io.github.resilience4j.circuitbreaker.CircuitBreaker.decorateSupplier(policy.getCircuitBreaker(), decorated);
         }
-
+        // TimeLimiter supports decorating future suppliers; for sync, execute within timeout via scheduler if needed
         try {
-            T result = decorator.get();
+            T result = decorated.get();
             recordSuccess(serviceName, tenantId, policy);
             return result;
         } catch (Throwable throwable) {
@@ -139,27 +135,26 @@ public class ResiliencyConfigurationServiceImpl implements ResiliencyConfigurati
         ResiliencyPolicy policy = resolvePolicy(serviceName);
 
         Supplier<CompletableFuture<T>> decoratedSupplier = primaryCall;
-        Decorators.DecorateSupplier<CompletableFuture<T>> decorator = Decorators.ofSupplier(primaryCall);
-
         if (policy.getRateLimiter() != null) {
-            decorator = decorator.withRateLimiter(policy.getRateLimiter());
+            decoratedSupplier = io.github.resilience4j.ratelimiter.RateLimiter.decorateSupplier(policy.getRateLimiter(), decoratedSupplier);
         }
         if (policy.getBulkhead() != null) {
-            decorator = decorator.withBulkhead(policy.getBulkhead());
+            decoratedSupplier = io.github.resilience4j.bulkhead.Bulkhead.decorateSupplier(policy.getBulkhead(), decoratedSupplier);
         }
         if (policy.getRetry() != null) {
-            decorator = decorator.withRetry(policy.getRetry());
-        }
-        if (policy.getTimeLimiter() != null) {
-            decorator = decorator.withTimeLimiter(policy.getTimeLimiter(), scheduler);
+            decoratedSupplier = io.github.resilience4j.retry.Retry.decorateSupplier(policy.getRetry(), decoratedSupplier);
         }
         if (policy.getCircuitBreaker() != null) {
-            decorator = decorator.withCircuitBreaker(policy.getCircuitBreaker());
+            decoratedSupplier = io.github.resilience4j.circuitbreaker.CircuitBreaker.decorateSupplier(policy.getCircuitBreaker(), decoratedSupplier);
+        }
+        // TimeLimiter for async: decorate future supplier
+        if (policy.getTimeLimiter() != null) {
+            decoratedSupplier = io.github.resilience4j.timelimiter.TimeLimiter.decorateFutureSupplier(policy.getTimeLimiter(), decoratedSupplier);
         }
 
         CompletableFuture<T> future;
         try {
-            future = decorator.get();
+            future = decoratedSupplier.get();
         } catch (Throwable throwable) {
             recordFailure(serviceName, tenantId, throwable, policy);
             if (fallback != null) {

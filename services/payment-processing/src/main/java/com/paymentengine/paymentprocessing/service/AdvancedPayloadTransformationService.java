@@ -444,7 +444,8 @@ public class AdvancedPayloadTransformationService {
         while (sourceMatcher.find()) {
             String fieldPath = sourceMatcher.group(1);
             Object value = getNestedValue(sourcePayload, fieldPath);
-            result = result.replace(matcher.group(0), value != null ? value.toString() : "");
+            String wholeMatch = sourceMatcher.group(0);
+            result = result.replace(wholeMatch, value != null ? value.toString() : "");
         }
         
         // Replace target field references: ${target.field}

@@ -1,7 +1,7 @@
 package com.paymentengine.paymentprocessing.repository;
 
 import com.paymentengine.paymentprocessing.entity.QueuedMessage;
-import com.paymentengine.paymentprocessing.entity.Status;
+// Removed incorrect import of Status; using nested enum below
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,7 +37,7 @@ public interface QueuedMessageRepository extends JpaRepository<QueuedMessage, St
     /**
      * Find queued messages by status
      */
-    Page<QueuedMessage> findByStatus(QueuedMessage.Status status, Pageable pageable);
+    Page<QueuedMessage> findByStatus(QueuedMessage.MessageStatus status, Pageable pageable);
 
     /**
      * Find queued messages by tenant ID and service name
@@ -47,23 +47,23 @@ public interface QueuedMessageRepository extends JpaRepository<QueuedMessage, St
     /**
      * Find queued messages by tenant ID and status
      */
-    Page<QueuedMessage> findByTenantIdAndStatus(String tenantId, QueuedMessage.Status status, Pageable pageable);
+    Page<QueuedMessage> findByTenantIdAndStatus(String tenantId, QueuedMessage.MessageStatus status, Pageable pageable);
 
     /**
      * Find queued messages by service name and status
      */
-    Page<QueuedMessage> findByServiceNameAndStatus(String serviceName, QueuedMessage.Status status, Pageable pageable);
+    Page<QueuedMessage> findByServiceNameAndStatus(String serviceName, QueuedMessage.MessageStatus status, Pageable pageable);
 
     /**
      * Find queued messages by tenant ID, service name and status
      */
     Page<QueuedMessage> findByTenantIdAndServiceNameAndStatus(String tenantId, String serviceName, 
-                                                              QueuedMessage.Status status, Pageable pageable);
+                                                              QueuedMessage.MessageStatus status, Pageable pageable);
 
     /**
      * Find messages ready for retry
      */
-    List<QueuedMessage> findByStatusAndNextRetryAtBeforeAndRetryCountLessThan(QueuedMessage.Status status, 
+    List<QueuedMessage> findByStatusAndNextRetryAtBeforeAndRetryCountLessThan(QueuedMessage.MessageStatus status, 
                                                                              LocalDateTime nextRetryAt, 
                                                                              int maxRetries);
 
@@ -95,17 +95,17 @@ public interface QueuedMessageRepository extends JpaRepository<QueuedMessage, St
     /**
      * Count messages by status
      */
-    long countByStatus(QueuedMessage.Status status);
+    long countByStatus(QueuedMessage.MessageStatus status);
 
     /**
      * Count messages by tenant ID and status
      */
-    long countByTenantIdAndStatus(String tenantId, QueuedMessage.Status status);
+    long countByTenantIdAndStatus(String tenantId, QueuedMessage.MessageStatus status);
 
     /**
      * Count messages by service name and status
      */
-    long countByServiceNameAndStatus(String serviceName, QueuedMessage.Status status);
+    long countByServiceNameAndStatus(String serviceName, QueuedMessage.MessageStatus status);
 
     /**
      * Count messages by tenant ID and service name
@@ -115,7 +115,7 @@ public interface QueuedMessageRepository extends JpaRepository<QueuedMessage, St
     /**
      * Count messages by tenant ID, service name and status
      */
-    long countByTenantIdAndServiceNameAndStatus(String tenantId, String serviceName, QueuedMessage.Status status);
+    long countByTenantIdAndServiceNameAndStatus(String tenantId, String serviceName, QueuedMessage.MessageStatus status);
 
     /**
      * Find messages created within a time range

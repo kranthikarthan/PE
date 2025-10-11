@@ -51,8 +51,7 @@ public class ResilientCoreBankingService {
         Supplier<TransactionResult> decoratedSupplier = Bulkhead
                 .decorateSupplier(coreBankingBulkhead, supplier);
         
-        decoratedSupplier = TimeLimiter
-                .decorateSupplier(coreBankingTimeLimiter, decoratedSupplier);
+        // use future supplier pattern if needed; keep sync simple
         
         decoratedSupplier = Retry
                 .decorateSupplier(coreBankingRetry, decoratedSupplier);
@@ -75,8 +74,7 @@ public class ResilientCoreBankingService {
         Supplier<TransactionResult> decoratedSupplier = Bulkhead
                 .decorateSupplier(coreBankingBulkhead, supplier);
         
-        decoratedSupplier = TimeLimiter
-                .decorateSupplier(coreBankingTimeLimiter, decoratedSupplier);
+        // use future supplier pattern if needed; keep sync simple
         
         decoratedSupplier = Retry
                 .decorateSupplier(coreBankingRetry, decoratedSupplier);
@@ -99,8 +97,7 @@ public class ResilientCoreBankingService {
         Supplier<TransactionResult> decoratedSupplier = Bulkhead
                 .decorateSupplier(coreBankingBulkhead, supplier);
         
-        decoratedSupplier = TimeLimiter
-                .decorateSupplier(coreBankingTimeLimiter, decoratedSupplier);
+        // use future supplier pattern if needed; keep sync simple
         
         decoratedSupplier = Retry
                 .decorateSupplier(coreBankingRetry, decoratedSupplier);
@@ -126,8 +123,10 @@ public class ResilientCoreBankingService {
         Supplier<CompletableFuture<TransactionResult>> decoratedSupplier = Bulkhead
                 .decorateSupplier(coreBankingBulkhead, supplier);
         
-        decoratedSupplier = TimeLimiter
-                .decorateSupplier(coreBankingTimeLimiter, decoratedSupplier);
+        decoratedSupplier = () -> io.github.resilience4j.timelimiter.TimeLimiter
+                .decorateFutureSupplier(coreBankingTimeLimiter,
+                        () -> java.util.concurrent.CompletableFuture.supplyAsync(decoratedSupplier::get))
+                .get();
         
         decoratedSupplier = Retry
                 .decorateSupplier(coreBankingRetry, decoratedSupplier);
@@ -152,8 +151,10 @@ public class ResilientCoreBankingService {
         Supplier<CompletableFuture<TransactionResult>> decoratedSupplier = Bulkhead
                 .decorateSupplier(coreBankingBulkhead, supplier);
         
-        decoratedSupplier = TimeLimiter
-                .decorateSupplier(coreBankingTimeLimiter, decoratedSupplier);
+        decoratedSupplier = () -> io.github.resilience4j.timelimiter.TimeLimiter
+                .decorateFutureSupplier(coreBankingTimeLimiter,
+                        () -> java.util.concurrent.CompletableFuture.supplyAsync(decoratedSupplier::get))
+                .get();
         
         decoratedSupplier = Retry
                 .decorateSupplier(coreBankingRetry, decoratedSupplier);

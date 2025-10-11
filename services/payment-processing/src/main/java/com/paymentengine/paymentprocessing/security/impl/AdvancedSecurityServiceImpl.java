@@ -166,7 +166,7 @@ public class AdvancedSecurityServiceImpl implements AdvancedSecurityService {
         
         try {
             // Monitor for intrusions
-            List<Map<String, Object>> intrusions = detectIntrusions();
+            List<Map<String, Object>> intrusions = detectIntrusionsInternal();
             for (Map<String, Object> intrusion : intrusions) {
                 handleIntrusion(intrusion);
             }
@@ -178,6 +178,7 @@ public class AdvancedSecurityServiceImpl implements AdvancedSecurityService {
         logger.info("Intrusion monitoring completed");
     }
     
+    // Method retained but interface duplicate removed
     @Override
     public void detectIntrusions() {
         logger.info("Detecting intrusions");
@@ -792,6 +793,7 @@ public class AdvancedSecurityServiceImpl implements AdvancedSecurityService {
         logger.info("Orchestrating security");
     }
     
+    // Method retained but interface duplicate removed
     @Override
     public void automateSecurity() {
         logger.info("Automating security");
@@ -1413,7 +1415,8 @@ public class AdvancedSecurityServiceImpl implements AdvancedSecurityService {
         // Implementation for applying IDS configuration
     }
     
-    private List<Map<String, Object>> detectIntrusions() {
+    // Renamed to avoid collision with public API method
+    private List<Map<String, Object>> detectIntrusionsInternal() {
         // Implementation for detecting intrusions
         return new ArrayList<>();
     }

@@ -4,6 +4,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.timelimiter.TimeLimiter;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import io.github.resilience4j.bulkhead.Bulkhead;
@@ -105,8 +106,7 @@ public class EnhancedResilienceConfiguration {
     public Retry clearingSystemRetry() {
         RetryConfig config = RetryConfig.custom()
                 .maxAttempts(3)
-                .waitDuration(Duration.ofSeconds(1))
-                .exponentialBackoffMultiplier(2)
+                .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(1).toMillis(), 2.0))
                 .retryExceptions(Exception.class)
                 .ignoreExceptions(IllegalArgumentException.class)
                 .build();
@@ -118,8 +118,7 @@ public class EnhancedResilienceConfiguration {
     public Retry authServiceRetry() {
         RetryConfig config = RetryConfig.custom()
                 .maxAttempts(2)
-                .waitDuration(Duration.ofMillis(500))
-                .exponentialBackoffMultiplier(1.5)
+                .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofMillis(500).toMillis(), 1.5))
                 .retryExceptions(Exception.class)
                 .ignoreExceptions(IllegalArgumentException.class)
                 .build();
@@ -131,8 +130,7 @@ public class EnhancedResilienceConfiguration {
     public Retry configServiceRetry() {
         RetryConfig config = RetryConfig.custom()
                 .maxAttempts(2)
-                .waitDuration(Duration.ofMillis(750))
-                .exponentialBackoffMultiplier(1.5)
+                .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofMillis(750).toMillis(), 1.5))
                 .retryExceptions(Exception.class)
                 .ignoreExceptions(IllegalArgumentException.class)
                 .build();
@@ -144,8 +142,7 @@ public class EnhancedResilienceConfiguration {
     public Retry webhookRetry() {
         RetryConfig config = RetryConfig.custom()
                 .maxAttempts(4)
-                .waitDuration(Duration.ofSeconds(2))
-                .exponentialBackoffMultiplier(2)
+                .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(2).toMillis(), 2.0))
                 .retryExceptions(Exception.class)
                 .ignoreExceptions(IllegalArgumentException.class)
                 .build();
@@ -157,8 +154,7 @@ public class EnhancedResilienceConfiguration {
     public Retry kafkaRetry() {
         RetryConfig config = RetryConfig.custom()
                 .maxAttempts(3)
-                .waitDuration(Duration.ofSeconds(1))
-                .exponentialBackoffMultiplier(2)
+                .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(1).toMillis(), 2.0))
                 .retryExceptions(Exception.class)
                 .ignoreExceptions(IllegalArgumentException.class)
                 .build();

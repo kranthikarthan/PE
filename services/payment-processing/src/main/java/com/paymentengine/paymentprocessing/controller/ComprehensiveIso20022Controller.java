@@ -217,19 +217,18 @@ public class ComprehensiveIso20022Controller {
             
             Iso20022MessageFlowService.MessageFlowResult result = future.get();
             
-            Map<String, Object> response = Map.of(
-                    "messageId", result.getMessageId(),
-                    "correlationId", result.getCorrelationId(),
-                    "status", result.getStatus(),
-                    "clearingSystemCode", result.getClearingSystemCode(),
-                    "transactionId", result.getTransactionId(),
-                    "transformedMessage", result.getTransformedMessage(),
-                    "clearingSystemResponse", result.getClearingSystemResponse(),
-                    "clientResponse", result.getClientResponse(),
-                    "processingTimeMs", result.getProcessingTimeMs(),
-                    "metadata", result.getMetadata(),
-                    "timestamp", Instant.now().toString()
-            );
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("messageId", result.getMessageId());
+            response.put("correlationId", result.getCorrelationId());
+            response.put("status", result.getStatus());
+            response.put("clearingSystemCode", result.getClearingSystemCode());
+            response.put("transactionId", result.getTransactionId());
+            response.put("transformedMessage", result.getTransformedMessage());
+            response.put("clearingSystemResponse", result.getClearingSystemResponse());
+            response.put("clientResponse", result.getClientResponse());
+            response.put("processingTimeMs", result.getProcessingTimeMs());
+            response.put("metadata", result.getMetadata());
+            response.put("timestamp", Instant.now().toString());
             
             if ("SUCCESS".equals(result.getStatus())) {
                 return ResponseEntity.ok(response);
@@ -642,25 +641,25 @@ public class ComprehensiveIso20022Controller {
     @GetMapping(value = "/health", produces = MediaType.APPLICATION_JSON_VALUE)
     @Timed(value = "iso20022.comprehensive.health", description = "Time taken for comprehensive ISO 20022 health check")
     public ResponseEntity<Map<String, Object>> health() {
-        return ResponseEntity.ok(Map.of(
-                "status", "UP",
-                "service", "comprehensive-iso20022-service",
-                "timestamp", Instant.now().toString(),
-                "version", "1.0.0",
-                "features", Map.of(
-                        "pain001Processing", true,
-                        "camt055Processing", true,
-                        "camt056Processing", true,
-                        "pacs028Processing", true,
-                        "pacs008Processing", true,
-                        "pacs002Processing", true,
-                        "pacs004Processing", true,
-                        "camt054Processing", true,
-                        "camt029Processing", true,
-                        "messageTransformation", true,
-                        "messageValidation", true,
-                        "flowTracking", true
-                )
-        ));
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        body.put("status", "UP");
+        body.put("service", "comprehensive-iso20022-service");
+        body.put("timestamp", Instant.now().toString());
+        body.put("version", "1.0.0");
+        java.util.Map<String, Object> features = new java.util.HashMap<>();
+        features.put("pain001Processing", true);
+        features.put("camt055Processing", true);
+        features.put("camt056Processing", true);
+        features.put("pacs028Processing", true);
+        features.put("pacs008Processing", true);
+        features.put("pacs002Processing", true);
+        features.put("pacs004Processing", true);
+        features.put("camt054Processing", true);
+        features.put("camt029Processing", true);
+        features.put("messageTransformation", true);
+        features.put("messageValidation", true);
+        features.put("flowTracking", true);
+        body.put("features", features);
+        return ResponseEntity.ok(body);
     }
 }

@@ -76,23 +76,23 @@ public class MetricsConfiguration {
 
     @Bean
     public Gauge activeConnectionsGauge(MeterRegistry meterRegistry) {
-        return Gauge.builder("iso20022.connections.active")
+        return Gauge.builder("iso20022.connections.active", this, MetricsConfiguration::getActiveConnections)
                 .description("Number of active connections")
-                .register(meterRegistry, this, MetricsConfiguration::getActiveConnections);
+                .register(meterRegistry);
     }
 
     @Bean
     public Gauge totalMessagesProcessedGauge(MeterRegistry meterRegistry) {
-        return Gauge.builder("iso20022.messages.total.processed")
+        return Gauge.builder("iso20022.messages.total.processed", this, MetricsConfiguration::getTotalMessagesProcessed)
                 .description("Total number of messages processed")
-                .register(meterRegistry, this, MetricsConfiguration::getTotalMessagesProcessed);
+                .register(meterRegistry);
     }
 
     @Bean
     public Gauge totalErrorsGauge(MeterRegistry meterRegistry) {
-        return Gauge.builder("iso20022.errors.total")
+        return Gauge.builder("iso20022.errors.total", this, MetricsConfiguration::getTotalErrors)
                 .description("Total number of errors")
-                .register(meterRegistry, this, MetricsConfiguration::getTotalErrors);
+                .register(meterRegistry);
     }
 
     @Bean
@@ -173,17 +173,11 @@ public class MetricsConfiguration {
     }
 
     // Gauge value methods
-    public double getActiveConnections() {
-        return activeConnections.get();
-    }
+    public double getActiveConnections() { return activeConnections.get(); }
 
-    public double getTotalMessagesProcessed() {
-        return totalMessagesProcessed.get();
-    }
+    public double getTotalMessagesProcessed() { return totalMessagesProcessed.get(); }
 
-    public double getTotalErrors() {
-        return totalErrors.get();
-    }
+    public double getTotalErrors() { return totalErrors.get(); }
 
     // Methods to update gauge values
     public void incrementActiveConnections() {

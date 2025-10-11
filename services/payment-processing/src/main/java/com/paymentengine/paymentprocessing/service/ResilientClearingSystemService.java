@@ -94,7 +94,11 @@ public class ResilientClearingSystemService {
         }
 
         if (clearingSystemTimeLimiter != null && !isProxy(clearingSystemTimeLimiter)) {
-            decoratedSupplier = TimeLimiter.decorateSupplier(clearingSystemTimeLimiter, decoratedSupplier);
+            Supplier<T> finalDecorated = decoratedSupplier;
+            decoratedSupplier = () -> TimeLimiter
+                    .decorateFutureSupplier(clearingSystemTimeLimiter,
+                            () -> CompletableFuture.supplyAsync(finalDecorated::get))
+                    .get();
         }
 
         if (clearingSystemBulkhead != null && !isProxy(clearingSystemBulkhead)) {

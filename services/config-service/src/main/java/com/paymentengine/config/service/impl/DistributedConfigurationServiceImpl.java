@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.Locale;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,19 +43,19 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
     // Configuration Management
     @Override
     public TenantConfiguration createConfiguration(TenantConfiguration configuration) {
-        logger.info("Creating configuration for tenant: {} - {}", configuration.getTenantId(), configuration.getConfigurationKey());
+        logger.info("Creating configuration for tenant: {} - {}", configuration.getTenantId(), configuration.getConfigKey());
         
         // Validate configuration
         if (!validateConfiguration(configuration)) {
-            throw new IllegalArgumentException("Invalid configuration: " + configuration.getConfigurationKey());
+            throw new IllegalArgumentException("Invalid configuration: " + configuration.getConfigKey());
         }
         
         // Check if configuration already exists
-        Optional<TenantConfiguration> existing = tenantConfigurationRepository.findByTenantIdAndConfigurationKey(
-            configuration.getTenantId(), configuration.getConfigurationKey());
+        Optional<TenantConfiguration> existing = tenantConfigurationRepository.findByTenantIdAndConfigKey(
+            configuration.getTenantId(), configuration.getConfigKey());
         
         if (existing.isPresent()) {
-            throw new IllegalArgumentException("Configuration already exists: " + configuration.getConfigurationKey());
+            throw new IllegalArgumentException("Configuration already exists: " + configuration.getConfigKey());
         }
         
         // Save configuration
@@ -63,34 +65,34 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
         logConfigurationHistory(saved, "CREATE", "Configuration created");
         
         // Distribute configuration
-        distributeConfiguration(saved.getTenantId(), saved.getConfigurationKey());
+        distributeConfiguration(saved.getTenantId().toString(), saved.getConfigKey());
         
         return saved;
     }
     
     @Override
     public TenantConfiguration updateConfiguration(TenantConfiguration configuration) {
-        logger.info("Updating configuration for tenant: {} - {}", configuration.getTenantId(), configuration.getConfigurationKey());
+        logger.info("Updating configuration for tenant: {} - {}", configuration.getTenantId(), configuration.getConfigKey());
         
         // Validate configuration
         if (!validateConfiguration(configuration)) {
-            throw new IllegalArgumentException("Invalid configuration: " + configuration.getConfigurationKey());
+            throw new IllegalArgumentException("Invalid configuration: " + configuration.getConfigKey());
         }
         
         // Get existing configuration
-        Optional<TenantConfiguration> existing = tenantConfigurationRepository.findByTenantIdAndConfigurationKey(
-            configuration.getTenantId(), configuration.getConfigurationKey());
+        Optional<TenantConfiguration> existing = tenantConfigurationRepository.findByTenantIdAndConfigKey(
+            configuration.getTenantId(), configuration.getConfigKey());
         
         if (existing.isEmpty()) {
-            throw new IllegalArgumentException("Configuration not found: " + configuration.getConfigurationKey());
+            throw new IllegalArgumentException("Configuration not found: " + configuration.getConfigKey());
         }
         
         TenantConfiguration existingConfig = existing.get();
-        String oldValue = existingConfig.getConfigurationValue();
+        String oldValue = existingConfig.getConfigValue();
         
         // Update configuration
-        existingConfig.setConfigurationValue(configuration.getConfigurationValue());
-        existingConfig.setConfigurationType(configuration.getConfigurationType());
+        existingConfig.setConfigValue(configuration.getConfigValue());
+        existingConfig.setConfigType(configuration.getConfigType());
         existingConfig.setIsEncrypted(configuration.getIsEncrypted());
         existingConfig.setIsActive(configuration.getIsActive());
         existingConfig.setUpdatedAt(LocalDateTime.now());
@@ -101,10 +103,10 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
         logConfigurationHistory(saved, "UPDATE", "Configuration updated from: " + oldValue);
         
         // Distribute configuration
-        distributeConfiguration(saved.getTenantId(), saved.getConfigurationKey());
+        distributeConfiguration(saved.getTenantId().toString(), saved.getConfigKey());
         
         // Invalidate cache
-        invalidateConfigurationCache(saved.getTenantId(), saved.getConfigurationKey());
+        invalidateConfigurationCache(saved.getTenantId().toString(), saved.getConfigKey());
         
         return saved;
     }
@@ -113,7 +115,8 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
     public void deleteConfiguration(String tenantId, String configurationKey) {
         logger.info("Deleting configuration for tenant: {} - {}", tenantId, configurationKey);
         
-        Optional<TenantConfiguration> existing = tenantConfigurationRepository.findByTenantIdAndConfigurationKey(tenantId, configurationKey);
+        UUID tenantUuid = UUID.fromString(tenantId);
+        Optional<TenantConfiguration> existing = tenantConfigurationRepository.findByTenantIdAndConfigKey(tenantUuid, configurationKey);
         
         if (existing.isPresent()) {
             TenantConfiguration config = existing.get();
@@ -133,69 +136,70 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
     @Transactional(readOnly = true)
     @Cacheable(value = "configurations", key = "#tenantId + ':' + #configurationKey")
     public Optional<TenantConfiguration> getConfiguration(String tenantId, String configurationKey) {
-        return tenantConfigurationRepository.findByTenantIdAndConfigurationKey(tenantId, configurationKey);
+        return tenantConfigurationRepository.findByTenantIdAndConfigKey(UUID.fromString(tenantId), configurationKey);
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<TenantConfiguration> getAllConfigurations(String tenantId) {
-        return tenantConfigurationRepository.findByTenantId(tenantId);
+        return tenantConfigurationRepository.findByTenantId(UUID.fromString(tenantId));
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<TenantConfiguration> getConfigurationsByType(String tenantId, String configurationType) {
-        return tenantConfigurationRepository.findByTenantIdAndConfigurationType(tenantId, configurationType);
+        TenantConfiguration.ConfigType type = TenantConfiguration.ConfigType.valueOf(configurationType.toUpperCase(Locale.ROOT));
+        return tenantConfigurationRepository.findActiveByTenantIdAndConfigType(UUID.fromString(tenantId), type);
     }
     
     // Feature Flag Management
     @Override
     public FeatureFlag createFeatureFlag(FeatureFlag featureFlag) {
-        logger.info("Creating feature flag: {}", featureFlag.getName());
+        logger.info("Creating feature flag: {}", featureFlag.getFlagName());
         
         // Validate feature flag
         if (!validateFeatureFlag(featureFlag)) {
-            throw new IllegalArgumentException("Invalid feature flag: " + featureFlag.getName());
+            throw new IllegalArgumentException("Invalid feature flag: " + featureFlag.getFlagName());
         }
         
         // Check if feature flag already exists
-        Optional<FeatureFlag> existing = featureFlagRepository.findByName(featureFlag.getName());
+        Optional<FeatureFlag> existing = featureFlagRepository.findByFlagName(featureFlag.getFlagName());
         
         if (existing.isPresent()) {
-            throw new IllegalArgumentException("Feature flag already exists: " + featureFlag.getName());
+            throw new IllegalArgumentException("Feature flag already exists: " + featureFlag.getFlagName());
         }
         
         // Save feature flag
         FeatureFlag saved = featureFlagRepository.save(featureFlag);
         
         // Distribute feature flag
-        distributeFeatureFlag(saved.getName());
+        distributeFeatureFlag(saved.getFlagName());
         
         return saved;
     }
     
     @Override
     public FeatureFlag updateFeatureFlag(FeatureFlag featureFlag) {
-        logger.info("Updating feature flag: {}", featureFlag.getName());
+        logger.info("Updating feature flag: {}", featureFlag.getFlagName());
         
         // Validate feature flag
         if (!validateFeatureFlag(featureFlag)) {
-            throw new IllegalArgumentException("Invalid feature flag: " + featureFlag.getName());
+            throw new IllegalArgumentException("Invalid feature flag: " + featureFlag.getFlagName());
         }
         
         // Get existing feature flag
-        Optional<FeatureFlag> existing = featureFlagRepository.findByName(featureFlag.getName());
+        Optional<FeatureFlag> existing = featureFlagRepository.findByFlagName(featureFlag.getFlagName());
         
         if (existing.isEmpty()) {
-            throw new IllegalArgumentException("Feature flag not found: " + featureFlag.getName());
+            throw new IllegalArgumentException("Feature flag not found: " + featureFlag.getFlagName());
         }
         
         FeatureFlag existingFlag = existing.get();
-        boolean oldValue = existingFlag.getIsEnabled();
+        boolean oldValue = Boolean.TRUE.equals(existingFlag.getFlagValue());
         
         // Update feature flag
-        existingFlag.setDescription(featureFlag.getDescription());
-        existingFlag.setIsEnabled(featureFlag.getIsEnabled());
+        existingFlag.setFlagDescription(featureFlag.getFlagDescription());
+        existingFlag.setFlagValue(featureFlag.getFlagValue());
         existingFlag.setTenantId(featureFlag.getTenantId());
         existingFlag.setEnvironment(featureFlag.getEnvironment());
         existingFlag.setUpdatedAt(LocalDateTime.now());
@@ -203,7 +207,7 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
         FeatureFlag saved = featureFlagRepository.save(existingFlag);
         
         // Distribute feature flag
-        distributeFeatureFlag(saved.getName());
+        distributeFeatureFlag(saved.getFlagName());
         
         return saved;
     }
@@ -212,7 +216,7 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
     public void deleteFeatureFlag(String name) {
         logger.info("Deleting feature flag: {}", name);
         
-        Optional<FeatureFlag> existing = featureFlagRepository.findByName(name);
+        Optional<FeatureFlag> existing = featureFlagRepository.findByFlagName(name);
         
         if (existing.isPresent()) {
             featureFlagRepository.delete(existing.get());
@@ -222,7 +226,7 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
     @Override
     @Transactional(readOnly = true)
     public Optional<FeatureFlag> getFeatureFlag(String name) {
-        return featureFlagRepository.findByName(name);
+        return featureFlagRepository.findByFlagName(name);
     }
     
     @Override
@@ -234,13 +238,14 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
     @Override
     @Transactional(readOnly = true)
     public List<FeatureFlag> getFeatureFlagsByTenant(String tenantId) {
-        return featureFlagRepository.findByTenantId(tenantId);
+        return featureFlagRepository.findByTenantId(UUID.fromString(tenantId));
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<FeatureFlag> getFeatureFlagsByEnvironment(String environment) {
-        return featureFlagRepository.findByEnvironment(environment);
+        FeatureFlag.Environment env = FeatureFlag.Environment.valueOf(environment.toUpperCase(Locale.ROOT));
+        return featureFlagRepository.findByEnvironment(env);
     }
     
     // Configuration Distribution
@@ -255,8 +260,8 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
             Map<String, Object> event = new HashMap<>();
             event.put("tenantId", tenantId);
             event.put("configurationKey", configurationKey);
-            event.put("configurationValue", config.get().getConfigurationValue());
-            event.put("configurationType", config.get().getConfigurationType());
+            event.put("configurationValue", config.get().getConfigValue());
+            event.put("configurationType", config.get().getConfigType());
             event.put("timestamp", LocalDateTime.now());
             event.put("eventType", "CONFIGURATION_CHANGE");
             
@@ -274,7 +279,7 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
         List<TenantConfiguration> configurations = getAllConfigurations(tenantId);
         
         for (TenantConfiguration config : configurations) {
-            distributeConfiguration(tenantId, config.getConfigurationKey());
+            distributeConfiguration(tenantId, config.getConfigKey());
         }
     }
     
@@ -288,7 +293,7 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
             // Publish feature flag change event to Kafka
             Map<String, Object> event = new HashMap<>();
             event.put("featureFlagName", featureFlagName);
-            event.put("isEnabled", flag.get().getIsEnabled());
+            event.put("isEnabled", flag.get().getFlagValue());
             event.put("tenantId", flag.get().getTenantId());
             event.put("environment", flag.get().getEnvironment());
             event.put("timestamp", LocalDateTime.now());
@@ -308,7 +313,7 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
         List<FeatureFlag> flags = getAllFeatureFlags();
         
         for (FeatureFlag flag : flags) {
-            distributeFeatureFlag(flag.getName());
+            distributeFeatureFlag(flag.getFlagName());
         }
     }
     
@@ -319,21 +324,19 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
             return false;
         }
         
-        if (configuration.getTenantId() == null || configuration.getTenantId().trim().isEmpty()) {
+        if (configuration.getTenantId() == null) {
             return false;
         }
         
-        if (configuration.getConfigurationKey() == null || configuration.getConfigurationKey().trim().isEmpty()) {
+        if (configuration.getConfigKey() == null || configuration.getConfigKey().trim().isEmpty()) {
             return false;
         }
         
-        if (configuration.getConfigurationValue() == null || configuration.getConfigurationValue().trim().isEmpty()) {
+        if (configuration.getConfigValue() == null || configuration.getConfigValue().trim().isEmpty()) {
             return false;
         }
         
-        if (configuration.getConfigurationType() == null || configuration.getConfigurationType().trim().isEmpty()) {
-            return false;
-        }
+        if (configuration.getConfigType() == null) { return false; }
         
         return true;
     }
@@ -344,11 +347,11 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
             return false;
         }
         
-        if (featureFlag.getName() == null || featureFlag.getName().trim().isEmpty()) {
+        if (featureFlag.getFlagName() == null || featureFlag.getFlagName().trim().isEmpty()) {
             return false;
         }
         
-        if (featureFlag.getDescription() == null || featureFlag.getDescription().trim().isEmpty()) {
+        if (featureFlag.getFlagDescription() == null || featureFlag.getFlagDescription().trim().isEmpty()) {
             return false;
         }
         
@@ -363,7 +366,7 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
         
         for (TenantConfiguration config : configurations) {
             if (!validateConfiguration(config)) {
-                errors.add("Invalid configuration: " + config.getConfigurationKey());
+                errors.add("Invalid configuration: " + config.getConfigKey());
             }
         }
         
@@ -374,13 +377,18 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
     @Override
     @Transactional(readOnly = true)
     public List<ConfigurationHistory> getConfigurationHistory(String tenantId, String configurationKey) {
-        return configurationHistoryRepository.findByTenantIdAndConfigurationKey(tenantId, configurationKey);
+        return configurationHistoryRepository.findByConfigKey(configurationKey);
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<ConfigurationHistory> getConfigurationHistoryByTenant(String tenantId) {
-        return configurationHistoryRepository.findByTenantId(tenantId);
+        List<ConfigurationHistory> history = new ArrayList<>();
+        List<TenantConfiguration> configs = tenantConfigurationRepository.findByTenantId(UUID.fromString(tenantId));
+        for (TenantConfiguration config : configs) {
+            history.addAll(configurationHistoryRepository.findByConfigKey(config.getConfigKey()));
+        }
+        return history;
     }
     
     @Override
@@ -395,10 +403,11 @@ public class DistributedConfigurationServiceImpl implements DistributedConfigura
     // Private helper methods
     private void logConfigurationHistory(TenantConfiguration configuration, String action, String reason) {
         ConfigurationHistory history = new ConfigurationHistory();
-        history.setTenantId(configuration.getTenantId());
-        history.setConfigurationKey(configuration.getConfigurationKey());
-        history.setOldValue(configuration.getConfigurationValue());
-        history.setNewValue(configuration.getConfigurationValue());
+        history.setConfigType(ConfigurationHistory.ConfigType.TENANT_CONFIG);
+        history.setConfigId(configuration.getId());
+        history.setConfigKey(configuration.getConfigKey());
+        history.setOldValue(configuration.getConfigValue());
+        history.setNewValue(configuration.getConfigValue());
         history.setChangedBy("system");
         history.setChangeReason(reason);
         history.setChangedAt(LocalDateTime.now());

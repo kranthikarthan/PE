@@ -88,12 +88,16 @@ public class UserService {
         }
         return false;
     }
+
+    public boolean isPasswordValid(User user, String rawPassword) {
+        return passwordEncoder.matches(rawPassword, user.getPasswordHash());
+    }
     
     public void assignRoles(UUID userId, Set<String> roleNames) {
         Optional<User> userOpt = userRepository.findById(userId);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            Set<Role> roles = roleRepository.findByNameIn(roleNames.stream().toList());
+            Set<Role> roles = Set.copyOf(roleRepository.findByNameIn(roleNames.stream().toList()));
             user.setRoles(roles);
             userRepository.save(user);
         }

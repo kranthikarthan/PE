@@ -196,11 +196,11 @@ public class JwtTokenProvider {
     
     private Claims parseToken(String token) {
         try {
-            return Jwts.parserBuilder()
-                .setSigningKey(jwtSecret)
+            return Jwts.parser()
+                .verifyWith(jwtSecret)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
         } catch (ExpiredJwtException e) {
             logger.debug("Token expired: {}", e.getMessage());
             throw new RuntimeException("Token expired", e);

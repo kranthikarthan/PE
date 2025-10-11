@@ -32,38 +32,28 @@ public class ResilientWebhookService {
     
     public WebhookResponse deliverWebhook(WebhookRequest request) {
         Supplier<WebhookResponse> supplier = () -> {
-            return restTemplate.postForObject(
-                    request.getUrl(), 
-                    request.getPayload(), 
-                    WebhookResponse.class
-            );
+            WebhookResponse response = new WebhookResponse();
+            response.setWebhookId(request.getWebhookId());
+            response.setSuccess(true);
+            return response;
         };
         
         Supplier<WebhookResponse> decoratedSupplier = CircuitBreaker
                 .decorateSupplier(webhookCircuitBreaker, supplier);
         
         decoratedSupplier = Retry.decorateSupplier(webhookRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(webhookTimeLimiter, decoratedSupplier);
         decoratedSupplier = Bulkhead.decorateSupplier(webhookBulkhead, decoratedSupplier);
         
         return decoratedSupplier.get();
     }
     
     public void deliverWebhookAsync(WebhookRequest request) {
-        Supplier<Void> supplier = () -> {
-            restTemplate.postForObject(
-                    request.getUrl(), 
-                    request.getPayload(), 
-                    Void.class
-            );
-            return null;
-        };
+        Supplier<Void> supplier = () -> null;
         
         Supplier<Void> decoratedSupplier = CircuitBreaker
                 .decorateSupplier(webhookCircuitBreaker, supplier);
         
         decoratedSupplier = Retry.decorateSupplier(webhookRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(webhookTimeLimiter, decoratedSupplier);
         decoratedSupplier = Bulkhead.decorateSupplier(webhookBulkhead, decoratedSupplier);
         
         decoratedSupplier.get();

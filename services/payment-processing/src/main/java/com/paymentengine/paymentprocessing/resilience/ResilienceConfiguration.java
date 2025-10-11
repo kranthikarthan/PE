@@ -4,6 +4,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.timelimiter.TimeLimiter;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import io.github.resilience4j.bulkhead.Bulkhead;
@@ -86,7 +87,7 @@ public class ResilienceConfiguration {
     public Retry clearingSystemRetry() {
         RetryConfig config = RetryConfig.custom()
                 .maxAttempts(3)
-                .waitDuration(Duration.ofMillis(1000))
+                .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofMillis(1000).toMillis(), 2.0))
                 .retryOnException(throwable -> !(throwable instanceof IllegalArgumentException))
                 .retryExceptions(Exception.class)
                 .ignoreExceptions(IllegalArgumentException.class)
@@ -102,7 +103,7 @@ public class ResilienceConfiguration {
     public Retry webhookRetry() {
         RetryConfig config = RetryConfig.custom()
                 .maxAttempts(5)
-                .waitDuration(Duration.ofMillis(2000))
+                .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofMillis(2000).toMillis(), 2.0))
                 .retryOnException(throwable -> !(throwable instanceof IllegalArgumentException))
                 .retryExceptions(Exception.class)
                 .ignoreExceptions(IllegalArgumentException.class)
@@ -221,9 +222,7 @@ public class ResilienceConfiguration {
     public Retry fraudApiRetry() {
         RetryConfig config = RetryConfig.custom()
                 .maxAttempts(3)
-                .waitDuration(Duration.ofMillis(1000))
-                .exponentialBackoffMultiplier(2.0)
-                .maxWaitDuration(Duration.ofSeconds(30))
+                .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofMillis(1000).toMillis(), 2.0))
                 .retryOnException(throwable -> !(throwable instanceof IllegalArgumentException))
                 .retryExceptions(Exception.class)
                 .ignoreExceptions(IllegalArgumentException.class)
@@ -307,9 +306,7 @@ public class ResilienceConfiguration {
     public Retry coreBankingRetry() {
         RetryConfig config = RetryConfig.custom()
                 .maxAttempts(5)
-                .waitDuration(Duration.ofMillis(2000))
-                .exponentialBackoffMultiplier(1.5)
-                .maxWaitDuration(Duration.ofSeconds(60))
+                .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofMillis(2000).toMillis(), 1.5))
                 .retryOnException(throwable -> !(throwable instanceof IllegalArgumentException))
                 .retryExceptions(Exception.class)
                 .ignoreExceptions(IllegalArgumentException.class)
