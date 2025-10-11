@@ -28,6 +28,7 @@
 | [21-SECURITY-ARCHITECTURE](21-SECURITY-ARCHITECTURE.md) | **Security Architecture (Enterprise)** |
 | [22-DEPLOYMENT-ARCHITECTURE](22-DEPLOYMENT-ARCHITECTURE.md) | **Deployment Architecture (Zero-Downtime)** |
 | [23-TESTING-ARCHITECTURE](23-TESTING-ARCHITECTURE.md) | **Testing Architecture (12,500+ Tests)** |
+| [24-SRE-ARCHITECTURE](24-SRE-ARCHITECTURE.md) | **SRE Architecture (99.99% Availability)** |
 
 ---
 
