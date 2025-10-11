@@ -43,7 +43,12 @@ public class ResilientWebhookService {
                 .decorateSupplier(webhookCircuitBreaker, supplier);
         
         decoratedSupplier = Retry.decorateSupplier(webhookRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(webhookTimeLimiter, decoratedSupplier);
+        {
+            Supplier<WebhookResponse> finalDecorated = decoratedSupplier;
+            decoratedSupplier = () -> TimeLimiter
+                    .decorateFutureSupplier(webhookTimeLimiter, () -> java.util.concurrent.CompletableFuture.supplyAsync(finalDecorated::get))
+                    .get();
+        }
         decoratedSupplier = Bulkhead.decorateSupplier(webhookBulkhead, decoratedSupplier);
         
         return decoratedSupplier.get();
@@ -63,7 +68,12 @@ public class ResilientWebhookService {
                 .decorateSupplier(webhookCircuitBreaker, supplier);
         
         decoratedSupplier = Retry.decorateSupplier(webhookRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(webhookTimeLimiter, decoratedSupplier);
+        {
+            Supplier<Void> finalDecorated = decoratedSupplier;
+            decoratedSupplier = () -> TimeLimiter
+                    .decorateFutureSupplier(webhookTimeLimiter, () -> java.util.concurrent.CompletableFuture.supplyAsync(finalDecorated::get))
+                    .get();
+        }
         decoratedSupplier = Bulkhead.decorateSupplier(webhookBulkhead, decoratedSupplier);
         
         decoratedSupplier.get();

@@ -44,7 +44,12 @@ public class ResilientKafkaService {
                 .decorateSupplier(kafkaCircuitBreaker, supplier);
         
         decoratedSupplier = Retry.decorateSupplier(kafkaRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(kafkaTimeLimiter, decoratedSupplier);
+        {
+            Supplier<KafkaMessageResponse> finalDecorated = decoratedSupplier;
+            decoratedSupplier = () -> TimeLimiter
+                    .decorateFutureSupplier(kafkaTimeLimiter, () -> java.util.concurrent.CompletableFuture.supplyAsync(finalDecorated::get))
+                    .get();
+        }
         decoratedSupplier = Bulkhead.decorateSupplier(kafkaBulkhead, decoratedSupplier);
         
         return decoratedSupplier.get();
@@ -64,7 +69,12 @@ public class ResilientKafkaService {
                 .decorateSupplier(kafkaCircuitBreaker, supplier);
         
         decoratedSupplier = Retry.decorateSupplier(kafkaRetry, decoratedSupplier);
-        decoratedSupplier = TimeLimiter.decorateSupplier(kafkaTimeLimiter, decoratedSupplier);
+        {
+            Supplier<Void> finalDecorated = decoratedSupplier;
+            decoratedSupplier = () -> TimeLimiter
+                    .decorateFutureSupplier(kafkaTimeLimiter, () -> java.util.concurrent.CompletableFuture.supplyAsync(finalDecorated::get))
+                    .get();
+        }
         decoratedSupplier = Bulkhead.decorateSupplier(kafkaBulkhead, decoratedSupplier);
         
         decoratedSupplier.get();
