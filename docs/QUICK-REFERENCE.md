@@ -15,6 +15,7 @@
 | [08-CORE-BANKING-INTEGRATION](08-CORE-BANKING-INTEGRATION.md) | **Integrating with external account systems** |
 | [09-LIMIT-MANAGEMENT](09-LIMIT-MANAGEMENT.md) | **Implementing customer limits** |
 | [10-FRAUD-SCORING-INTEGRATION](10-FRAUD-SCORING-INTEGRATION.md) | **Integrating fraud scoring API** |
+| [11-KAFKA-SAGA-IMPLEMENTATION](11-KAFKA-SAGA-IMPLEMENTATION.md) | **Using Kafka for Saga pattern** |
 
 ---
 

@@ -7,6 +7,7 @@ This document provides a comprehensive summary of all architecture updates made 
 1. ✅ **External Core Banking Integration**: Accounts stored in remote systems (Current, Savings, Investment, Cards, Loans)
 2. ✅ **Customer Limit Management**: Multi-level transaction limit checking and enforcement
 3. ✅ **Fraud Scoring API Integration**: Real-time fraud detection using external ML-based API
+4. ✅ **Confluent Kafka Option**: Alternative to Azure Service Bus for Saga pattern with event sourcing
 
 ---
 
@@ -654,8 +655,63 @@ Customer Limit Dashboard
 
 ---
 
+---
+
+## 🔄 Feature 4: Confluent Kafka Option for Saga Pattern ✅
+
+### What was implemented:
+- ✅ Confluent Kafka added as alternative to Azure Service Bus
+- ✅ Event sourcing-based Saga implementation
+- ✅ Orchestration AND Choreography patterns supported
+- ✅ Exactly-once semantics configuration
+- ✅ Event replay capability for debugging and recovery
+- ✅ Kafka Streams for saga state management
+- ✅ 3 deployment options:
+  - Confluent Cloud (managed)
+  - Self-hosted on AKS
+  - Azure Event Hubs (Kafka-compatible)
+- ✅ Migration path from Service Bus to Kafka
+- ✅ Dual-write pattern for gradual migration
+
+### Comparison:
+
+| Feature | Azure Service Bus | Confluent Kafka |
+|---------|-------------------|-----------------|
+| Throughput | 20K msg/sec | 1M msg/sec |
+| Event Replay | Limited | Full capability |
+| Event Sourcing | Basic | Native support |
+| Cost | $650/month | $2,700/month |
+| Complexity | Low | Medium-High |
+
+### Recommendation:
+- **Start**: Azure Service Bus (simpler, cheaper)
+- **Migrate**: To Kafka when throughput > 100K msg/sec or event sourcing needed
+- **Architecture**: Supports both via abstract EventPublisher interface
+
+### Kafka Topics:
+- **Saga Events**: `saga.payment.events` (event sourcing)
+- **Saga State**: `saga.payment.state` (compacted)
+- **Commands**: `saga.commands.*` (orchestrator → services)
+- **Responses**: `saga.responses.*` (services → orchestrator)
+- **Total Topics**: 20+ for saga orchestration
+
+### Code Examples:
+- ✅ Event-sourced saga orchestrator (200+ lines)
+- ✅ Kafka Streams state management (150+ lines)
+- ✅ Exactly-once producer/consumer config
+- ✅ Event replay logic
+- ✅ Compensation handling
+- ✅ Circuit breaker integration
+
+**Documents**:
+- Section 2.3 in 01-ASSUMPTIONS.md (Event Platform Comparison)
+- Complete guide: 11-KAFKA-SAGA-IMPLEMENTATION.md
+- Summary: KAFKA-SAGA-OPTION-SUMMARY.md
+
+---
+
 **Status**: ✅ **COMPLETE** - Ready for AI Agent Implementation
 
 **Last Updated**: 2025-10-11  
-**Version**: 3.0  
-**Total Documentation**: 16 files, ~14,200 lines, ~380 pages
+**Version**: 4.0  
+**Total Documentation**: 18 files, ~16,000 lines, ~420 pages

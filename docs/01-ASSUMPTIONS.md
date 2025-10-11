@@ -123,11 +123,51 @@ This document lists ALL assumptions made during the architecture design. Review 
 - **ALTERNATIVE**: Could use MySQL, SQL Server, or MongoDB
 
 ### 2.3 Communication Patterns
-- **ASSUMPTION**: Azure Service Bus for asynchronous messaging
+- **ASSUMPTION**: Event streaming platform for asynchronous messaging (choose one):
+  - **Option A (Default)**: Azure Service Bus Premium
+  - **Option B**: Confluent Kafka (recommended for high-throughput, event sourcing)
 - **ASSUMPTION**: REST APIs for synchronous communication
 - **ASSUMPTION**: gRPC for high-performance inter-service calls
 - **ASSUMPTION**: WebSockets for real-time notifications to frontend
 - **RATIONALE**: Balance between ease of use and performance
+
+#### Event Platform Comparison
+
+| Feature | Azure Service Bus | Confluent Kafka |
+|---------|-------------------|-----------------|
+| **Message Delivery** | At-least-once, At-most-once | Exactly-once (with transactions) |
+| **Message Retention** | Up to 14 days | Unlimited (configurable) |
+| **Throughput** | ~20,000 msg/sec | ~1,000,000 msg/sec |
+| **Latency** | ~5-10ms | ~2-5ms |
+| **Event Replay** | Limited | Full event replay capability |
+| **Event Sourcing** | Possible but limited | Native support |
+| **Ordering** | Per session/partition | Per partition (guaranteed) |
+| **Saga Pattern** | Orchestration-based | Choreography or Orchestration |
+| **Cost** | ~$650/month (1 MU) | ~$2,000/month (Confluent Cloud) |
+| **Managed Service** | Azure-native | Confluent Cloud or self-hosted |
+| **Azure Integration** | Excellent | Good (via Event Hubs connector) |
+
+#### Recommendation by Use Case
+
+**Use Azure Service Bus if**:
+- Moderate throughput (< 50,000 msg/sec)
+- Prefer managed Azure-native service
+- Simple pub/sub patterns
+- Cost-sensitive
+
+**Use Confluent Kafka if**:
+- High throughput (> 100,000 msg/sec)
+- Event sourcing is critical
+- Need event replay capability
+- Building event-driven microservices
+- Want Saga choreography pattern
+- Need exactly-once semantics
+- Long-term event retention required
+
+#### Hybrid Approach (Best of Both)
+- **Kafka**: For high-throughput events, event sourcing, saga orchestration
+- **Service Bus**: For low-volume critical messages, dead-letter handling
+- **ASSUMPTION for this design**: Starting with Azure Service Bus, can migrate to Kafka later
 
 ### 2.4 Microservices Size
 - **ASSUMPTION**: Each microservice < 500 lines of core business logic

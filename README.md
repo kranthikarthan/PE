@@ -29,6 +29,7 @@ This repository contains the complete architecture design for a **highly modular
 | **[08-CORE-BANKING-INTEGRATION.md](docs/08-CORE-BANKING-INTEGRATION.md)** | **Integration with external core banking systems** | ✅ Complete |
 | **[09-LIMIT-MANAGEMENT.md](docs/09-LIMIT-MANAGEMENT.md)** | **Customer transaction limit management system** | ✅ Complete |
 | **[10-FRAUD-SCORING-INTEGRATION.md](docs/10-FRAUD-SCORING-INTEGRATION.md)** | **External fraud scoring API integration** | ✅ Complete |
+| **[11-KAFKA-SAGA-IMPLEMENTATION.md](docs/11-KAFKA-SAGA-IMPLEMENTATION.md)** | **Confluent Kafka option for Saga pattern** | ✅ Complete |
 
 ---
 
