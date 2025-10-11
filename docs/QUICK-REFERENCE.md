@@ -18,6 +18,9 @@
 | [11-KAFKA-SAGA-IMPLEMENTATION](11-KAFKA-SAGA-IMPLEMENTATION.md) | **Using Kafka for Saga pattern** |
 | [12-TENANT-MANAGEMENT](12-TENANT-MANAGEMENT.md) | **Multi-tenancy & tenant hierarchy** |
 | [13-MODERN-ARCHITECTURE-PATTERNS](13-MODERN-ARCHITECTURE-PATTERNS.md) | **Modern architecture patterns guide** |
+| [14-DDD-IMPLEMENTATION](14-DDD-IMPLEMENTATION.md) | **Domain-Driven Design (Phase 1)** |
+| [15-BFF-IMPLEMENTATION](15-BFF-IMPLEMENTATION.md) | **Backend for Frontend (Phase 1)** |
+| [16-DISTRIBUTED-TRACING](16-DISTRIBUTED-TRACING.md) | **Distributed Tracing (Phase 1)** |
 
 ---
 
