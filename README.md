@@ -35,6 +35,9 @@ This repository contains the complete architecture design for a **highly modular
 | **[14-DDD-IMPLEMENTATION.md](docs/14-DDD-IMPLEMENTATION.md)** | **Domain-Driven Design implementation (Phase 1)** | ✅ Complete |
 | **[15-BFF-IMPLEMENTATION.md](docs/15-BFF-IMPLEMENTATION.md)** | **Backend for Frontend pattern (Phase 1)** | ✅ Complete |
 | **[16-DISTRIBUTED-TRACING.md](docs/16-DISTRIBUTED-TRACING.md)** | **OpenTelemetry distributed tracing (Phase 1)** | ✅ Complete |
+| **[17-SERVICE-MESH-ISTIO.md](docs/17-SERVICE-MESH-ISTIO.md)** | **Service Mesh with Istio (Phase 2)** | ✅ Complete |
+| **[18-REACTIVE-ARCHITECTURE.md](docs/18-REACTIVE-ARCHITECTURE.md)** | **Reactive Architecture design (Phase 2)** | ✅ Complete |
+| **[19-GITOPS-ARGOCD.md](docs/19-GITOPS-ARGOCD.md)** | **GitOps with ArgoCD (Phase 2)** | ✅ Complete |
 
 ---
 

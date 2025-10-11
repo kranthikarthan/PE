@@ -21,6 +21,9 @@
 | [14-DDD-IMPLEMENTATION](14-DDD-IMPLEMENTATION.md) | **Domain-Driven Design (Phase 1)** |
 | [15-BFF-IMPLEMENTATION](15-BFF-IMPLEMENTATION.md) | **Backend for Frontend (Phase 1)** |
 | [16-DISTRIBUTED-TRACING](16-DISTRIBUTED-TRACING.md) | **Distributed Tracing (Phase 1)** |
+| [17-SERVICE-MESH-ISTIO](17-SERVICE-MESH-ISTIO.md) | **Service Mesh (Phase 2)** |
+| [18-REACTIVE-ARCHITECTURE](18-REACTIVE-ARCHITECTURE.md) | **Reactive Architecture (Phase 2)** |
+| [19-GITOPS-ARGOCD](19-GITOPS-ARGOCD.md) | **GitOps (Phase 2)** |
 
 ---
 
