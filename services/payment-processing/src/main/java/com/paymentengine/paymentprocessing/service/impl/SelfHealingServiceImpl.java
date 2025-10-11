@@ -173,7 +173,7 @@ public class SelfHealingServiceImpl implements SelfHealingService {
             try {
                 // Get failed messages for the service
                 List<QueuedMessage> failedMessages = queuedMessageRepository
-                        .findByTenantIdAndServiceNameAndStatus(tenantId, serviceName, QueuedMessage.Status.FAILED, 
+                        .findByTenantIdAndServiceNameAndStatus(tenantId, serviceName, QueuedMessage.MessageStatus.FAILED, 
                                                                org.springframework.data.domain.PageRequest.of(0, 100));
 
                 logger.info("Found {} failed messages to reprocess for service: {}", failedMessages.size(), serviceName);
@@ -183,7 +183,7 @@ public class SelfHealingServiceImpl implements SelfHealingService {
                     try {
                         // Reset retry count and status
                         message.setRetryCount(0);
-                        message.setStatus(QueuedMessage.Status.PENDING);
+                        message.setStatus(QueuedMessage.MessageStatus.PENDING);
                         message.setNextRetryAt(LocalDateTime.now());
                         message.setErrorMessage(null);
                         message.setErrorDetails(null);
