@@ -11,6 +11,8 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.util.backoff.FixedBackOff;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
@@ -102,12 +104,12 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(DefaultErrorHandler commonErrorHandler) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.setConcurrency(3);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
-        factory.setErrorHandler(new KafkaErrorHandler());
+        factory.setCommonErrorHandler(commonErrorHandler);
         return factory;
     }
 
@@ -131,12 +133,19 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> deadLetterKafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, Object> deadLetterKafkaListenerContainerFactory(DefaultErrorHandler commonErrorHandler) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(deadLetterConsumerFactory());
         factory.setConcurrency(1);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
-        factory.setErrorHandler(new KafkaErrorHandler());
+        factory.setCommonErrorHandler(commonErrorHandler);
         return factory;
+    }
+
+    @Bean
+    public DefaultErrorHandler commonErrorHandler() {
+        // Retry 3 times with 1s backoff; then skip (log) the record
+        DefaultErrorHandler handler = new DefaultErrorHandler(new FixedBackOff(1000L, 3L));
+        return handler;
     }
 }
