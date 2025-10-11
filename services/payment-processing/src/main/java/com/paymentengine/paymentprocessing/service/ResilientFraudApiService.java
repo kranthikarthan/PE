@@ -49,8 +49,7 @@ public class ResilientFraudApiService {
         Supplier<Map<String, Object>> decoratedSupplier = Bulkhead
                 .decorateSupplier(fraudApiBulkhead, supplier);
         
-        decoratedSupplier = TimeLimiter
-                .decorateSupplier(fraudApiTimeLimiter, decoratedSupplier);
+        // keep sync simple; omit time limiter wrapping here
         
         decoratedSupplier = Retry
                 .decorateSupplier(fraudApiRetry, decoratedSupplier);
@@ -78,8 +77,10 @@ public class ResilientFraudApiService {
         Supplier<CompletableFuture<Map<String, Object>>> decoratedSupplier = Bulkhead
                 .decorateSupplier(fraudApiBulkhead, supplier);
         
-        decoratedSupplier = TimeLimiter
-                .decorateSupplier(fraudApiTimeLimiter, decoratedSupplier);
+        decoratedSupplier = () -> io.github.resilience4j.timelimiter.TimeLimiter
+                .decorateFutureSupplier(fraudApiTimeLimiter,
+                        () -> java.util.concurrent.CompletableFuture.supplyAsync(decoratedSupplier::get))
+                .get();
         
         decoratedSupplier = Retry
                 .decorateSupplier(fraudApiRetry, decoratedSupplier);

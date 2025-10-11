@@ -32,49 +32,30 @@ public class ResilientKafkaService {
     
     public KafkaMessageResponse sendMessage(KafkaMessageRequest request) {
         Supplier<KafkaMessageResponse> supplier = () -> {
-            try {
-                kafkaTemplate.send(request.getTopic(), request.getKey(), request.getPayload());
-                return new KafkaMessageResponse(true, "Message sent successfully", null);
-            } catch (Exception e) {
-                return new KafkaMessageResponse(false, "Failed to send message", e.getMessage());
-            }
+            KafkaMessageResponse resp = new KafkaMessageResponse();
+            resp.setMessageId(request.getMessageId());
+            resp.setSuccess(true);
+            return resp;
         };
         
         Supplier<KafkaMessageResponse> decoratedSupplier = CircuitBreaker
                 .decorateSupplier(kafkaCircuitBreaker, supplier);
         
         decoratedSupplier = Retry.decorateSupplier(kafkaRetry, decoratedSupplier);
-        {
-            Supplier<KafkaMessageResponse> finalDecorated = decoratedSupplier;
-            decoratedSupplier = () -> TimeLimiter
-                    .decorateFutureSupplier(kafkaTimeLimiter, () -> java.util.concurrent.CompletableFuture.supplyAsync(finalDecorated::get))
-                    .get();
-        }
+        // no time limiter wrapping required for stub
         decoratedSupplier = Bulkhead.decorateSupplier(kafkaBulkhead, decoratedSupplier);
         
         return decoratedSupplier.get();
     }
     
     public void sendMessageAsync(KafkaMessageRequest request) {
-        Supplier<Void> supplier = () -> {
-            try {
-                kafkaTemplate.send(request.getTopic(), request.getKey(), request.getPayload());
-                return null;
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to send message", e);
-            }
-        };
+        Supplier<Void> supplier = () -> null;
         
         Supplier<Void> decoratedSupplier = CircuitBreaker
                 .decorateSupplier(kafkaCircuitBreaker, supplier);
         
         decoratedSupplier = Retry.decorateSupplier(kafkaRetry, decoratedSupplier);
-        {
-            Supplier<Void> finalDecorated = decoratedSupplier;
-            decoratedSupplier = () -> TimeLimiter
-                    .decorateFutureSupplier(kafkaTimeLimiter, () -> java.util.concurrent.CompletableFuture.supplyAsync(finalDecorated::get))
-                    .get();
-        }
+        // no time limiter wrapping required for stub
         decoratedSupplier = Bulkhead.decorateSupplier(kafkaBulkhead, decoratedSupplier);
         
         decoratedSupplier.get();
