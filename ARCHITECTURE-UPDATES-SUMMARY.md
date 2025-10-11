@@ -8,6 +8,7 @@ This document provides a comprehensive summary of all architecture updates made 
 2. ✅ **Customer Limit Management**: Multi-level transaction limit checking and enforcement
 3. ✅ **Fraud Scoring API Integration**: Real-time fraud detection using external ML-based API
 4. ✅ **Confluent Kafka Option**: Alternative to Azure Service Bus for Saga pattern with event sourcing
+5. ✅ **Multi-Tenancy & Tenant Hierarchy**: 3-level hierarchy (Tenant → Business Unit → Customer) with complete data isolation
 
 ---
 
@@ -710,8 +711,267 @@ Customer Limit Dashboard
 
 ---
 
+---
+
+## 🏢 Feature 5: Multi-Tenancy & Tenant Hierarchy ✅
+
+### What was implemented:
+- ✅ New **Tenant Management Service** (17th microservice)
+- ✅ 3-level tenant hierarchy: **Tenant → Business Unit → Customer**
+- ✅ Complete data isolation via PostgreSQL Row-Level Security (RLS)
+- ✅ Tenant context propagation (ThreadLocal + HTTP headers)
+- ✅ 7 new database tables for tenant management
+- ✅ Added `tenant_id` to ALL existing tables (100+ tables)
+- ✅ Tenant-specific configurations (limits, fraud rules, clearing credentials)
+- ✅ Automated tenant onboarding API (15-minute provisioning)
+- ✅ Per-tenant monitoring, metrics, and quotas
+- ✅ Tenant context added to all events
+
+### 3-Level Hierarchy
+
+```
+┌────────────────────────────────┐
+│  TENANT (Bank)                 │
+│  e.g., "Standard Bank SA"      │
+└────────────────┬───────────────┘
+                 │
+        ┌────────┼────────┐
+        ▼        ▼        ▼
+    ┌──────┐ ┌──────┐ ┌──────┐
+    │  BU  │ │  BU  │ │  BU  │
+    │Retail│ │Corp  │ │Invest│
+    └──┬───┘ └──┬───┘ └──┬───┘
+       │        │        │
+       ▼        ▼        ▼
+   Customers Customers Customers
+```
+
+### Data Isolation Strategy
+
+| Strategy | Chosen? | Rationale |
+|----------|---------|-----------|
+| **Shared DB + Row-Level Security** | ✅ **YES** | Best balance: isolation + simplicity + cost |
+| Schema per Tenant | ❌ | Too complex for 100+ tenants |
+| Database per Tenant | ❌ | Too expensive, hard to maintain |
+| Separate Deployments | ❌ | Not scalable |
+
+### Implementation Details
+
+```java
+// TenantContext (ThreadLocal)
+public class TenantContext {
+    private static final ThreadLocal<String> TENANT_ID = new ThreadLocal<>();
+    
+    public static void setTenantId(String tenantId) {
+        TENANT_ID.set(tenantId);
+    }
+    
+    public static String getTenantId() {
+        return TENANT_ID.get();
+    }
+}
+
+// Tenant Filter (all services)
+@Component
+@Order(1)
+public class TenantContextFilter extends OncePerRequestFilter {
+    @Override
+    protected void doFilterInternal(...) {
+        String tenantId = request.getHeader("X-Tenant-ID");
+        validateTenant(tenantId);
+        TenantContext.setTenantId(tenantId);
+        filterChain.doFilter(request, response);
+        TenantContext.clear();
+    }
+}
+
+// Row-Level Security (all tables)
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY tenant_isolation_policy ON payments
+    USING (tenant_id = current_setting('app.current_tenant_id')::VARCHAR);
+```
+
+### Database Changes
+
+**New Tables (7)**:
+- `tenants`: Top-level tenant records
+- `business_units`: Divisions within tenants
+- `tenant_configs`: Tenant-specific configurations
+- `tenant_users`: Admin users per tenant
+- `tenant_api_keys`: API keys for programmatic access
+- `tenant_metrics`: Daily usage metrics
+- `tenant_audit_log`: Audit trail
+
+**ALL Existing Tables Updated (100+)**:
+```sql
+-- Added to EVERY table
+ALTER TABLE <table> ADD COLUMN tenant_id VARCHAR(20) NOT NULL;
+ALTER TABLE <table> ADD COLUMN business_unit_id VARCHAR(30);
+
+-- Indexes
+CREATE INDEX idx_<table>_tenant ON <table>(tenant_id);
+
+-- Row-Level Security
+ALTER TABLE <table> ENABLE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation_policy ON <table>
+    USING (tenant_id = current_setting('app.current_tenant_id')::VARCHAR);
+```
+
+### Tenant-Specific Configuration
+
+Each tenant has separate:
+- ✅ Payment limits (tenant defaults, BU overrides, customer overrides)
+- ✅ Fraud rules and thresholds
+- ✅ Clearing system credentials (SAMOS, BankservAfrica)
+- ✅ Core banking endpoints (different per tenant)
+- ✅ Notification templates
+- ✅ Business rules
+
+**Configuration Hierarchy**: Business Unit config → Tenant config → Platform default
+
+### JWT Token Structure
+
+```json
+{
+  "tenant_id": "STD-001",
+  "tenant_name": "Standard Bank SA",
+  "business_unit_id": "STD-001-RET",
+  "business_unit_name": "Retail Banking",
+  "customer_id": "C-12345",
+  "roles": ["customer", "payment_initiator"]
+}
+```
+
+### Tenant Onboarding (Automated)
+
+**7-Step Process (15 minutes)**:
+1. Create tenant record
+2. Create business units
+3. Provision resources (Kafka topics, Redis namespace)
+4. Configure clearing credentials
+5. Set default limits and fraud rules
+6. Create first admin user
+7. Activate tenant (status: ACTIVE)
+
+**API**:
+```bash
+POST /api/v1/platform/tenants
+{
+  "tenant_name": "New Bank SA",
+  "tenant_code": "NEWBANK",
+  "business_units": [...]
+}
+```
+
+### Tenant Metrics & Monitoring
+
+```
+Tenant Dashboard: Standard Bank SA (STD-001)
+├── Transactions Today: 125,456
+├── Transaction Volume: R 4.2B
+├── API Calls: 2.1M
+├── Average Response Time: 85ms
+├── Error Rate: 0.02%
+│
+├── Business Units
+│   ├── Retail: 85,000 txn
+│   ├── Corporate: 35,000 txn
+│   └── Investment: 5,456 txn
+│
+└── Quota Usage
+    ├── TPS: 2,150 / 10,000 (21%)
+    ├── Storage: 125 GB / 500 GB (25%)
+    └── API Calls: 12M / 50M (24%)
+```
+
+### Event Schema Updates
+
+All events now include tenant context:
+```yaml
+TenantContext:
+  tenant_id: "STD-001"
+  tenant_name: "Standard Bank SA"
+  business_unit_id: "STD-001-RET"
+  business_unit_name: "Retail Banking"
+
+PaymentInitiatedEvent:
+  tenant_context: { ... }  # NEW
+  payment_id: "PAY-12345"
+  # ... other fields
+```
+
+### Security & Isolation
+
+**Data Isolation**:
+- PostgreSQL Row-Level Security enforces filtering
+- No cross-tenant data access possible
+- Platform admins can view all (with flag)
+
+**Performance Isolation**:
+- Kubernetes resource quotas per tenant
+- Rate limiting per tenant (max TPS)
+- Database connection pools per tenant
+- Kafka partitions assigned per tenant
+
+**Tenant Quotas**:
+- Max TPS: 10,000
+- Max storage: 500 GB
+- Max API calls/month: 50M
+- Max business units: 20
+- Max customers: 1M
+
+### Real-World Example
+
+```yaml
+# Tenant 1: Standard Bank SA
+tenant_id: STD-001
+business_units:
+  - Retail Banking (2.5M customers)
+  - Corporate Banking (15K customers)
+  - Investment Banking (500 customers)
+
+# Tenant 2: Nedbank
+tenant_id: NED-001
+business_units:
+  - Personal Banking (1.8M customers)
+  - Business Banking (8K customers)
+```
+
+### Testing Multi-Tenancy
+
+```java
+@Test
+void shouldIsolateTenantData() {
+    // Tenant 1
+    String tenant1Token = generateJwt("STD-001", "C-001");
+    
+    // Tenant 2
+    String tenant2Token = generateJwt("NED-001", "C-002");
+    
+    // Create payment for Tenant 1
+    createPayment(tenant1Token, "PAY-001");
+    
+    // Tenant 2 should NOT see Tenant 1's payment
+    assertNotFound(getPayment(tenant2Token, "PAY-001"));
+    
+    // Tenant 1 should see their own payment
+    assertOk(getPayment(tenant1Token, "PAY-001"));
+}
+```
+
+**Documents**:
+- Complete guide: 12-TENANT-MANAGEMENT.md (800 lines)
+- Summary: TENANT-HIERARCHY-SUMMARY.md
+- Updated: 01-ASSUMPTIONS.md (Section 2.4)
+- Updated: 02-MICROSERVICES-BREAKDOWN.md (Section 0)
+- Updated: 03-EVENT-SCHEMAS.md (TenantContext)
+- Updated: 05-DATABASE-SCHEMAS.md (tenant tables + RLS)
+
+---
+
 **Status**: ✅ **COMPLETE** - Ready for AI Agent Implementation
 
 **Last Updated**: 2025-10-11  
-**Version**: 4.0  
-**Total Documentation**: 18 files, ~16,000 lines, ~420 pages
+**Version**: 5.0 (Multi-Tenancy Added)  
+**Total Documentation**: 20 files, ~18,500 lines, ~480 pages

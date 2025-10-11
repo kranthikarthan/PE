@@ -169,7 +169,119 @@ This document lists ALL assumptions made during the architecture design. Review 
 - **Service Bus**: For low-volume critical messages, dead-letter handling
 - **ASSUMPTION for this design**: Starting with Azure Service Bus, can migrate to Kafka later
 
-### 2.4 Microservices Size
+### 2.4 Multi-Tenancy & Tenant Hierarchy
+
+#### Tenant Model
+- **ASSUMPTION**: Platform supports multiple tenants (banks, financial institutions)
+- **ASSUMPTION**: Each tenant is completely isolated (data, config, limits, fraud rules)
+- **ASSUMPTION**: 3-level hierarchy: **Tenant → Business Unit → Customer**
+  - **Tenant**: Bank or financial institution (e.g., "Standard Bank SA", "Nedbank")
+  - **Business Unit**: Division within tenant (e.g., "Retail Banking", "Corporate Banking", "Investment Banking")
+  - **Customer**: End customer of the business unit
+- **ASSUMPTION**: Each tenant has unique tenant ID (UUID)
+- **ASSUMPTION**: Tenant context propagated in all requests via header: `X-Tenant-ID`
+- **RATIONALE**: Enable SaaS model serving multiple banks on single platform
+
+#### Tenant Hierarchy Example
+
+```
+Tenant: Standard Bank SA (tenant_id: STD-001)
+├── Business Unit: Retail Banking (bu_id: STD-001-RET)
+│   ├── Customer: John Doe (customer_id: C-12345)
+│   ├── Customer: Jane Smith (customer_id: C-12346)
+│   └── ...
+├── Business Unit: Corporate Banking (bu_id: STD-001-CORP)
+│   ├── Customer: ABC Corp (customer_id: C-99001)
+│   └── ...
+└── Business Unit: Investment Banking (bu_id: STD-001-INV)
+    └── ...
+
+Tenant: Nedbank (tenant_id: NED-001)
+├── Business Unit: Personal Banking (bu_id: NED-001-PER)
+│   └── ...
+└── ...
+```
+
+#### Data Isolation Strategy
+- **ASSUMPTION**: Shared database with row-level tenant filtering (not schema per tenant)
+- **ASSUMPTION**: Every table has `tenant_id` column (indexed)
+- **ASSUMPTION**: Database queries ALWAYS filter by `tenant_id` (enforced via ORM interceptor)
+- **ASSUMPTION**: PostgreSQL Row-Level Security (RLS) policies enforce tenant isolation
+- **RATIONALE**: Balance between isolation and operational simplicity
+
+#### Tenant-Specific Configurations
+- **ASSUMPTION**: Each tenant has separate configuration:
+  - Payment limits (tenant defaults, business unit overrides, customer overrides)
+  - Fraud rules and thresholds
+  - Clearing system credentials (SAMOS, BankservAfrica)
+  - Core banking system endpoints (different per tenant)
+  - Notification templates
+  - Business rules
+- **ASSUMPTION**: Configuration stored in tenant-specific tables
+- **ASSUMPTION**: Configuration changes require tenant admin approval
+
+#### Tenant Identification
+- **ASSUMPTION**: Tenant identified via:
+  - **API Gateway**: `X-Tenant-ID` header (extracted from JWT token)
+  - **JWT Token**: Contains `tenant_id` and `business_unit_id` claims
+  - **Database**: Every query filtered by `tenant_id`
+  - **Events**: Every event includes `tenant_id` in metadata
+- **ASSUMPTION**: Missing or invalid `tenant_id` → 403 Forbidden
+
+#### Tenant Authentication
+- **ASSUMPTION**: Each tenant has separate Azure AD B2C tenant or custom identity provider
+- **ASSUMPTION**: API Gateway performs tenant lookup and validation
+- **ASSUMPTION**: JWT token includes:
+  ```json
+  {
+    "tenant_id": "STD-001",
+    "business_unit_id": "STD-001-RET",
+    "customer_id": "C-12345",
+    "roles": ["customer", "payment_initiator"],
+    "tenant_name": "Standard Bank SA"
+  }
+  ```
+
+#### Tenant Limits & Quotas
+- **ASSUMPTION**: Platform-level limits per tenant:
+  - Max transactions per second: 10,000 (throttling)
+  - Max storage per tenant: 500 GB
+  - Max API calls per month: 50M
+  - Max business units: 20
+  - Max customers: 1M
+- **ASSUMPTION**: Tenant exceeding limits → throttled or blocked
+- **ASSUMPTION**: Monitoring and alerting per tenant
+
+#### Tenant Onboarding
+- **ASSUMPTION**: New tenant onboarding process:
+  1. Create tenant record (tenant_id, name, status)
+  2. Provision tenant-specific resources (database RLS, Kafka topics, Redis namespace)
+  3. Configure clearing system credentials
+  4. Configure core banking endpoints
+  5. Set default limits and fraud rules
+  6. Create first admin user
+  7. Enable tenant (status: ACTIVE)
+- **ASSUMPTION**: Tenant onboarding automated via API
+- **ASSUMPTION**: Estimated time: 15 minutes
+
+#### Cross-Tenant Operations
+- **ASSUMPTION**: NO cross-tenant data access allowed (strict isolation)
+- **ASSUMPTION**: Cross-tenant payments NOT supported (different clearing systems)
+- **ASSUMPTION**: Platform admin can view all tenants (super admin role)
+
+#### Tenant Performance Isolation
+- **ASSUMPTION**: No tenant can impact performance of other tenants
+- **ASSUMPTION**: Kubernetes resource quotas per tenant namespace
+- **ASSUMPTION**: Database connection pools per tenant
+- **ASSUMPTION**: Kafka partitions assigned per tenant
+
+#### Alternative Multi-Tenancy Strategies (NOT chosen)
+- ❌ **Schema per tenant**: Too complex for 100+ tenants
+- ❌ **Database per tenant**: Too expensive, hard to maintain
+- ❌ **Separate deployments per tenant**: Not scalable
+- ✅ **Shared database with row-level security**: Best balance
+
+### 2.5 Microservices Size
 - **ASSUMPTION**: Each microservice < 500 lines of core business logic
 - **ASSUMPTION**: Each microservice can be built in 2-4 hours by an AI agent
 - **ASSUMPTION**: Total of ~20 microservices

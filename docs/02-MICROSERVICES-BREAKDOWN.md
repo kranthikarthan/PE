@@ -28,6 +28,180 @@ This document provides detailed specifications for each microservice, including 
 
 ---
 
+## 0. Tenant Management Service (NEW)
+
+### Responsibilities
+- Manage tenant lifecycle (onboarding, activation, suspension, deactivation)
+- Maintain tenant hierarchy (Tenant → Business Unit → Customer)
+- Store tenant-specific configurations (limits, fraud rules, clearing credentials)
+- Provide tenant context lookup for all services
+- Track tenant usage metrics and enforce quotas
+- Manage tenant users and API keys
+- Audit all tenant-related operations
+
+### Technology Stack
+- **Language**: Java 17, Spring Boot 3.x
+- **Database**: PostgreSQL 15 (Row-Level Security enabled)
+- **Cache**: Redis (tenant configs, lookups)
+- **Authentication**: Azure AD B2C (multi-tenant setup)
+- **API**: REST (synchronous), Internal gRPC for fast lookups
+
+### API Endpoints
+
+```java
+// Tenant Management (Platform Admin only)
+POST   /api/v1/platform/tenants                  // Onboard new tenant
+GET    /api/v1/platform/tenants                  // List all tenants
+GET    /api/v1/platform/tenants/{tenantId}       // Get tenant details
+PUT    /api/v1/platform/tenants/{tenantId}       // Update tenant
+DELETE /api/v1/platform/tenants/{tenantId}       // Deactivate tenant
+
+// Business Unit Management (Tenant Admin)
+POST   /api/v1/tenant/business-units             // Create business unit
+GET    /api/v1/tenant/business-units             // List business units
+GET    /api/v1/tenant/business-units/{buId}      // Get BU details
+PUT    /api/v1/tenant/business-units/{buId}      // Update BU
+
+// Tenant Configuration (Tenant Admin)
+GET    /api/v1/tenant/config                     // Get all configs
+GET    /api/v1/tenant/config/{key}               // Get specific config
+PUT    /api/v1/tenant/config/{key}               // Update config
+DELETE /api/v1/tenant/config/{key}               // Delete config
+
+// Tenant Lookup (Internal - used by all services)
+GET    /api/internal/v1/tenant/lookup/{tenantId}     // Get tenant info
+GET    /api/internal/v1/tenant/validate/{tenantId}   // Validate tenant
+GET    /api/internal/v1/tenant/config/{tenantId}/{key} // Get config
+
+// Tenant Metrics (Platform Monitoring)
+GET    /api/v1/platform/metrics/tenants          // All tenant metrics
+GET    /api/v1/platform/metrics/tenants/{tenantId} // Single tenant metrics
+```
+
+### Database Tables
+- `tenants`: Top-level tenant records
+- `business_units`: Divisions within tenants  
+- `tenant_configs`: Tenant-specific configurations
+- `tenant_users`: Admin users per tenant
+- `tenant_api_keys`: API keys for programmatic access
+- `tenant_metrics`: Daily usage metrics per tenant
+- `tenant_audit_log`: Audit trail for all tenant operations
+
+### Events Published
+- `TenantCreatedEvent`
+- `TenantActivatedEvent`
+- `TenantSuspendedEvent`
+- `TenantConfigChangedEvent`
+- `BusinessUnitCreatedEvent`
+
+### Events Subscribed
+- `PaymentCompletedEvent` → Update tenant metrics
+- `PaymentFailedEvent` → Track failures per tenant
+
+### Key Implementation
+
+```java
+@RestController
+@RequestMapping("/api/v1/platform/tenants")
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
+public class TenantManagementController {
+    
+    @Autowired
+    private TenantOnboardingService onboardingService;
+    
+    /**
+     * Onboard new tenant
+     */
+    @PostMapping
+    public ResponseEntity<TenantResponse> onboardTenant(
+        @RequestBody @Valid TenantOnboardingRequest request
+    ) {
+        TenantResponse response = onboardingService.onboardTenant(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+}
+
+@Service
+public class TenantOnboardingService {
+    
+    @Transactional
+    public TenantResponse onboardTenant(TenantOnboardingRequest request) {
+        // 1. Create tenant record
+        Tenant tenant = createTenant(request);
+        
+        // 2. Create business units
+        List<BusinessUnit> businessUnits = createBusinessUnits(tenant, request);
+        
+        // 3. Provision resources (Kafka topics, Redis namespace)
+        provisionResources(tenant);
+        
+        // 4. Set default configurations
+        setDefaultConfigs(tenant, request);
+        
+        // 5. Create admin user
+        createAdminUser(tenant, request);
+        
+        // 6. Activate tenant
+        activateTenant(tenant);
+        
+        // 7. Publish TenantCreatedEvent
+        publishTenantCreatedEvent(tenant);
+        
+        return TenantResponse.from(tenant, businessUnits);
+    }
+}
+
+// Tenant Context Filter (applied to all services)
+@Component
+@Order(1)
+public class TenantContextFilter extends OncePerRequestFilter {
+    
+    @Override
+    protected void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain
+    ) throws ServletException, IOException {
+        
+        try {
+            // Extract tenant ID from header
+            String tenantId = request.getHeader("X-Tenant-ID");
+            
+            if (tenantId == null) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, 
+                    "Missing X-Tenant-ID header");
+                return;
+            }
+            
+            // Validate tenant
+            Tenant tenant = validateTenant(tenantId);
+            
+            // Set ThreadLocal context
+            TenantContext.setTenantId(tenantId);
+            TenantContext.setTenantName(tenant.getTenantName());
+            
+            // Continue
+            filterChain.doFilter(request, response);
+            
+        } finally {
+            TenantContext.clear();
+        }
+    }
+}
+```
+
+### For Complete Details
+See **[12-TENANT-MANAGEMENT.md](12-TENANT-MANAGEMENT.md)** for:
+- Complete database schema
+- Tenant hierarchy design
+- Row-Level Security implementation
+- Tenant context propagation
+- Configuration management
+- Onboarding process
+- Testing strategy
+
+---
+
 ## 1. Payment Initiation Service
 
 ### Responsibilities

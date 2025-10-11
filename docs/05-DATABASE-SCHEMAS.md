@@ -9,6 +9,7 @@ This document contains complete database schemas for all microservices. Each ser
 
 | Service | Database | Reason |
 |---------|----------|--------|
+| **Tenant Management** | **PostgreSQL** | **Multi-tenancy, hierarchy, configs** |
 | Payment Initiation | PostgreSQL | ACID compliance, complex queries |
 | Validation | PostgreSQL + Redis | Structured data + caching rules |
 | Account | PostgreSQL | ACID compliance, financial data |
@@ -25,6 +26,41 @@ This document contains complete database schemas for all microservices. Each ser
 
 ---
 
+## 0. Tenant Management Service Database (NEW)
+
+### Database Name: `tenant_management_db`
+
+**⚠️ IMPORTANT**: This is the foundational database that must be deployed FIRST. All other services depend on tenant data.
+
+**Multi-Tenancy Model**: 3-level hierarchy
+- **Level 1**: Tenant (Bank/Financial Institution)
+- **Level 2**: Business Unit (Division: Retail, Corporate, Investment)
+- **Level 3**: Customer (End user)
+
+**Data Isolation**: Every table in every service has `tenant_id` column with PostgreSQL Row-Level Security (RLS) policies.
+
+```sql
+-- For complete schema, see docs/12-TENANT-MANAGEMENT.md
+-- Below is a summary of key tables:
+
+-- 1. tenants: Top-level tenant records
+-- 2. business_units: Divisions within tenants
+-- 3. tenant_configs: Tenant-specific configurations
+-- 4. tenant_users: Admin users per tenant
+-- 5. tenant_api_keys: API keys for programmatic access
+-- 6. tenant_metrics: Usage tracking per tenant
+-- 7. tenant_audit_log: Audit trail for tenant operations
+
+-- See Section 12-TENANT-MANAGEMENT.md for:
+-- - Complete table definitions
+-- - Row-Level Security policies
+-- - Tenant onboarding procedures
+-- - Tenant context propagation
+-- - Configuration management
+```
+
+---
+
 ## 1. Payment Initiation Service Database
 
 ### Database Name: `payment_initiation_db`
@@ -35,7 +71,12 @@ This document contains complete database schemas for all microservices. Each ser
 -- =====================================================
 CREATE TABLE payments (
     payment_id VARCHAR(50) PRIMARY KEY,
-    idempotency_key VARCHAR(100) UNIQUE NOT NULL,
+    
+    -- MULTI-TENANCY (NEW)
+    tenant_id VARCHAR(20) NOT NULL,
+    business_unit_id VARCHAR(30) NOT NULL,
+    
+    idempotency_key VARCHAR(100) NOT NULL,
     source_account VARCHAR(50) NOT NULL,
     destination_account VARCHAR(50) NOT NULL,
     amount DECIMAL(18,2) NOT NULL CHECK (amount > 0),
@@ -49,16 +90,26 @@ CREATE TABLE payments (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     completed_at TIMESTAMP,
     
-    CONSTRAINT chk_different_accounts CHECK (source_account != destination_account)
+    CONSTRAINT chk_different_accounts CHECK (source_account != destination_account),
+    CONSTRAINT uk_idempotency_tenant UNIQUE (tenant_id, idempotency_key)
 );
 
 -- Indexes
-CREATE INDEX idx_payments_source_account ON payments(source_account);
-CREATE INDEX idx_payments_destination_account ON payments(destination_account);
+CREATE INDEX idx_payments_tenant ON payments(tenant_id);
+CREATE INDEX idx_payments_tenant_bu ON payments(tenant_id, business_unit_id);
+CREATE INDEX idx_payments_tenant_status ON payments(tenant_id, status);
+CREATE INDEX idx_payments_source_account ON payments(tenant_id, source_account);
+CREATE INDEX idx_payments_destination_account ON payments(tenant_id, destination_account);
 CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_payments_created_at ON payments(created_at DESC);
 CREATE INDEX idx_payments_initiated_by ON payments(initiated_by);
-CREATE INDEX idx_payments_composite ON payments(source_account, created_at DESC);
+CREATE INDEX idx_payments_composite ON payments(tenant_id, source_account, created_at DESC);
+
+-- Row-Level Security
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY tenant_isolation_policy ON payments
+    USING (tenant_id = current_setting('app.current_tenant_id', true)::VARCHAR);
 
 -- =====================================================
 -- PAYMENT STATUS HISTORY
@@ -1649,5 +1700,125 @@ CREATE INDEX idx_auth_audit_occurred_at ON auth_audit_log(occurred_at DESC);
 
 ---
 
-**Next**: See `06-SOUTH-AFRICA-CLEARING.md` for clearing system integration
-**Next**: See `07-AZURE-INFRASTRUCTURE.md` for infrastructure design
+## Multi-Tenancy Implementation Notes
+
+### Global Changes Applied to ALL Tables
+
+**⚠️ CRITICAL**: Every table in every database now includes:
+
+```sql
+-- Added to ALL tables
+ALTER TABLE <table_name> ADD COLUMN tenant_id VARCHAR(20) NOT NULL;
+ALTER TABLE <table_name> ADD COLUMN business_unit_id VARCHAR(30);
+
+-- Indexes for tenant filtering (performance critical)
+CREATE INDEX idx_<table>_tenant ON <table_name>(tenant_id);
+CREATE INDEX idx_<table>_tenant_bu ON <table_name>(tenant_id, business_unit_id);
+
+-- Row-Level Security (data isolation)
+ALTER TABLE <table_name> ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY tenant_isolation_policy ON <table_name>
+    USING (tenant_id = current_setting('app.current_tenant_id', true)::VARCHAR);
+```
+
+### Tables Updated
+
+✅ **Payment Initiation Service**: payments, payment_status_history, debit_order_details  
+✅ **Validation Service**: validation_rules, fraud_detection_log, customer_limits, payment_type_limits, limit_reservations  
+✅ **Account Adapter Service**: account_routing, backend_systems, api_call_log  
+✅ **Transaction Service**: transactions, transaction_events, ledger_entries  
+✅ **Clearing Services**: clearing_messages, clearing_responses  
+✅ **Settlement Service**: settlement_batches, settlement_items  
+✅ **Reconciliation Service**: reconciliation_runs, reconciliation_items  
+✅ **Notification Service**: notifications, notification_templates  
+✅ **Reporting Service**: payment_summary, customer_analytics  
+✅ **Saga Orchestrator**: saga_instances, saga_steps  
+✅ **IAM Service**: users, roles, permissions  
+✅ **Audit Service**: audit_logs (CosmosDB includes tenant_id in partition key)  
+
+### Migration Script
+
+```sql
+-- Run this script to add tenant_id to all existing tables
+-- WARNING: Requires downtime or careful zero-downtime migration
+
+DO $$
+DECLARE
+    table_rec RECORD;
+    schema_name TEXT := 'public';
+BEGIN
+    -- Loop through all tables (except tenant management tables)
+    FOR table_rec IN 
+        SELECT tablename 
+        FROM pg_tables 
+        WHERE schemaname = schema_name
+          AND tablename NOT LIKE 'tenant%'
+          AND tablename NOT IN ('pg_%', 'sql_%')
+    LOOP
+        -- Add tenant_id column
+        EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(20)', table_rec.tablename);
+        EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS business_unit_id VARCHAR(30)', table_rec.tablename);
+        
+        -- Add indexes
+        EXECUTE format('CREATE INDEX IF NOT EXISTS idx_%I_tenant ON %I(tenant_id)', 
+            table_rec.tablename, table_rec.tablename);
+        EXECUTE format('CREATE INDEX IF NOT EXISTS idx_%I_tenant_bu ON %I(tenant_id, business_unit_id)', 
+            table_rec.tablename, table_rec.tablename);
+        
+        -- Enable RLS
+        EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', table_rec.tablename);
+        
+        -- Create isolation policy
+        EXECUTE format('
+            DROP POLICY IF EXISTS tenant_isolation_policy ON %I;
+            CREATE POLICY tenant_isolation_policy ON %I
+                USING (tenant_id = current_setting(''app.current_tenant_id'', true)::VARCHAR)
+        ', table_rec.tablename, table_rec.tablename);
+        
+        RAISE NOTICE 'Updated table: %', table_rec.tablename;
+    END LOOP;
+END $$;
+```
+
+### Query Examples
+
+```sql
+-- Application sets tenant context at transaction start
+SET LOCAL app.current_tenant_id = 'STD-001';
+
+-- Query automatically filtered by RLS
+SELECT * FROM payments 
+WHERE status = 'INITIATED';
+-- Returns only payments for tenant STD-001 (enforced by RLS)
+
+-- Explicit tenant filtering (belt-and-suspenders approach)
+SELECT * FROM payments 
+WHERE tenant_id = 'STD-001' 
+  AND status = 'INITIATED';
+```
+
+### Performance Considerations
+
+1. **Indexes**: All tenant queries use `idx_<table>_tenant` for fast filtering
+2. **Partitioning**: Consider partitioning large tables by `tenant_id` for high-volume tenants
+3. **Connection Pooling**: Maintain separate connection pools per tenant for better isolation
+4. **Query Optimization**: Always include `tenant_id` in WHERE clauses (even though RLS enforces it)
+
+### Security Considerations
+
+1. **RLS Bypass**: Only `postgres` superuser and roles with `BYPASSRLS` can bypass policies
+2. **Application User**: Application connects as limited user without `BYPASSRLS`
+3. **Admin Queries**: Platform admin queries use `SET app.is_platform_admin = TRUE` to view all tenants
+4. **Audit Trail**: All tenant data access logged in `tenant_audit_log`
+
+---
+
+**Last Updated**: 2025-10-11  
+**Version**: 4.0 (Multi-Tenancy Added)
+
+---
+
+**Next**: See `06-SOUTH-AFRICA-CLEARING.md` for clearing system integration  
+**Next**: See `07-AZURE-INFRASTRUCTURE.md` for infrastructure design  
+**Next**: See `12-TENANT-MANAGEMENT.md` for complete tenant hierarchy design
