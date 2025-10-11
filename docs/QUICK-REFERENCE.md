@@ -17,6 +17,7 @@
 | [10-FRAUD-SCORING-INTEGRATION](10-FRAUD-SCORING-INTEGRATION.md) | **Integrating fraud scoring API** |
 | [11-KAFKA-SAGA-IMPLEMENTATION](11-KAFKA-SAGA-IMPLEMENTATION.md) | **Using Kafka for Saga pattern** |
 | [12-TENANT-MANAGEMENT](12-TENANT-MANAGEMENT.md) | **Multi-tenancy & tenant hierarchy** |
+| [13-MODERN-ARCHITECTURE-PATTERNS](13-MODERN-ARCHITECTURE-PATTERNS.md) | **Modern architecture patterns guide** |
 
 ---
 

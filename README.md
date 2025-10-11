@@ -31,6 +31,7 @@ This repository contains the complete architecture design for a **highly modular
 | **[10-FRAUD-SCORING-INTEGRATION.md](docs/10-FRAUD-SCORING-INTEGRATION.md)** | **External fraud scoring API integration** | ✅ Complete |
 | **[11-KAFKA-SAGA-IMPLEMENTATION.md](docs/11-KAFKA-SAGA-IMPLEMENTATION.md)** | **Confluent Kafka option for Saga pattern** | ✅ Complete |
 | **[12-TENANT-MANAGEMENT.md](docs/12-TENANT-MANAGEMENT.md)** | **Multi-tenancy & tenant hierarchy implementation** | ✅ Complete |
+| **[13-MODERN-ARCHITECTURE-PATTERNS.md](docs/13-MODERN-ARCHITECTURE-PATTERNS.md)** | **Modern architecture patterns analysis & recommendations** | ✅ Complete |
 
 ---
 
