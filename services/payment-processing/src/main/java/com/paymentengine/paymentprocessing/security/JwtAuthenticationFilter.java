@@ -66,11 +66,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private Claims parseToken(String token) {
         try {
             SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-            return Jwts.parserBuilder()
-                .setSigningKey(key)
+            return Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
         } catch (Exception e) {
             return null;
         }

@@ -1,6 +1,7 @@
 package com.paymentengine.paymentprocessing.service;
 
 import com.paymentengine.paymentprocessing.dto.corebanking.*;
+import com.paymentengine.paymentprocessing.entity.Iso20022ResponseRequest;
 import com.paymentengine.paymentprocessing.entity.CoreBankingConfiguration;
 import com.paymentengine.paymentprocessing.entity.ClearingSystemConfiguration;
 import com.paymentengine.paymentprocessing.repository.CoreBankingConfigurationRepository;
