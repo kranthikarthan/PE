@@ -150,10 +150,20 @@ CREATE TABLE payments (
 - **Check customer transaction limits (per payment type, daily, monthly)**
 - **Track and update used limits**
 - **Enforce limit controls to prevent overspending**
+- **Call external fraud scoring API for real-time risk assessment**
+- **Evaluate fraud score and apply risk-based decisions**
 - Check account status and KYC compliance
-- Integrate with fraud detection system
 - Check FICA compliance
 - Publish `PaymentValidatedEvent` or `ValidationFailedEvent`
+
+### External Integration: Fraud Scoring API
+
+**Provider**: Third-party fraud detection service (e.g., Simility, Feedzai, SAS Fraud Management)  
+**Integration Type**: Synchronous REST API  
+**Authentication**: API Key or OAuth 2.0  
+**Timeout**: 5 seconds  
+**Retry**: 3 attempts with exponential backoff  
+**Circuit Breaker**: Enabled (fallback to rule-based detection)
 
 ### API Endpoints
 
@@ -485,12 +495,306 @@ CREATE TABLE validation_results (
 );
 ```
 
+### Fraud API Integration
+
+#### Fraud API Request
+
+```http
+POST https://fraud-api.example.com/api/v1/score
+Content-Type: application/json
+Authorization: Bearer {api_key}
+X-Request-ID: {correlation_id}
+
+{
+  "transactionId": "PAY-2025-XXXXXX",
+  "customerId": "CUST-123456",
+  "sourceAccount": {
+    "accountNumber": "1234567890",
+    "accountType": "CURRENT",
+    "accountAge_days": 365
+  },
+  "destinationAccount": {
+    "accountNumber": "0987654321",
+    "bankCode": "ABSA"
+  },
+  "transaction": {
+    "amount": 10000.00,
+    "currency": "ZAR",
+    "paymentType": "RTC",
+    "reference": "Payment for invoice"
+  },
+  "context": {
+    "timestamp": "2025-10-11T10:30:00Z",
+    "channel": "WEB",
+    "deviceFingerprint": "device-hash-xxxxx",
+    "ipAddress": "192.168.1.100",
+    "geolocation": {
+      "country": "ZA",
+      "city": "Johannesburg",
+      "coordinates": "-26.2041,28.0473"
+    },
+    "userAgent": "Mozilla/5.0..."
+  },
+  "customerProfile": {
+    "accountAge_days": 730,
+    "averageTransactionAmount": 5000.00,
+    "transactionCount_30days": 25,
+    "totalVolume_30days": 125000.00,
+    "previousFraudIncidents": 0,
+    "kycStatus": "VERIFIED",
+    "ficaStatus": "COMPLIANT"
+  }
+}
+```
+
+#### Fraud API Response
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+X-Request-ID: {correlation_id}
+X-Response-Time: 245
+
+{
+  "transactionId": "PAY-2025-XXXXXX",
+  "fraudScore": 0.15,
+  "riskLevel": "LOW",
+  "recommendation": "APPROVE",
+  "confidence": 0.92,
+  "fraudIndicators": [
+    {
+      "indicator": "VELOCITY_CHECK",
+      "score": 0.05,
+      "description": "Normal transaction velocity"
+    },
+    {
+      "indicator": "AMOUNT_PATTERN",
+      "score": 0.10,
+      "description": "Amount within typical range"
+    },
+    {
+      "indicator": "GEOLOCATION",
+      "score": 0.00,
+      "description": "Transaction from usual location"
+    }
+  ],
+  "reasons": [],
+  "modelVersion": "v2.5.1",
+  "processingTime_ms": 245
+}
+```
+
+#### High-Risk Response Example
+
+```json
+{
+  "transactionId": "PAY-2025-XXXXXX",
+  "fraudScore": 0.85,
+  "riskLevel": "CRITICAL",
+  "recommendation": "REJECT",
+  "confidence": 0.88,
+  "fraudIndicators": [
+    {
+      "indicator": "UNUSUAL_AMOUNT",
+      "score": 0.45,
+      "description": "Amount significantly higher than average"
+    },
+    {
+      "indicator": "SUSPICIOUS_VELOCITY",
+      "score": 0.30,
+      "description": "Multiple transactions in short time period"
+    },
+    {
+      "indicator": "GEOLOCATION_MISMATCH",
+      "score": 0.10,
+      "description": "Transaction from unusual location"
+    }
+  ],
+  "reasons": [
+    "Transaction amount 10x higher than average",
+    "5 transactions in last 10 minutes",
+    "IP address from high-risk country"
+  ],
+  "modelVersion": "v2.5.1",
+  "processingTime_ms": 312
+}
+```
+
+#### Integration Code
+
+```java
+@Service
+public class FraudScoringService {
+    
+    @Value("${fraud.api.url}")
+    private String fraudApiUrl;
+    
+    @Value("${fraud.api.key}")
+    private String fraudApiKey;
+    
+    @Autowired
+    private RestTemplate fraudApiRestTemplate;
+    
+    @CircuitBreaker(name = "fraudApi", fallbackMethod = "fraudApiFallback")
+    @Retry(name = "fraudApi")
+    @Timed(value = "fraud.api.call")
+    public FraudScoreResponse scoreFraudRisk(PaymentValidationRequest request) {
+        
+        // Build fraud scoring request
+        FraudScoringRequest fraudRequest = FraudScoringRequest.builder()
+            .transactionId(request.getPaymentId())
+            .customerId(request.getCustomerId())
+            .sourceAccount(buildAccountInfo(request.getSourceAccount()))
+            .destinationAccount(buildAccountInfo(request.getDestinationAccount()))
+            .transaction(buildTransactionInfo(request))
+            .context(buildContextInfo(request))
+            .customerProfile(buildCustomerProfile(request.getCustomerId()))
+            .build();
+        
+        // Call fraud API
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(fraudApiKey);
+        headers.set("X-Request-ID", request.getCorrelationId());
+        
+        HttpEntity<FraudScoringRequest> httpEntity = new HttpEntity<>(fraudRequest, headers);
+        
+        try {
+            ResponseEntity<FraudScoreResponse> response = fraudApiRestTemplate.postForEntity(
+                fraudApiUrl + "/api/v1/score",
+                httpEntity,
+                FraudScoreResponse.class
+            );
+            
+            FraudScoreResponse fraudScore = response.getBody();
+            
+            // Log fraud check
+            logFraudCheck(request.getPaymentId(), fraudScore);
+            
+            return fraudScore;
+            
+        } catch (RestClientException e) {
+            log.error("Fraud API call failed for payment {}", request.getPaymentId(), e);
+            throw new FraudApiException("Failed to get fraud score", e);
+        }
+    }
+    
+    /**
+     * Fallback method when fraud API is unavailable
+     */
+    private FraudScoreResponse fraudApiFallback(PaymentValidationRequest request, Exception e) {
+        log.warn("Fraud API unavailable, using fallback for payment {}", request.getPaymentId());
+        
+        // Strategy 1: Fail-open (allow transaction with monitoring)
+        if (fraudApiFailOpenEnabled) {
+            return FraudScoreResponse.builder()
+                .fraudScore(0.5)
+                .riskLevel("MEDIUM")
+                .recommendation("APPROVE_WITH_MONITORING")
+                .reasons(List.of("Fraud API unavailable - using fallback"))
+                .fallbackUsed(true)
+                .build();
+        }
+        
+        // Strategy 2: Use rule-based fraud detection
+        return ruleBasedFraudDetection(request);
+    }
+    
+    private FraudScoreResponse ruleBasedFraudDetection(PaymentValidationRequest request) {
+        // Simple rule-based fraud detection as fallback
+        double score = 0.0;
+        List<String> reasons = new ArrayList<>();
+        
+        // Check velocity (multiple transactions in short time)
+        if (hasHighVelocity(request.getCustomerId())) {
+            score += 0.3;
+            reasons.add("High transaction velocity detected");
+        }
+        
+        // Check unusual amount
+        if (isUnusualAmount(request.getAmount(), request.getCustomerId())) {
+            score += 0.2;
+            reasons.add("Transaction amount unusual for customer");
+        }
+        
+        // Determine risk level
+        String riskLevel = determineRiskLevel(score);
+        String recommendation = score < 0.7 ? "APPROVE" : "REJECT";
+        
+        return FraudScoreResponse.builder()
+            .fraudScore(score)
+            .riskLevel(riskLevel)
+            .recommendation(recommendation)
+            .reasons(reasons)
+            .fallbackUsed(true)
+            .build();
+    }
+    
+    private String determineRiskLevel(double score) {
+        if (score < 0.3) return "LOW";
+        if (score < 0.6) return "MEDIUM";
+        if (score < 0.8) return "HIGH";
+        return "CRITICAL";
+    }
+}
+```
+
+#### Fraud Score Evaluation
+
+```java
+@Service
+public class ValidationService {
+    
+    @Autowired
+    private FraudScoringService fraudScoringService;
+    
+    public ValidationResult validatePayment(PaymentValidationRequest request) {
+        
+        // 1. Check customer limits
+        LimitCheckResult limitCheck = checkCustomerLimits(request);
+        if (!limitCheck.isSufficient()) {
+            return ValidationResult.failed("LIMIT_EXCEEDED", limitCheck);
+        }
+        
+        // 2. Call fraud scoring API
+        FraudScoreResponse fraudScore = fraudScoringService.scoreFraudRisk(request);
+        
+        // 3. Evaluate fraud score
+        if (fraudScore.getFraudScore() >= 0.8) {
+            // CRITICAL risk - Auto-reject
+            return ValidationResult.failed(
+                "FRAUD_RISK_HIGH",
+                "Transaction rejected due to high fraud risk",
+                fraudScore
+            );
+        } else if (fraudScore.getFraudScore() >= 0.6) {
+            // HIGH risk - Require additional verification
+            return ValidationResult.requiresVerification(
+                "ADDITIONAL_VERIFICATION_REQUIRED",
+                fraudScore
+            );
+        }
+        
+        // 4. Check compliance (KYC, FICA)
+        ComplianceCheckResult compliance = checkCompliance(request);
+        if (!compliance.isCompliant()) {
+            return ValidationResult.failed("COMPLIANCE_FAILED", compliance);
+        }
+        
+        // All checks passed
+        return ValidationResult.success(limitCheck, fraudScore, compliance);
+    }
+}
+```
+
 ### Technology Stack
 - Spring Boot 3.x
 - Spring Data JPA
 - PostgreSQL
 - Redis (caching rules)
-- External Fraud API (REST client)
+- **Spring Cloud Circuit Breaker (Resilience4j)**
+- **External Fraud Scoring API (REST client)**
+- **RestTemplate / WebClient for API integration**
 
 ---
 

@@ -201,19 +201,78 @@ CREATE INDEX idx_velocity_account ON velocity_tracking(account_number);
 CREATE INDEX idx_velocity_window ON velocity_tracking(window_end);
 
 -- =====================================================
--- FRAUD DETECTION LOG
+-- FRAUD DETECTION LOG (External Fraud API Calls)
 -- =====================================================
 CREATE TABLE fraud_detection_log (
     log_id BIGSERIAL PRIMARY KEY,
     payment_id VARCHAR(50) NOT NULL,
-    fraud_score DECIMAL(5,4) NOT NULL,
+    customer_id VARCHAR(50),
+    fraud_score DECIMAL(5,4) NOT NULL CHECK (fraud_score >= 0 AND fraud_score <= 1),
+    risk_level VARCHAR(20) NOT NULL CHECK (risk_level IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    recommendation VARCHAR(50) CHECK (recommendation IN ('APPROVE', 'APPROVE_WITH_MONITORING', 'REQUIRE_VERIFICATION', 'REJECT')),
+    confidence DECIMAL(5,4),
     fraud_indicators JSONB,
-    external_fraud_service_response JSONB,
-    detected_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    fraud_reasons JSONB,
+    model_version VARCHAR(50),
+    api_response_time_ms INTEGER,
+    fallback_used BOOLEAN DEFAULT FALSE,
+    api_request_data JSONB,
+    api_response_data JSONB,
+    detected_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    api_provider VARCHAR(100)
 );
 
 CREATE INDEX idx_fraud_log_payment_id ON fraud_detection_log(payment_id);
+CREATE INDEX idx_fraud_log_customer_id ON fraud_detection_log(customer_id);
 CREATE INDEX idx_fraud_log_score ON fraud_detection_log(fraud_score DESC);
+CREATE INDEX idx_fraud_log_risk_level ON fraud_detection_log(risk_level);
+CREATE INDEX idx_fraud_log_recommendation ON fraud_detection_log(recommendation);
+CREATE INDEX idx_fraud_log_detected_at ON fraud_detection_log(detected_at DESC);
+CREATE INDEX idx_fraud_log_fallback ON fraud_detection_log(fallback_used);
+
+-- =====================================================
+-- FRAUD API METRICS (Monitor API performance)
+-- =====================================================
+CREATE TABLE fraud_api_metrics (
+    metric_id BIGSERIAL PRIMARY KEY,
+    metric_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    total_calls INTEGER NOT NULL DEFAULT 0,
+    successful_calls INTEGER NOT NULL DEFAULT 0,
+    failed_calls INTEGER NOT NULL DEFAULT 0,
+    timeout_calls INTEGER NOT NULL DEFAULT 0,
+    fallback_calls INTEGER NOT NULL DEFAULT 0,
+    avg_response_time_ms INTEGER,
+    p95_response_time_ms INTEGER,
+    p99_response_time_ms INTEGER,
+    circuit_breaker_status VARCHAR(20),
+    error_rate DECIMAL(5,2)
+);
+
+CREATE INDEX idx_fraud_api_metrics_timestamp ON fraud_api_metrics(metric_timestamp DESC);
+
+-- =====================================================
+-- FRAUD RULES (Fallback Rule-Based Detection)
+-- =====================================================
+CREATE TABLE fraud_rules (
+    rule_id VARCHAR(50) PRIMARY KEY,
+    rule_name VARCHAR(200) NOT NULL,
+    rule_type VARCHAR(50) NOT NULL CHECK (rule_type IN ('VELOCITY', 'AMOUNT', 'GEOLOCATION', 'DEVICE', 'PATTERN')),
+    rule_condition JSONB NOT NULL,
+    risk_score_contribution DECIMAL(5,4) NOT NULL,
+    priority INTEGER DEFAULT 100,
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_fraud_rules_active ON fraud_rules(active);
+CREATE INDEX idx_fraud_rules_type ON fraud_rules(rule_type);
+
+-- Example fraud rules for fallback
+INSERT INTO fraud_rules (rule_id, rule_name, rule_type, rule_condition, risk_score_contribution, active) VALUES
+    ('FRAUD-RULE-001', 'High velocity check', 'VELOCITY', '{"max_transactions_per_hour": 10}', 0.30, TRUE),
+    ('FRAUD-RULE-002', 'Unusual amount', 'AMOUNT', '{"multiplier_of_average": 5}', 0.25, TRUE),
+    ('FRAUD-RULE-003', 'Foreign IP address', 'GEOLOCATION', '{"allowed_countries": ["ZA"]}', 0.20, TRUE);
 
 -- =====================================================
 -- CUSTOMER LIMITS (Limit Configuration per Customer)

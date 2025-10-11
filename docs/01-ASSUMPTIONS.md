@@ -197,10 +197,39 @@ This document lists ALL assumptions made during the architecture design. Review 
 - **ASSUMPTION**: No sensitive data in logs or events
 
 ### 4.4 Fraud Prevention
-- **ASSUMPTION**: Integration with third-party fraud detection service
-- **ASSUMPTION**: Real-time fraud scoring for all transactions
-- **ASSUMPTION**: Automatic blocking for high-risk transactions
-- **ASSUMPTION**: Velocity checks (transaction limits per time period)
+- **ASSUMPTION**: Integration with external third-party fraud scoring API
+- **ASSUMPTION**: Fraud API provider: Third-party SaaS (e.g., Simility, Feedzai, SAS, or similar)
+- **ASSUMPTION**: Real-time fraud scoring for ALL transactions before execution
+- **ASSUMPTION**: Fraud API response time SLA: < 500ms (p95)
+- **ASSUMPTION**: Fraud scoring is synchronous (REST API call)
+- **ASSUMPTION**: Fraud score range: 0.0 (no risk) to 1.0 (highest risk)
+- **ASSUMPTION**: Risk thresholds:
+  - Score 0.0-0.3: LOW risk (auto-approve)
+  - Score 0.3-0.6: MEDIUM risk (auto-approve with monitoring)
+  - Score 0.6-0.8: HIGH risk (require additional verification)
+  - Score 0.8-1.0: CRITICAL risk (auto-reject)
+- **ASSUMPTION**: Fraud API provides:
+  - Fraud score
+  - Risk level
+  - Fraud indicators/reasons
+  - Recommended actions
+- **ASSUMPTION**: Fallback if fraud API unavailable:
+  - Allow transactions to proceed (fail-open strategy)
+  - OR Use rule-based fraud detection (configurable)
+- **ASSUMPTION**: Fraud API authentication: API Key or OAuth 2.0
+- **ASSUMPTION**: Fraud API input includes:
+  - Customer ID
+  - Account numbers (source, destination)
+  - Transaction amount
+  - Payment type
+  - Device fingerprint
+  - IP address
+  - Geolocation
+  - Historical transaction patterns
+- **ASSUMPTION**: Velocity checks performed by fraud API
+- **ASSUMPTION**: Fraud API cost: $0.01-0.05 per API call
+- **ASSUMPTION**: Circuit breaker for fraud API (fallback to rule-based)
+- **RATIONALE**: Real-time fraud prevention, reduce chargebacks and losses
 
 ---
 

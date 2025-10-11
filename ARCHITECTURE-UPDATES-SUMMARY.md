@@ -6,6 +6,7 @@ This document provides a comprehensive summary of all architecture updates made 
 
 1. ✅ **External Core Banking Integration**: Accounts stored in remote systems (Current, Savings, Investment, Cards, Loans)
 2. ✅ **Customer Limit Management**: Multi-level transaction limit checking and enforcement
+3. ✅ **Fraud Scoring API Integration**: Real-time fraud detection using external ML-based API
 
 ---
 
@@ -604,8 +605,57 @@ Customer Limit Dashboard
 
 ---
 
+---
+
+## 🔄 Feature 3: Fraud Scoring API Integration ✅
+
+### What was implemented:
+- ✅ External fraud scoring API integration (third-party SaaS)
+- ✅ Real-time fraud risk assessment for all transactions
+- ✅ ML-based fraud score (0.0-1.0 scale)
+- ✅ Risk-based decision logic (LOW, MEDIUM, HIGH, CRITICAL)
+- ✅ Circuit breaker with 3 fallback strategies:
+  - Fail-Open: Allow with monitoring
+  - Fail-Close: Reject all
+  - Rule-Based: Use internal rules
+- ✅ Comprehensive fraud indicators (velocity, amount, geolocation, device, patterns)
+- ✅ Complete API request/response specifications
+- ✅ Cost optimization strategies
+
+### API Integration:
+- **Endpoint**: `POST https://fraud-api.provider.com/api/v1/score`
+- **Authentication**: API Key or OAuth 2.0
+- **Timeout**: 5 seconds
+- **Response Time**: < 500ms (p95)
+- **Circuit Breaker**: Enabled
+- **Retry**: 3 attempts
+
+### Risk Thresholds:
+- **0.0-0.3**: LOW - Auto-approve
+- **0.3-0.6**: MEDIUM - Approve with monitoring
+- **0.6-0.8**: HIGH - Require verification (2FA/OTP)
+- **0.8-1.0**: CRITICAL - Auto-reject
+
+### Database Changes:
+- ✅ Enhanced `fraud_detection_log` table (10 new fields)
+- ✅ Added `fraud_api_metrics` table (performance monitoring)
+- ✅ Added `fraud_rules` table (fallback rules)
+
+### Cost Estimate:
+- **Base**: $1M/month (50M transactions × $0.02)
+- **Optimized**: $500K/month (with selective scoring, sampling, caching)
+
+**Documents**:
+- Section 4.4 in 01-ASSUMPTIONS.md
+- Section 2 in 02-MICROSERVICES-BREAKDOWN.md (Validation Service - Fraud API Integration)
+- Enhanced fraud tables in 05-DATABASE-SCHEMAS.md
+- Complete guide: 10-FRAUD-SCORING-INTEGRATION.md
+- Summary: FRAUD-SCORING-FEATURE-SUMMARY.md
+
+---
+
 **Status**: ✅ **COMPLETE** - Ready for AI Agent Implementation
 
 **Last Updated**: 2025-10-11  
-**Version**: 2.0  
-**Total Documentation**: 14 files, ~12,600 lines, ~320 pages
+**Version**: 3.0  
+**Total Documentation**: 16 files, ~14,200 lines, ~380 pages
