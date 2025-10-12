@@ -2,7 +2,9 @@
 
 ## Executive Summary
 
-This document outlines a **highly modular, AI-agent-buildable payments engine** designed for South Africa's financial ecosystem. The architecture follows modern patterns including microservices, event-driven architecture, hexagonal architecture, and Saga patterns to ensure each component can be developed independently by AI agents.
+This document outlines a **highly modular, AI-agent-buildable payments engine** designed for South Africa's financial ecosystem with international payment capabilities. The architecture follows modern patterns including microservices, event-driven architecture, hexagonal architecture, and Saga patterns to ensure each component can be developed independently by AI agents.
+
+**System Scope**: 20 microservices covering domestic (SA), international (SWIFT), real-time, and batch payment processing.
 
 ## Core Design Principles
 
