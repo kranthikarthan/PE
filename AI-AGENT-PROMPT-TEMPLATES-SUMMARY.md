@@ -375,7 +375,7 @@ Overall Status:         ✅ READY FOR AI AGENT DEVELOPMENT
 - Context sufficiency analysis
 - All 40+ features cataloged
 
-**Size**: 5,300+ lines
+**Size**: 6,600+ lines
 
 **Phase 2 Detailed Prompts**:
 1. ✅ SAMOS Adapter (ISO 20022, RTGS, mTLS)
@@ -391,12 +391,19 @@ Overall Status:         ✅ READY FOR AI AGENT DEVELOPMENT
 4. ✅ Notification Service (IBM MQ, Fire-and-forget, Non-persistent)
 5. ✅ Reporting Service (JasperReports, Azure Synapse, CSV/Excel/PDF)
 
-**Phase 4 Detailed Prompts** (NEW):
+**Phase 4 Detailed Prompts**:
 1. ✅ Batch Processing Service (Spring Batch, CSV/Excel/XML/JSON, Chunk, SFTP)
 2. ✅ Settlement Service (Nostro/Vostro, Liquidity, Multi-currency)
 3. ✅ Reconciliation Service (Matching, Exceptions, Spring Batch)
 4. ✅ Internal API Gateway (Spring Cloud Gateway, Optional with Istio)
 5. ✅ BFF Layer (3 BFFs: Web GraphQL, Mobile REST, Partner REST)
+
+**Phase 5 Detailed Prompts** (NEW):
+1. ✅ Service Mesh (Istio - mTLS, Traffic Management, Circuit Breaking, Canary)
+2. ✅ Monitoring Stack (Prometheus, Grafana, Jaeger, Alertmanager)
+3. ✅ GitOps (ArgoCD - Declarative Deployments, Self-Healing, Rollbacks)
+4. ✅ Feature Flags (Unleash - Progressive Rollouts, A/B Testing, Kill Switches)
+5. ✅ Kubernetes Operators (14 Operators for Day 2 Operations)
 
 ---
 
