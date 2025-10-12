@@ -66,7 +66,7 @@ This repository contains the complete architecture design for a **highly modular
                                      │
 ┌────────────────────────────────────▼────────────────────────────┐
 │                   ORCHESTRATION LAYER                            │
-│   API Gateway (Spring Cloud)  │  Saga Orchestrator             │
+│   Internal API Gateway (#18)  │  Saga Orchestrator (#6)        │
 └────────────────────────────────────┬────────────────────────────┘
                                      │
 ┌────────────────────────────────────▼────────────────────────────┐
@@ -105,7 +105,7 @@ This repository contains the complete architecture design for a **highly modular
 | 15 | Tenant Management | Multi-tenancy | PostgreSQL | ~450 |
 | 16 | Notification / IBM MQ | SMS, Email, Push | PostgreSQL (optional) | ~250 |
 | 17 | Reporting Service | Reports, analytics | PostgreSQL + Synapse | ~350 |
-| 18 | API Gateway | Routing, auth, rate limiting | Redis | ~300 |
+| 18 | Internal API Gateway | Internal routing, auth, circuit breaking | Redis | ~300 |
 | 19 | IAM Service | Authentication, RBAC | PostgreSQL + Azure AD | ~400 |
 | 20 | Audit Service | Compliance logging | CosmosDB | ~300 |
 

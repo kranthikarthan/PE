@@ -155,7 +155,7 @@ Manage Payments Engine applications.
 
 | Component | Operator | Purpose |
 |-----------|----------|---------|
-| **Payment Gateway Operator** | Custom | Manage payment gateway lifecycle |
+| **Payment Service Operator** | Custom | Manage payment service lifecycle |
 | **Clearing Adapter Operator** | Custom | Manage clearing system adapters |
 | **Batch Processor Operator** | Custom | Manage batch processing jobs |
 | **Saga Orchestrator Operator** | Custom | Manage distributed transactions |
@@ -690,16 +690,16 @@ spec:
 
 ## Application Operators
 
-### Custom Payment Gateway Operator
+### Custom Payment Service Operator
 
-**Purpose**: Manage payment gateway microservices with domain-specific logic.
+**Purpose**: Manage payment microservices lifecycle with domain-specific operational logic (auto-scaling, health checks, upgrades, configuration).
 
 **Custom Resource Definition**:
 ```yaml
 apiVersion: payments.io/v1
-kind: PaymentGateway
+kind: PaymentService
 metadata:
-  name: payment-initiation-gateway
+  name: payment-initiation-service
   namespace: payments
 spec:
   # Version and Image
@@ -835,8 +835,8 @@ import (
     "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// PaymentGatewayReconciler reconciles a PaymentGateway object
-type PaymentGatewayReconciler struct {
+// PaymentServiceReconciler reconciles a PaymentService object
+type PaymentServiceReconciler struct {
     client.Client
     Scheme *runtime.Scheme
 }
@@ -846,11 +846,11 @@ type PaymentGatewayReconciler struct {
 //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 
-func (r *PaymentGatewayReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *PaymentServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
     log := ctrl.LoggerFrom(ctx)
 
-    // 1. Fetch PaymentGateway custom resource
-    gateway := &paymentsv1.PaymentGateway{}
+    // 1. Fetch PaymentService custom resource
+    service := &paymentsv1.PaymentService{}
     if err := r.Get(ctx, req.NamespacedName, gateway); err != nil {
         if errors.IsNotFound(err) {
             return ctrl.Result{}, nil
