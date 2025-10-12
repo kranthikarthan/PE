@@ -2860,6 +2860,1303 @@ Dependencies:
 
 ---
 
+## Phase 3: Platform Services (5 Features)
+
+### Feature 3.1: Tenant Management Service
+
+```yaml
+Feature ID: 3.1
+Feature Name: Tenant Management Service
+Agent Name: Tenant Management Agent
+Phase: 3 (Platform Services)
+Estimated Time: 4 days
+
+Role & Expertise:
+  You are a Backend Engineer with expertise in multi-tenancy, hierarchical data
+  models, Row-Level Security (PostgreSQL RLS), API design, and tenant lifecycle
+  management.
+
+Task:
+  Build the Tenant Management Service - manages tenant lifecycle, hierarchical
+  structure (Tenant → Business Unit → Customer), tenant-specific configurations,
+  and provides tenant context lookup for all services.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #15 section)
+        - Responsibilities
+        - API endpoints (8 endpoints)
+        - Tenant hierarchy
+     
+     📄 docs/12-TENANT-MANAGEMENT.md (COMPLETE FILE - 1,500 lines)
+        - Multi-tenancy overview
+        - 3-level hierarchy (Tenant → Business Unit → Customer)
+        - Row-Level Security (RLS)
+        - Tenant context propagation (X-Tenant-ID header)
+        - Tenant-specific configuration
+        - Automated onboarding (7 steps)
+        - Tenant usage tracking
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 3.1)
+  
+  2. Domain Models (from Phase 0):
+     ✅ Tenant.java (Aggregate Root)
+     ✅ BusinessUnit.java (Entity)
+     ✅ Customer.java (Entity)
+     ✅ TenantId.java (Value Object)
+     ✅ TenantConfiguration.java (Value Object)
+  
+  3. Database Schema (from Phase 0):
+     ✅ Table: tenants
+        - tenant_id (PK)
+        - tenant_name (VARCHAR, UNIQUE)
+        - status (VARCHAR) -- ACTIVE, SUSPENDED, DEACTIVATED
+        - created_at, updated_at
+     
+     ✅ Table: business_units
+        - business_unit_id (PK)
+        - tenant_id (FK)
+        - name (VARCHAR)
+        - created_at
+     
+     ✅ Table: tenant_configurations
+        - config_id (PK)
+        - tenant_id (FK)
+        - config_key (VARCHAR)
+        - config_value (TEXT) -- JSON
+        - config_type (VARCHAR)
+  
+  4. Tenant Hierarchy:
+     ```
+     Tenant (Bank/FI)
+       ├─ Business Unit 1 (Retail Banking)
+       │   ├─ Customer A
+       │   ├─ Customer B
+       │   └─ Customer C
+       ├─ Business Unit 2 (Corporate Banking)
+       │   ├─ Customer D
+       │   └─ Customer E
+       └─ Business Unit 3 (Investment Banking)
+           └─ Customer F
+     ```
+  
+  5. API Endpoints to Implement:
+     POST   /api/v1/tenants (create tenant)
+     GET    /api/v1/tenants/{id} (get tenant)
+     PUT    /api/v1/tenants/{id} (update tenant)
+     DELETE /api/v1/tenants/{id} (deactivate tenant)
+     POST   /api/v1/tenants/{id}/business-units (create BU)
+     GET    /api/v1/tenants/{id}/business-units (list BUs)
+     GET    /api/v1/tenants/{id}/config (get tenant config)
+     PUT    /api/v1/tenants/{id}/config (update tenant config)
+     GET    /api/v1/tenants/{id}/usage (usage metrics)
+  
+  6. Tenant Configuration Types:
+     - Limit Configuration (daily, monthly limits per payment type)
+     - Fraud Rules (risk thresholds, alert settings)
+     - Clearing Credentials (SAMOS participant code, etc.)
+     - Core Banking Endpoints (URLs for 6 core banking systems)
+     - Notification Settings (email, SMS templates)
+     - Fee Configuration (fee structure per payment type)
+  
+  7. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - Spring Data JPA
+     - PostgreSQL (with RLS)
+     - Redis (tenant config cache)
+     - gRPC (for fast tenant lookups by other services)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Component Diagram
+        - REST Controller (8 endpoints)
+        - Tenant Service (business logic)
+        - Configuration Service
+        - Usage Tracking Service
+        - Repository Layer
+        - gRPC Server (tenant lookup)
+     
+     📊 Tenant Hierarchy Diagram
+        - Tenant → Business Unit → Customer
+        - Relationship cardinality
+     
+     📊 Automated Onboarding Flow
+        ```
+        POST /api/v1/tenants
+            ↓
+        1. Create tenant record
+        2. Create default business unit
+        3. Create tenant configuration (with defaults)
+        4. Enable RLS for tenant
+        5. Publish TenantCreatedEvent
+        6. Create API keys
+        7. Return tenant credentials
+        ```
+  
+  2. LLD (Low-Level Design):
+     📋 Class Diagram
+        - TenantController
+        - TenantService
+        - BusinessUnitService
+        - ConfigurationService
+        - UsageTrackingService
+        - TenantRepository
+        - BusinessUnitRepository
+        - ConfigurationRepository
+        - TenantLookupGrpcService (gRPC)
+     
+     📋 API Contract (OpenAPI 3.0)
+        ```yaml
+        paths:
+          /api/v1/tenants:
+            post:
+              summary: Create tenant
+              requestBody:
+                schema:
+                  type: object
+                  properties:
+                    tenantName:
+                      type: string
+                    contactEmail:
+                      type: string
+                    plan:
+                      type: string
+                      enum: [BASIC, PREMIUM, ENTERPRISE]
+              responses:
+                '201':
+                  description: Tenant created
+                  schema:
+                    $ref: '#/components/schemas/TenantResponse'
+        ```
+     
+     📋 gRPC Service Definition
+        ```protobuf
+        service TenantLookupService {
+          rpc GetTenantById(TenantIdRequest) returns (TenantResponse);
+          rpc GetTenantByName(TenantNameRequest) returns (TenantResponse);
+          rpc GetTenantConfig(TenantConfigRequest) returns (TenantConfigResponse);
+        }
+        
+        message TenantIdRequest {
+          string tenant_id = 1;
+        }
+        
+        message TenantResponse {
+          string tenant_id = 1;
+          string tenant_name = 2;
+          string status = 3;
+          map<string, string> config = 4;
+        }
+        ```
+  
+  3. Implementation:
+     📁 /services/tenant-management-service/
+        ├─ src/main/java/com/payments/tenant/
+        │   ├─ TenantManagementApplication.java
+        │   ├─ controller/
+        │   │   ├─ TenantController.java
+        │   │   └─ BusinessUnitController.java
+        │   ├─ service/
+        │   │   ├─ TenantService.java
+        │   │   ├─ BusinessUnitService.java
+        │   │   ├─ ConfigurationService.java
+        │   │   ├─ UsageTrackingService.java
+        │   │   └─ TenantEventPublisher.java
+        │   ├─ grpc/
+        │   │   └─ TenantLookupGrpcService.java
+        │   ├─ repository/
+        │   │   ├─ TenantRepository.java
+        │   │   ├─ BusinessUnitRepository.java
+        │   │   └─ ConfigurationRepository.java
+        │   ├─ model/
+        │   │   ├─ TenantEntity.java
+        │   │   ├─ BusinessUnitEntity.java
+        │   │   └─ TenantConfigurationEntity.java
+        │   ├─ dto/
+        │   │   ├─ TenantRequest.java
+        │   │   ├─ TenantResponse.java
+        │   │   ├─ BusinessUnitRequest.java
+        │   │   └─ ConfigurationRequest.java
+        │   ├─ mapper/
+        │   │   └─ TenantMapper.java
+        │   ├─ config/
+        │   │   ├─ RedisConfig.java
+        │   │   ├─ GrpcConfig.java
+        │   │   └─ SecurityConfig.java
+        │   └─ exception/
+        │       ├─ TenantNotFoundException.java
+        │       └─ TenantAlreadyExistsException.java
+        ├─ src/main/proto/
+        │   └─ tenant_lookup.proto (gRPC service definition)
+        ├─ src/test/java/
+        │   ├─ controller/TenantControllerTest.java
+        │   ├─ service/TenantServiceTest.java
+        │   ├─ grpc/TenantLookupGrpcServiceTest.java
+        │   └─ integration/TenantIntegrationTest.java
+        ├─ Dockerfile
+        ├─ k8s/deployment.yaml
+        └─ README.md
+     
+     Key Implementation (TenantService.java):
+     ```java
+     @Service
+     @Slf4j
+     public class TenantService {
+         
+         @Autowired
+         private TenantRepository tenantRepository;
+         
+         @Autowired
+         private ConfigurationService configService;
+         
+         @Autowired
+         private TenantEventPublisher eventPublisher;
+         
+         @Transactional
+         public TenantResponse createTenant(TenantRequest request) {
+             log.info("Creating tenant: name={}", request.getTenantName());
+             
+             // 1. Validate uniqueness
+             if (tenantRepository.existsByTenantName(request.getTenantName())) {
+                 throw new TenantAlreadyExistsException(request.getTenantName());
+             }
+             
+             // 2. Create tenant
+             TenantEntity tenant = new TenantEntity();
+             tenant.setTenantId(UUID.randomUUID().toString());
+             tenant.setTenantName(request.getTenantName());
+             tenant.setContactEmail(request.getContactEmail());
+             tenant.setPlan(request.getPlan());
+             tenant.setStatus(TenantStatus.ACTIVE);
+             tenant.setCreatedAt(Instant.now());
+             tenantRepository.save(tenant);
+             
+             // 3. Create default configuration
+             configService.createDefaultConfiguration(tenant.getTenantId(), request.getPlan());
+             
+             // 4. Publish event
+             eventPublisher.publishTenantCreated(tenant);
+             
+             log.info("Tenant created successfully: tenantId={}", tenant.getTenantId());
+             
+             return TenantMapper.toResponse(tenant);
+         }
+         
+         @Transactional(readOnly = true)
+         public TenantResponse getTenant(String tenantId) {
+             TenantEntity tenant = tenantRepository.findById(tenantId)
+                 .orElseThrow(() -> new TenantNotFoundException(tenantId));
+             
+             return TenantMapper.toResponse(tenant);
+         }
+     }
+     ```
+  
+  4. Unit Testing:
+     ✅ Controller Tests
+        - Create tenant (201 Created)
+        - Get tenant (200 OK)
+        - Update tenant (200 OK)
+        - Tenant not found (404)
+        - Duplicate tenant (409 Conflict)
+     
+     ✅ Service Tests
+        - createTenant() success
+        - createTenant() duplicate
+        - Hierarchy management
+        - Configuration CRUD
+     
+     ✅ gRPC Tests
+        - Tenant lookup by ID
+        - Tenant lookup by name
+        - Config retrieval
+     
+     ✅ Integration Tests
+        - End-to-end tenant creation
+        - Hierarchy creation
+        - RLS validation
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md
+        - Tenant management overview
+        - API endpoints
+        - gRPC service
+        - How to run locally
+     
+     📄 TENANT-HIERARCHY.md
+        - 3-level hierarchy explained
+        - Hierarchy management
+        - RLS policies
+     
+     📄 TENANT-ONBOARDING.md
+        - Automated onboarding flow
+        - Configuration defaults
+        - API key generation
+
+Success Criteria:
+  ✅ Service builds successfully
+  ✅ All tests pass (60+ tests)
+  ✅ Code coverage ≥ 80%
+  ✅ REST API functional
+  ✅ gRPC service functional
+  ✅ RLS working (tenant isolation)
+  ✅ Docker image builds
+  ✅ Service deploys to AKS
+  ✅ Documentation complete
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete tenant spec in docs/12-TENANT-MANAGEMENT.md
+  - Hierarchy model clear
+  - RLS patterns provided
+  - gRPC examples included
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+```
+
+---
+
+### Feature 3.2: IAM Service
+
+```yaml
+Feature ID: 3.2
+Feature Name: IAM Service (Identity & Access Management)
+Agent Name: IAM Agent
+Phase: 3 (Platform Services)
+Estimated Time: 5 days
+
+Role & Expertise:
+  You are a Security Engineer with expertise in OAuth 2.0, OIDC, JWT tokens,
+  RBAC (Role-Based Access Control), ABAC (Attribute-Based Access Control),
+  Azure AD B2C, and Spring Security.
+
+Task:
+  Build the IAM Service - handles user authentication (login/logout),
+  authorization (RBAC/ABAC), JWT token generation/validation, integration
+  with Azure AD B2C, and multi-tenant user management.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #19 section)
+     📄 docs/21-SECURITY-ARCHITECTURE.md (Sections: Authentication, Authorization)
+        Lines 150-450 (complete IAM specification)
+        - OAuth 2.0 / OIDC flow
+        - JWT token structure
+        - RBAC roles (Admin, Operator, Viewer)
+        - ABAC attributes (tenant, business unit, payment type)
+        - Azure AD B2C integration
+        - MFA (Multi-Factor Authentication)
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 3.2)
+  
+  2. Authentication Flow (OAuth 2.0):
+     ```
+     1. User → POST /api/v1/auth/login
+        {username, password}
+     
+     2. IAM Service → Azure AD B2C (validate credentials)
+     
+     3. Azure AD B2C → Response (user validated)
+     
+     4. IAM Service → Generate JWT token
+        {
+          "sub": "user-123",
+          "tenantId": "BANK-001",
+          "roles": ["OPERATOR"],
+          "permissions": ["payment:create", "payment:read"],
+          "exp": 1633536000
+        }
+     
+     5. Response → JWT token
+     
+     6. User → All subsequent requests with JWT in Authorization header
+     
+     7. Services → Validate JWT (symmetric or asymmetric)
+     ```
+  
+  3. RBAC Roles:
+     - **Admin**: Full access (all operations)
+     - **Operator**: Create/update payments, view reports
+     - **Viewer**: Read-only access
+     - **Compliance**: Access to audit logs, sanctions screening
+     - **Support**: Limited read access, no modifications
+  
+  4. ABAC Attributes:
+     - Tenant ID (user belongs to which bank)
+     - Business Unit ID (user's business unit)
+     - Payment Type (user can process which payment types)
+     - Amount Limit (max amount user can approve)
+     - Geo-location (IP-based restrictions)
+  
+  5. JWT Token Structure:
+     ```json
+     {
+       "sub": "user-123",
+       "email": "operator@bank001.com",
+       "name": "John Doe",
+       "tenantId": "BANK-001",
+       "businessUnitId": "BU-001",
+       "roles": ["OPERATOR"],
+       "permissions": [
+         "payment:create",
+         "payment:read",
+         "payment:update",
+         "report:read"
+       ],
+       "attributes": {
+         "maxAmount": 100000,
+         "allowedPaymentTypes": ["EFT", "RTC"]
+       },
+       "iss": "https://iam.payments.io",
+       "aud": "payments-engine",
+       "exp": 1633536000,
+       "iat": 1633532400
+     }
+     ```
+  
+  6. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - Spring Security 6.x
+     - OAuth 2.0 Resource Server
+     - Azure AD B2C (external IdP)
+     - JWT (io.jsonwebtoken)
+     - PostgreSQL (users, roles, permissions)
+     - Redis (token blacklist for logout)
+  
+  7. Configuration:
+     application.yml:
+       azure:
+         activedirectory:
+           b2c:
+             tenant: payments-b2c
+             client-id: ${AZURE_AD_CLIENT_ID}
+             client-secret: ${AZURE_AD_CLIENT_SECRET}
+             user-flow: B2C_1_signupsignin
+       jwt:
+         secret: ${JWT_SECRET}  # For symmetric signing
+         expiration: 3600  # 1 hour
+         refresh-expiration: 86400  # 24 hours
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Authentication Flow Diagram (OAuth 2.0)
+     📊 Authorization Flow Diagram (RBAC + ABAC)
+     📊 Token Validation Flow
+  
+  2. LLD (Low-Level Design):
+     📋 Class Diagram
+        - AuthController
+        - AuthenticationService
+        - AuthorizationService
+        - JwtTokenProvider
+        - AzureADB2CClient
+        - UserRepository
+        - RoleRepository
+        - PermissionRepository
+     
+     📋 RBAC Model
+        - User → Roles (N:M)
+        - Role → Permissions (N:M)
+        - Permission → Resources (1:N)
+     
+     📋 JWT Token Strategy
+        - Signing algorithm: HS256 (symmetric) or RS256 (asymmetric)
+        - Token expiry: 1 hour
+        - Refresh token: 24 hours
+        - Token blacklist (for logout)
+  
+  3. Implementation:
+     📁 /services/iam-service/
+        ├─ src/main/java/com/payments/iam/
+        │   ├─ IAMServiceApplication.java
+        │   ├─ controller/
+        │   │   ├─ AuthController.java
+        │   │   └─ UserController.java
+        │   ├─ service/
+        │   │   ├─ AuthenticationService.java
+        │   │   ├─ AuthorizationService.java
+        │   │   └─ UserService.java
+        │   ├─ security/
+        │   │   ├─ JwtTokenProvider.java
+        │   │   ├─ JwtAuthenticationFilter.java
+        │   │   ├─ AzureADB2CClient.java
+        │   │   └─ TokenBlacklistService.java (Redis)
+        │   ├─ repository/
+        │   │   ├─ UserRepository.java
+        │   │   ├─ RoleRepository.java
+        │   │   └─ PermissionRepository.java
+        │   ├─ model/
+        │   │   ├─ UserEntity.java
+        │   │   ├─ RoleEntity.java
+        │   │   └─ PermissionEntity.java
+        │   ├─ dto/
+        │   │   ├─ LoginRequest.java
+        │   │   ├─ LoginResponse.java
+        │   │   ├─ TokenResponse.java
+        │   │   └─ UserResponse.java
+        │   ├─ config/
+        │   │   ├─ SecurityConfig.java
+        │   │   ├─ AzureADB2CConfig.java
+        │   │   └─ JwtConfig.java
+        │   └─ exception/
+        │       ├─ InvalidCredentialsException.java
+        │       ├─ TokenExpiredException.java
+        │       └─ UnauthorizedException.java
+        ├─ src/test/java/
+        │   ├─ controller/AuthControllerTest.java
+        │   ├─ service/AuthenticationServiceTest.java
+        │   ├─ security/JwtTokenProviderTest.java
+        │   └─ integration/IAMIntegrationTest.java
+        ├─ Dockerfile
+        ├─ k8s/deployment.yaml
+        └─ README.md
+     
+     Key Implementation (JwtTokenProvider.java):
+     ```java
+     @Component
+     @Slf4j
+     public class JwtTokenProvider {
+         
+         @Value("${jwt.secret}")
+         private String jwtSecret;
+         
+         @Value("${jwt.expiration}")
+         private long jwtExpiration;
+         
+         public String generateToken(User user) {
+             Map<String, Object> claims = new HashMap<>();
+             claims.put("tenantId", user.getTenantId());
+             claims.put("roles", user.getRoles().stream()
+                 .map(Role::getName).collect(Collectors.toList()));
+             claims.put("permissions", user.getPermissions());
+             
+             return Jwts.builder()
+                 .setClaims(claims)
+                 .setSubject(user.getUserId())
+                 .setIssuedAt(new Date())
+                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration * 1000))
+                 .signWith(SignatureAlgorithm.HS256, jwtSecret)
+                 .compact();
+         }
+         
+         public boolean validateToken(String token) {
+             try {
+                 Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
+                 return true;
+             } catch (ExpiredJwtException e) {
+                 log.error("JWT token expired", e);
+                 return false;
+             } catch (Exception e) {
+                 log.error("JWT token invalid", e);
+                 return false;
+             }
+         }
+         
+         public String getTenantIdFromToken(String token) {
+             Claims claims = Jwts.parser()
+                 .setSigningKey(jwtSecret)
+                 .parseClaimsJws(token)
+                 .getBody();
+             return claims.get("tenantId", String.class);
+         }
+     }
+     ```
+  
+  4. Unit Testing:
+     ✅ Authentication Tests
+        - Login success
+        - Login failure (invalid credentials)
+        - Logout (token blacklist)
+        - Token refresh
+     
+     ✅ Authorization Tests
+        - RBAC: User with role can access
+        - RBAC: User without role denied
+        - ABAC: Attribute match allowed
+        - ABAC: Attribute mismatch denied
+     
+     ✅ JWT Tests
+        - Token generation
+        - Token validation
+        - Token expiry
+        - Token claims extraction
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md
+        - IAM overview
+        - OAuth 2.0 flow
+        - JWT structure
+        - How to test
+     
+     📄 AUTHENTICATION-GUIDE.md
+        - Login flow
+        - Azure AD B2C setup
+        - MFA configuration
+     
+     📄 AUTHORIZATION-GUIDE.md
+        - RBAC roles
+        - ABAC attributes
+        - Permission model
+
+Success Criteria:
+  ✅ Authentication working (Azure AD B2C)
+  ✅ JWT generation/validation working
+  ✅ RBAC enforced
+  ✅ ABAC enforced
+  ✅ Tests pass (80%+ coverage)
+  ✅ Documentation complete
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete security spec in docs/21
+  - OAuth 2.0 flow detailed
+  - JWT structure provided
+  - RBAC/ABAC models clear
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+  ✅ Feature 3.1 (Tenant Management) - for tenant lookup
+  ✅ Azure AD B2C (configured)
+```
+
+---
+
+### Feature 3.3: Audit Service
+
+```yaml
+Feature ID: 3.3
+Feature Name: Audit Service
+Agent Name: Audit Agent
+Phase: 3 (Platform Services)
+Estimated Time: 3 days
+
+Role & Expertise:
+  You are a Backend Engineer with expertise in event-driven architecture,
+  immutable audit logs, CosmosDB (NoSQL), and compliance (7-year retention).
+
+Task:
+  Build the Audit Service - consumes ALL events from the system, persists
+  immutable audit logs to CosmosDB, provides audit trail API, and supports
+  compliance reporting.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #20 section)
+     📄 docs/21-SECURITY-ARCHITECTURE.md (Section: Audit Trail)
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 3.3)
+  
+  2. Domain Models (from Phase 0):
+     ✅ AuditLog.java (Immutable)
+     ✅ AuditEvent.java (Value Object)
+  
+  3. Event Schemas (from Phase 0):
+     ✅ ALL 25+ events (audit service listens to ALL)
+  
+  4. Database: Azure CosmosDB (NOT PostgreSQL)
+     - Container: audit_log
+     - Partition Key: tenant_id
+     - TTL: 7 years (2,555 days)
+     - Indexing: eventType, entityId, timestamp
+  
+  5. Audit Log Structure:
+     ```json
+     {
+       "auditId": "audit-uuid",
+       "eventId": "event-uuid",
+       "eventType": "PaymentInitiatedEvent",
+       "entityType": "Payment",
+       "entityId": "PAY-2025-XXXXXX",
+       "action": "CREATE",
+       "actor": {
+         "userId": "user-123",
+         "tenantId": "BANK-001",
+         "ipAddress": "192.168.1.1",
+         "userAgent": "Mozilla/5.0..."
+       },
+       "changes": {
+         "before": null,
+         "after": {
+           "amount": 10000.00,
+           "status": "INITIATED"
+         }
+       },
+       "timestamp": "2025-10-12T10:00:00Z",
+       "correlationId": "corr-uuid",
+       "tenantId": "BANK-001"
+     }
+     ```
+  
+  6. API Endpoints to Implement:
+     GET    /api/v1/audit/entity/{entityId} (get audit trail for entity)
+     POST   /api/v1/audit/search (search audit logs)
+     GET    /api/v1/audit/export (export for compliance)
+  
+  7. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - Azure CosmosDB SDK
+     - Azure Service Bus (event consumption)
+     - Spring Data CosmosDB
+     - Reactive (Spring WebFlux) - for high throughput
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Audit Flow
+        ```
+        ALL Events (25+ types)
+            ↓
+        Audit Service (consumes all)
+            ↓
+        Transform to AuditLog
+            ↓
+        Persist to CosmosDB (immutable)
+            ↓
+        Indexed by: tenant_id, eventType, entityId, timestamp
+        ```
+  
+  2. LLD (Low-Level Design):
+     📋 Class Diagram
+        - AuditEventConsumer (consumes ALL events)
+        - AuditService
+        - AuditLogTransformer (event → audit log)
+        - AuditRepository (CosmosDB)
+        - AuditQueryService (search)
+     
+     📋 CosmosDB Schema
+        - Container: audit_log
+        - Partition key: /tenantId
+        - Indexes: eventType, entityId, timestamp
+        - TTL: 7 years
+  
+  3. Implementation:
+     📁 /services/audit-service/
+        ├─ src/main/java/com/payments/audit/
+        │   ├─ AuditServiceApplication.java
+        │   ├─ consumer/
+        │   │   └─ AuditEventConsumer.java (ALL events)
+        │   ├─ service/
+        │   │   ├─ AuditService.java
+        │   │   ├─ AuditLogTransformer.java
+        │   │   └─ AuditQueryService.java
+        │   ├─ repository/
+        │   │   └─ AuditRepository.java (CosmosDB)
+        │   ├─ model/
+        │   │   ├─ AuditLog.java (immutable)
+        │   │   └─ AuditQuery.java
+        │   ├─ controller/
+        │   │   └─ AuditController.java
+        │   ├─ config/
+        │   │   ├─ CosmosDBConfig.java
+        │   │   └─ ServiceBusConfig.java
+        │   └─ exception/
+        │       └─ AuditNotFoundException.java
+        ├─ src/test/java/
+        │   ├─ service/AuditServiceTest.java
+        │   ├─ consumer/AuditEventConsumerTest.java
+        │   └─ integration/AuditIntegrationTest.java (with CosmosDB emulator)
+        ├─ Dockerfile
+        └─ README.md
+     
+     Key Implementation (AuditService.java):
+     ```java
+     @Service
+     @Slf4j
+     public class AuditService {
+         
+         @Autowired
+         private AuditRepository auditRepository;
+         
+         public void createAuditLog(DomainEvent event) {
+             log.debug("Creating audit log: eventType={}", event.getEventType());
+             
+             // Transform event to audit log
+             AuditLog auditLog = AuditLog.builder()
+                 .auditId(UUID.randomUUID().toString())
+                 .eventId(event.getEventId())
+                 .eventType(event.getEventType())
+                 .entityType(extractEntityType(event))
+                 .entityId(extractEntityId(event))
+                 .action(extractAction(event))
+                 .actor(extractActor(event))
+                 .changes(extractChanges(event))
+                 .timestamp(event.getTimestamp())
+                 .correlationId(event.getCorrelationId())
+                 .tenantId(event.getTenantId())
+                 .build();
+             
+             // Persist (immutable, no updates allowed)
+             auditRepository.save(auditLog);
+             
+             log.info("Audit log created: auditId={}, entityId={}", 
+                 auditLog.getAuditId(), auditLog.getEntityId());
+         }
+     }
+     ```
+  
+  4. Unit Testing:
+     ✅ Event Consumption Tests
+        - All 25+ event types consumed
+        - Transformation correct
+        - Persistence successful
+     
+     ✅ Query Tests
+        - Search by entityId
+        - Search by eventType
+        - Search by date range
+        - Tenant isolation (RLS-like)
+     
+     ✅ CosmosDB Tests (with emulator)
+        - CRUD operations
+        - TTL enforcement (7 years)
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md
+        - Audit service overview
+        - CosmosDB setup
+        - Query API
+     
+     📄 AUDIT-TRAIL-GUIDE.md
+        - Audit log structure
+        - Retention policy (7 years)
+        - Compliance reporting
+
+Success Criteria:
+  ✅ All events consumed
+  ✅ CosmosDB persistence working
+  ✅ Immutability enforced (no updates)
+  ✅ Query API functional
+  ✅ 7-year TTL configured
+  ✅ Tests pass (80%+ coverage)
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete audit spec in docs/21
+  - Event schemas (all 25+)
+  - CosmosDB patterns
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+  ✅ Azure CosmosDB (provisioned)
+```
+
+---
+
+### Feature 3.4: Notification Service / IBM MQ Adapter
+
+```yaml
+Feature ID: 3.4
+Feature Name: Notification Service (IBM MQ Adapter)
+Agent Name: Notification Agent
+Phase: 3 (Platform Services)
+Estimated Time: 3 days
+
+Role & Expertise:
+  You are a Backend Engineer with expertise in IBM MQ, JMS (Java Message Service),
+  fire-and-forget messaging, and non-persistent queues.
+
+Task:
+  Build the Notification Service (IBM MQ Adapter) - consumes payment events
+  (PaymentCompletedEvent, PaymentFailedEvent) and forwards notification requests
+  to a remote notifications engine via IBM MQ (non-persistent, fire-and-forget).
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #16 section - Option 2)
+     📄 docs/25-IBM-MQ-NOTIFICATIONS.md (COMPLETE FILE - 1,600 lines)
+        - IBM MQ integration architecture
+        - Fire-and-forget pattern
+        - Non-persistent messaging
+        - Message format
+        - Configuration
+        - Remote engine capabilities
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 3.4)
+  
+  2. Design Philosophy:
+     ```
+     Core Function:         Non-Core Function:
+     Payment Processing     Notifications
+     ├─ MUST succeed       ├─ CAN fail
+     ├─ ACID transactions  ├─ Fire-and-forget
+     ├─ Persistent         ├─ Non-persistent
+     ├─ Synchronous        ├─ Asynchronous
+     └─ Zero data loss     └─ Best-effort delivery
+     
+     Therefore: Payment succeeds even if notification fails ✅
+     ```
+  
+  3. IBM MQ Configuration:
+     - Queue Manager: PAYMENTS_QM
+     - Queue: PAYMENTS.NOTIFICATIONS.OUT
+     - Delivery Mode: NON_PERSISTENT (fire-and-forget)
+     - Put Timeout: 1 second max (no blocking)
+     - Connection: TCP/IP (host:port)
+  
+  4. Message Format (sent to IBM MQ):
+     ```json
+     {
+       "messageType": "NOTIFICATION_REQUEST",
+       "notificationType": "PAYMENT_COMPLETED",
+       "recipient": {
+         "customerId": "CUST-12345",
+         "phone": "+27821234567",
+         "email": "customer@example.com"
+       },
+       "payload": {
+         "paymentId": "PAY-67890",
+         "amount": 10000.00,
+         "currency": "ZAR",
+         "status": "COMPLETED"
+       },
+       "templateId": "payment_completed_v1",
+       "timestamp": "2025-10-12T10:00:00Z"
+     }
+     ```
+  
+  5. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - IBM MQ JMS Spring Boot Starter
+     - Azure Service Bus (event consumption)
+     - NO database (fire-and-forget)
+  
+  6. Configuration:
+     application.yml:
+       ibm:
+         mq:
+           queue-manager: PAYMENTS_QM
+           host: ibmmq.payments.io
+           port: 1414
+           channel: PAYMENTS.CHANNEL
+           notification-queue: PAYMENTS.NOTIFICATIONS.OUT
+           delivery-mode: NON_PERSISTENT  # Fire-and-forget
+           put-timeout: 1000  # 1 second max
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Fire-and-Forget Flow
+        ```
+        PaymentCompletedEvent
+            ↓
+        Notification Service
+            ↓
+        Build NotificationRequest
+            ↓
+        Put to IBM MQ (NON_PERSISTENT, 1s timeout)
+            ↓
+        If success: Log "notification sent"
+        If failure: Log "notification failed (ignored)"
+            ↓
+        Continue (don't throw exception)
+        ```
+  
+  2. LLD (Low-Level Design):
+     📋 Class Diagram
+        - NotificationEventConsumer
+        - NotificationService
+        - IbmMqAdapter (JMS)
+        - NotificationRequestBuilder
+     
+     📋 IBM MQ Integration
+        - JMS ConnectionFactory
+        - JMS Template (Spring)
+        - Non-persistent delivery mode
+        - 1 second put timeout
+  
+  3. Implementation:
+     📁 /services/notification-service/
+        ├─ src/main/java/com/payments/notification/
+        │   ├─ NotificationServiceApplication.java
+        │   ├─ consumer/
+        │   │   └─ PaymentEventConsumer.java
+        │   ├─ service/
+        │   │   ├─ NotificationService.java
+        │   │   └─ IbmMqAdapter.java
+        │   ├─ builder/
+        │   │   └─ NotificationRequestBuilder.java
+        │   ├─ model/
+        │   │   ├─ NotificationRequest.java
+        │   │   └─ NotificationType.java (Enum)
+        │   ├─ config/
+        │   │   ├─ IbmMqConfig.java
+        │   │   └─ ServiceBusConfig.java
+        │   └─ exception/
+        │       └─ NotificationException.java
+        ├─ src/test/java/
+        │   ├─ service/NotificationServiceTest.java
+        │   ├─ adapter/IbmMqAdapterTest.java (with embedded ActiveMQ)
+        │   └─ integration/NotificationIntegrationTest.java
+        ├─ Dockerfile
+        └─ README.md
+     
+     Key Implementation (IbmMqAdapter.java):
+     ```java
+     @Service
+     @Slf4j
+     public class IbmMqAdapter {
+         
+         @Autowired
+         private JmsTemplate jmsTemplate;
+         
+         public boolean sendNotification(NotificationRequest notification) {
+             try {
+                 // Send to IBM MQ (NON_PERSISTENT, fire-and-forget)
+                 jmsTemplate.send(session -> {
+                     TextMessage message = session.createTextMessage(toJson(notification));
+                     message.setJMSDeliveryMode(DeliveryMode.NON_PERSISTENT);
+                     message.setJMSPriority(4);
+                     message.setJMSExpiration(System.currentTimeMillis() + 300000); // 5 min
+                     return message;
+                 });
+                 
+                 log.info("Notification sent to IBM MQ: {}", notification.getNotificationType());
+                 return true;
+             } catch (JmsException e) {
+                 // Don't throw - payment already succeeded
+                 log.warn("Failed to send notification (fire-and-forget, ignoring): {}", 
+                     e.getMessage());
+                 return false;
+             }
+         }
+     }
+     ```
+  
+  4. Unit Testing:
+     ✅ Notification Service Tests
+        - PaymentCompletedEvent → notification sent
+        - PaymentFailedEvent → notification sent
+        - IBM MQ failure → log warning (don't throw)
+     
+     ✅ IBM MQ Adapter Tests (with embedded ActiveMQ)
+        - Message sent successfully
+        - Connection failure (graceful)
+        - Timeout (1 second)
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md
+        - Notification service overview
+        - IBM MQ setup
+        - Fire-and-forget pattern
+     
+     📄 IBM-MQ-SETUP.md
+        - Queue manager setup
+        - Queue creation
+        - Connection configuration
+
+Success Criteria:
+  ✅ IBM MQ connection working
+  ✅ Notifications sent (non-persistent)
+  ✅ Fire-and-forget (no exceptions on failure)
+  ✅ Tests pass (80%+ coverage)
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete IBM MQ spec in docs/25
+  - Fire-and-forget pattern clear
+  - JMS configuration examples
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+  ✅ IBM MQ (deployed or mocked)
+```
+
+---
+
+### Feature 3.5: Reporting Service
+
+```yaml
+Feature ID: 3.5
+Feature Name: Reporting Service
+Agent Name: Reporting Agent
+Phase: 3 (Platform Services)
+Estimated Time: 4 days
+
+Role & Expertise:
+  You are a Backend Engineer with expertise in reporting, analytics, data
+  warehousing (Azure Synapse), SQL query optimization, and business intelligence.
+
+Task:
+  Build the Reporting Service - generates transaction reports, analytics
+  dashboards, compliance reports, and integrates with Azure Synapse Analytics
+  for data warehousing.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #17 section)
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 3.5)
+  
+  2. Report Types:
+     - Daily Summary Report (total volume, amount, success rate)
+     - Tenant Transaction Report (per tenant, per day/month)
+     - Clearing System Report (per clearing system)
+     - Reconciliation Report (exceptions, mismatches)
+     - Compliance Report (SARB reporting)
+     - Settlement Report (nostro/vostro positions)
+  
+  3. Data Sources:
+     - PostgreSQL databases (all payment/transaction tables)
+     - Azure Synapse (data warehouse for historical data)
+     - Redis (real-time metrics cache)
+  
+  4. API Endpoints to Implement:
+     GET    /api/v1/reports/daily-summary
+     GET    /api/v1/reports/tenant/{tenantId}/transactions
+     POST   /api/v1/reports/custom (custom report with SQL)
+     GET    /api/v1/analytics/transaction-volume
+     GET    /api/v1/analytics/settlement-status
+     POST   /api/v1/reports/export (CSV/Excel/PDF)
+  
+  5. Azure Synapse Integration:
+     - ETL Pipeline: PostgreSQL → Synapse (nightly)
+     - SQL Pool: Dedicated or serverless
+     - PolyBase: Query external data
+     - Materialized Views: Pre-aggregated data
+  
+  6. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - Spring Data JPA (PostgreSQL)
+     - Azure Synapse SDK
+     - Apache POI (Excel export)
+     - iText (PDF export)
+     - JasperReports (report templates)
+     - Redis (metrics cache)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Reporting Architecture
+        ```
+        Real-time Data (PostgreSQL)
+            ↓
+        Reporting Service (queries)
+            ↓
+        Generate Report (JasperReports)
+            ↓
+        Export (CSV/Excel/PDF)
+        
+        Historical Data (Azure Synapse)
+            ↓
+        ETL Pipeline (nightly)
+            ↓
+        Reporting Service (analytics queries)
+            ↓
+        Dashboards (aggregated data)
+        ```
+  
+  2. LLD (Low-Level Design):
+     📋 Class Diagram
+        - ReportController
+        - ReportService
+        - AnalyticsService
+        - ReportGenerator (JasperReports)
+        - ExportService (CSV, Excel, PDF)
+        - SynapseClient
+        - ReportRepository
+     
+     📋 Report Templates
+        - daily_summary.jrxml
+        - tenant_transactions.jrxml
+        - compliance_report.jrxml
+  
+  3. Implementation:
+     📁 /services/reporting-service/
+        ├─ src/main/java/com/payments/reporting/
+        │   ├─ ReportingServiceApplication.java
+        │   ├─ controller/
+        │   │   ├─ ReportController.java
+        │   │   └─ AnalyticsController.java
+        │   ├─ service/
+        │   │   ├─ ReportService.java
+        │   │   ├─ AnalyticsService.java
+        │   │   ├─ ReportGenerator.java
+        │   │   └─ ExportService.java
+        │   ├─ client/
+        │   │   └─ SynapseClient.java
+        │   ├─ repository/
+        │   │   ├─ ReportRepository.java
+        │   │   └─ AnalyticsRepository.java
+        │   ├─ model/
+        │   │   ├─ Report.java
+        │   │   └─ ReportMetadata.java
+        │   ├─ dto/
+        │   │   ├─ DailySummaryReport.java
+        │   │   ├─ TenantTransactionReport.java
+        │   │   └─ CustomReportRequest.java
+        │   ├─ config/
+        │   │   ├─ JasperConfig.java
+        │   │   ├─ SynapseConfig.java
+        │   │   └─ RedisConfig.java
+        │   └─ exception/
+        │       └─ ReportGenerationException.java
+        ├─ src/main/resources/
+        │   └─ reports/
+        │       ├─ daily_summary.jrxml
+        │       ├─ tenant_transactions.jrxml
+        │       └─ compliance_report.jrxml
+        ├─ src/test/java/
+        │   ├─ service/ReportServiceTest.java
+        │   ├─ service/AnalyticsServiceTest.java
+        │   └─ integration/ReportingIntegrationTest.java
+        ├─ Dockerfile
+        └─ README.md
+  
+  4. Unit Testing:
+     ✅ Report Generation Tests
+        - Daily summary report
+        - Tenant transaction report
+        - Custom report
+     
+     ✅ Export Tests
+        - CSV export
+        - Excel export
+        - PDF export
+     
+     ✅ Analytics Tests
+        - Transaction volume
+        - Settlement status
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md
+        - Reporting overview
+        - Available reports
+        - Export formats
+     
+     📄 REPORT-TEMPLATES.md
+        - JasperReports templates
+        - How to create custom reports
+
+Success Criteria:
+  ✅ Reports generated successfully
+  ✅ Export formats working (CSV, Excel, PDF)
+  ✅ Azure Synapse integration working
+  ✅ Tests pass (80%+ coverage)
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Report types defined in docs/02
+  - Azure Synapse patterns clear
+  - Export examples provided
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+  ✅ Azure Synapse (provisioned)
+```
+
+---
+
 ## Context Sufficiency Analysis
 
 ### Summary of Context Completeness
