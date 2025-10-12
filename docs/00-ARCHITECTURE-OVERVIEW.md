@@ -243,11 +243,12 @@ This document outlines a **highly modular, AI-agent-buildable payments engine** 
     - Compliance reports
     - Tech: Spring Boot, PostgreSQL, Azure Synapse
 
-18. **API Gateway Service** (#18)
-    - External API ingress
-    - Authentication/Authorization
-    - Rate limiting
-    - Tech: Spring Cloud Gateway, Redis
+18. **Internal API Gateway Service** (#18)
+   - Internal service-to-service routing
+   - Authentication/Authorization (internal)
+   - Rate limiting (internal)
+   - Circuit breaking
+   - Tech: Spring Cloud Gateway, Redis
 
 19. **IAM Service** (#19)
     - User authentication
