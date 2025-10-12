@@ -32,6 +32,7 @@ This repository contains the complete architecture design for a **highly modular
 | **[25-IBM-MQ-NOTIFICATIONS.md](docs/25-IBM-MQ-NOTIFICATIONS.md)** 🆕 | Remote notifications engine (IBM MQ option) | ✅ Complete |
 | **[29-ENTERPRISE-INTEGRATION-PATTERNS.md](docs/29-ENTERPRISE-INTEGRATION-PATTERNS.md)** 🆕 | **27 EIP patterns by Gregor Hohpe** | ✅ Complete |
 | **[30-KUBERNETES-OPERATORS-DAY2.md](docs/30-KUBERNETES-OPERATORS-DAY2.md)** 🆕 | **Kubernetes Operators for Day 2 Operations (14 operators)** | ✅ Complete |
+| **[31-DROOLS-RULES-ENGINE.md](docs/31-DROOLS-RULES-ENGINE.md)** 🆕 | **Drools Rules Engine for Business Rules (6 microservices, 75+ rules)** | ✅ Complete |
 | **[07-AZURE-INFRASTRUCTURE.md](docs/07-AZURE-INFRASTRUCTURE.md)** | Azure infrastructure (AKS, networking, security) | ✅ Complete |
 | **[08-CORE-BANKING-INTEGRATION.md](docs/08-CORE-BANKING-INTEGRATION.md)** | **Integration with external core banking systems** | ✅ Complete |
 | **[09-LIMIT-MANAGEMENT.md](docs/09-LIMIT-MANAGEMENT.md)** | **Customer transaction limit management system** | ✅ Complete |
