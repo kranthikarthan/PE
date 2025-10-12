@@ -131,9 +131,24 @@ This document outlines a **highly modular, AI-agent-buildable payments engine** 
                             └──────────────────────────────────┘
 ```
 
+## Gateway Layer Clarification
+
+**Important**: The architecture uses multiple "gateway" components at different layers. Each has a distinct purpose:
+
+| Layer | Component | Type | Purpose |
+|-------|-----------|------|---------|
+| **Edge** | **Azure Application Gateway** | Azure Infrastructure | WAF, SSL termination, DDoS protection |
+| **External API** | **Azure API Management (APIM)** | Azure Managed Service | External API facade, versioning, rate limiting |
+| **BFF** | **Web/Mobile/Partner BFFs** | Microservices (3) | Client-optimized APIs, aggregation |
+| **Internal** | **Internal API Gateway (#18)** | Microservice | Internal routing, circuit breaking |
+
+**Note**: With **Istio service mesh** deployed, the Internal API Gateway Service (#18) becomes **optional/redundant** as Istio provides circuit breaking, load balancing, and mTLS. See `docs/32-GATEWAY-ARCHITECTURE-CLARIFICATION.md` for complete details.
+
+---
+
 ## Microservices Breakdown
 
-**Total**: 20 Microservices
+**Total**: 20 Microservices (19 if removing Internal API Gateway - see gateway clarification)
 
 ### Core Payment Services (6 Services)
 
