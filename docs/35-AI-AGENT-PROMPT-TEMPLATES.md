@@ -938,12 +938,6 @@ Dependencies:
 
 ## Phase 1: Core Services (6 Features)
 
-**Note**: Phase 1 detailed prompts follow the same structure as Feature 1.1 (Payment Initiation Service) shown above. All 6 core services have complete context from Phase 0 foundation.
-
----
-
-## Phase 2: Clearing Adapters (5 Features)
-
 ### Feature 1.1: Payment Initiation Service
 
 ```yaml
@@ -1309,6 +1303,1582 @@ Dependencies:
   ✅ Feature 0.3 (Domain Models) - COMPLETE
   ✅ Feature 0.4 (Shared Libraries) - COMPLETE
   ✅ Feature 0.5 (Infrastructure Setup) - COMPLETE
+```
+
+---
+
+### Feature 1.2: Validation Service
+
+```yaml
+Feature ID: 1.2
+Feature Name: Validation Service
+Agent Name: Validation Agent
+Phase: 1 (Core Services)
+Estimated Time: 4 days
+
+Role & Expertise:
+  You are a Backend Engineer with expertise in Java Spring Boot, business rules
+  validation, Drools rules engine, and microservices patterns.
+
+Task:
+  Build the Validation Service - validates all payment requests against business
+  rules, regulatory requirements, and Drools-based dynamic rules. Publishes
+  PaymentValidatedEvent or PaymentRejectedEvent.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #2)
+        - Validation responsibilities
+        - API endpoints (REST + event consumer)
+        - Technology stack
+     
+     📄 docs/31-DROOLS-RULES-ENGINE.md (COMPLETE FILE - 2,000 lines)
+        - Drools integration
+        - Rule definitions (KIE base, sessions)
+        - Hot reload rules from Git
+        - Rule types (Payment Amount, Currency, Account Status, Sanctions)
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 1.2)
+  
+  2. Validation Rules (Drools):
+     
+     **Rule 1: Minimum Payment Amount**
+     ```drl
+     package com.payments.validation.rules;
+     
+     import com.payments.domain.payment.Payment;
+     import com.payments.domain.payment.ValidationResult;
+     
+     rule "Minimum Payment Amount"
+       when
+         $payment: Payment(amount.value < 1.00)
+       then
+         ValidationResult result = ValidationResult.reject(
+           "AMOUNT_TOO_LOW", 
+           "Payment amount must be at least R1.00"
+         );
+         $payment.addValidationError(result);
+     end
+     ```
+     
+     **Rule 2: Maximum Payment Amount by Type**
+     ```drl
+     rule "EFT Maximum Amount"
+       when
+         $payment: Payment(
+           paymentType == PaymentType.EFT,
+           amount.value > 1000000.00
+         )
+       then
+         ValidationResult result = ValidationResult.reject(
+           "AMOUNT_EXCEEDS_LIMIT",
+           "EFT payments cannot exceed R1,000,000"
+         );
+         $payment.addValidationError(result);
+     end
+     
+     rule "RTC Maximum Amount"
+       when
+         $payment: Payment(
+           paymentType == PaymentType.RTC,
+           amount.value > 5000.00
+         )
+       then
+         ValidationResult result = ValidationResult.reject(
+           "RTC_LIMIT_EXCEEDED",
+           "RTC payments cannot exceed R5,000"
+         );
+         $payment.addValidationError(result);
+     end
+     
+     rule "PayShap Maximum Amount"
+       when
+         $payment: Payment(
+           paymentType == PaymentType.PAYSHAP,
+           amount.value > 3000.00
+         )
+       then
+         ValidationResult result = ValidationResult.reject(
+           "PAYSHAP_LIMIT_EXCEEDED",
+           "PayShap payments cannot exceed R3,000"
+         );
+         $payment.addValidationError(result);
+     end
+     ```
+     
+     **Rule 3: Currency Validation**
+     ```drl
+     rule "Valid Currency"
+       when
+         $payment: Payment(currency not in ("ZAR", "USD", "EUR", "GBP"))
+       then
+         ValidationResult result = ValidationResult.reject(
+           "INVALID_CURRENCY",
+           "Currency must be ZAR, USD, EUR, or GBP"
+         );
+         $payment.addValidationError(result);
+     end
+     ```
+  
+  3. Validation Flow:
+     ```
+     PaymentInitiatedEvent received
+         ↓
+     Load Payment from database
+         ↓
+     Execute Drools rules (KIE session)
+         ↓
+     Check ValidationResult
+         ↓
+     If PASSED → Publish PaymentValidatedEvent
+     If REJECTED → Publish PaymentRejectedEvent
+     ```
+  
+  4. Event Consumption & Publishing:
+     ```java
+     @Service
+     public class ValidationEventHandler {
+         
+         @Autowired
+         private ValidationService validationService;
+         
+         @Autowired
+         private EventPublisher eventPublisher;
+         
+         @ServiceBusQueueTrigger(
+             name = "paymentInitiated",
+             queueName = "payment-initiated",
+             connection = "ServiceBusConnectionString"
+         )
+         public void handlePaymentInitiated(
+             @ServiceBusMessage PaymentInitiatedEvent event,
+             final ExecutionContext context
+         ) {
+             log.info("Validating payment: {}", event.getPaymentId());
+             
+             ValidationResult result = validationService.validate(
+                 event.getPaymentId()
+             );
+             
+             if (result.isValid()) {
+                 // Publish PaymentValidatedEvent
+                 PaymentValidatedEvent validatedEvent = PaymentValidatedEvent.builder()
+                     .paymentId(event.getPaymentId())
+                     .validatedAt(Instant.now())
+                     .build();
+                 
+                 eventPublisher.publish("payment-validated", validatedEvent);
+                 log.info("Payment validated: {}", event.getPaymentId());
+             } else {
+                 // Publish PaymentRejectedEvent
+                 PaymentRejectedEvent rejectedEvent = PaymentRejectedEvent.builder()
+                     .paymentId(event.getPaymentId())
+                     .rejectionReason(result.getErrors())
+                     .rejectedAt(Instant.now())
+                     .build();
+                 
+                 eventPublisher.publish("payment-rejected", rejectedEvent);
+                 log.error("Payment rejected: {}", result.getErrors());
+             }
+         }
+     }
+     ```
+  
+  5. Technology Stack:
+     - Java 17
+     - Spring Boot 3.2
+     - Drools 8.44+ (rules engine)
+     - Azure Service Bus (event consumer/publisher)
+     - PostgreSQL (rules storage)
+     - Redis (rules caching)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Validation Architecture
+        - Event consumption (PaymentInitiatedEvent)
+        - Drools rules execution
+        - Event publishing (Validated/Rejected)
+  
+  2. LLD (Low-Level Design):
+     📋 Validation Rules (Drools DRL)
+        - 10+ validation rules (amount, currency, accounts, sanctions)
+     
+     📋 ValidationService API
+        - validatePayment(paymentId) → ValidationResult
+        - reloadRules() → void (hot reload from Git)
+  
+  3. Implementation:
+     📁 /validation-service/
+        ├─ src/main/java/
+        │   ├─ controller/
+        │   │   └─ ValidationController.java (REST API)
+        │   ├─ service/
+        │   │   ├─ ValidationService.java
+        │   │   ├─ DroolsService.java (KIE container)
+        │   │   └─ RuleReloadService.java (Git integration)
+        │   ├─ event/
+        │   │   ├─ ValidationEventHandler.java
+        │   │   ├─ PaymentInitiatedConsumer.java
+        │   │   └─ ValidationEventPublisher.java
+        │   ├─ config/
+        │   │   ├─ DroolsConfig.java (KIE base)
+        │   │   └─ ServiceBusConfig.java
+        │   └─ domain/
+        │       └─ ValidationResult.java
+        ├─ src/main/resources/
+        │   ├─ rules/
+        │   │   ├─ payment-amount-rules.drl
+        │   │   ├─ currency-rules.drl
+        │   │   ├─ account-rules.drl
+        │   │   └─ sanctions-rules.drl
+        │   └─ application.yml
+        └─ README.md
+  
+  4. Testing:
+     ✅ Unit Tests (Drools rules)
+        - Test each rule with valid/invalid inputs
+        - Test rule priority/salience
+     
+     ✅ Integration Tests
+        - Consume PaymentInitiatedEvent → assert PaymentValidatedEvent
+        - Test rule hot reload (update DRL file)
+     
+     Target: 80% code coverage
+  
+  5. Documentation:
+     📄 README.md
+        - Validation service overview
+        - Drools rules catalog
+        - How to add new rules
+     
+     📄 API.md
+        - REST API endpoints
+        - Event subscriptions
+
+Success Criteria:
+  ✅ All validation rules defined (10+ rules)
+  ✅ Drools integration working
+  ✅ Hot reload tested (update rule → reload → validate)
+  ✅ Event consumption/publishing working
+  ✅ 80% code coverage
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete Drools spec in docs/31 (2,000 lines)
+  - Validation rules examples provided
+  - Event schemas defined (Phase 0)
+
+Dependencies:
+  ✅ Phase 0 (Domain Models, Event Schemas) - READY
+  ✅ Feature 1.1 (Payment Initiation Service) - READY
+```
+
+---
+
+### Feature 1.3: Account Adapter Service
+
+```yaml
+Feature ID: 1.3
+Feature Name: Account Adapter Service
+Agent Name: Account Adapter Agent
+Phase: 1 (Core Services)
+Estimated Time: 4 days
+
+Role & Expertise:
+  You are a Backend Engineer with expertise in Java Spring Boot, REST client
+  integration, Resilience4j (circuit breaker), and external system integration.
+
+Task:
+  Build the Account Adapter Service - integrates with multiple external core
+  banking systems (current, savings, investment, card, loan accounts) to perform
+  debit/credit operations, balance checks, and account validation.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #3)
+        - Account Adapter responsibilities
+        - External system integration patterns
+        - API endpoints
+     
+     📄 docs/08-CORE-BANKING-INTEGRATION.md (COMPLETE FILE - 2,500 lines)
+        - External core banking systems (5 systems)
+        - REST API contracts (debit, credit, balance check)
+        - OAuth 2.0 authentication
+        - Idempotency patterns
+        - Circuit breaker (Resilience4j)
+        - Caching strategy (Redis)
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 1.3)
+  
+  2. External Core Banking Systems (5 Systems):
+     
+     **System 1: Current Account System**
+     - Base URL: https://current-accounts.bank.example.com
+     - Endpoints:
+       - POST /api/v1/debit (debit operation)
+       - POST /api/v1/credit (credit operation)
+       - GET /api/v1/balance/{accountId} (balance check)
+     - Auth: OAuth 2.0 (client credentials)
+     
+     **System 2: Savings Account System**
+     - Base URL: https://savings-accounts.bank.example.com
+     - Same endpoints as above
+     
+     **System 3: Investment Account System**
+     - Base URL: https://investments.bank.example.com
+     - Same endpoints as above
+     
+     **System 4: Card System**
+     - Base URL: https://cards.bank.example.com
+     - Same endpoints as above
+     
+     **System 5: Loan System (Homeloan, Car Loan)**
+     - Base URL: https://loans.bank.example.com
+     - Same endpoints as above
+  
+  3. REST Client Integration (Debit Example):
+     ```java
+     @Service
+     public class CurrentAccountClient {
+         
+         @Autowired
+         private RestTemplate restTemplate;
+         
+         @Autowired
+         private OAuth2AuthorizedClientManager authorizedClientManager;
+         
+         @CircuitBreaker(name = "currentAccountService", fallbackMethod = "debitFallback")
+         @Retry(name = "currentAccountService", fallbackMethod = "debitFallback")
+         @Bulkhead(name = "currentAccountService")
+         @Cacheable(value = "balances", key = "#accountId", unless = "#result == null")
+         public DebitResponse debit(String accountId, BigDecimal amount, String idempotencyKey) {
+             
+             String accessToken = getAccessToken();
+             
+             DebitRequest request = DebitRequest.builder()
+                 .accountId(accountId)
+                 .amount(amount)
+                 .currency("ZAR")
+                 .reference("PAYMENT-DEBIT")
+                 .idempotencyKey(idempotencyKey)
+                 .build();
+             
+             HttpHeaders headers = new HttpHeaders();
+             headers.setBearerAuth(accessToken);
+             headers.set("X-Idempotency-Key", idempotencyKey);
+             headers.setContentType(MediaType.APPLICATION_JSON);
+             
+             HttpEntity<DebitRequest> entity = new HttpEntity<>(request, headers);
+             
+             ResponseEntity<DebitResponse> response = restTemplate.exchange(
+                 "https://current-accounts.bank.example.com/api/v1/debit",
+                 HttpMethod.POST,
+                 entity,
+                 DebitResponse.class
+             );
+             
+             return response.getBody();
+         }
+         
+         // Circuit breaker fallback
+         private DebitResponse debitFallback(String accountId, BigDecimal amount, 
+                                              String idempotencyKey, Exception e) {
+             log.error("Circuit breaker activated for debit operation", e);
+             return DebitResponse.failure("SERVICE_UNAVAILABLE", 
+                                          "Current account system is temporarily unavailable");
+         }
+         
+         // OAuth 2.0 token retrieval
+         private String getAccessToken() {
+             OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest
+                 .withClientRegistrationId("current-account-system")
+                 .principal("payments-engine")
+                 .build();
+             
+             OAuth2AuthorizedClient authorizedClient = 
+                 authorizedClientManager.authorize(authorizeRequest);
+             
+             return authorizedClient.getAccessToken().getTokenValue();
+         }
+     }
+     ```
+  
+  4. Account Routing Logic:
+     ```java
+     @Service
+     public class AccountAdapterService {
+         
+         @Autowired
+         private CurrentAccountClient currentAccountClient;
+         
+         @Autowired
+         private SavingsAccountClient savingsAccountClient;
+         
+         @Autowired
+         private InvestmentAccountClient investmentAccountClient;
+         
+         @Autowired
+         private CardClient cardClient;
+         
+         @Autowired
+         private LoanClient loanClient;
+         
+         public DebitResponse debit(String accountId, BigDecimal amount, String idempotencyKey) {
+             
+             // Determine account type from account ID prefix
+             String accountType = extractAccountType(accountId);
+             
+             return switch (accountType) {
+                 case "CURRENT" -> currentAccountClient.debit(accountId, amount, idempotencyKey);
+                 case "SAVINGS" -> savingsAccountClient.debit(accountId, amount, idempotencyKey);
+                 case "INVESTMENT" -> investmentAccountClient.debit(accountId, amount, idempotencyKey);
+                 case "CARD" -> cardClient.debit(accountId, amount, idempotencyKey);
+                 case "LOAN" -> loanClient.debit(accountId, amount, idempotencyKey);
+                 default -> throw new UnsupportedOperationException("Unknown account type: " + accountType);
+             };
+         }
+         
+         private String extractAccountType(String accountId) {
+             // Account ID format: {TYPE}-{NUMBER}
+             // Example: CURRENT-12345, SAVINGS-67890
+             return accountId.split("-")[0];
+         }
+     }
+     ```
+  
+  5. Resilience Patterns:
+     - **Circuit Breaker**: Open circuit after 5 consecutive failures
+     - **Retry**: 3 attempts with exponential backoff (1s, 2s, 4s)
+     - **Timeout**: 5 seconds per request
+     - **Bulkhead**: Max 10 concurrent requests per system
+     - **Cache**: Balance queries cached for 60 seconds (Redis)
+  
+  6. Technology Stack:
+     - Java 17
+     - Spring Boot 3.2
+     - RestTemplate / WebClient
+     - Resilience4j (circuit breaker, retry, bulkhead)
+     - Spring Security OAuth2 Client
+     - Redis (caching)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Account Adapter Architecture
+        - 5 external system integrations
+        - Circuit breaker patterns
+        - OAuth 2.0 authentication
+        - Caching strategy
+  
+  2. LLD (Low-Level Design):
+     📋 REST Client per System (5 clients)
+        - CurrentAccountClient
+        - SavingsAccountClient
+        - InvestmentAccountClient
+        - CardClient
+        - LoanClient
+     
+     📋 Resilience Configuration
+        - Circuit breaker thresholds
+        - Retry policies
+        - Timeout values
+  
+  3. Implementation:
+     📁 /account-adapter-service/
+        ├─ src/main/java/
+        │   ├─ controller/
+        │   │   └─ AccountAdapterController.java
+        │   ├─ service/
+        │   │   ├─ AccountAdapterService.java (routing)
+        │   │   └─ IdempotencyService.java
+        │   ├─ client/
+        │   │   ├─ CurrentAccountClient.java
+        │   │   ├─ SavingsAccountClient.java
+        │   │   ├─ InvestmentAccountClient.java
+        │   │   ├─ CardClient.java
+        │   │   └─ LoanClient.java
+        │   ├─ config/
+        │   │   ├─ RestTemplateConfig.java
+        │   │   ├─ OAuth2ClientConfig.java
+        │   │   ├─ Resilience4jConfig.java
+        │   │   └─ RedisConfig.java (caching)
+        │   └─ dto/
+        │       ├─ DebitRequest.java
+        │       ├─ DebitResponse.java
+        │       ├─ CreditRequest.java
+        │       └─ CreditResponse.java
+        └─ src/main/resources/
+            └─ application.yml (OAuth2 config, circuit breaker config)
+  
+  4. Testing:
+     ✅ Unit Tests (circuit breaker)
+        - Test circuit open after 5 failures
+        - Test fallback method invoked
+        - Test circuit half-open → closed
+     
+     ✅ Integration Tests (MockServer)
+        - Mock external system responses
+        - Test debit/credit operations
+        - Test OAuth2 token retrieval
+     
+     ✅ Performance Tests
+        - Test 100 concurrent requests (bulkhead)
+        - Verify cache hit ratio (> 80%)
+     
+     Target: 80% code coverage
+  
+  5. Documentation:
+     📄 README.md
+        - Account Adapter overview
+        - External systems catalog (5 systems)
+        - How to add new system
+     
+     📄 API.md
+        - REST API endpoints
+        - Request/response examples
+     
+     📄 RESILIENCE.md
+        - Circuit breaker configuration
+        - Retry policies
+        - Troubleshooting
+
+Success Criteria:
+  ✅ All 5 external systems integrated
+  ✅ OAuth 2.0 authentication working
+  ✅ Circuit breaker tested (open → half-open → closed)
+  ✅ Idempotency working (duplicate request → cached response)
+  ✅ Caching working (Redis, 60s TTL)
+  ✅ 80% code coverage
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete integration spec in docs/08 (2,500 lines)
+  - REST API contracts defined
+  - Resilience patterns documented
+
+Dependencies:
+  ✅ Phase 0 (Domain Models) - READY
+  ✅ External core banking systems (mocked for testing)
+```
+
+---
+
+### Feature 1.4: Routing Service
+
+```yaml
+Feature ID: 1.4
+Feature Name: Routing Service
+Agent Name: Routing Agent
+Phase: 1 (Core Services)
+Estimated Time: 3 days
+
+Role & Expertise:
+  You are a Backend Engineer with expertise in Java Spring Boot, routing logic,
+  Drools rules engine, and event-driven architecture.
+
+Task:
+  Build the Routing Service - determines which clearing system (SAMOS,
+  BankservAfrica, RTC, PayShap, SWIFT) to route each payment to based on
+  payment type, amount, currency, and business rules.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #4)
+        - Routing responsibilities
+        - Decision logic
+        - API endpoints
+     
+     📄 docs/31-DROOLS-RULES-ENGINE.md (Routing section)
+        - Drools-based routing rules
+        - Dynamic rule updates
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 1.4)
+  
+  2. Routing Rules (Drools):
+     
+     **Rule 1: SAMOS (RTGS - Real-Time Gross Settlement)**
+     ```drl
+     rule "Route to SAMOS"
+       salience 10
+       when
+         $payment: Payment(
+           amount.value >= 100000.00,  // >= R100,000
+           currency == Currency.ZAR
+         )
+       then
+         $payment.setRoutingDecision(
+           RoutingDecision.create(ClearingSystem.SAMOS, "High value payment")
+         );
+     end
+     ```
+     
+     **Rule 2: BankservAfrica (ACH/EFT)**
+     ```drl
+     rule "Route to BankservAfrica"
+       salience 8
+       when
+         $payment: Payment(
+           paymentType == PaymentType.EFT,
+           amount.value < 100000.00,
+           currency == Currency.ZAR
+         )
+       then
+         $payment.setRoutingDecision(
+           RoutingDecision.create(ClearingSystem.BANKSERV_AFRICA, "Standard EFT")
+         );
+     end
+     ```
+     
+     **Rule 3: RTC (Real-Time Clearing)**
+     ```drl
+     rule "Route to RTC"
+       salience 9
+       when
+         $payment: Payment(
+           paymentType == PaymentType.RTC,
+           amount.value <= 5000.00,  // RTC limit: R5,000
+           currency == Currency.ZAR
+         )
+       then
+         $payment.setRoutingDecision(
+           RoutingDecision.create(ClearingSystem.RTC, "Real-time clearing")
+         );
+     end
+     ```
+     
+     **Rule 4: PayShap (Instant P2P)**
+     ```drl
+     rule "Route to PayShap"
+       salience 9
+       when
+         $payment: Payment(
+           paymentType == PaymentType.PAYSHAP,
+           amount.value <= 3000.00,  // PayShap limit: R3,000
+           currency == Currency.ZAR
+         )
+       then
+         $payment.setRoutingDecision(
+           RoutingDecision.create(ClearingSystem.PAYSHAP, "Instant P2P payment")
+         );
+     end
+     ```
+     
+     **Rule 5: SWIFT (International)**
+     ```drl
+     rule "Route to SWIFT"
+       salience 10
+       when
+         $payment: Payment(
+           currency in (Currency.USD, Currency.EUR, Currency.GBP)
+         )
+       then
+         $payment.setRoutingDecision(
+           RoutingDecision.create(ClearingSystem.SWIFT, "International payment")
+         );
+     end
+     ```
+  
+  3. Routing Flow:
+     ```
+     PaymentValidatedEvent received
+         ↓
+     Load Payment from database
+         ↓
+     Execute Drools routing rules (KIE session)
+         ↓
+     RoutingDecision determined
+         ↓
+     Publish PaymentRoutedEvent
+     ```
+  
+  4. Event Handler:
+     ```java
+     @Service
+     public class RoutingEventHandler {
+         
+         @Autowired
+         private RoutingService routingService;
+         
+         @Autowired
+         private EventPublisher eventPublisher;
+         
+         @ServiceBusQueueTrigger(
+             name = "paymentValidated",
+             queueName = "payment-validated",
+             connection = "ServiceBusConnectionString"
+         )
+         public void handlePaymentValidated(
+             @ServiceBusMessage PaymentValidatedEvent event,
+             final ExecutionContext context
+         ) {
+             log.info("Routing payment: {}", event.getPaymentId());
+             
+             RoutingDecision decision = routingService.route(event.getPaymentId());
+             
+             // Publish PaymentRoutedEvent
+             PaymentRoutedEvent routedEvent = PaymentRoutedEvent.builder()
+                 .paymentId(event.getPaymentId())
+                 .clearingSystem(decision.getClearingSystem())
+                 .routingReason(decision.getReason())
+                 .routedAt(Instant.now())
+                 .build();
+             
+             eventPublisher.publish("payment-routed", routedEvent);
+             
+             log.info("Payment routed to {}: {}", 
+                      decision.getClearingSystem(), 
+                      event.getPaymentId());
+         }
+     }
+     ```
+  
+  5. Technology Stack:
+     - Java 17
+     - Spring Boot 3.2
+     - Drools 8.44+ (rules engine)
+     - Azure Service Bus (event consumer/publisher)
+     - Redis (rules caching)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Routing Architecture
+        - Event consumption (PaymentValidatedEvent)
+        - Drools rules execution
+        - RoutingDecision
+        - Event publishing (PaymentRoutedEvent)
+  
+  2. LLD (Low-Level Design):
+     📋 Routing Rules (Drools DRL)
+        - SAMOS rule (>= R100,000)
+        - BankservAfrica rule (EFT, < R100,000)
+        - RTC rule (<= R5,000)
+        - PayShap rule (<= R3,000)
+        - SWIFT rule (USD, EUR, GBP)
+     
+     📋 RoutingService API
+        - route(paymentId) → RoutingDecision
+        - reloadRules() → void
+  
+  3. Implementation:
+     📁 /routing-service/
+        ├─ src/main/java/
+        │   ├─ controller/
+        │   │   └─ RoutingController.java
+        │   ├─ service/
+        │   │   ├─ RoutingService.java
+        │   │   └─ DroolsService.java
+        │   ├─ event/
+        │   │   ├─ RoutingEventHandler.java
+        │   │   ├─ PaymentValidatedConsumer.java
+        │   │   └─ RoutingEventPublisher.java
+        │   ├─ config/
+        │   │   ├─ DroolsConfig.java
+        │   │   └─ ServiceBusConfig.java
+        │   └─ domain/
+        │       ├─ RoutingDecision.java
+        │       └─ ClearingSystem.java (Enum)
+        ├─ src/main/resources/
+        │   ├─ rules/
+        │   │   ├─ samos-routing.drl
+        │   │   ├─ bankserv-routing.drl
+        │   │   ├─ rtc-routing.drl
+        │   │   ├─ payshap-routing.drl
+        │   │   └─ swift-routing.drl
+        │   └─ application.yml
+        └─ README.md
+  
+  4. Testing:
+     ✅ Unit Tests (Drools rules)
+        - Test each routing rule
+        - Test rule priority (salience)
+     
+     ✅ Integration Tests
+        - Consume PaymentValidatedEvent → assert PaymentRoutedEvent
+        - Test rule hot reload
+     
+     Target: 80% code coverage
+  
+  5. Documentation:
+     📄 README.md
+        - Routing service overview
+        - Routing rules catalog
+        - How to add new routing rule
+     
+     📄 API.md
+        - REST API endpoints
+        - Event subscriptions
+
+Success Criteria:
+  ✅ All 5 routing rules defined (SAMOS, BankservAfrica, RTC, PayShap, SWIFT)
+  ✅ Drools integration working
+  ✅ Event consumption/publishing working
+  ✅ 80% code coverage
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete Drools spec in docs/31 (routing section)
+  - Routing rules examples provided
+  - Clearing system specs (docs/02)
+
+Dependencies:
+  ✅ Phase 0 (Domain Models, Event Schemas) - READY
+  ✅ Feature 1.2 (Validation Service) - READY
+```
+
+---
+
+### Feature 1.5: Transaction Processing Service
+
+```yaml
+Feature ID: 1.5
+Feature Name: Transaction Processing Service
+Agent Name: Transaction Processing Agent
+Phase: 1 (Core Services)
+Estimated Time: 5 days (most complex core service)
+
+Role & Expertise:
+  You are a Backend Engineer with expertise in Java Spring Boot, distributed
+  transactions, event-driven architecture, and complex orchestration logic.
+
+Task:
+  Build the Transaction Processing Service - the core orchestrator that executes
+  the complete payment flow: account debit, fraud check, limit check, fee
+  calculation, and clearing submission. Uses event-driven orchestration pattern.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #5)
+        - Transaction Processing responsibilities
+        - Orchestration logic
+        - API endpoints
+     
+     📄 docs/07-SAGA-PATTERN.md (COMPLETE FILE - 2,500 lines)
+        - Saga orchestration pattern
+        - Compensation logic (rollback)
+        - State machine (PENDING → PROCESSING → COMPLETED)
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 1.5)
+  
+  2. Transaction Processing Flow (Orchestrated):
+     ```
+     PaymentRoutedEvent received
+         ↓
+     1. Debit debtor account (Account Adapter)
+         ↓ (if failed → compensate)
+     2. Check fraud score (Fraud Service)
+         ↓ (if HIGH_RISK → reject, compensate debit)
+     3. Check/update limits (Limit Service)
+         ↓ (if exceeded → reject, compensate debit)
+     4. Calculate fees (Fee Service)
+         ↓
+     5. Submit to clearing system (Clearing Adapter)
+         ↓
+     If ALL steps succeed → Publish TransactionCompletedEvent
+     If ANY step fails → Publish TransactionFailedEvent + compensate
+     ```
+  
+  3. Orchestration Service:
+     ```java
+     @Service
+     @Slf4j
+     public class TransactionOrchestrationService {
+         
+         @Autowired
+         private AccountAdapterClient accountAdapterClient;
+         
+         @Autowired
+         private FraudServiceClient fraudServiceClient;
+         
+         @Autowired
+         private LimitServiceClient limitServiceClient;
+         
+         @Autowired
+         private FeeServiceClient feeServiceClient;
+         
+         @Autowired
+         private ClearingAdapterClient clearingAdapterClient;
+         
+         @Autowired
+         private EventPublisher eventPublisher;
+         
+         @Transactional
+         public void processTransaction(String paymentId, ClearingSystem clearingSystem) {
+             
+             TransactionState state = new TransactionState(paymentId);
+             
+             try {
+                 // Step 1: Debit debtor account
+                 log.info("Step 1: Debiting account for payment: {}", paymentId);
+                 DebitResponse debitResponse = accountAdapterClient.debit(
+                     payment.getDebtorAccountId(),
+                     payment.getAmount(),
+                     paymentId // idempotency key
+                 );
+                 
+                 if (!debitResponse.isSuccess()) {
+                     throw new TransactionException("Debit failed: " + debitResponse.getErrorMessage());
+                 }
+                 state.setDebitCompleted(true);
+                 
+                 // Step 2: Check fraud score
+                 log.info("Step 2: Checking fraud score for payment: {}", paymentId);
+                 FraudScoreResponse fraudResponse = fraudServiceClient.checkFraud(paymentId);
+                 
+                 if (fraudResponse.getRiskLevel() == RiskLevel.HIGH) {
+                     throw new TransactionException("Payment blocked due to HIGH fraud risk");
+                 }
+                 
+                 // Step 3: Check/update limits
+                 log.info("Step 3: Checking limits for payment: {}", paymentId);
+                 LimitCheckResponse limitResponse = limitServiceClient.checkAndUpdateLimit(
+                     payment.getTenantId(),
+                     payment.getPaymentType(),
+                     payment.getAmount()
+                 );
+                 
+                 if (!limitResponse.isWithinLimit()) {
+                     throw new TransactionException("Payment exceeds limit: " + limitResponse.getMessage());
+                 }
+                 state.setLimitUpdated(true);
+                 
+                 // Step 4: Calculate fees
+                 log.info("Step 4: Calculating fees for payment: {}", paymentId);
+                 FeeCalculationResponse feeResponse = feeServiceClient.calculateFee(
+                     payment.getPaymentType(),
+                     payment.getAmount()
+                 );
+                 
+                 // Step 5: Submit to clearing system
+                 log.info("Step 5: Submitting to clearing system: {}", clearingSystem);
+                 ClearingSubmissionResponse clearingResponse = clearingAdapterClient.submit(
+                     paymentId,
+                     clearingSystem
+                 );
+                 
+                 if (!clearingResponse.isSuccess()) {
+                     throw new TransactionException("Clearing submission failed: " + clearingResponse.getErrorMessage());
+                 }
+                 
+                 // All steps succeeded → Publish TransactionCompletedEvent
+                 TransactionCompletedEvent completedEvent = TransactionCompletedEvent.builder()
+                     .paymentId(paymentId)
+                     .clearingSystem(clearingSystem)
+                     .completedAt(Instant.now())
+                     .build();
+                 
+                 eventPublisher.publish("transaction-completed", completedEvent);
+                 log.info("Transaction completed successfully: {}", paymentId);
+                 
+             } catch (Exception e) {
+                 log.error("Transaction failed: {}", paymentId, e);
+                 
+                 // Compensate (rollback) completed steps
+                 compensate(state);
+                 
+                 // Publish TransactionFailedEvent
+                 TransactionFailedEvent failedEvent = TransactionFailedEvent.builder()
+                     .paymentId(paymentId)
+                     .failureReason(e.getMessage())
+                     .failedAt(Instant.now())
+                     .build();
+                 
+                 eventPublisher.publish("transaction-failed", failedEvent);
+             }
+         }
+         
+         private void compensate(TransactionState state) {
+             log.info("Compensating transaction: {}", state.getPaymentId());
+             
+             // Compensate in reverse order
+             if (state.isLimitUpdated()) {
+                 log.info("Compensating: Reverting limit update");
+                 limitServiceClient.revertLimit(state.getPaymentId());
+             }
+             
+             if (state.isDebitCompleted()) {
+                 log.info("Compensating: Crediting debtor account (reversal)");
+                 accountAdapterClient.credit(
+                     payment.getDebtorAccountId(),
+                     payment.getAmount(),
+                     state.getPaymentId() + "-REVERSAL"
+                 );
+             }
+             
+             log.info("Compensation completed: {}", state.getPaymentId());
+         }
+     }
+     ```
+  
+  4. Transaction State (for compensation):
+     ```java
+     @Data
+     public class TransactionState {
+         private String paymentId;
+         private boolean debitCompleted = false;
+         private boolean limitUpdated = false;
+         
+         public TransactionState(String paymentId) {
+             this.paymentId = paymentId;
+         }
+     }
+     ```
+  
+  5. Technology Stack:
+     - Java 17
+     - Spring Boot 3.2
+     - Azure Service Bus (event consumer/publisher)
+     - RestTemplate (client integrations)
+     - PostgreSQL (transaction state persistence)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Transaction Processing Architecture
+        - Event consumption (PaymentRoutedEvent)
+        - 5-step orchestration flow
+        - Compensation logic (rollback)
+        - Event publishing (Completed/Failed)
+  
+  2. LLD (Low-Level Design):
+     📋 Orchestration Flow
+        - Step 1: Debit account
+        - Step 2: Fraud check
+        - Step 3: Limit check
+        - Step 4: Fee calculation
+        - Step 5: Clearing submission
+     
+     📋 Compensation Logic
+        - Revert limit update
+        - Credit debtor account (reversal)
+  
+  3. Implementation:
+     📁 /transaction-processing-service/
+        ├─ src/main/java/
+        │   ├─ controller/
+        │   │   └─ TransactionController.java
+        │   ├─ service/
+        │   │   ├─ TransactionOrchestrationService.java
+        │   │   ├─ CompensationService.java
+        │   │   └─ TransactionStateService.java
+        │   ├─ client/
+        │   │   ├─ AccountAdapterClient.java
+        │   │   ├─ FraudServiceClient.java
+        │   │   ├─ LimitServiceClient.java
+        │   │   ├─ FeeServiceClient.java
+        │   │   └─ ClearingAdapterClient.java
+        │   ├─ event/
+        │   │   ├─ TransactionEventHandler.java
+        │   │   ├─ PaymentRoutedConsumer.java
+        │   │   └─ TransactionEventPublisher.java
+        │   ├─ domain/
+        │   │   ├─ TransactionState.java
+        │   │   └─ CompensationAction.java
+        │   └─ config/
+        │       └─ ServiceBusConfig.java
+        └─ README.md
+  
+  4. Testing:
+     ✅ Unit Tests (orchestration logic)
+        - Test happy path (all steps succeed)
+        - Test failure at each step
+        - Test compensation logic
+     
+     ✅ Integration Tests (with mocks)
+        - Mock all 5 client services
+        - Test PaymentRoutedEvent → TransactionCompletedEvent
+        - Test failure → TransactionFailedEvent + compensation
+     
+     Target: 85% code coverage
+  
+  5. Documentation:
+     📄 README.md
+        - Transaction Processing overview
+        - Orchestration flow diagram
+        - Compensation logic
+     
+     📄 API.md
+        - REST API endpoints
+        - Event subscriptions
+
+Success Criteria:
+  ✅ All 5 orchestration steps implemented
+  ✅ Compensation logic working (rollback on failure)
+  ✅ Event consumption/publishing working
+  ✅ 85% code coverage
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete Saga spec in docs/07 (2,500 lines)
+  - Orchestration pattern detailed
+  - Compensation logic explained
+
+Dependencies:
+  ✅ Phase 0 (Domain Models, Event Schemas) - READY
+  ✅ Feature 1.3 (Account Adapter) - READY
+  ✅ Feature 1.4 (Routing Service) - READY
+  ✅ Fraud Service (Phase 1.x or Platform Services)
+  ✅ Limit Service (Phase 1.x or Platform Services)
+  ✅ Fee Service (Phase 1.x or Platform Services)
+```
+
+---
+
+### Feature 1.6: Saga Orchestrator Service
+
+```yaml
+Feature ID: 1.6
+Feature Name: Saga Orchestrator Service
+Agent Name: Saga Orchestrator Agent
+Phase: 1 (Core Services)
+Estimated Time: 5 days (most complex core service)
+
+Role & Expertise:
+  You are a Backend Engineer with expertise in Java Spring Boot, Saga pattern,
+  distributed transactions, state machines, and event-driven architecture.
+
+Task:
+  Build the Saga Orchestrator Service - manages the complete payment Saga
+  lifecycle using a persistent state machine. Handles orchestration, compensation,
+  retries, and failure recovery for all payment flows.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #6)
+        - Saga Orchestrator responsibilities
+        - State machine design
+        - API endpoints
+     
+     📄 docs/07-SAGA-PATTERN.md (COMPLETE FILE - 2,500 lines)
+        - Saga orchestration vs choreography
+        - State machine (9 states)
+        - Compensation logic
+        - Retry strategies
+        - Failure recovery
+        - Kafka option (exactly-once semantics)
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 1.6)
+  
+  2. Saga State Machine (9 States):
+     ```
+     INITIATED → VALIDATED → ROUTED → DEBITED → FRAUD_CHECKED → 
+     LIMIT_CHECKED → FEE_CALCULATED → SUBMITTED → COMPLETED
+     
+     Failure states:
+     - REJECTED (validation failed)
+     - FAILED (any step failed)
+     - COMPENSATING (rolling back)
+     - COMPENSATED (rollback complete)
+     ```
+  
+  3. Saga State Machine Implementation:
+     ```java
+     @Service
+     @Slf4j
+     public class SagaOrchestrator {
+         
+         @Autowired
+         private SagaStateRepository sagaStateRepository;
+         
+         @Autowired
+         private AccountAdapterClient accountAdapterClient;
+         
+         @Autowired
+         private FraudServiceClient fraudServiceClient;
+         
+         @Autowired
+         private LimitServiceClient limitServiceClient;
+         
+         @Autowired
+         private FeeServiceClient feeServiceClient;
+         
+         @Autowired
+         private ClearingAdapterClient clearingAdapterClient;
+         
+         @Autowired
+         private EventPublisher eventPublisher;
+         
+         @Transactional
+         public void handlePaymentInitiated(PaymentInitiatedEvent event) {
+             
+             // Create Saga state
+             SagaState saga = SagaState.create(event.getPaymentId());
+             saga.transitionTo(SagaStatus.INITIATED);
+             sagaStateRepository.save(saga);
+             
+             log.info("Saga initiated: {}", event.getPaymentId());
+             
+             // Start orchestration
+             orchestrate(saga);
+         }
+         
+         private void orchestrate(SagaState saga) {
+             
+             try {
+                 // Step 1: Wait for validation
+                 if (saga.getStatus() == SagaStatus.INITIATED) {
+                     saga.transitionTo(SagaStatus.VALIDATING);
+                     sagaStateRepository.save(saga);
+                     // Event: PaymentValidatedEvent → triggers next step
+                     return;
+                 }
+                 
+                 // Step 2: Wait for routing
+                 if (saga.getStatus() == SagaStatus.VALIDATED) {
+                     saga.transitionTo(SagaStatus.ROUTING);
+                     sagaStateRepository.save(saga);
+                     // Event: PaymentRoutedEvent → triggers next step
+                     return;
+                 }
+                 
+                 // Step 3: Debit account
+                 if (saga.getStatus() == SagaStatus.ROUTED) {
+                     log.info("Step 3: Debiting account for saga: {}", saga.getPaymentId());
+                     
+                     DebitResponse response = accountAdapterClient.debit(
+                         saga.getPayment().getDebtorAccountId(),
+                         saga.getPayment().getAmount(),
+                         saga.getPaymentId()
+                     );
+                     
+                     if (response.isSuccess()) {
+                         saga.transitionTo(SagaStatus.DEBITED);
+                         saga.addCompensationAction(CompensationAction.CREDIT_ACCOUNT);
+                         sagaStateRepository.save(saga);
+                     } else {
+                         throw new SagaException("Debit failed: " + response.getErrorMessage());
+                     }
+                 }
+                 
+                 // Step 4: Fraud check
+                 if (saga.getStatus() == SagaStatus.DEBITED) {
+                     log.info("Step 4: Fraud check for saga: {}", saga.getPaymentId());
+                     
+                     FraudScoreResponse response = fraudServiceClient.checkFraud(
+                         saga.getPaymentId()
+                     );
+                     
+                     if (response.getRiskLevel() != RiskLevel.HIGH) {
+                         saga.transitionTo(SagaStatus.FRAUD_CHECKED);
+                         sagaStateRepository.save(saga);
+                     } else {
+                         throw new SagaException("Payment blocked due to HIGH fraud risk");
+                     }
+                 }
+                 
+                 // Step 5: Limit check
+                 if (saga.getStatus() == SagaStatus.FRAUD_CHECKED) {
+                     log.info("Step 5: Limit check for saga: {}", saga.getPaymentId());
+                     
+                     LimitCheckResponse response = limitServiceClient.checkAndUpdateLimit(
+                         saga.getPayment().getTenantId(),
+                         saga.getPayment().getPaymentType(),
+                         saga.getPayment().getAmount()
+                     );
+                     
+                     if (response.isWithinLimit()) {
+                         saga.transitionTo(SagaStatus.LIMIT_CHECKED);
+                         saga.addCompensationAction(CompensationAction.REVERT_LIMIT);
+                         sagaStateRepository.save(saga);
+                     } else {
+                         throw new SagaException("Payment exceeds limit");
+                     }
+                 }
+                 
+                 // Step 6: Fee calculation
+                 if (saga.getStatus() == SagaStatus.LIMIT_CHECKED) {
+                     log.info("Step 6: Fee calculation for saga: {}", saga.getPaymentId());
+                     
+                     FeeCalculationResponse response = feeServiceClient.calculateFee(
+                         saga.getPayment().getPaymentType(),
+                         saga.getPayment().getAmount()
+                     );
+                     
+                     saga.setFeeAmount(response.getFeeAmount());
+                     saga.transitionTo(SagaStatus.FEE_CALCULATED);
+                     sagaStateRepository.save(saga);
+                 }
+                 
+                 // Step 7: Submit to clearing
+                 if (saga.getStatus() == SagaStatus.FEE_CALCULATED) {
+                     log.info("Step 7: Clearing submission for saga: {}", saga.getPaymentId());
+                     
+                     ClearingSubmissionResponse response = clearingAdapterClient.submit(
+                         saga.getPaymentId(),
+                         saga.getClearingSystem()
+                     );
+                     
+                     if (response.isSuccess()) {
+                         saga.transitionTo(SagaStatus.SUBMITTED);
+                         sagaStateRepository.save(saga);
+                     } else {
+                         throw new SagaException("Clearing submission failed");
+                     }
+                 }
+                 
+                 // Step 8: Wait for clearing response
+                 if (saga.getStatus() == SagaStatus.SUBMITTED) {
+                     saga.transitionTo(SagaStatus.COMPLETED);
+                     sagaStateRepository.save(saga);
+                     
+                     // Publish SagaCompletedEvent
+                     SagaCompletedEvent completedEvent = SagaCompletedEvent.builder()
+                         .paymentId(saga.getPaymentId())
+                         .completedAt(Instant.now())
+                         .build();
+                     
+                     eventPublisher.publish("saga-completed", completedEvent);
+                     log.info("Saga completed: {}", saga.getPaymentId());
+                 }
+                 
+             } catch (Exception e) {
+                 log.error("Saga failed: {}", saga.getPaymentId(), e);
+                 saga.transitionTo(SagaStatus.FAILED);
+                 saga.setFailureReason(e.getMessage());
+                 sagaStateRepository.save(saga);
+                 
+                 // Start compensation
+                 compensate(saga);
+             }
+         }
+         
+         private void compensate(SagaState saga) {
+             log.info("Starting compensation for saga: {}", saga.getPaymentId());
+             
+             saga.transitionTo(SagaStatus.COMPENSATING);
+             sagaStateRepository.save(saga);
+             
+             // Execute compensation actions in reverse order
+             List<CompensationAction> actions = saga.getCompensationActions();
+             Collections.reverse(actions);
+             
+             for (CompensationAction action : actions) {
+                 try {
+                     switch (action) {
+                         case REVERT_LIMIT:
+                             log.info("Compensating: Reverting limit");
+                             limitServiceClient.revertLimit(saga.getPaymentId());
+                             break;
+                         
+                         case CREDIT_ACCOUNT:
+                             log.info("Compensating: Crediting account");
+                             accountAdapterClient.credit(
+                                 saga.getPayment().getDebtorAccountId(),
+                                 saga.getPayment().getAmount(),
+                                 saga.getPaymentId() + "-COMPENSATION"
+                             );
+                             break;
+                     }
+                 } catch (Exception e) {
+                     log.error("Compensation action failed: {}", action, e);
+                     // Continue with other compensation actions
+                 }
+             }
+             
+             saga.transitionTo(SagaStatus.COMPENSATED);
+             sagaStateRepository.save(saga);
+             
+             // Publish SagaCompensatedEvent
+             SagaCompensatedEvent compensatedEvent = SagaCompensatedEvent.builder()
+                 .paymentId(saga.getPaymentId())
+                 .failureReason(saga.getFailureReason())
+                 .compensatedAt(Instant.now())
+                 .build();
+             
+             eventPublisher.publish("saga-compensated", compensatedEvent);
+             log.info("Saga compensated: {}", saga.getPaymentId());
+         }
+     }
+     ```
+  
+  4. Saga State Entity:
+     ```java
+     @Entity
+     @Table(name = "saga_states")
+     @Data
+     public class SagaState {
+         
+         @Id
+         private String paymentId;
+         
+         @Enumerated(EnumType.STRING)
+         private SagaStatus status;
+         
+         @ManyToOne(fetch = FetchType.LAZY)
+         @JoinColumn(name = "payment_id")
+         private Payment payment;
+         
+         @Enumerated(EnumType.STRING)
+         private ClearingSystem clearingSystem;
+         
+         @Column(name = "fee_amount")
+         private BigDecimal feeAmount;
+         
+         @Column(name = "failure_reason")
+         private String failureReason;
+         
+         @ElementCollection
+         @Enumerated(EnumType.STRING)
+         private List<CompensationAction> compensationActions = new ArrayList<>();
+         
+         @Column(name = "created_at")
+         private Instant createdAt;
+         
+         @Column(name = "updated_at")
+         private Instant updatedAt;
+         
+         public static SagaState create(String paymentId) {
+             SagaState saga = new SagaState();
+             saga.setPaymentId(paymentId);
+             saga.setStatus(SagaStatus.INITIATED);
+             saga.setCreatedAt(Instant.now());
+             saga.setUpdatedAt(Instant.now());
+             return saga;
+         }
+         
+         public void transitionTo(SagaStatus newStatus) {
+             log.info("Saga {} transitioning from {} to {}", 
+                      paymentId, status, newStatus);
+             this.status = newStatus;
+             this.updatedAt = Instant.now();
+         }
+         
+         public void addCompensationAction(CompensationAction action) {
+             this.compensationActions.add(action);
+         }
+     }
+     ```
+  
+  5. Failure Recovery (Retry):
+     ```java
+     @Scheduled(fixedDelay = 60000) // Every 1 minute
+     public void retryFailedSagas() {
+         List<SagaState> failedSagas = sagaStateRepository.findByStatus(SagaStatus.FAILED);
+         
+         for (SagaState saga : failedSagas) {
+             if (saga.getRetryCount() < 3) {
+                 log.info("Retrying failed saga: {}", saga.getPaymentId());
+                 saga.incrementRetryCount();
+                 saga.transitionTo(saga.getPreviousStatus());
+                 sagaStateRepository.save(saga);
+                 
+                 // Re-run orchestration
+                 orchestrate(saga);
+             } else {
+                 log.error("Saga exhausted retries: {}", saga.getPaymentId());
+                 saga.transitionTo(SagaStatus.ABANDONED);
+                 sagaStateRepository.save(saga);
+             }
+         }
+     }
+     ```
+  
+  6. Technology Stack:
+     - Java 17
+     - Spring Boot 3.2
+     - Spring State Machine (state machine framework)
+     - Azure Service Bus (default) or Kafka (option)
+     - PostgreSQL (saga state persistence)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Saga Orchestrator Architecture
+        - Event-driven orchestration
+        - 9-state state machine
+        - Compensation logic
+        - Retry/recovery logic
+  
+  2. LLD (Low-Level Design):
+     📋 State Machine (9 states)
+        - State transitions
+        - Event triggers
+        - Compensation actions
+     
+     📋 Orchestration API
+        - orchestrate(saga) → void
+        - compensate(saga) → void
+        - retryFailedSagas() → void
+  
+  3. Implementation:
+     📁 /saga-orchestrator-service/
+        ├─ src/main/java/
+        │   ├─ controller/
+        │   │   └─ SagaController.java (admin API)
+        │   ├─ service/
+        │   │   ├─ SagaOrchestrator.java (main orchestrator)
+        │   │   ├─ CompensationService.java
+        │   │   └─ RetryService.java
+        │   ├─ statemachine/
+        │   │   ├─ SagaStateMachine.java
+        │   │   ├─ SagaStatus.java (Enum)
+        │   │   └─ StateTransition.java
+        │   ├─ client/
+        │   │   ├─ AccountAdapterClient.java
+        │   │   ├─ FraudServiceClient.java
+        │   │   ├─ LimitServiceClient.java
+        │   │   ├─ FeeServiceClient.java
+        │   │   └─ ClearingAdapterClient.java
+        │   ├─ event/
+        │   │   ├─ SagaEventHandler.java
+        │   │   └─ SagaEventPublisher.java
+        │   ├─ domain/
+        │   │   ├─ SagaState.java (Entity)
+        │   │   └─ CompensationAction.java (Enum)
+        │   ├─ repository/
+        │   │   └─ SagaStateRepository.java
+        │   └─ config/
+        │       ├─ StateMachineConfig.java
+        │       └─ ServiceBusConfig.java
+        └─ README.md
+  
+  4. Testing:
+     ✅ Unit Tests (state machine)
+        - Test state transitions
+        - Test compensation triggers
+        - Test retry logic
+     
+     ✅ Integration Tests
+        - Test full saga (happy path)
+        - Test saga with failure (compensation)
+        - Test retry after failure
+     
+     Target: 85% code coverage
+  
+  5. Documentation:
+     📄 README.md
+        - Saga Orchestrator overview
+        - State machine diagram
+        - Compensation logic
+     
+     📄 SAGA-PATTERN.md
+        - Orchestration vs choreography
+        - When to use Saga
+        - Troubleshooting
+
+Success Criteria:
+  ✅ 9-state state machine implemented
+  ✅ Orchestration working (all 7 steps)
+  ✅ Compensation working (rollback on failure)
+  ✅ Retry working (3 attempts)
+  ✅ Saga state persisted (PostgreSQL)
+  ✅ 85% code coverage
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete Saga spec in docs/07 (2,500 lines)
+  - State machine design detailed
+  - Compensation patterns explained
+  - Retry strategies defined
+
+Dependencies:
+  ✅ Phase 0 (Domain Models, Event Schemas) - READY
+  ✅ Feature 1.1 (Payment Initiation) - READY
+  ✅ Feature 1.2 (Validation Service) - READY
+  ✅ Feature 1.3 (Account Adapter) - READY
+  ✅ Feature 1.4 (Routing Service) - READY
+  ✅ All platform services (Fraud, Limit, Fee) - READY
 ```
 
 ---
