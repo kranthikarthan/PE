@@ -16,7 +16,7 @@ This document provides a **clear, actionable roadmap** with specific next steps,
 Architecture Design: 100% Complete
 ├─ 17 Modern Architecture Patterns (documented)
 ├─ 4 Operational Pillars (Security, Deployment, Testing, SRE)
-├─ 17 Microservices (fully specified)
+├─ 20 Microservices (fully specified - includes PayShap, SWIFT, Batch)
 ├─ Database Schemas (14 databases designed)
 ├─ Event Schemas (30+ events defined)
 ├─ API Specifications (REST, GraphQL)
@@ -830,7 +830,7 @@ Operational Pillars:
 
 ### Deliverables (End of Track 3):
 
-- ✅ 17 microservices (complete platform)
+- ✅ 20 microservices (complete platform with PayShap, SWIFT, Batch)
 - ✅ ~250,000 lines of code
 - ✅ ~12,500 tests
 - ✅ Cell-based architecture (10 cells)

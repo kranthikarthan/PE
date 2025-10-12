@@ -57,7 +57,7 @@
 └────────┘ └────────┘ └────────┘     └────────┘
 
 Each Cell = Complete Stack:
-- 17 microservices
+- 20 microservices (includes PayShap, SWIFT, Batch Processing)
 - 14 databases
 - Kafka cluster
 - Istio service mesh
