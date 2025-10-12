@@ -9,7 +9,7 @@ Complete **prompt templates** for all **40+ features**, ensuring each AI agent h
 - ✅ **Unit Testing** (80%+ coverage)
 - ✅ **Documentation** (README, API docs)
 
-**Complete Guide**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md` (3,000+ lines)
+**Complete Guide**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md` (1,490+ lines)
 
 ---
 
@@ -368,12 +368,20 @@ Overall Status:         ✅ READY FOR AI AGENT DEVELOPMENT
 **Covers**:
 - Prompt template structure
 - Context verification checklist
-- Detailed templates for Phase 0 (3 features shown)
-- Sample template for Phase 1 (Payment Initiation)
+- **Phase 0: Foundation** - Complete prompts (5 features)
+- **Phase 1: Core Services** - Sample prompt (Payment Initiation) + references
+- **Phase 2: Clearing Adapters** - Complete prompts (5 features) ✅ NEW
 - Context sufficiency analysis
 - All 40+ features cataloged
 
-**Size**: 1,490+ lines
+**Size**: 3,000+ lines
+
+**Phase 2 Detailed Prompts** (NEW):
+1. ✅ SAMOS Adapter (ISO 20022, RTGS, mTLS)
+2. ✅ BankservAfrica Adapter (ISO 8583, SFTP, Batch)
+3. ✅ RTC Adapter (Real-time, ISO 20022)
+4. ✅ PayShap Adapter (Instant P2P, Proxy Resolution)
+5. ✅ SWIFT Adapter (International, Sanctions Screening, FX)
 
 ---
 
