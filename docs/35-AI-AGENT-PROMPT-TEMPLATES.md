@@ -4157,6 +4157,973 @@ Dependencies:
 
 ---
 
+## Phase 4: Advanced Features (5 Features)
+
+### Feature 4.1: Batch Processing Service
+
+```yaml
+Feature ID: 4.1
+Feature Name: Batch Processing Service
+Agent Name: Batch Processing Agent
+Phase: 4 (Advanced Features)
+Estimated Time: 5 days
+
+Role & Expertise:
+  You are a Backend Engineer with expertise in Spring Batch, bulk payment processing,
+  file parsing (CSV, Excel, XML, JSON), parallel processing, fault tolerance, and
+  SFTP integration.
+
+Task:
+  Build the Batch Processing Service - processes bulk payment files uploaded by
+  clients or received from clearing systems. Supports multiple file formats,
+  parallel processing, fault tolerance, chunk-based processing, and SFTP integration.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #12 section)
+     📄 docs/28-BATCH-PROCESSING.md (COMPLETE FILE - 2,000 lines)
+        - Spring Batch architecture
+        - File format specifications (CSV, Excel, XML, JSON)
+        - Chunk-based processing
+        - Parallel processing (multi-threaded)
+        - Fault tolerance (skip, retry, restart)
+        - SFTP integration
+        - Job scheduling
+        - Monitoring & reporting
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 4.1)
+  
+  2. Supported File Formats:
+     - CSV (delimiter: comma, semicolon, pipe)
+     - Excel (XLS, XLSX)
+     - XML (custom schema)
+     - JSON (array of payments)
+     - Fixed-width (legacy systems)
+  
+  3. Batch File Example (CSV):
+     ```csv
+     PaymentId,DebtorAccount,CreditorAccount,Amount,Currency,PaymentType,Reference
+     BAT-001,ACC-123,ACC-456,1000.00,ZAR,EFT,Invoice 1001
+     BAT-002,ACC-124,ACC-457,2000.00,ZAR,EFT,Invoice 1002
+     BAT-003,ACC-125,ACC-458,3000.00,ZAR,RTC,Invoice 1003
+     ```
+  
+  4. Spring Batch Architecture:
+     ```
+     Job (Batch Payment Processing Job)
+       ↓
+     Step 1: File Validation
+       - Validate file format
+       - Validate headers
+       - Check file size
+       ↓
+     Step 2: Payment Processing (Chunk-based)
+       - ItemReader: Read file (chunk size: 100)
+       - ItemProcessor: Validate + Transform payment
+       - ItemWriter: Submit to Payment Initiation Service
+       ↓
+     Step 3: Generate Report
+       - Success count
+       - Failure count
+       - Error report (CSV)
+     ```
+  
+  5. Chunk-Based Processing:
+     - Chunk Size: 100 payments per transaction
+     - Parallel Processing: 5 threads
+     - Fault Tolerance:
+       - Skip on validation error (continue processing)
+       - Retry on transient error (3 attempts)
+       - Restart from last checkpoint on crash
+  
+  6. API Endpoints to Implement:
+     POST   /api/v1/batch/upload (upload file)
+     GET    /api/v1/batch/jobs (list batch jobs)
+     GET    /api/v1/batch/jobs/{jobId} (get job status)
+     GET    /api/v1/batch/jobs/{jobId}/report (download error report)
+     POST   /api/v1/batch/jobs/{jobId}/restart (restart failed job)
+  
+  7. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - Spring Batch 5.x
+     - Apache POI (Excel parsing)
+     - Jackson (JSON parsing)
+     - JAXB (XML parsing)
+     - Apache Camel (file routing)
+     - SFTP Client (JSch)
+     - PostgreSQL (job metadata)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Batch Processing Flow
+        ```
+        Client/SFTP → Upload File
+            ↓
+        Batch Service → Validate file format
+            ↓
+        Spring Batch Job → Launch
+            ↓
+        Step 1: File Validation
+            ↓
+        Step 2: Chunk Processing (100 payments/chunk, 5 threads)
+            - Read chunk
+            - Validate each payment
+            - Transform to PaymentRequest
+            - Submit to Payment Initiation API
+            ↓
+        Step 3: Generate Report
+            - Success count
+            - Failure count
+            - Error CSV (failed payments)
+        ```
+     
+     📊 Component Diagram
+        - Batch Controller (upload, status)
+        - Job Launcher
+        - File Validator
+        - Payment Reader (ItemReader)
+        - Payment Processor (ItemProcessor)
+        - Payment Writer (ItemWriter)
+        - Report Generator
+  
+  2. LLD (Low-Level Design):
+     📋 Class Diagram
+        - BatchController
+        - BatchService
+        - FileUploadService
+        - FileValidator
+        - PaymentBatchJob (Spring Batch Job)
+        - PaymentItemReader (CSV, Excel, XML, JSON)
+        - PaymentItemProcessor (validation, transformation)
+        - PaymentItemWriter (submit to Payment Initiation)
+        - ErrorReportGenerator
+        - SFTPFilePoller
+     
+     📋 Spring Batch Job Configuration
+        ```java
+        @Bean
+        public Job paymentBatchJob(JobRepository jobRepository,
+                                    Step validationStep,
+                                    Step processingStep,
+                                    Step reportStep) {
+            return new JobBuilder("paymentBatchJob", jobRepository)
+                .incrementer(new RunIdIncrementer())
+                .start(validationStep)
+                .next(processingStep)
+                .next(reportStep)
+                .build();
+        }
+        
+        @Bean
+        public Step processingStep(JobRepository jobRepository,
+                                    PlatformTransactionManager transactionManager,
+                                    ItemReader<PaymentRecord> reader,
+                                    ItemProcessor<PaymentRecord, PaymentRequest> processor,
+                                    ItemWriter<PaymentRequest> writer) {
+            return new StepBuilder("processingStep", jobRepository)
+                .<PaymentRecord, PaymentRequest>chunk(100, transactionManager)
+                .reader(reader)
+                .processor(processor)
+                .writer(writer)
+                .faultTolerant()
+                .skipLimit(1000)
+                .skip(ValidationException.class)
+                .retryLimit(3)
+                .retry(TransientException.class)
+                .taskExecutor(taskExecutor()) // 5 threads
+                .build();
+        }
+        ```
+  
+  3. Implementation:
+     📁 /services/batch-processing-service/
+        ├─ src/main/java/com/payments/batch/
+        │   ├─ BatchProcessingApplication.java
+        │   ├─ controller/
+        │   │   └─ BatchController.java
+        │   ├─ service/
+        │   │   ├─ BatchService.java
+        │   │   ├─ FileUploadService.java
+        │   │   └─ FileValidator.java
+        │   ├─ batch/
+        │   │   ├─ PaymentBatchJob.java
+        │   │   ├─ reader/
+        │   │   │   ├─ CsvPaymentReader.java
+        │   │   │   ├─ ExcelPaymentReader.java
+        │   │   │   ├─ XmlPaymentReader.java
+        │   │   │   └─ JsonPaymentReader.java
+        │   │   ├─ processor/
+        │   │   │   └─ PaymentItemProcessor.java
+        │   │   └─ writer/
+        │   │       └─ PaymentItemWriter.java
+        │   ├─ sftp/
+        │   │   └─ SFTPFilePoller.java
+        │   ├─ report/
+        │   │   └─ ErrorReportGenerator.java
+        │   ├─ model/
+        │   │   ├─ PaymentRecord.java
+        │   │   ├─ BatchJobMetadata.java
+        │   │   └─ BatchJobStatus.java (Enum)
+        │   ├─ dto/
+        │   │   ├─ FileUploadRequest.java
+        │   │   └─ BatchJobResponse.java
+        │   ├─ config/
+        │   │   ├─ BatchConfig.java
+        │   │   ├─ SFTPConfig.java
+        │   │   └─ TaskExecutorConfig.java
+        │   └─ exception/
+        │       ├─ FileValidationException.java
+        │       └─ BatchProcessingException.java
+        ├─ src/test/java/
+        │   ├─ batch/PaymentBatchJobTest.java
+        │   ├─ reader/CsvPaymentReaderTest.java
+        │   ├─ processor/PaymentItemProcessorTest.java
+        │   └─ integration/BatchIntegrationTest.java
+        ├─ Dockerfile
+        └─ README.md
+     
+     Key Implementation (PaymentItemProcessor.java):
+     ```java
+     @Component
+     @Slf4j
+     public class PaymentItemProcessor implements ItemProcessor<PaymentRecord, PaymentRequest> {
+         
+         @Autowired
+         private ValidationService validationService;
+         
+         @Override
+         public PaymentRequest process(PaymentRecord record) throws Exception {
+             log.debug("Processing payment record: {}", record.getPaymentId());
+             
+             // 1. Validate payment
+             validationService.validate(record);
+             
+             // 2. Transform to PaymentRequest
+             PaymentRequest request = PaymentRequest.builder()
+                 .amount(record.getAmount())
+                 .currency(record.getCurrency())
+                 .debtorAccountId(record.getDebtorAccount())
+                 .creditorAccountId(record.getCreditorAccount())
+                 .paymentType(record.getPaymentType())
+                 .reference(record.getReference())
+                 .build();
+             
+             log.debug("Payment processed: {}", record.getPaymentId());
+             return request;
+         }
+     }
+     ```
+  
+  4. Unit Testing:
+     ✅ Batch Job Tests
+        - Job execution success (100 payments)
+        - Job execution with skips (validation errors)
+        - Job execution with retries (transient errors)
+        - Job restart from checkpoint
+     
+     ✅ File Reader Tests
+        - CSV parsing (valid, invalid)
+        - Excel parsing (XLS, XLSX)
+        - XML parsing
+        - JSON parsing
+     
+     ✅ Processor Tests
+        - Validation success
+        - Validation failure (skip)
+        - Transformation correct
+     
+     ✅ Writer Tests
+        - Submit to Payment Initiation API
+        - Handle API errors
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md
+        - Batch processing overview
+        - Supported file formats
+        - How to upload files
+        - Job monitoring
+     
+     📄 FILE-FORMAT-SPECS.md
+        - CSV format specification
+        - Excel format specification
+        - XML schema
+        - JSON schema
+     
+     📄 BATCH-PROCESSING-GUIDE.md
+        - Chunk-based processing
+        - Fault tolerance (skip, retry, restart)
+        - Parallel processing
+        - Error handling
+
+Success Criteria:
+  ✅ Batch job processes 10,000 payments successfully
+  ✅ All file formats supported (CSV, Excel, XML, JSON)
+  ✅ Fault tolerance working (skip, retry, restart)
+  ✅ Parallel processing (5 threads)
+  ✅ SFTP integration functional
+  ✅ Error report generated
+  ✅ Tests pass (80%+ coverage)
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete batch spec in docs/28
+  - Spring Batch patterns provided
+  - File format examples
+  - Chunk processing examples
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+  ✅ Feature 1.1 (Payment Initiation) - for submitting payments
+```
+
+---
+
+### Feature 4.2: Settlement Service
+
+```yaml
+Feature ID: 4.2
+Feature Name: Settlement Service
+Agent Name: Settlement Agent
+Phase: 4 (Advanced Features)
+Estimated Time: 4 days
+
+Role & Expertise:
+  You are a Backend Engineer with expertise in financial settlement, nostro/vostro
+  accounting, multi-currency settlement, liquidity management, and reconciliation.
+
+Task:
+  Build the Settlement Service - manages settlement with clearing systems,
+  tracks nostro/vostro positions, handles multi-currency settlement, monitors
+  liquidity, and provides settlement reporting.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #13 section)
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 4.2)
+  
+  2. Settlement Concepts:
+     - Nostro Account: Our account at another bank (asset)
+     - Vostro Account: Other bank's account with us (liability)
+     - Net Settlement: Sum of all debits and credits
+     - Gross Settlement: Individual transaction settlement (RTGS)
+  
+  3. Settlement Flow:
+     ```
+     ClearingCompletedEvent (from clearing systems)
+         ↓
+     Settlement Service
+         ↓
+     1. Determine settlement account (nostro/vostro)
+     2. Calculate net/gross settlement amount
+     3. Check liquidity (sufficient funds?)
+     4. Update nostro/vostro position
+     5. Publish SettlementCompletedEvent
+     ```
+  
+  4. Nostro/Vostro Positions:
+     ```
+     Nostro Position (Our account at SARB):
+     ├─ Opening Balance: R 100,000,000
+     ├─ Debits (payments out): R 50,000,000
+     ├─ Credits (payments in): R 30,000,000
+     └─ Closing Balance: R 80,000,000
+     
+     Vostro Position (Bank A's account with us):
+     ├─ Opening Balance: R 20,000,000
+     ├─ Debits (payments out): R 10,000,000
+     ├─ Credits (payments in): R 15,000,000
+     └─ Closing Balance: R 25,000,000
+     ```
+  
+  5. API Endpoints to Implement:
+     GET    /api/v1/settlement/nostro/positions
+     GET    /api/v1/settlement/vostro/positions
+     POST   /api/v1/settlement/reconcile
+     GET    /api/v1/settlement/liquidity/status
+     GET    /api/v1/settlement/reports/daily
+  
+  6. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - PostgreSQL (settlement data)
+     - Redis (real-time positions cache)
+     - Azure Service Bus (event consumption)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Settlement Flow Diagram
+     📊 Nostro/Vostro Accounting Model
+  
+  2. LLD (Low-Level Design):
+     📋 Class Diagram
+        - SettlementEventConsumer
+        - SettlementService
+        - NostroService
+        - VostroService
+        - LiquidityService
+        - SettlementRepository
+     
+     📋 Database Schema
+        - nostro_accounts
+        - vostro_accounts
+        - settlement_transactions
+  
+  3. Implementation:
+     📁 /services/settlement-service/
+        ├─ src/main/java/com/payments/settlement/
+        │   ├─ SettlementServiceApplication.java
+        │   ├─ consumer/
+        │   │   └─ ClearingEventConsumer.java
+        │   ├─ service/
+        │   │   ├─ SettlementService.java
+        │   │   ├─ NostroService.java
+        │   │   ├─ VostroService.java
+        │   │   └─ LiquidityService.java
+        │   ├─ repository/
+        │   │   ├─ NostroRepository.java
+        │   │   ├─ VostroRepository.java
+        │   │   └─ SettlementRepository.java
+        │   ├─ model/
+        │   │   ├─ NostroAccount.java
+        │   │   ├─ VostroAccount.java
+        │   │   └─ SettlementTransaction.java
+        │   ├─ controller/
+        │   │   └─ SettlementController.java
+        │   ├─ config/
+        │   │   ├─ RedisConfig.java
+        │   │   └─ ServiceBusConfig.java
+        │   └─ exception/
+        │       └─ InsufficientLiquidityException.java
+        ├─ src/test/java/
+        │   ├─ service/SettlementServiceTest.java
+        │   └─ integration/SettlementIntegrationTest.java
+        ├─ Dockerfile
+        └─ README.md
+  
+  4. Unit Testing:
+     ✅ Settlement Tests
+        - Nostro debit/credit
+        - Vostro debit/credit
+        - Liquidity check
+        - Insufficient funds
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md
+     📄 SETTLEMENT-GUIDE.md
+
+Success Criteria:
+  ✅ Nostro/vostro positions accurate
+  ✅ Liquidity monitoring working
+  ✅ Tests pass (80%+ coverage)
+
+Context Sufficiency: ✅ SUFFICIENT
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+  ✅ Phase 2 (Clearing Adapters) - for clearing events
+```
+
+---
+
+### Feature 4.3: Reconciliation Service
+
+```yaml
+Feature ID: 4.3
+Feature Name: Reconciliation Service
+Agent Name: Reconciliation Agent
+Phase: 4 (Advanced Features)
+Estimated Time: 4 days
+
+Role & Expertise:
+  You are a Backend Engineer with expertise in financial reconciliation, exception
+  handling, matching algorithms, and dispute resolution.
+
+Task:
+  Build the Reconciliation Service - reconciles payment transactions with clearing
+  system responses, identifies exceptions (mismatches, missing transactions),
+  generates reconciliation reports, and manages dispute resolution.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #14 section)
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 4.3)
+  
+  2. Reconciliation Types:
+     - Inbound Reconciliation: Clearing responses vs our records
+     - Outbound Reconciliation: Our submissions vs clearing confirmations
+     - Settlement Reconciliation: Nostro/vostro vs clearing statements
+  
+  3. Reconciliation Flow:
+     ```
+     Daily Job (Scheduled 06:00)
+         ↓
+     1. Fetch internal transactions (T-1)
+     2. Fetch clearing statements (SFTP)
+     3. Match transactions (by reference)
+     4. Identify exceptions:
+        - Missing in clearing
+        - Missing in internal
+        - Amount mismatch
+        - Status mismatch
+     5. Generate reconciliation report
+     6. Create exceptions for investigation
+     ```
+  
+  4. Matching Algorithm:
+     - Primary Key: Payment Reference
+     - Secondary Keys: Amount, Date, Debtor Account
+     - Tolerance: Amount ±0.01 (rounding)
+  
+  5. Exception Types:
+     - Missing in Clearing (payment sent but no confirmation)
+     - Missing in Internal (clearing received but no internal record)
+     - Amount Mismatch (R1000 vs R1000.01)
+     - Status Mismatch (completed vs failed)
+     - Duplicate (same payment twice)
+  
+  6. API Endpoints to Implement:
+     POST   /api/v1/reconciliation/run (manual reconciliation)
+     GET    /api/v1/reconciliation/exceptions
+     GET    /api/v1/reconciliation/reports/{date}
+     PUT    /api/v1/reconciliation/exceptions/{id}/resolve
+  
+  7. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - Spring Batch (for batch reconciliation)
+     - PostgreSQL (exceptions, reports)
+     - SFTP (download clearing statements)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Reconciliation Flow Diagram
+     📊 Matching Algorithm
+  
+  2. LLD (Low-Level Design):
+     📋 Class Diagram
+        - ReconciliationService
+        - MatchingEngine
+        - ExceptionHandler
+        - ReportGenerator
+     
+     📋 Batch Job Configuration (Spring Batch)
+  
+  3. Implementation:
+     📁 /services/reconciliation-service/
+        ├─ src/main/java/com/payments/reconciliation/
+        │   ├─ ReconciliationServiceApplication.java
+        │   ├─ service/
+        │   │   ├─ ReconciliationService.java
+        │   │   ├─ MatchingEngine.java
+        │   │   └─ ExceptionHandler.java
+        │   ├─ batch/
+        │   │   └─ ReconciliationJob.java
+        │   ├─ repository/
+        │   │   ├─ ExceptionRepository.java
+        │   │   └─ ReconciliationReportRepository.java
+        │   ├─ model/
+        │   │   ├─ ReconciliationException.java
+        │   │   └─ ReconciliationReport.java
+        │   ├─ controller/
+        │   │   └─ ReconciliationController.java
+        │   └─ sftp/
+        │       └─ ClearingStatementDownloader.java
+        ├─ src/test/java/
+        │   ├─ service/ReconciliationServiceTest.java
+        │   └─ matching/MatchingEngineTest.java
+        ├─ Dockerfile
+        └─ README.md
+  
+  4. Unit Testing:
+     ✅ Matching Tests
+        - Exact match
+        - Amount mismatch (within tolerance)
+        - Missing in clearing
+        - Missing in internal
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md
+     📄 RECONCILIATION-GUIDE.md
+
+Success Criteria:
+  ✅ Matching algorithm accurate (99%+)
+  ✅ Exceptions identified
+  ✅ Reports generated
+  ✅ Tests pass (80%+ coverage)
+
+Context Sufficiency: ✅ SUFFICIENT
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+  ✅ Phase 2 (Clearing Adapters) - for clearing data
+```
+
+---
+
+### Feature 4.4: Internal API Gateway Service (Optional with Istio)
+
+```yaml
+Feature ID: 4.4
+Feature Name: Internal API Gateway Service
+Agent Name: Internal Gateway Agent
+Phase: 4 (Advanced Features)
+Estimated Time: 3 days
+
+Role & Expertise:
+  You are a Backend Engineer with expertise in Spring Cloud Gateway, API routing,
+  load balancing, circuit breakers, and service discovery.
+
+Task:
+  Build the Internal API Gateway Service - routes internal service-to-service
+  API calls, provides load balancing, circuit breaking, and service discovery.
+  **NOTE: This service is OPTIONAL if using Istio service mesh.**
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #18 section - marked OPTIONAL)
+     📄 docs/32-GATEWAY-ARCHITECTURE-CLARIFICATION.md
+        - 4 gateway layers explained
+        - Internal API Gateway vs Istio
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 4.4)
+  
+  2. Responsibilities (if NOT using Istio):
+     - Route internal API calls between services
+     - Load balancing (round-robin, random)
+     - Circuit breaking (Resilience4j)
+     - Service discovery (Kubernetes DNS or Eureka)
+     - Request tracing (correlation ID propagation)
+  
+  3. Routing Rules:
+     ```yaml
+     routes:
+       - id: payment-initiation
+         uri: http://payment-initiation-service:8080
+         predicates:
+           - Path=/internal/payments/**
+       
+       - id: validation
+         uri: http://validation-service:8080
+         predicates:
+           - Path=/internal/validation/**
+       
+       - id: account-adapter
+         uri: http://account-adapter-service:8080
+         predicates:
+           - Path=/internal/accounts/**
+     ```
+  
+  4. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - Spring Cloud Gateway 4.x
+     - Resilience4j (circuit breaker)
+     - Kubernetes Service Discovery
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Routing Architecture
+     📊 Circuit Breaker Pattern
+  
+  2. LLD (Low-Level Design):
+     📋 Route Configuration
+     📋 Circuit Breaker Configuration
+  
+  3. Implementation:
+     📁 /services/internal-api-gateway/
+        ├─ src/main/java/com/payments/gateway/
+        │   ├─ InternalGatewayApplication.java
+        │   ├─ config/
+        │   │   ├─ GatewayConfig.java
+        │   │   └─ CircuitBreakerConfig.java
+        │   └─ filter/
+        │       ├─ CorrelationIdFilter.java
+        │       └─ LoggingFilter.java
+        ├─ src/main/resources/
+        │   └─ application.yml (route configuration)
+        ├─ src/test/java/
+        │   └─ gateway/GatewayRoutingTest.java
+        ├─ Dockerfile
+        └─ README.md
+  
+  4. Unit Testing:
+     ✅ Routing Tests
+        - Route to correct service
+        - Load balancing
+        - Circuit breaker triggers
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md
+     📄 ROUTING-GUIDE.md
+     📄 ISTIO-ALTERNATIVE.md (explains when to use Istio instead)
+
+Success Criteria:
+  ✅ Routing working
+  ✅ Circuit breaker working
+  ✅ Tests pass (80%+ coverage)
+
+Context Sufficiency: ✅ SUFFICIENT
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+
+Notes:
+  ⚠️ OPTIONAL: Use Istio service mesh instead for production
+  ⚠️ Istio provides routing, load balancing, circuit breaking natively
+```
+
+---
+
+### Feature 4.5: BFF Layer (3 Backend-for-Frontend Services)
+
+```yaml
+Feature ID: 4.5
+Feature Name: BFF Layer (Backend-for-Frontend)
+Agent Name: BFF Agent
+Phase: 4 (Advanced Features)
+Estimated Time: 5 days (3 BFFs: Web, Mobile, Partner)
+
+Role & Expertise:
+  You are a Full-Stack Engineer with expertise in GraphQL (Web BFF), REST API
+  optimization (Mobile BFF), API aggregation, and client-specific API design.
+
+Task:
+  Build 3 Backend-for-Frontend (BFF) services:
+  1. Web BFF (GraphQL) - optimized for React web app
+  2. Mobile BFF (REST lightweight) - optimized for mobile apps
+  3. Partner BFF (REST comprehensive) - optimized for partner integrations
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (BFF Layer section)
+     📄 docs/17-BFF-BACKEND-FOR-FRONTEND.md (COMPLETE FILE - 1,800 lines)
+        - BFF pattern overview
+        - Why 3 BFFs (Web, Mobile, Partner)
+        - GraphQL for Web
+        - REST for Mobile (lightweight)
+        - REST for Partner (comprehensive)
+        - API aggregation patterns
+        - Performance optimization
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 4.5)
+  
+  2. BFF Responsibilities:
+     - Aggregate data from multiple microservices
+     - Transform data to client-specific format
+     - Optimize for client needs (Web: rich data, Mobile: minimal data)
+     - Handle authentication/authorization (JWT validation)
+     - Implement caching (Redis)
+  
+  3. Web BFF (GraphQL):
+     ```graphql
+     type Payment {
+       id: ID!
+       amount: Float!
+       currency: String!
+       status: PaymentStatus!
+       debtorAccount: Account!
+       creditorAccount: Account!
+       createdAt: DateTime!
+     }
+     
+     type Account {
+       id: ID!
+       accountNumber: String!
+       accountName: String!
+       balance: Float!
+     }
+     
+     type Query {
+       payment(id: ID!): Payment
+       payments(filter: PaymentFilter, page: Int, size: Int): PaymentPage
+       account(id: ID!): Account
+     }
+     
+     type Mutation {
+       createPayment(input: CreatePaymentInput!): Payment
+       cancelPayment(id: ID!): Payment
+     }
+     ```
+  
+  4. Mobile BFF (REST Lightweight):
+     ```json
+     GET /api/v1/mobile/payments/{id}
+     Response:
+     {
+       "id": "PAY-001",
+       "amount": 1000.00,
+       "currency": "ZAR",
+       "status": "COMPLETED",
+       "createdAt": "2025-10-12T10:00:00Z"
+     }
+     (Minimal data, no nested objects)
+     ```
+  
+  5. Partner BFF (REST Comprehensive):
+     ```json
+     GET /api/v1/partner/payments/{id}
+     Response:
+     {
+       "id": "PAY-001",
+       "amount": 1000.00,
+       "currency": "ZAR",
+       "status": "COMPLETED",
+       "debtorAccount": {
+         "id": "ACC-123",
+         "accountNumber": "1234567890",
+         "accountName": "John Doe",
+         "balance": 50000.00
+       },
+       "creditorAccount": {
+         "id": "ACC-456",
+         "accountNumber": "9876543210",
+         "accountName": "Jane Smith",
+         "balance": 30000.00
+       },
+       "auditTrail": [ ... ],
+       "fees": { ... },
+       "clearingDetails": { ... },
+       "createdAt": "2025-10-12T10:00:00Z"
+     }
+     (Comprehensive data, all nested objects)
+     ```
+  
+  6. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - Spring GraphQL (Web BFF)
+     - Spring WebFlux (Reactive for all 3 BFFs)
+     - Redis (caching)
+     - JWT (authentication)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 BFF Architecture Diagram (3 BFFs)
+     📊 API Aggregation Flow
+  
+  2. LLD (Low-Level Design):
+     📋 GraphQL Schema (Web BFF)
+     📋 REST API Contract (Mobile BFF)
+     📋 REST API Contract (Partner BFF)
+  
+  3. Implementation:
+     📁 /services/web-bff/
+        ├─ src/main/java/com/payments/bff/web/
+        │   ├─ WebBffApplication.java
+        │   ├─ graphql/
+        │   │   ├─ PaymentQueryResolver.java
+        │   │   ├─ PaymentMutationResolver.java
+        │   │   └─ AccountQueryResolver.java
+        │   ├─ service/
+        │   │   ├─ PaymentAggregationService.java
+        │   │   └─ AccountAggregationService.java
+        │   ├─ client/
+        │   │   ├─ PaymentServiceClient.java
+        │   │   └─ AccountServiceClient.java
+        │   ├─ config/
+        │   │   ├─ GraphQLConfig.java
+        │   │   └─ RedisConfig.java
+        │   └─ security/
+        │       └─ JwtAuthenticationFilter.java
+        ├─ src/main/resources/
+        │   └─ graphql/
+        │       └─ schema.graphqls
+        ├─ Dockerfile
+        └─ README.md
+     
+     📁 /services/mobile-bff/
+        ├─ src/main/java/com/payments/bff/mobile/
+        │   ├─ MobileBffApplication.java
+        │   ├─ controller/
+        │   │   ├─ PaymentController.java (lightweight)
+        │   │   └─ AccountController.java (lightweight)
+        │   ├─ service/
+        │   │   └─ PaymentAggregationService.java
+        │   ├─ dto/
+        │   │   ├─ PaymentSummary.java (lightweight)
+        │   │   └─ AccountSummary.java (lightweight)
+        │   ├─ config/
+        │   │   └─ WebFluxConfig.java
+        │   └─ security/
+        │       └─ JwtAuthenticationFilter.java
+        ├─ Dockerfile
+        └─ README.md
+     
+     📁 /services/partner-bff/
+        ├─ src/main/java/com/payments/bff/partner/
+        │   ├─ PartnerBffApplication.java
+        │   ├─ controller/
+        │   │   ├─ PaymentController.java (comprehensive)
+        │   │   └─ AccountController.java (comprehensive)
+        │   ├─ service/
+        │   │   └─ PaymentAggregationService.java
+        │   ├─ dto/
+        │   │   ├─ PaymentDetail.java (comprehensive)
+        │   │   └─ AccountDetail.java (comprehensive)
+        │   ├─ config/
+        │   │   └─ WebFluxConfig.java
+        │   └─ security/
+        │       └─ ApiKeyAuthenticationFilter.java
+        ├─ Dockerfile
+        └─ README.md
+  
+  4. Unit Testing:
+     ✅ Web BFF Tests
+        - GraphQL query resolution
+        - GraphQL mutation execution
+        - Data aggregation
+     
+     ✅ Mobile BFF Tests
+        - Lightweight response
+        - Performance (latency < 100ms)
+     
+     ✅ Partner BFF Tests
+        - Comprehensive response
+        - API key authentication
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md (per BFF)
+     📄 WEB-BFF-GRAPHQL-GUIDE.md
+     📄 MOBILE-BFF-OPTIMIZATION.md
+     📄 PARTNER-BFF-API-REFERENCE.md
+
+Success Criteria:
+  ✅ All 3 BFFs deployed
+  ✅ GraphQL working (Web BFF)
+  ✅ REST APIs working (Mobile, Partner BFFs)
+  ✅ Data aggregation correct
+  ✅ Performance optimized
+  ✅ Tests pass (80%+ coverage)
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete BFF spec in docs/17 (1,800 lines)
+  - GraphQL schema provided
+  - API contracts clear
+  - Aggregation patterns explained
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+  ✅ Phase 1 (Core Services) - for data aggregation
+  ✅ Feature 3.2 (IAM Service) - for JWT validation
+```
+
+---
+
 ## Context Sufficiency Analysis
 
 ### Summary of Context Completeness
