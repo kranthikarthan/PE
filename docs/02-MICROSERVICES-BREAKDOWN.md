@@ -1690,20 +1690,122 @@ CREATE TABLE reconciliation_exceptions (
 
 ---
 
-## 11. Notification Service
+## 11. Notification Service / IBM MQ Adapter
 
-### Responsibilities
-- Send SMS notifications
-- Send email notifications
+### Purpose
+Send notifications via multiple channels. Two implementation options:
+
+---
+
+### **Option 1: Internal Notification Service**
+
+**Responsibilities**:
+- Send SMS notifications (Twilio)
+- Send email notifications (SendGrid)
 - Send push notifications (PWA)
 - Webhook callbacks to external systems
 - Manage notification templates
+- Track delivery status
 
-### API Endpoints
+**Technology Stack**:
+- Spring Boot 3.x
+- Azure Notification Hub
+- Twilio (SMS)
+- SendGrid (Email)
+
+---
+
+### **Option 2: IBM MQ Adapter ⭐ RECOMMENDED**
+
+**Responsibilities**:
+- Forward notification requests to **remote notifications engine**
+- Use **IBM MQ non-persistent messaging** (fire-and-forget)
+- Do **NOT block payment processing**
+- Metrics and logging for observability
+
+**Rationale** (Why externalize notifications):
+```
+Core Function:         Non-Core Function:
+Payment Processing     Notifications
+├─ MUST succeed       ├─ CAN fail
+├─ ACID transactions  ├─ Fire-and-forget
+├─ Persistent         ├─ Non-persistent
+├─ Synchronous        ├─ Asynchronous
+└─ Zero data loss     └─ Best-effort delivery
+```
+
+**Benefits**:
+- ✅ Notifications are **NOT core** to payments → externalize
+- ✅ Payment succeeds even if notification fails
+- ✅ Higher throughput: 50K+ msg/sec (vs 10K internal)
+- ✅ Lower latency: 1-5ms (vs 50-100ms)
+- ✅ Lower cost: $7-19K/year (vs $32K+ for internal)
+- ✅ Remote engine handles: templates, retries, channels, analytics
+
+**Technology Stack**:
+- Spring Boot
+- IBM MQ JMS Spring Boot Starter
+- Delivery Mode: NON_PERSISTENT (fire-and-forget)
+- Queue: PAYMENTS.NOTIFICATIONS.OUT
+- Timeout: 1 second max (no blocking)
+
+**Configuration**:
+```yaml
+ibm:
+  mq:
+    queue-manager: PAYMENTS_QM
+    notification-queue: PAYMENTS.NOTIFICATIONS.OUT
+    delivery-mode: NON_PERSISTENT  # Fire-and-forget ⭐
+    put-timeout: 1000  # 1 second max
+```
+
+**Usage Pattern**:
+```java
+// Payment succeeds even if notification fails ✅
+try {
+    ibmMqAdapter.sendNotification(notification);
+} catch (Exception e) {
+    log.warn("Notification failed (fire-and-forget)", e);
+    // Don't throw - payment already succeeded
+}
+```
+
+**Message Format** (sent to IBM MQ):
+```json
+{
+  "messageType": "NOTIFICATION_REQUEST",
+  "notificationType": "PAYMENT_COMPLETED",
+  "recipient": {
+    "customerId": "CUST-12345",
+    "phone": "+27821234567",
+    "email": "customer@example.com"
+  },
+  "payload": {
+    "paymentId": "PAY-67890",
+    "amount": 10000.00,
+    "currency": "ZAR",
+    "status": "COMPLETED"
+  },
+  "templateId": "payment_completed_v1"
+}
+```
+
+**Remote Engine Capabilities**:
+- SMS (Twilio, Africa's Talking, etc.)
+- Email (SendGrid, Mailgun, etc.)
+- Push (Firebase, APNS, etc.)
+- WhatsApp Business API
+- In-App notifications
+- Template management
+- Retry logic
+- Analytics & reporting
+- Compliance (opt-out, consent)
+
+### API Endpoints (Internal Only)
 
 ```yaml
 POST /api/v1/notifications/send
-  Description: Send notification
+  Description: Send notification (internal use only)
   Request Body:
     {
       "recipientId": "user-123",
@@ -1726,8 +1828,12 @@ POST /api/v1/notifications/send
 - `PaymentFailedEvent`
 - `ValidationFailedEvent`
 
-### Database Schema
+### Database Schema (Option 1 only)
+
 ```sql
+-- For Option 1 (Internal Service) only
+-- Option 2 (IBM MQ) has NO database (fire-and-forget)
+
 CREATE TABLE notifications (
     notification_id VARCHAR(50) PRIMARY KEY,
     recipient_id VARCHAR(100) NOT NULL,
@@ -1752,11 +1858,9 @@ CREATE TABLE notification_templates (
 );
 ```
 
-### Technology Stack
-- Spring Boot 3.x
-- Azure Notification Hub
-- Twilio (SMS)
-- SendGrid (Email)
+### See Also
+- **`docs/25-IBM-MQ-NOTIFICATIONS.md`** - Complete IBM MQ integration guide
+- **`IBM-MQ-NOTIFICATIONS-SUMMARY.md`** - Quick reference
 
 ---
 
