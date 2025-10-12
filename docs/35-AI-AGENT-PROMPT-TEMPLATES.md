@@ -938,6 +938,12 @@ Dependencies:
 
 ## Phase 1: Core Services (6 Features)
 
+**Note**: Phase 1 detailed prompts follow the same structure as Feature 1.1 (Payment Initiation Service) shown above. All 6 core services have complete context from Phase 0 foundation.
+
+---
+
+## Phase 2: Clearing Adapters (5 Features)
+
 ### Feature 1.1: Payment Initiation Service
 
 ```yaml
@@ -1303,6 +1309,1553 @@ Dependencies:
   ✅ Feature 0.3 (Domain Models) - COMPLETE
   ✅ Feature 0.4 (Shared Libraries) - COMPLETE
   ✅ Feature 0.5 (Infrastructure Setup) - COMPLETE
+```
+
+---
+
+## Phase 2: Clearing Adapters (5 Features)
+
+### Feature 2.1: SAMOS Adapter
+
+```yaml
+Feature ID: 2.1
+Feature Name: SAMOS Adapter (High-Value RTGS)
+Agent Name: SAMOS Adapter Agent
+Phase: 2 (Clearing Adapters)
+Estimated Time: 4 days
+
+Role & Expertise:
+  You are a Payments Integration Specialist with expertise in ISO 20022 messaging,
+  RTGS (Real-Time Gross Settlement) systems, SWIFT-like messaging, and South African
+  payment systems (SARB SAMOS).
+
+Task:
+  Build the SAMOS Adapter Service - integrates with South African Reserve Bank's
+  SAMOS (South African Multiple Option Settlement) system for high-value RTGS
+  payments. This service consumes PaymentRoutedEvent, builds ISO 20022 pacs.008
+  messages, submits to SAMOS, handles responses, and publishes clearing events.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #7 section)
+        Lines 174-220 (SAMOS Adapter section)
+        - Responsibilities
+        - ISO 20022 message types
+        - Technology stack
+     
+     📄 docs/06-SOUTH-AFRICA-CLEARING.md (SAMOS section)
+        Lines 50-250 (complete SAMOS specification)
+        - SAMOS overview
+        - RTGS characteristics
+        - ISO 20022 pacs.008 structure
+        - ISO 20022 pacs.002 (acknowledgment)
+        - Settlement flow
+        - Error handling
+        - Connection details
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 2.1)
+        - Step-by-step implementation guide
+  
+  2. Domain Models (from Phase 0):
+     ✅ ClearingSubmission.java (Aggregate Root)
+     ✅ ClearingSystem.java (Enum - includes SAMOS)
+     ✅ ClearingResponse.java (Value Object)
+  
+  3. Event Schemas (from Phase 0):
+     ✅ PaymentRoutedEvent.json (consumed)
+        {
+          "paymentId": "PAY-2025-XXXXXX",
+          "routingDecision": "SAMOS",
+          "amount": 5000000.00,
+          "currency": "ZAR"
+        }
+     
+     ✅ ClearingSubmittedEvent.json (published)
+        {
+          "paymentId": "PAY-2025-XXXXXX",
+          "clearingSystem": "SAMOS",
+          "clearingReference": "SAMOS-20251012-001",
+          "status": "SUBMITTED"
+        }
+     
+     ✅ ClearingCompletedEvent.json (published)
+     ✅ ClearingFailedEvent.json (published)
+  
+  4. Database Schema (from Phase 0):
+     ✅ Table: samos_submissions
+        - submission_id (PK)
+        - payment_id (FK)
+        - tenant_id (FK)
+        - samos_reference (VARCHAR)
+        - iso_message (TEXT) -- pacs.008 XML
+        - status (VARCHAR)
+        - submitted_at (TIMESTAMP)
+        - acknowledged_at (TIMESTAMP)
+        - completed_at (TIMESTAMP)
+        - error_code (VARCHAR)
+        - error_message (TEXT)
+  
+  5. ISO 20022 Message Formats:
+     
+     ✅ pacs.008.001.08 (FIToFICustCredit)
+        Credit transfer between financial institutions
+        ```xml
+        <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08">
+          <FIToFICstmrCdtTrf>
+            <GrpHdr>
+              <MsgId>SAMOS-20251012-001</MsgId>
+              <CreDtTm>2025-10-12T10:00:00Z</CreDtTm>
+              <NbOfTxs>1</NbOfTxs>
+              <TtlIntrBkSttlmAmt Ccy="ZAR">5000000.00</TtlIntrBkSttlmAmt>
+              <IntrBkSttlmDt>2025-10-12</IntrBkSttlmDt>
+            </GrpHdr>
+            <CdtTrfTxInf>
+              <PmtId>
+                <InstrId>PAY-2025-XXXXXX</InstrId>
+                <EndToEndId>E2E-001</EndToEndId>
+                <TxId>TXN-001</TxId>
+              </PmtId>
+              <IntrBkSttlmAmt Ccy="ZAR">5000000.00</IntrBkSttlmAmt>
+              <ChrgBr>SLEV</ChrgBr>
+              <Dbtr>
+                <Nm>Debtor Name</Nm>
+                <Id>
+                  <OrgId>
+                    <Othr>
+                      <Id>DEBTOR-BANK-BIC</Id>
+                    </Othr>
+                  </OrgId>
+                </Id>
+              </Dbtr>
+              <DbtrAcct>
+                <Id>
+                  <Othr>
+                    <Id>ACC-123</Id>
+                  </Othr>
+                </Id>
+              </DbtrAcct>
+              <DbtrAgt>
+                <FinInstnId>
+                  <BICFI>DEBTORBICXXX</BICFI>
+                </FinInstnId>
+              </DbtrAgt>
+              <CdtrAgt>
+                <FinInstnId>
+                  <BICFI>CREDITORBICXXX</BICFI>
+                </FinInstnId>
+              </CdtrAgt>
+              <Cdtr>
+                <Nm>Creditor Name</Nm>
+              </Cdtr>
+              <CdtrAcct>
+                <Id>
+                  <Othr>
+                    <Id>ACC-456</Id>
+                  </Othr>
+                </Id>
+              </CdtrAcct>
+            </CdtTrfTxInf>
+          </FIToFICstmrCdtTrf>
+        </Document>
+        ```
+     
+     ✅ pacs.002.001.10 (FIToFIPmtStsRpt)
+        Payment status report (acknowledgment/response)
+        ```xml
+        <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.002.001.10">
+          <FIToFIPmtStsRpt>
+            <GrpHdr>
+              <MsgId>SAMOS-ACK-001</MsgId>
+              <CreDtTm>2025-10-12T10:01:00Z</CreDtTm>
+            </GrpHdr>
+            <TxInfAndSts>
+              <OrgnlInstrId>PAY-2025-XXXXXX</OrgnlInstrId>
+              <OrgnlEndToEndId>E2E-001</OrgnlEndToEndId>
+              <TxSts>ACCP</TxSts> <!-- Accepted -->
+              <StsRsnInf>
+                <Rsn>
+                  <Cd>0000</Cd>
+                </Rsn>
+              </StsRsnInf>
+            </TxInfAndSts>
+          </FIToFIPmtStsRpt>
+        </Document>
+        ```
+  
+  6. SAMOS API Specifications:
+     - Protocol: HTTPS REST (or MQ if legacy)
+     - Authentication: Mutual TLS (client certificates)
+     - Base URL: https://samos.resbank.co.za/api/v1
+     - Endpoints:
+       - POST /submissions (submit pacs.008)
+       - GET /submissions/{reference}/status
+     - Timeout: 30 seconds
+     - Idempotency: Required (InstrId)
+  
+  7. Technology Stack:
+     - Java 17
+     - Spring Boot 3.2
+     - Spring Integration (for XML processing)
+     - JAXB (for ISO 20022 XML marshalling/unmarshalling)
+     - Azure Service Bus (event consumption/publishing)
+     - PostgreSQL
+     - Resilience4j (circuit breaker, retry)
+  
+  8. Configuration:
+     application.yml:
+       samos:
+         api:
+           url: https://samos.resbank.co.za/api/v1
+           timeout: 30000
+           retry:
+             max-attempts: 3
+             backoff: 5000
+         certificate:
+           keystore-path: ${SAMOS_KEYSTORE_PATH}
+           keystore-password: ${SAMOS_KEYSTORE_PASSWORD}
+           truststore-path: ${SAMOS_TRUSTSTORE_PATH}
+         participant-code: ${SAMOS_PARTICIPANT_CODE}
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Component Diagram
+        - Event Consumer (PaymentRoutedEvent)
+        - ISO 20022 Message Builder
+        - SAMOS API Client
+        - Response Handler
+        - Event Publisher (Clearing events)
+     
+     📊 Sequence Diagram
+        - Payment routing → SAMOS submission flow
+        - SAMOS acknowledgment flow
+        - Error handling flow
+     
+     📊 SAMOS Integration Flow
+        ```
+        PaymentRoutedEvent (clearingSystem=SAMOS)
+            ↓
+        SAMOS Adapter
+            ↓
+        1. Build pacs.008 (ISO 20022 XML)
+        2. Submit to SAMOS API (HTTPS + mTLS)
+        3. Wait for pacs.002 acknowledgment (30s timeout)
+        4. Parse response
+        5. Publish ClearingSubmittedEvent or ClearingFailedEvent
+        ```
+  
+  2. LLD (Low-Level Design):
+     📋 Class Diagram
+        - SAMOSEventConsumer (consumes PaymentRoutedEvent)
+        - SAMOSService (orchestration)
+        - ISO20022MessageBuilder (builds pacs.008)
+        - SAMOSApiClient (REST client with mTLS)
+        - SAMOSResponseParser (parses pacs.002)
+        - SAMOSRepository (JPA)
+        - SAMOSEventPublisher (publishes clearing events)
+     
+     📋 ISO 20022 Schema
+        - XSD schemas for pacs.008, pacs.002
+        - JAXB generated classes
+     
+     📋 Error Handling
+        - Connection timeout → Retry 3 times
+        - SAMOS rejection → Publish ClearingFailedEvent
+        - Invalid XML → Log and fail
+        - Circuit breaker: Open after 5 consecutive failures
+  
+  3. Implementation:
+     📁 /services/samos-adapter/
+        ├─ src/main/java/com/payments/samos/
+        │   ├─ SAMOSAdapterApplication.java
+        │   ├─ consumer/
+        │   │   └─ PaymentEventConsumer.java
+        │   ├─ service/
+        │   │   ├─ SAMOSService.java
+        │   │   ├─ ISO20022MessageBuilder.java
+        │   │   └─ SAMOSEventPublisher.java
+        │   ├─ client/
+        │   │   ├─ SAMOSApiClient.java
+        │   │   ├─ SAMOSResponseParser.java
+        │   │   └─ MutualTLSConfig.java
+        │   ├─ repository/
+        │   │   └─ SAMOSSubmissionRepository.java
+        │   ├─ model/
+        │   │   ├─ SAMOSSubmissionEntity.java
+        │   │   └─ iso20022/
+        │   │       ├─ Pacs008Document.java (JAXB)
+        │   │       ├─ Pacs002Document.java (JAXB)
+        │   │       └─ ... (ISO 20022 classes)
+        │   ├─ dto/
+        │   │   ├─ SAMOSSubmissionRequest.java
+        │   │   └─ SAMOSSubmissionResponse.java
+        │   ├─ mapper/
+        │   │   └─ SAMOSMapper.java
+        │   ├─ config/
+        │   │   ├─ ServiceBusConfig.java
+        │   │   ├─ RestTemplateConfig.java
+        │   │   └─ CircuitBreakerConfig.java
+        │   └─ exception/
+        │       ├─ SAMOSApiException.java
+        │       ├─ SAMOSTimeoutException.java
+        │       └─ ISO20022ValidationException.java
+        ├─ src/main/resources/
+        │   ├─ application.yml
+        │   ├─ xsd/
+        │   │   ├─ pacs.008.001.08.xsd
+        │   │   └─ pacs.002.001.10.xsd
+        │   └─ certificates/
+        │       ├─ samos-client.jks
+        │       └─ samos-truststore.jks
+        ├─ src/test/java/com/payments/samos/
+        │   ├─ service/SAMOSServiceTest.java
+        │   ├─ client/SAMOSApiClientTest.java
+        │   ├─ builder/ISO20022MessageBuilderTest.java
+        │   └─ integration/SAMOSIntegrationTest.java
+        ├─ Dockerfile
+        ├─ k8s/
+        │   ├─ deployment.yaml
+        │   ├─ service.yaml
+        │   ├─ configmap.yaml
+        │   └─ secret.yaml (for certificates)
+        ├─ pom.xml
+        └─ README.md
+     
+     Key Implementation (SAMOSService.java):
+     ```java
+     @Service
+     @Slf4j
+     public class SAMOSService {
+         
+         @Autowired
+         private ISO20022MessageBuilder messageBuilder;
+         
+         @Autowired
+         private SAMOSApiClient samosClient;
+         
+         @Autowired
+         private SAMOSSubmissionRepository repository;
+         
+         @Autowired
+         private SAMOSEventPublisher eventPublisher;
+         
+         @CircuitBreaker(name = "samos", fallbackMethod = "submitFallback")
+         @Retry(name = "samos", fallbackMethod = "submitFallback")
+         @Transactional
+         public void submitToSAMOS(PaymentRoutedEvent event) {
+             log.info("Submitting payment to SAMOS: paymentId={}", event.getPaymentId());
+             
+             try {
+                 // 1. Build ISO 20022 pacs.008 message
+                 Pacs008Document pacs008 = messageBuilder.buildPacs008(event);
+                 String xmlMessage = messageBuilder.marshalToXml(pacs008);
+                 
+                 // 2. Validate XML against XSD
+                 messageBuilder.validate(xmlMessage);
+                 
+                 // 3. Persist submission
+                 SAMOSSubmissionEntity submission = new SAMOSSubmissionEntity();
+                 submission.setPaymentId(event.getPaymentId());
+                 submission.setTenantId(event.getTenantId());
+                 submission.setSamosReference(pacs008.getMsgId());
+                 submission.setIsoMessage(xmlMessage);
+                 submission.setStatus("PENDING");
+                 submission.setSubmittedAt(Instant.now());
+                 repository.save(submission);
+                 
+                 // 4. Submit to SAMOS API (with mTLS)
+                 SAMOSSubmissionResponse response = samosClient.submitPayment(xmlMessage);
+                 
+                 // 5. Parse pacs.002 response
+                 String txStatus = response.getTransactionStatus();
+                 
+                 if ("ACCP".equals(txStatus)) {
+                     // Accepted
+                     submission.setStatus("SUBMITTED");
+                     submission.setAcknowledgedAt(Instant.now());
+                     repository.save(submission);
+                     
+                     // Publish success event
+                     eventPublisher.publishClearingSubmitted(
+                         event.getPaymentId(),
+                         "SAMOS",
+                         submission.getSamosReference()
+                     );
+                     
+                     log.info("Payment submitted to SAMOS successfully: reference={}",
+                         submission.getSamosReference());
+                 } else {
+                     // Rejected
+                     submission.setStatus("FAILED");
+                     submission.setErrorCode(response.getReasonCode());
+                     submission.setErrorMessage(response.getReasonText());
+                     repository.save(submission);
+                     
+                     // Publish failure event
+                     eventPublisher.publishClearingFailed(
+                         event.getPaymentId(),
+                         "SAMOS",
+                         response.getReasonText()
+                     );
+                     
+                     log.error("Payment rejected by SAMOS: reference={}, reason={}",
+                         submission.getSamosReference(), response.getReasonText());
+                 }
+             } catch (Exception e) {
+                 log.error("Failed to submit payment to SAMOS: paymentId={}",
+                     event.getPaymentId(), e);
+                 throw new SAMOSApiException("SAMOS submission failed", e);
+             }
+         }
+         
+         // Fallback method (circuit breaker open or all retries exhausted)
+         private void submitFallback(PaymentRoutedEvent event, Exception e) {
+             log.error("SAMOS submission fallback triggered: paymentId={}",
+                 event.getPaymentId(), e);
+             
+             eventPublisher.publishClearingFailed(
+                 event.getPaymentId(),
+                 "SAMOS",
+                 "SAMOS service unavailable: " + e.getMessage()
+             );
+         }
+     }
+     ```
+  
+  4. Unit Testing:
+     ✅ Service Tests
+        - submitToSAMOS() success (ACCP)
+        - submitToSAMOS() rejection (RJCT)
+        - Circuit breaker triggers
+        - Retry mechanism
+        - Fallback method
+     
+     ✅ ISO 20022 Builder Tests
+        - pacs.008 XML generation
+        - XML validation against XSD
+        - All mandatory fields present
+        - XML marshalling/unmarshalling
+     
+     ✅ API Client Tests
+        - Successful submission (200 OK)
+        - Timeout handling (30s)
+        - Connection errors
+        - mTLS certificate validation
+     
+     ✅ Integration Tests (TestContainers + WireMock)
+        - End-to-end SAMOS submission
+        - Mock SAMOS API responses
+        - Database persistence
+        - Event publishing
+     
+     📁 /src/test/java/
+        ├─ service/SAMOSServiceTest.java (25+ tests)
+        ├─ builder/ISO20022MessageBuilderTest.java (20+ tests)
+        ├─ client/SAMOSApiClientTest.java (15+ tests)
+        └─ integration/SAMOSIntegrationTest.java (10+ tests)
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md
+        - SAMOS Adapter overview
+        - ISO 20022 message formats
+        - How to configure mTLS certificates
+        - How to test locally (with mock)
+        - Troubleshooting
+     
+     📄 ISO20022-REFERENCE.md
+        - pacs.008 field reference
+        - pacs.002 status codes
+        - SAMOS-specific requirements
+        - XML examples
+     
+     📄 SAMOS-INTEGRATION-GUIDE.md
+        - SAMOS connection setup
+        - Certificate installation
+        - Participant code registration
+        - Testing with SAMOS UAT environment
+     
+     📄 DEPLOYMENT.md
+        - Docker build
+        - Kubernetes deployment
+        - Secret management (certificates)
+
+Success Criteria:
+  ✅ Service builds successfully
+  ✅ All tests pass (70+ tests)
+  ✅ Code coverage ≥ 80%
+  ✅ ISO 20022 XML validates against XSD
+  ✅ mTLS connection to SAMOS successful
+  ✅ Circuit breaker/retry working
+  ✅ Docker image builds
+  ✅ Service deploys to AKS
+  ✅ Events consumed and published correctly
+  ✅ Documentation complete
+
+Validation Checklist:
+  - [ ] HLD reviewed (component + sequence diagrams)
+  - [ ] LLD reviewed (class diagram, ISO 20022 schemas)
+  - [ ] pacs.008 message validates
+  - [ ] pacs.002 parsing correct
+  - [ ] mTLS certificates configured
+  - [ ] Circuit breaker tested
+  - [ ] Tests passing (80%+ coverage)
+  - [ ] Kubernetes secret for certificates
+  - [ ] Documentation reviewed
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete SAMOS spec in docs/06-SOUTH-AFRICA-CLEARING.md
+  - Service details in docs/02-MICROSERVICES-BREAKDOWN.md
+  - ISO 20022 message formats provided
+  - mTLS configuration examples
+  - Domain models available
+  - Event schemas defined
+  - Database schema ready
+  - Error handling patterns
+
+Dependencies:
+  ✅ Feature 0.1 (Database Schemas) - COMPLETE
+  ✅ Feature 0.2 (Event Schemas) - COMPLETE
+  ✅ Feature 0.3 (Domain Models) - COMPLETE
+  ✅ Feature 1.4 (Routing Service) - publishes PaymentRoutedEvent
+```
+
+---
+
+### Feature 2.2: BankservAfrica Adapter
+
+```yaml
+Feature ID: 2.2
+Feature Name: BankservAfrica Adapter (EFT/ACH Batch)
+Agent Name: BankservAfrica Adapter Agent
+Phase: 2 (Clearing Adapters)
+Estimated Time: 4 days
+
+Role & Expertise:
+  You are a Payments Integration Specialist with expertise in ISO 8583 messaging,
+  ACH/EFT batch processing, file-based clearing, and South African payment systems
+  (BankservAfrica).
+
+Task:
+  Build the BankservAfrica Adapter Service - integrates with BankservAfrica for
+  low-value ACH/EFT batch payments. This service consumes PaymentRoutedEvent,
+  batches payments, builds ISO 8583 messages or proprietary batch files, submits
+  to BankservAfrica, and publishes clearing events.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #8 section)
+     📄 docs/06-SOUTH-AFRICA-CLEARING.md (BankservAfrica section)
+        Lines 250-450 (complete BankservAfrica specification)
+        - ACH/EFT overview
+        - ISO 8583 message structure
+        - Batch file format
+        - Settlement cycles (multiple per day)
+        - Acknowledgment processing
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 2.2)
+  
+  2. BankservAfrica Specifications:
+     - Protocol: SFTP (file-based) or API (modern)
+     - Message Format: ISO 8583 (legacy) or CSV batch (newer)
+     - Batch Cycles: 3 per day (09:00, 13:00, 17:00)
+     - File Format: Fixed-width or CSV
+     - Acknowledgment: Separate acknowledgment file
+     - Settlement: T+1 (next day)
+  
+  3. Batch File Format (CSV):
+     ```csv
+     HEADER,BATCH-20251012-001,2025-10-12,10:00:00,100,1000000.00
+     DETAIL,PAY-001,ACC-123,ACC-456,1000.00,EFT,Customer A,Customer B
+     DETAIL,PAY-002,ACC-124,ACC-457,2000.00,EFT,Customer C,Customer D
+     TRAILER,100,1000000.00,CHECKSUM-ABC123
+     ```
+  
+  4. ISO 8583 Message Format:
+     Field 0: MTI (0200 - Financial Transaction)
+     Field 2: PAN (Account Number)
+     Field 3: Processing Code (000000 - Purchase)
+     Field 4: Amount (12 digits, right-justified)
+     Field 7: Transmission Date/Time
+     Field 11: STAN (System Trace Audit Number)
+     Field 32: Acquiring Institution ID
+     Field 37: Retrieval Reference Number
+     Field 41: Terminal ID
+     Field 49: Currency Code (710 - ZAR)
+  
+  5. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - Spring Batch (for batch processing)
+     - Apache Camel (for file routing)
+     - SFTP Client (JSch or Apache Commons VFS)
+     - ISO 8583 library (jPOS)
+  
+  6. Configuration:
+     bankserv:
+       sftp:
+         host: sftp.bankserv.co.za
+         port: 22
+         username: ${BANKSERV_USERNAME}
+         private-key-path: ${BANKSERV_PRIVATE_KEY}
+         upload-dir: /inbound
+         download-dir: /outbound
+       batch:
+         max-size: 1000  # Max payments per batch
+         schedule: "0 0 9,13,17 * * *"  # 09:00, 13:00, 17:00
+       participant-code: ${BANKSERV_PARTICIPANT_CODE}
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Batch Processing Flow
+        ```
+        PaymentRoutedEvent (clearingSystem=BANKSERV)
+            ↓
+        Batch Accumulator (in-memory or Redis)
+            ↓
+        Scheduled Trigger (09:00, 13:00, 17:00)
+            ↓
+        Build Batch File (CSV or ISO 8583)
+            ↓
+        Upload to SFTP
+            ↓
+        Poll for Acknowledgment File
+            ↓
+        Parse Acknowledgment
+            ↓
+        Publish ClearingSubmittedEvent (per payment)
+        ```
+  
+  2. LLD (Low-Level Design):
+     📋 Class Diagram
+        - BankservEventConsumer
+        - BatchAccumulator (accumulates payments)
+        - BatchFileBuilder (builds CSV/ISO 8583)
+        - SFTPUploader
+        - AcknowledgmentPoller
+        - AcknowledgmentParser
+     
+     📋 Batch Job Configuration (Spring Batch)
+        - ItemReader: Read payments from accumulator
+        - ItemProcessor: Validate and transform
+        - ItemWriter: Write to batch file
+     
+     📋 SFTP Integration
+        - Upload batch file
+        - Download acknowledgment file
+        - Archive processed files
+  
+  3. Implementation:
+     📁 /services/bankserv-adapter/
+        ├─ src/main/java/com/payments/bankserv/
+        │   ├─ BankservAdapterApplication.java
+        │   ├─ consumer/
+        │   │   └─ PaymentEventConsumer.java
+        │   ├─ service/
+        │   │   ├─ BankservService.java
+        │   │   ├─ BatchAccumulator.java
+        │   │   ├─ BatchFileBuilder.java
+        │   │   └─ BankservEventPublisher.java
+        │   ├─ batch/
+        │   │   ├─ BankservBatchJob.java
+        │   │   ├─ PaymentItemReader.java
+        │   │   ├─ PaymentItemProcessor.java
+        │   │   └─ BatchFileWriter.java
+        │   ├─ sftp/
+        │   │   ├─ SFTPUploader.java
+        │   │   ├─ SFTPDownloader.java
+        │   │   └─ AcknowledgmentPoller.java
+        │   ├─ parser/
+        │   │   ├─ BatchFileParser.java
+        │   │   ├─ AcknowledgmentParser.java
+        │   │   └─ ISO8583MessageBuilder.java (if using ISO 8583)
+        │   ├─ repository/
+        │   │   └─ BankservSubmissionRepository.java
+        │   ├─ model/
+        │   │   ├─ BankservSubmissionEntity.java
+        │   │   └─ BatchFileMetadata.java
+        │   ├─ scheduler/
+        │   │   └─ BatchSubmissionScheduler.java
+        │   ├─ config/
+        │   │   ├─ BatchConfig.java
+        │   │   ├─ SFTPConfig.java
+        │   │   └─ SchedulerConfig.java
+        │   └─ exception/
+        │       ├─ BankservApiException.java
+        │       └─ BatchFileException.java
+        ├─ src/test/java/
+        │   ├─ service/BankservServiceTest.java
+        │   ├─ batch/BatchFileBuilderTest.java
+        │   ├─ sftp/SFTPUploaderTest.java (with embedded SFTP)
+        │   └─ integration/BankservIntegrationTest.java
+        ├─ Dockerfile
+        ├─ k8s/deployment.yaml
+        └─ README.md
+     
+     Key Implementation (BatchSubmissionScheduler.java):
+     ```java
+     @Component
+     @Slf4j
+     public class BatchSubmissionScheduler {
+         
+         @Autowired
+         private BatchAccumulator accumulator;
+         
+         @Autowired
+         private BatchFileBuilder fileBuilder;
+         
+         @Autowired
+         private SFTPUploader sftpUploader;
+         
+         @Scheduled(cron = "0 0 9,13,17 * * *")
+         @Transactional
+         public void submitBatch() {
+             log.info("Starting BankservAfrica batch submission");
+             
+             // 1. Get accumulated payments
+             List<Payment> payments = accumulator.getAndClear();
+             
+             if (payments.isEmpty()) {
+                 log.info("No payments to submit");
+                 return;
+             }
+             
+             log.info("Submitting {} payments to BankservAfrica", payments.size());
+             
+             // 2. Build batch file
+             String batchId = "BATCH-" + LocalDateTime.now().format(
+                 DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+             File batchFile = fileBuilder.buildBatchFile(batchId, payments);
+             
+             // 3. Upload to SFTP
+             sftpUploader.upload(batchFile, "/inbound/" + batchFile.getName());
+             
+             // 4. Archive locally
+             archiveBatchFile(batchFile);
+             
+             log.info("Batch submitted successfully: batchId={}", batchId);
+         }
+     }
+     ```
+  
+  4. Unit Testing:
+     ✅ Batch File Builder Tests
+        - CSV generation
+        - Header/detail/trailer format
+        - Checksum calculation
+     
+     ✅ SFTP Tests (with embedded SFTP server)
+        - Upload successful
+        - Download acknowledgment
+        - Connection errors
+     
+     ✅ Scheduler Tests
+        - Batch triggered at correct times
+        - Empty batch handling
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md
+        - BankservAfrica overview
+        - Batch processing flow
+        - SFTP setup
+        - Testing
+     
+     📄 BATCH-FILE-FORMAT.md
+        - CSV format specification
+        - ISO 8583 format (if used)
+        - Acknowledgment format
+
+Success Criteria:
+  ✅ Batch file generation correct
+  ✅ SFTP upload/download working
+  ✅ Scheduler triggers correctly
+  ✅ Tests pass (80%+ coverage)
+  ✅ Documentation complete
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete BankservAfrica spec in docs/06
+  - Batch file formats provided
+  - SFTP configuration examples
+  - Spring Batch patterns
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+  ✅ Feature 1.4 (Routing Service) - COMPLETE
+```
+
+---
+
+### Feature 2.3: RTC Adapter
+
+```yaml
+Feature ID: 2.3
+Feature Name: RTC Adapter (Real-Time Clearing)
+Agent Name: RTC Adapter Agent
+Phase: 2 (Clearing Adapters)
+Estimated Time: 3 days
+
+Role & Expertise:
+  You are a Payments Integration Specialist with expertise in real-time payment
+  systems, ISO 20022 messaging, and South African payment systems (RTC).
+
+Task:
+  Build the RTC Adapter Service - integrates with BankservAfrica's RTC (Real-Time
+  Clearing) for instant low-value payments. Similar to SAMOS but for lower amounts
+  (<R5,000) with faster settlement.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #9 section)
+     📄 docs/06-SOUTH-AFRICA-CLEARING.md (RTC section)
+        Lines 450-600 (complete RTC specification)
+        - RTC overview
+        - Real-time characteristics (instant settlement)
+        - ISO 20022 pacs.008 (same as SAMOS)
+        - Amount limit: R5,000
+        - 24/7/365 availability
+  
+  2. RTC Specifications:
+     - Similar to SAMOS but for lower amounts
+     - Protocol: HTTPS REST
+     - Message Format: ISO 20022 pacs.008/pacs.002
+     - Settlement: Real-time (within seconds)
+     - Amount Limit: R5,000 per transaction
+     - Availability: 24/7/365
+  
+  3. Key Differences from SAMOS:
+     - Lower amount threshold (R5,000 vs R5,000,000)
+     - Faster settlement (seconds vs minutes)
+     - 24/7 availability (vs business hours)
+     - Less stringent participant requirements
+
+Expected Deliverables:
+  (Similar structure to SAMOS Adapter - Feature 2.1)
+  
+  1. HLD: Component + sequence diagrams
+  2. LLD: Class diagram, ISO 20022 schemas
+  3. Implementation: Complete service with ISO 20022 builder
+  4. Testing: 80%+ coverage
+  5. Documentation: README, ISO 20022 reference
+
+Success Criteria:
+  ✅ RTC submission successful
+  ✅ Real-time settlement working
+  ✅ Amount validation (≤ R5,000)
+  ✅ 24/7 availability tested
+  ✅ Tests pass (80%+ coverage)
+
+Context Sufficiency: ✅ SUFFICIENT
+  - RTC spec in docs/06 (similar to SAMOS)
+  - ISO 20022 formats (reuse from SAMOS)
+  - Amount validation logic clear
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+  ✅ Feature 2.1 (SAMOS Adapter) - can reuse ISO 20022 builder
+```
+
+---
+
+### Feature 2.4: PayShap Adapter
+
+```yaml
+Feature ID: 2.4
+Feature Name: PayShap Adapter (Instant P2P Payments)
+Agent Name: PayShap Adapter Agent
+Phase: 2 (Clearing Adapters)
+Estimated Time: 4 days
+
+Role & Expertise:
+  You are a Payments Integration Specialist with expertise in instant payment
+  systems, proxy-based payments (mobile/email), ISO 20022 messaging, and
+  PayShap (South Africa's instant payment system).
+
+Task:
+  Build the PayShap Adapter Service - integrates with PayShap for instant
+  peer-to-peer payments using mobile numbers or email addresses as proxies.
+  Real-time, 24/7/365, with R3,000 limit per transaction.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #10 section)
+     📄 docs/26-PAYSHAP-INTEGRATION.md (COMPLETE FILE - 1,800 lines)
+        - PayShap overview
+        - Instant payment characteristics
+        - Proxy registry (mobile/email → account)
+        - ISO 20022 pacs.008/pacs.002/pacs.004
+        - Amount limit: R3,000
+        - 24/7/365 availability
+        - QR code payments
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 2.4)
+  
+  2. PayShap Specifications:
+     - Protocol: HTTPS REST API
+     - Message Format: ISO 20022 pacs.008 (credit transfer)
+     - Proxy Resolution: API call to proxy registry
+     - Settlement: Real-time (within seconds)
+     - Amount Limit: R3,000 per transaction
+     - Availability: 24/7/365
+     - Participant: Any bank/wallet provider
+  
+  3. Proxy Types:
+     - Mobile Number: +27821234567
+     - Email Address: customer@example.com
+     - QR Code: PAYSHAP-QR-12345
+     - Account Number: Traditional (fallback)
+  
+  4. PayShap API Endpoints:
+     - POST /proxy-registry/resolve (resolve proxy → account)
+     - POST /payments (submit pacs.008)
+     - GET /payments/{reference}/status
+  
+  5. Proxy Resolution Example:
+     ```json
+     POST /proxy-registry/resolve
+     {
+       "proxyType": "MOBILE",
+       "proxyValue": "+27821234567"
+     }
+     
+     Response:
+     {
+       "accountId": "ACC-789",
+       "accountName": "John Doe",
+       "bank": "BANK-002",
+       "participantId": "PART-002"
+     }
+     ```
+  
+  6. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - Spring WebFlux (reactive for high throughput)
+     - ISO 20022 (JAXB)
+     - Redis (proxy cache)
+     - Circuit breaker, retry
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 PayShap Flow
+        ```
+        PaymentRoutedEvent (clearingSystem=PAYSHAP)
+            ↓
+        PayShap Adapter
+            ↓
+        1. Resolve Proxy (mobile/email → account)
+        2. Cache proxy mapping (Redis, TTL 24h)
+        3. Build pacs.008 (ISO 20022 XML)
+        4. Submit to PayShap API
+        5. Wait for pacs.002 acknowledgment (<5s)
+        6. Publish ClearingCompletedEvent (instant)
+        ```
+  
+  2. LLD (Low-Level Design):
+     📋 Class Diagram
+        - PayShapEventConsumer
+        - PayShapService
+        - ProxyRegistryClient (resolve proxies)
+        - ISO20022MessageBuilder (reuse from SAMOS)
+        - PayShapApiClient
+        - PayShapEventPublisher
+     
+     📋 Proxy Cache Strategy
+        - Key: proxyType:proxyValue
+        - Value: accountId, accountName, bank
+        - TTL: 24 hours
+        - Cache miss → API call → cache update
+  
+  3. Implementation:
+     📁 /services/payshap-adapter/
+        ├─ src/main/java/com/payments/payshap/
+        │   ├─ PayShapAdapterApplication.java
+        │   ├─ consumer/
+        │   │   └─ PaymentEventConsumer.java
+        │   ├─ service/
+        │   │   ├─ PayShapService.java
+        │   │   ├─ ProxyResolutionService.java
+        │   │   └─ PayShapEventPublisher.java
+        │   ├─ client/
+        │   │   ├─ ProxyRegistryClient.java
+        │   │   ├─ PayShapApiClient.java
+        │   │   └─ ISO20022MessageBuilder.java (shared)
+        │   ├─ cache/
+        │   │   └─ ProxyCacheService.java (Redis)
+        │   ├─ repository/
+        │   │   └─ PayShapSubmissionRepository.java
+        │   ├─ model/
+        │   │   ├─ PayShapSubmissionEntity.java
+        │   │   ├─ ProxyMapping.java
+        │   │   └─ iso20022/ (JAXB classes)
+        │   ├─ dto/
+        │   │   ├─ ProxyResolutionRequest.java
+        │   │   └─ ProxyResolutionResponse.java
+        │   ├─ config/
+        │   │   ├─ RedisConfig.java
+        │   │   ├─ WebClientConfig.java (WebFlux)
+        │   │   └─ CircuitBreakerConfig.java
+        │   └─ exception/
+        │       ├─ ProxyNotFoundException.java
+        │       └─ PayShapApiException.java
+        ├─ src/test/java/
+        │   ├─ service/PayShapServiceTest.java
+        │   ├─ client/ProxyRegistryClientTest.java
+        │   ├─ cache/ProxyCacheServiceTest.java
+        │   └─ integration/PayShapIntegrationTest.java
+        ├─ Dockerfile
+        ├─ k8s/deployment.yaml
+        └─ README.md
+     
+     Key Implementation (ProxyResolutionService.java):
+     ```java
+     @Service
+     @Slf4j
+     public class ProxyResolutionService {
+         
+         @Autowired
+         private ProxyRegistryClient registryClient;
+         
+         @Autowired
+         private ProxyCacheService cacheService;
+         
+         public ProxyMapping resolveProxy(String proxyType, String proxyValue) {
+             log.info("Resolving proxy: type={}, value={}", proxyType, proxyValue);
+             
+             // 1. Check cache first
+             String cacheKey = proxyType + ":" + proxyValue;
+             ProxyMapping cached = cacheService.get(cacheKey);
+             
+             if (cached != null) {
+                 log.info("Proxy found in cache: {}", cached.getAccountId());
+                 return cached;
+             }
+             
+             // 2. Cache miss - call proxy registry API
+             ProxyMapping mapping = registryClient.resolve(proxyType, proxyValue);
+             
+             if (mapping == null) {
+                 throw new ProxyNotFoundException(
+                     "Proxy not found: " + proxyType + "=" + proxyValue);
+             }
+             
+             // 3. Cache the result (TTL 24 hours)
+             cacheService.set(cacheKey, mapping, Duration.ofHours(24));
+             
+             log.info("Proxy resolved: {} → {}", proxyValue, mapping.getAccountId());
+             return mapping;
+         }
+     }
+     ```
+  
+  4. Unit Testing:
+     ✅ Proxy Resolution Tests
+        - Cache hit
+        - Cache miss → API call
+        - Proxy not found
+     
+     ✅ PayShap Service Tests
+        - Full flow: resolve proxy + submit payment
+        - Amount validation (≤ R3,000)
+        - ISO 20022 message building
+     
+     ✅ Redis Cache Tests (with embedded Redis)
+        - Cache set/get
+        - TTL expiration
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md
+        - PayShap overview
+        - Proxy resolution flow
+        - Amount limits
+        - Testing
+     
+     📄 PROXY-TYPES.md
+        - Supported proxy types
+        - Proxy registration process
+        - Proxy validation rules
+
+Success Criteria:
+  ✅ Proxy resolution working
+  ✅ Redis caching functional
+  ✅ PayShap submission successful
+  ✅ Amount validation (≤ R3,000)
+  ✅ Tests pass (80%+ coverage)
+  ✅ Documentation complete
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete PayShap spec in docs/26 (1,800 lines)
+  - Proxy resolution API defined
+  - ISO 20022 formats (reuse from SAMOS)
+  - Redis caching patterns clear
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+  ✅ Feature 2.1 (SAMOS Adapter) - can reuse ISO 20022 builder
+```
+
+---
+
+### Feature 2.5: SWIFT Adapter
+
+```yaml
+Feature ID: 2.5
+Feature Name: SWIFT Adapter (International Payments)
+Agent Name: SWIFT Adapter Agent
+Phase: 2 (Clearing Adapters)
+Estimated Time: 5 days
+
+Role & Expertise:
+  You are a Payments Integration Specialist with expertise in international
+  payments, SWIFT messaging (MT103, MX/ISO 20022), sanctions screening,
+  FX rates, correspondent banking, and cross-border compliance.
+
+Task:
+  Build the SWIFT Adapter Service - integrates with SWIFT network for
+  international cross-border payments. Handles MT103 (legacy) and pacs.008
+  (modern) messages, mandatory sanctions screening (OFAC, UN, EU), FX rate
+  lookup, and correspondent bank routing.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (Service #11 section)
+     📄 docs/27-SWIFT-INTEGRATION.md (COMPLETE FILE - 2,200 lines)
+        - SWIFT overview
+        - MT103 format (legacy SWIFT message)
+        - MX pacs.008 format (ISO 20022)
+        - Sanctions screening (mandatory!)
+        - FX rate conversion
+        - Correspondent banking
+        - SWIFT gpi tracking
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 2.5)
+  
+  2. SWIFT Specifications:
+     - Protocol: SWIFT Alliance Lite2 or SWIFT API
+     - Message Formats:
+       - MT103: Legacy (free-form text, 35 chars/line)
+       - MX pacs.008: Modern (ISO 20022 XML)
+     - Sanctions Screening: Mandatory (OFAC, UN, EU lists)
+     - FX Rates: Required for currency conversion
+     - Correspondent Banks: Routing via intermediary banks
+     - Settlement: T+1 to T+3 (varies by corridor)
+  
+  3. MT103 Message Format (Legacy):
+     ```
+     {1:F01DEBTORBICAXXX0000000000}
+     {2:O1031200251012CREDITORBICXXXX0000000000}
+     {3:{108:MT103 001}}
+     {4:
+     :20:REF-12345
+     :23B:CRED
+     :32A:251012ZAR100000,00
+     :50K:/ACC-123
+     DEBTOR NAME
+     ADDRESS LINE 1
+     :52A:DEBTORBICAXXX
+     :53A:CORRESBICAXXX
+     :57A:CREDITORBICAXXX
+     :59:/ACC-456
+     CREDITOR NAME
+     ADDRESS LINE 1
+     :70:INVOICE 12345
+     :71A:OUR
+     -}
+     ```
+  
+  4. SWIFT pacs.008 (ISO 20022) - Modern:
+     (Similar to SAMOS pacs.008 but with additional fields)
+     - Currency conversion details
+     - Intermediary agents (correspondent banks)
+     - Purpose of payment codes
+     - Regulatory reporting
+  
+  5. Sanctions Screening:
+     - OFAC (US Treasury): Specially Designated Nationals (SDN)
+     - UN Sanctions List
+     - EU Sanctions List
+     - Local sanctions (South Africa)
+     - Screening: Debtor, Creditor, Intermediaries
+     - Match Threshold: Fuzzy matching (80%+)
+     - Action on match: Block payment, alert compliance
+  
+  6. FX Rate Lookup:
+     - Source: Reuters, Bloomberg, or internal rates
+     - Rate Type: Spot, forward, or fixed
+     - Spread: Bank markup (e.g., 0.5%)
+     - Rate expiry: 60 seconds
+  
+  7. Correspondent Banking:
+     - Corridor: ZAR → USD → EUR (example)
+     - Correspondent 1: South African bank → US bank
+     - Correspondent 2: US bank → EU bank
+     - Routing: BIC codes for each hop
+  
+  8. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - SWIFT Alliance Lite2 SDK or SWIFT API client
+     - ISO 20022 (JAXB)
+     - Sanctions Screening Library (WorldCheck API or local DB)
+     - FX Rate API (Reuters/Bloomberg)
+     - Circuit breaker, retry
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 SWIFT Flow
+        ```
+        PaymentRoutedEvent (clearingSystem=SWIFT)
+            ↓
+        SWIFT Adapter
+            ↓
+        1. Sanctions Screening (mandatory!)
+           - Screen debtor name
+           - Screen creditor name
+           - Screen any intermediaries
+           - If match → BLOCK payment
+        2. FX Rate Lookup (if currency conversion needed)
+        3. Correspondent Bank Routing
+        4. Build MT103 or pacs.008 message
+        5. Submit to SWIFT network
+        6. Wait for ACK/NAK
+        7. Track via SWIFT gpi (optional)
+        8. Publish ClearingSubmittedEvent
+        ```
+  
+  2. LLD (Low-Level Design):
+     📋 Class Diagram
+        - SWIFTEventConsumer
+        - SWIFTService
+        - SanctionsScreeningService (critical!)
+        - FXRateService
+        - CorrespondentBankRoutingService
+        - MT103MessageBuilder
+        - Pacs008MessageBuilder (ISO 20022)
+        - SWIFTApiClient
+        - SWIFTEventPublisher
+     
+     📋 Sanctions Screening
+        - Input: Name, address, country
+        - API: WorldCheck API or local sanctions DB
+        - Fuzzy matching: Levenshtein distance
+        - Threshold: 80% match → flag for review
+        - Action: Block payment if match, alert compliance
+     
+     📋 FX Rate Service
+        - API: Reuters Elektron or internal rates
+        - Rate calculation: Spot rate + spread
+        - Rate expiry: 60 seconds (re-quote if expired)
+  
+  3. Implementation:
+     📁 /services/swift-adapter/
+        ├─ src/main/java/com/payments/swift/
+        │   ├─ SWIFTAdapterApplication.java
+        │   ├─ consumer/
+        │   │   └─ PaymentEventConsumer.java
+        │   ├─ service/
+        │   │   ├─ SWIFTService.java
+        │   │   ├─ SanctionsScreeningService.java (critical!)
+        │   │   ├─ FXRateService.java
+        │   │   ├─ CorrespondentBankRoutingService.java
+        │   │   └─ SWIFTEventPublisher.java
+        │   ├─ client/
+        │   │   ├─ SWIFTApiClient.java
+        │   │   ├─ WorldCheckClient.java (sanctions)
+        │   │   └─ ReutersAPIClient.java (FX rates)
+        │   ├─ builder/
+        │   │   ├─ MT103MessageBuilder.java
+        │   │   └─ Pacs008MessageBuilder.java
+        │   ├─ repository/
+        │   │   └─ SWIFTSubmissionRepository.java
+        │   ├─ model/
+        │   │   ├─ SWIFTSubmissionEntity.java
+        │   │   ├─ SanctionsScreeningResult.java
+        │   │   ├─ FXRate.java
+        │   │   └─ CorrespondentBankRoute.java
+        │   ├─ dto/
+        │   │   ├─ MT103Message.java
+        │   │   └─ SWIFTAcknowledgment.java
+        │   ├─ config/
+        │   │   ├─ SWIFTClientConfig.java
+        │   │   └─ CircuitBreakerConfig.java
+        │   └─ exception/
+        │       ├─ SanctionsMatchException.java (critical!)
+        │       ├─ FXRateUnavailableException.java
+        │       └─ SWIFTApiException.java
+        ├─ src/test/java/
+        │   ├─ service/SWIFTServiceTest.java
+        │   ├─ service/SanctionsScreeningServiceTest.java
+        │   ├─ service/FXRateServiceTest.java
+        │   ├─ builder/MT103MessageBuilderTest.java
+        │   └─ integration/SWIFTIntegrationTest.java
+        ├─ Dockerfile
+        ├─ k8s/deployment.yaml
+        └─ README.md
+     
+     Key Implementation (SanctionsScreeningService.java):
+     ```java
+     @Service
+     @Slf4j
+     public class SanctionsScreeningService {
+         
+         @Autowired
+         private WorldCheckClient worldCheckClient;
+         
+         /**
+          * CRITICAL: Mandatory sanctions screening
+          * MUST be called before EVERY SWIFT payment
+          */
+         public SanctionsScreeningResult screenPayment(Payment payment) {
+             log.info("Starting sanctions screening: paymentId={}", payment.getPaymentId());
+             
+             List<SanctionsMatch> matches = new ArrayList<>();
+             
+             // 1. Screen debtor
+             SanctionsMatch debtorMatch = screenEntity(
+                 payment.getDebtorName(),
+                 payment.getDebtorAddress(),
+                 payment.getDebtorCountry()
+             );
+             if (debtorMatch != null) {
+                 matches.add(debtorMatch);
+             }
+             
+             // 2. Screen creditor
+             SanctionsMatch creditorMatch = screenEntity(
+                 payment.getCreditorName(),
+                 payment.getCreditorAddress(),
+                 payment.getCreditorCountry()
+             );
+             if (creditorMatch != null) {
+                 matches.add(creditorMatch);
+             }
+             
+             // 3. Screen intermediaries (if any)
+             for (Intermediary intermediary : payment.getIntermediaries()) {
+                 SanctionsMatch match = screenEntity(
+                     intermediary.getName(),
+                     intermediary.getAddress(),
+                     intermediary.getCountry()
+                 );
+                 if (match != null) {
+                     matches.add(match);
+                 }
+             }
+             
+             // 4. Determine action
+             if (!matches.isEmpty()) {
+                 log.error("SANCTIONS MATCH DETECTED: paymentId={}, matches={}",
+                     payment.getPaymentId(), matches.size());
+                 
+                 // CRITICAL: Block payment immediately
+                 return SanctionsScreeningResult.blocked(matches);
+             }
+             
+             log.info("Sanctions screening passed: paymentId={}", payment.getPaymentId());
+             return SanctionsScreeningResult.passed();
+         }
+         
+         private SanctionsMatch screenEntity(String name, String address, String country) {
+             // Call WorldCheck API or local sanctions DB
+             SanctionsScreeningRequest request = new SanctionsScreeningRequest();
+             request.setName(name);
+             request.setAddress(address);
+             request.setCountry(country);
+             
+             SanctionsScreeningResponse response = worldCheckClient.screen(request);
+             
+             // Fuzzy matching (80% threshold)
+             if (response.hasMatch() && response.getMatchScore() >= 80) {
+                 return new SanctionsMatch(
+                     name,
+                     response.getMatchedName(),
+                     response.getMatchScore(),
+                     response.getSanctionsList() // OFAC, UN, EU
+                 );
+             }
+             
+             return null;
+         }
+     }
+     ```
+     
+     Key Implementation (SWIFTService.java):
+     ```java
+     @Service
+     @Slf4j
+     public class SWIFTService {
+         
+         @Autowired
+         private SanctionsScreeningService sanctionsService;
+         
+         @Autowired
+         private FXRateService fxRateService;
+         
+         @Autowired
+         private CorrespondentBankRoutingService routingService;
+         
+         @Autowired
+         private MT103MessageBuilder mt103Builder;
+         
+         @Autowired
+         private SWIFTApiClient swiftClient;
+         
+         @Transactional
+         public void submitToSWIFT(PaymentRoutedEvent event) {
+             log.info("Submitting payment to SWIFT: paymentId={}", event.getPaymentId());
+             
+             try {
+                 // 1. CRITICAL: Sanctions screening (mandatory!)
+                 SanctionsScreeningResult screening = sanctionsService.screenPayment(event);
+                 
+                 if (screening.isBlocked()) {
+                     log.error("Payment blocked due to sanctions match: paymentId={}",
+                         event.getPaymentId());
+                     
+                     // Publish failure event
+                     eventPublisher.publishClearingFailed(
+                         event.getPaymentId(),
+                         "SWIFT",
+                         "SANCTIONS_MATCH: " + screening.getMatches()
+                     );
+                     return;
+                 }
+                 
+                 // 2. FX Rate lookup (if currency conversion needed)
+                 FXRate fxRate = null;
+                 if (!event.getDebtorCurrency().equals(event.getCreditorCurrency())) {
+                     fxRate = fxRateService.getRate(
+                         event.getDebtorCurrency(),
+                         event.getCreditorCurrency()
+                     );
+                 }
+                 
+                 // 3. Correspondent bank routing
+                 CorrespondentBankRoute route = routingService.determineRoute(
+                     event.getDebtorCountry(),
+                     event.getCreditorCountry(),
+                     event.getCurrency()
+                 );
+                 
+                 // 4. Build MT103 message
+                 MT103Message mt103 = mt103Builder.build(event, fxRate, route);
+                 
+                 // 5. Submit to SWIFT
+                 SWIFTAcknowledgment ack = swiftClient.submitMessage(mt103);
+                 
+                 if (ack.isAccepted()) {
+                     // Publish success event
+                     eventPublisher.publishClearingSubmitted(
+                         event.getPaymentId(),
+                         "SWIFT",
+                         ack.getReference()
+                     );
+                     
+                     log.info("Payment submitted to SWIFT: reference={}", ack.getReference());
+                 } else {
+                     // Publish failure event
+                     eventPublisher.publishClearingFailed(
+                         event.getPaymentId(),
+                         "SWIFT",
+                         ack.getReasonText()
+                     );
+                 }
+             } catch (Exception e) {
+                 log.error("SWIFT submission failed: paymentId={}", event.getPaymentId(), e);
+                 throw new SWIFTApiException("SWIFT submission failed", e);
+             }
+         }
+     }
+     ```
+  
+  4. Unit Testing:
+     ✅ Sanctions Screening Tests (critical!)
+        - No match (pass)
+        - Debtor match (block)
+        - Creditor match (block)
+        - Intermediary match (block)
+        - Fuzzy matching (80% threshold)
+     
+     ✅ FX Rate Tests
+        - Rate lookup successful
+        - Rate expiry handling
+        - Rate unavailable (fallback)
+     
+     ✅ MT103 Builder Tests
+        - MT103 message generation
+        - Field validation
+        - Currency conversion
+     
+     ✅ SWIFT Service Tests
+        - Full flow: screening → FX → routing → submit
+        - Sanctions block scenario
+        - Successful submission
+     
+     Target Coverage: 80%+
+  
+  5. Documentation:
+     📄 README.md
+        - SWIFT overview
+        - Sanctions screening (mandatory!)
+        - MT103 vs pacs.008
+        - Testing
+     
+     📄 SANCTIONS-SCREENING.md
+        - Screening requirements
+        - Sanctions lists (OFAC, UN, EU)
+        - Fuzzy matching algorithm
+        - Compliance procedures
+     
+     📄 MT103-REFERENCE.md
+        - MT103 field reference
+        - Message examples
+        - Validation rules
+     
+     📄 CORRESPONDENT-BANKING.md
+        - Corridor routing
+        - Correspondent bank list
+        - BIC codes
+
+Success Criteria:
+  ✅ Sanctions screening working (mandatory!)
+  ✅ FX rate lookup successful
+  ✅ MT103 message generation correct
+  ✅ SWIFT submission successful
+  ✅ Tests pass (80%+ coverage)
+  ✅ Documentation complete
+
+Validation Checklist:
+  - [ ] Sanctions screening ALWAYS called
+  - [ ] Payment blocked if sanctions match
+  - [ ] FX rate lookup (if currency conversion)
+  - [ ] Correspondent routing correct
+  - [ ] MT103 format validated
+  - [ ] SWIFT API integration tested
+  - [ ] Tests passing (80%+ coverage)
+  - [ ] Compliance documentation complete
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete SWIFT spec in docs/27 (2,200 lines)
+  - MT103 format detailed
+  - pacs.008 format (ISO 20022)
+  - Sanctions screening requirements
+  - FX rate lookup approach
+  - Correspondent banking patterns
+  - Code examples provided
+
+Dependencies:
+  ✅ Phase 0 (Foundation) - COMPLETE
+  ✅ Feature 2.1 (SAMOS Adapter) - can reuse ISO 20022 builder
+  ✅ External APIs: WorldCheck (sanctions), Reuters (FX rates)
 ```
 
 ---
