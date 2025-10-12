@@ -2015,11 +2015,13 @@ CREATE TABLE saga_steps (
 
 ---
 
-## 14. API Gateway Service
+## 18. Internal API Gateway Service
 
-### Responsibilities
-- Route requests to appropriate microservices
-- Authentication and authorization
+**Note**: This service is **OPTIONAL** if using Istio service mesh. Istio provides circuit breaking, load balancing, mTLS, and retries, making this service redundant. See `docs/32-GATEWAY-ARCHITECTURE-CLARIFICATION.md`.
+
+### Responsibilities (Internal Routing Only)
+- Route **internal** API requests to appropriate microservices
+- Internal authentication and authorization (not external)
 - Rate limiting
 - Request/response logging
 - API versioning
