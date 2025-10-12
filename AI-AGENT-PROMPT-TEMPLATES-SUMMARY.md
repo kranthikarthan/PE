@@ -366,19 +366,21 @@ Overall Status:         ✅ READY FOR AI AGENT DEVELOPMENT
 **Main Document**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md`
 
 **Covers**:
+- **⚠️ Generic Coding Guardrails** - 23 rules (security, quality, performance, testing) ✅ NEW
 - Prompt template structure
 - Context verification checklist
 - **Phase 0: Foundation** - Complete prompts (5 features)
-- **Phase 1: Core Services** - Complete prompts (6 features) ✅ NEW
+- **Phase 1: Core Services** - Complete prompts (6 features)
 - **Phase 2: Clearing Adapters** - Complete prompts (5 features)
 - **Phase 3: Platform Services** - Complete prompts (5 features)
 - **Phase 4: Advanced Features** - Complete prompts (5 features)
 - **Phase 5: Infrastructure** - Complete prompts (5 features)
 - **Phase 6: Testing** - Complete prompts (5 features)
+- **Feature-Specific Guardrails** - 13 features with tailored guardrails ✅ NEW
 - Context sufficiency analysis
-- All 40+ features cataloged
+- All 36 features cataloged
 
-**Size**: 9,500+ lines
+**Size**: 10,400+ lines (includes 900+ lines of guardrails)
 
 **Phase 2 Detailed Prompts**:
 1. ✅ SAMOS Adapter (ISO 20022, RTGS, mTLS)
@@ -422,6 +424,44 @@ Overall Status:         ✅ READY FOR AI AGENT DEVELOPMENT
 4. ✅ Routing Service (Drools Routing, 5 Clearing Systems, Dynamic Rules)
 5. ✅ Transaction Processing (5-Step Orchestration, Compensation, Event-Driven)
 6. ✅ Saga Orchestrator (9-State Machine, Compensation, Retry, Failure Recovery)
+
+---
+
+## ⚠️ Coding Guardrails (NEW)
+
+**Generic Guardrails**: 23 rules for ALL features
+- 🔒 Security (5): No hardcoded secrets, SQL injection prevention, input validation, auth/authz, sensitive data
+- 🏗️ Code Quality (4): SOLID, clean code, error handling, logging
+- ⚡ Performance (3): Database best practices, caching, API design
+- 🧪 Testing (2): 80% coverage, test best practices
+- 📚 Documentation (3): JavaDoc, OpenAPI, README
+- 🔧 Configuration (2): YAML configs, dependency management
+- 🎯 Multi-Tenancy (1): Tenant isolation, RLS
+- 🚨 Resilience (1): Circuit breakers, retry, timeouts
+- 📊 Observability (2): Monitoring, health checks
+
+**Specific Guardrails**: 13 features with tailored rules
+- Payment Initiation (8): Idempotency, input validation, event publishing
+- Validation Service (6): Drools rules, hot reload, error collection
+- Account Adapter (10): Circuit breaker, retry, OAuth, caching
+- Saga Orchestrator (10): State machine, compensation, locking
+- SWIFT Adapter (10): Sanctions screening (MANDATORY), message format, compliance
+- Batch Processing (10): File security, XXE prevention, chunk processing
+- K8s Operators (12): CRD validation, reconciliation idempotency, RBAC
+- E2E Testing (9): Test coverage, isolation, zero flaky tests
+- Load Testing (8): Performance SLOs, bottleneck analysis, HPA
+- Security Testing (10): SAST/DAST, OWASP Top 10, zero vulnerabilities
+- Compliance Testing (10): POPIA/FICA/PCI-DSS/SARB (ALL LEGAL REQUIREMENTS)
+
+**Total Guardrails**: 150+ rules
+
+**Critical**: Top 10 guardrails with severe consequences documented
+- Sanctions screening bypass → millions in fines, criminal charges
+- POPIA violation → R10M fine
+- Idempotency failure → duplicate payments, financial loss
+- XXE not disabled → remote code execution
+
+**Summary Document**: `CODING-GUARDRAILS-SUMMARY.md`
 
 ---
 
