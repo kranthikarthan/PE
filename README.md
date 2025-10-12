@@ -36,6 +36,7 @@ This repository contains the complete architecture design for a **highly modular
 | **[32-GATEWAY-ARCHITECTURE-CLARIFICATION.md](docs/32-GATEWAY-ARCHITECTURE-CLARIFICATION.md)** 🆕 | **Gateway Layer Clarification (4 layers explained)** | ✅ Complete |
 | **[33-FEATURE-FLAGS.md](docs/33-FEATURE-FLAGS.md)** 🆕 | **Feature Flags with Unleash (Progressive Delivery, A/B Testing)** | ✅ Complete |
 | **[34-FEATURE-BREAKDOWN-TREE.md](docs/34-FEATURE-BREAKDOWN-TREE.md)** 🆕 | **Feature Breakdown Tree for AI Agent Development (40+ features, 7 phases)** | ✅ Complete |
+| **[35-AI-AGENT-PROMPT-TEMPLATES.md](docs/35-AI-AGENT-PROMPT-TEMPLATES.md)** 🆕 | **AI Agent Prompt Templates (HLD, LLD, Implementation, Testing, Docs)** | ✅ Complete |
 | **[07-AZURE-INFRASTRUCTURE.md](docs/07-AZURE-INFRASTRUCTURE.md)** | Azure infrastructure (AKS, networking, security) | ✅ Complete |
 | **[08-CORE-BANKING-INTEGRATION.md](docs/08-CORE-BANKING-INTEGRATION.md)** | **Integration with external core banking systems** | ✅ Complete |
 | **[09-LIMIT-MANAGEMENT.md](docs/09-LIMIT-MANAGEMENT.md)** | **Customer transaction limit management system** | ✅ Complete |
