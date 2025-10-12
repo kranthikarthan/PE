@@ -6388,6 +6388,1242 @@ Dependencies:
 
 ---
 
+## Phase 6: Testing (5 Features)
+
+### Feature 6.1: End-to-End (E2E) Testing
+
+```yaml
+Feature ID: 6.1
+Feature Name: End-to-End (E2E) Testing Framework
+Agent Name: E2E Testing Agent
+Phase: 6 (Testing)
+Estimated Time: 4 days
+
+Role & Expertise:
+  You are a QA Automation Engineer with expertise in E2E testing, Cucumber,
+  RestAssured, Selenium, API testing, and behavior-driven development (BDD).
+
+Task:
+  Build a comprehensive E2E testing framework that validates complete payment
+  flows across all 20 microservices, from payment initiation through clearing
+  and settlement, including all edge cases and failure scenarios.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/23-TESTING-ARCHITECTURE.md (COMPLETE FILE - 2,000 lines)
+        - Test pyramid (80% unit, 15% integration, 5% E2E)
+        - E2E testing strategy
+        - Test automation tools
+        - BDD with Cucumber
+        - Contract testing
+        - Test data management
+     
+     📄 docs/34-FEATURE-BREAKDOWN-TREE.md (Phase 6)
+        - E2E test scenarios
+     
+     📄 docs/00-ARCHITECTURE-OVERVIEW.md
+        - Complete payment flow (20 services)
+  
+  2. E2E Test Scenarios:
+     
+     **Happy Path Scenarios**:
+     1. EFT Payment (end-to-end)
+     2. RTC Payment (real-time clearing)
+     3. PayShap Payment (instant P2P)
+     4. SWIFT Payment (international)
+     5. Batch Payment Processing
+     
+     **Failure Scenarios**:
+     6. Insufficient balance (account adapter)
+     7. Limit exceeded (limit service)
+     8. Fraud rejection (fraud service)
+     9. Clearing timeout (clearing adapter)
+     10. Compensation flow (Saga rollback)
+  
+  3. Cucumber BDD Example:
+     ```gherkin
+     Feature: EFT Payment Processing
+       As a customer
+       I want to initiate an EFT payment
+       So that I can transfer money to another account
+     
+     Background:
+       Given the payment system is up and running
+       And tenant "TENANT-001" is onboarded
+       And user "john.doe@example.com" is authenticated
+       And account "ACC-12345" has balance R10,000
+     
+     Scenario: Successful EFT payment
+       Given I am on the payment initiation page
+       When I enter the following payment details:
+         | Field                | Value          |
+         | Payment Type         | EFT            |
+         | Debtor Account       | ACC-12345      |
+         | Creditor Account     | ACC-67890      |
+         | Amount               | R500.00        |
+         | Reference            | Invoice 001    |
+       And I submit the payment
+       Then I should see payment status "PROCESSING"
+       And the payment should be validated
+       And the account balance should be reserved
+       And the limit should be checked
+       And fraud scoring should return "LOW_RISK"
+       And the payment should be routed to BankservAfrica
+       And the clearing adapter should submit the payment
+       And the payment status should be "SUBMITTED"
+       And I should receive a notification "Payment submitted successfully"
+       And the audit log should contain the payment record
+     
+     Scenario: Payment fails due to insufficient balance
+       Given account "ACC-12345" has balance R100
+       When I submit a payment of R500
+       Then I should see error "INSUFFICIENT_BALANCE"
+       And the payment status should be "FAILED"
+       And the account balance should not be debited
+       And I should receive a notification "Payment failed: Insufficient balance"
+     
+     Scenario: Payment fails due to fraud detection
+       Given I submit a suspicious payment pattern
+       When fraud scoring returns "HIGH_RISK"
+       Then the payment should be rejected
+       And the payment status should be "FRAUD_REJECTED"
+       And I should receive a notification "Payment blocked due to fraud"
+       And the compliance team should be alerted
+     ```
+  
+  4. RestAssured API Test Example:
+     ```java
+     @Test
+     public void testSuccessfulEftPayment() {
+         // 1. Initiate payment
+         PaymentRequest request = PaymentRequest.builder()
+             .paymentType("EFT")
+             .debtorAccountId("ACC-12345")
+             .creditorAccountId("ACC-67890")
+             .amount(new BigDecimal("500.00"))
+             .currency("ZAR")
+             .reference("Invoice 001")
+             .build();
+         
+         String paymentId = given()
+             .header("Authorization", "Bearer " + authToken)
+             .header("X-Tenant-ID", "TENANT-001")
+             .contentType(ContentType.JSON)
+             .body(request)
+         .when()
+             .post("/api/v1/payments")
+         .then()
+             .statusCode(201)
+             .body("status", equalTo("PROCESSING"))
+             .extract()
+             .path("paymentId");
+         
+         // 2. Wait for validation
+         await().atMost(5, SECONDS).until(() -> 
+             getPaymentStatus(paymentId).equals("VALIDATED")
+         );
+         
+         // 3. Verify fraud check
+         given()
+             .header("Authorization", "Bearer " + authToken)
+         .when()
+             .get("/api/v1/payments/" + paymentId + "/fraud-score")
+         .then()
+             .statusCode(200)
+             .body("riskLevel", equalTo("LOW_RISK"));
+         
+         // 4. Verify clearing submission
+         await().atMost(10, SECONDS).until(() -> 
+             getPaymentStatus(paymentId).equals("SUBMITTED")
+         );
+         
+         // 5. Verify audit log
+         given()
+             .header("Authorization", "Bearer " + authToken)
+         .when()
+             .get("/api/v1/audit/payments/" + paymentId)
+         .then()
+             .statusCode(200)
+             .body("events", hasSize(greaterThan(5)));
+     }
+     ```
+  
+  5. Technology Stack:
+     - Cucumber 7.14+ (BDD)
+     - RestAssured 5.3+ (API testing)
+     - JUnit 5 (test runner)
+     - Awaitility 4.2+ (async assertions)
+     - TestContainers 1.19+ (test infrastructure)
+     - Allure 2.24+ (test reporting)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 E2E Test Architecture
+        - Test execution flow
+        - Test data management
+        - Test environment setup
+        - CI/CD integration
+  
+  2. LLD (Low-Level Design):
+     📋 Test Scenarios (50+ scenarios)
+        - Happy path (10 scenarios)
+        - Failure scenarios (20 scenarios)
+        - Edge cases (10 scenarios)
+        - Performance scenarios (10 scenarios)
+     
+     📋 Test Data Strategy
+        - Test tenants, users, accounts
+        - Payment test data
+        - Clearing system mocks
+  
+  3. Implementation:
+     📁 /e2e-tests/
+        ├─ src/test/resources/features/
+        │   ├─ payment-initiation.feature
+        │   ├─ eft-payment.feature
+        │   ├─ rtc-payment.feature
+        │   ├─ payshap-payment.feature
+        │   ├─ swift-payment.feature
+        │   ├─ batch-payment.feature
+        │   ├─ fraud-detection.feature
+        │   ├─ limit-checking.feature
+        │   ├─ saga-compensation.feature
+        │   └─ multi-tenant.feature
+        ├─ src/test/java/steps/
+        │   ├─ PaymentSteps.java
+        │   ├─ ValidationSteps.java
+        │   ├─ FraudSteps.java
+        │   ├─ ClearingSteps.java
+        │   └─ AuditSteps.java
+        ├─ src/test/java/api/
+        │   ├─ PaymentApiTest.java
+        │   ├─ ValidationApiTest.java
+        │   ├─ AccountApiTest.java
+        │   └─ TenantApiTest.java
+        ├─ src/test/java/config/
+        │   ├─ TestConfig.java
+        │   ├─ TestDataManager.java
+        │   └─ TestContainersConfig.java
+        ├─ src/test/java/utils/
+        │   ├─ AuthHelper.java
+        │   ├─ PaymentHelper.java
+        │   └─ WaitHelper.java
+        └─ README.md
+  
+  4. Testing:
+     ✅ All 50+ E2E scenarios pass
+     ✅ Test execution time < 30 minutes
+     ✅ Test parallelization working (5 threads)
+     ✅ Test reports generated (Allure)
+     ✅ CI/CD integration (Azure Pipelines)
+  
+  5. Documentation:
+     📄 README.md
+        - E2E testing overview
+        - How to run tests
+        - Test data setup
+     
+     📄 E2E-TEST-SCENARIOS.md
+        - Complete scenario catalog
+        - Expected results
+        - Test data requirements
+     
+     📄 TROUBLESHOOTING.md
+        - Common test failures
+        - How to debug
+
+Success Criteria:
+  ✅ 50+ E2E scenarios implemented
+  ✅ All scenarios pass in CI/CD
+  ✅ Test coverage > 95% (critical paths)
+  ✅ Test execution < 30 minutes
+  ✅ Zero flaky tests
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete testing spec in docs/23 (2,000 lines)
+  - Payment flow documented
+  - All microservices APIs known
+
+Dependencies:
+  ✅ All 20 microservices deployed - READY
+  ✅ Test environment (staging) - READY
+  ✅ Test data - READY
+```
+
+---
+
+### Feature 6.2: Load Testing
+
+```yaml
+Feature ID: 6.2
+Feature Name: Load & Performance Testing
+Agent Name: Performance Testing Agent
+Phase: 6 (Testing)
+Estimated Time: 3 days
+
+Role & Expertise:
+  You are a Performance Engineer with expertise in load testing, Gatling,
+  JMeter, performance tuning, bottleneck analysis, and scalability testing.
+
+Task:
+  Build a comprehensive load testing framework using Gatling to validate the
+  Payments Engine can handle 1,000 TPS (transactions per second) with p95
+  latency < 3 seconds, and identify performance bottlenecks.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/23-TESTING-ARCHITECTURE.md (Performance Testing section)
+        - Load testing strategy
+        - Gatling framework
+        - Performance SLOs
+        - Bottleneck analysis
+     
+     📄 docs/24-SRE-ARCHITECTURE.md (SLOs)
+        - Target: 1,000 TPS
+        - Latency: p95 < 3s, p99 < 5s
+        - Error rate: < 1%
+        - Availability: 99.95%
+  
+  2. Performance Requirements:
+     
+     **Load Targets**:
+     - Sustained load: 500 TPS (8 hours)
+     - Peak load: 1,000 TPS (1 hour)
+     - Spike load: 2,000 TPS (5 minutes)
+     
+     **Latency Targets**:
+     - p50: < 1 second
+     - p95: < 3 seconds
+     - p99: < 5 seconds
+     
+     **Resource Limits**:
+     - CPU: < 70% per pod
+     - Memory: < 80% per pod
+     - Database connections: < 80% pool
+  
+  3. Gatling Load Test Example:
+     ```scala
+     class PaymentLoadTest extends Simulation {
+       
+       val httpProtocol = http
+         .baseUrl("https://api-staging.payments.example.com")
+         .header("Authorization", "Bearer ${authToken}")
+         .header("X-Tenant-ID", "TENANT-001")
+         .acceptHeader("application/json")
+       
+       val feeder = csv("payment-data.csv").circular
+       
+       val eftPayment = scenario("EFT Payment")
+         .feed(feeder)
+         .exec(
+           http("Initiate EFT Payment")
+             .post("/api/v1/payments")
+             .body(ElFileBody("eft-payment-template.json")).asJson
+             .check(status.is(201))
+             .check(jsonPath("$.paymentId").saveAs("paymentId"))
+         )
+         .pause(1)
+         .exec(
+           http("Check Payment Status")
+             .get("/api/v1/payments/${paymentId}")
+             .check(status.is(200))
+             .check(jsonPath("$.status").in("PROCESSING", "VALIDATED", "SUBMITTED"))
+         )
+       
+       val rtcPayment = scenario("RTC Payment")
+         .feed(feeder)
+         .exec(
+           http("Initiate RTC Payment")
+             .post("/api/v1/payments")
+             .body(ElFileBody("rtc-payment-template.json")).asJson
+             .check(status.is(201))
+         )
+       
+       setUp(
+         eftPayment.inject(
+           nothingFor(5.seconds),
+           rampUsersPerSec(10).to(500).during(2.minutes),  // Ramp up
+           constantUsersPerSec(500).during(10.minutes),     // Sustained
+           rampUsersPerSec(500).to(1000).during(1.minute), // Peak
+           constantUsersPerSec(1000).during(5.minutes)      // Spike
+         ),
+         rtcPayment.inject(
+           nothingFor(5.seconds),
+           constantUsersPerSec(100).during(15.minutes)
+         )
+       ).protocols(httpProtocol)
+         .assertions(
+           global.responseTime.percentile3.lt(3000),  // p95 < 3s
+           global.responseTime.percentile4.lt(5000),  // p99 < 5s
+           global.successfulRequests.percent.gt(99)   // Success > 99%
+         )
+     }
+     ```
+  
+  4. Load Test Scenarios:
+     
+     **Scenario 1: Sustained Load** (10 minutes)
+     - 500 TPS (EFT payments)
+     - Validate: p95 < 3s, error rate < 1%
+     
+     **Scenario 2: Peak Load** (5 minutes)
+     - 1,000 TPS (mixed: 70% EFT, 20% RTC, 10% PayShap)
+     - Validate: p95 < 3s, error rate < 1%
+     
+     **Scenario 3: Spike Test** (5 minutes)
+     - 0 → 2,000 TPS (instant spike)
+     - Validate: system recovers, HPA scales pods
+     
+     **Scenario 4: Endurance Test** (8 hours)
+     - 500 TPS (constant)
+     - Validate: no memory leaks, no degradation
+     
+     **Scenario 5: Stress Test** (find breaking point)
+     - Ramp up until failure
+     - Identify max TPS (target: > 1,500 TPS)
+  
+  5. Technology Stack:
+     - Gatling 3.9+ (load testing)
+     - Grafana (real-time monitoring)
+     - Prometheus (metrics collection)
+     - InfluxDB (Gatling metrics storage)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Load Testing Architecture
+        - Test scenarios
+        - Load injection strategy
+        - Monitoring integration
+        - Bottleneck analysis
+  
+  2. LLD (Low-Level Design):
+     📋 Load Test Scenarios (5 scenarios)
+        - Sustained, peak, spike, endurance, stress
+     
+     📋 Performance SLOs
+        - TPS targets, latency targets, error rates
+  
+  3. Implementation:
+     📁 /load-tests/
+        ├─ simulations/
+        │   ├─ SustainedLoadTest.scala
+        │   ├─ PeakLoadTest.scala
+        │   ├─ SpikeTest.scala
+        │   ├─ EnduranceTest.scala
+        │   └─ StressTest.scala
+        ├─ data/
+        │   ├─ payment-data.csv (10K records)
+        │   ├─ eft-payment-template.json
+        │   ├─ rtc-payment-template.json
+        │   └─ payshap-payment-template.json
+        ├─ dashboards/
+        │   ├─ gatling-dashboard.json (Grafana)
+        │   └─ performance-slo-dashboard.json
+        ├─ scripts/
+        │   ├─ run-load-test.sh
+        │   └─ analyze-results.sh
+        └─ README.md
+  
+  4. Testing:
+     ✅ Sustained load test passes (500 TPS, 10 min)
+     ✅ Peak load test passes (1,000 TPS, 5 min)
+     ✅ Spike test passes (2,000 TPS, 5 min)
+     ✅ Endurance test passes (500 TPS, 8 hours)
+     ✅ Stress test identifies max TPS (> 1,500)
+  
+  5. Documentation:
+     📄 README.md
+        - Load testing overview
+        - How to run tests
+        - How to interpret results
+     
+     📄 PERFORMANCE-REPORT.md
+        - Test results (TPS, latency, errors)
+        - Bottlenecks identified
+        - Recommendations
+     
+     📄 TUNING-GUIDE.md
+        - JVM tuning
+        - Database tuning
+        - HPA tuning
+
+Success Criteria:
+  ✅ 500 TPS sustained: p95 < 3s, error < 1%
+  ✅ 1,000 TPS peak: p95 < 3s, error < 1%
+  ✅ 2,000 TPS spike: system recovers
+  ✅ 8-hour endurance: no degradation
+  ✅ Max TPS > 1,500
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete performance spec in docs/23, docs/24
+  - SLOs defined (TPS, latency, errors)
+  - API endpoints known
+
+Dependencies:
+  ✅ Staging environment (prod-like) - READY
+  ✅ Monitoring (Prometheus, Grafana) - READY
+  ✅ HPA configured - READY
+```
+
+---
+
+### Feature 6.3: Security Testing
+
+```yaml
+Feature ID: 6.3
+Feature Name: Security Testing (SAST, DAST, Penetration)
+Agent Name: Security Testing Agent
+Phase: 6 (Testing)
+Estimated Time: 4 days
+
+Role & Expertise:
+  You are a Security Engineer with expertise in SAST, DAST, penetration testing,
+  OWASP Top 10, vulnerability scanning, and compliance validation (PCI-DSS).
+
+Task:
+  Build a comprehensive security testing framework covering SAST (static),
+  DAST (dynamic), container scanning, secrets scanning, and penetration testing
+  to ensure the Payments Engine is secure and compliant with PCI-DSS.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/21-SECURITY-ARCHITECTURE.md (COMPLETE FILE - 3,500 lines)
+        - Zero-Trust model
+        - Defense-in-Depth (7 layers)
+        - Security testing requirements
+        - OWASP Top 10 mitigations
+        - PCI-DSS compliance
+     
+     📄 docs/23-TESTING-ARCHITECTURE.md (Security Testing section)
+        - SAST (SonarQube)
+        - DAST (OWASP ZAP)
+        - Container scanning (Trivy)
+        - Secrets scanning (Gitleaks)
+  
+  2. Security Testing Scope:
+     
+     **SAST (Static Application Security Testing)**:
+     - Code quality: SonarQube
+     - Security vulnerabilities: Semgrep
+     - Dependency scanning: OWASP Dependency-Check
+     - Secrets scanning: Gitleaks, Trufflehog
+     
+     **DAST (Dynamic Application Security Testing)**:
+     - OWASP ZAP (automated scan)
+     - API security testing
+     - Authentication/authorization bypass
+     - Injection attacks (SQL, XSS, XXE)
+     
+     **Container Security**:
+     - Trivy (image scanning)
+     - Grype (vulnerability scanning)
+     - Base image vulnerabilities
+     
+     **Penetration Testing**:
+     - Manual penetration testing
+     - OWASP Top 10 validation
+     - Business logic flaws
+  
+  3. SonarQube Quality Gate:
+     ```yaml
+     sonar-project.properties:
+       sonar.projectKey=payments-engine
+       sonar.sources=src/main/java
+       sonar.tests=src/test/java
+       sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+       
+       # Quality Gate Thresholds
+       sonar.qualitygate.wait=true
+       sonar.coverage.threshold=80
+       sonar.security.rating=A
+       sonar.bugs.threshold=0
+       sonar.vulnerabilities.threshold=0
+       sonar.code_smells.threshold=10
+     ```
+  
+  4. OWASP ZAP Scan:
+     ```bash
+     # Passive scan (no attacks)
+     docker run -t owasp/zap2docker-stable zap-baseline.py \
+       -t https://api-staging.payments.example.com \
+       -r zap-baseline-report.html
+     
+     # Active scan (with attacks)
+     docker run -t owasp/zap2docker-stable zap-full-scan.py \
+       -t https://api-staging.payments.example.com \
+       -r zap-full-report.html \
+       -z "-config api.key=${ZAP_API_KEY}"
+     
+     # API scan (OpenAPI spec)
+     docker run -t owasp/zap2docker-stable zap-api-scan.py \
+       -t https://api-staging.payments.example.com/v3/api-docs \
+       -f openapi \
+       -r zap-api-report.html
+     ```
+  
+  5. Trivy Container Scan:
+     ```bash
+     # Scan Docker image
+     trivy image --severity HIGH,CRITICAL \
+       payments/payment-initiation-service:v1.0.0
+     
+     # Scan with exit code (fail on HIGH/CRITICAL)
+     trivy image --exit-code 1 --severity CRITICAL \
+       payments/payment-initiation-service:v1.0.0
+     
+     # Generate report
+     trivy image --format json --output trivy-report.json \
+       payments/payment-initiation-service:v1.0.0
+     ```
+  
+  6. Security Test Scenarios:
+     
+     **Authentication & Authorization**:
+     - Missing JWT token → 401 Unauthorized
+     - Invalid JWT token → 401 Unauthorized
+     - Expired JWT token → 401 Unauthorized
+     - Missing tenant header → 403 Forbidden
+     - Invalid tenant → 403 Forbidden
+     - RBAC: user without permission → 403 Forbidden
+     
+     **Injection Attacks**:
+     - SQL injection in payment reference
+     - XSS in payment description
+     - XXE in XML payment file (SWIFT)
+     
+     **Sensitive Data Exposure**:
+     - PII not encrypted in transit (HTTPS required)
+     - Account numbers not masked in logs
+     - JWT contains sensitive data
+     
+     **Rate Limiting**:
+     - 100 requests per minute → throttled
+     - DDoS simulation → blocked by Azure Application Gateway
+  
+  7. Technology Stack:
+     - SonarQube 10.2+ (SAST)
+     - OWASP ZAP 2.14+ (DAST)
+     - Trivy 0.45+ (container scanning)
+     - Gitleaks 8.18+ (secrets scanning)
+     - Semgrep 1.45+ (code scanning)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Security Testing Architecture
+        - SAST, DAST, container, penetration
+        - CI/CD integration
+        - Vulnerability management
+  
+  2. LLD (Low-Level Design):
+     📋 Security Test Scenarios (100+ tests)
+        - Authentication (20 tests)
+        - Authorization (20 tests)
+        - Injection (20 tests)
+        - Sensitive data (20 tests)
+        - Rate limiting (10 tests)
+        - OWASP Top 10 (10 tests)
+  
+  3. Implementation:
+     📁 /security-tests/
+        ├─ sast/
+        │   ├─ sonar-project.properties
+        │   ├─ semgrep-rules.yaml
+        │   └─ dependency-check.sh
+        ├─ dast/
+        │   ├─ zap-baseline-scan.sh
+        │   ├─ zap-full-scan.sh
+        │   ├─ zap-api-scan.sh
+        │   └─ zap-rules.conf
+        ├─ container/
+        │   ├─ trivy-scan.sh
+        │   ├─ grype-scan.sh
+        │   └─ allowed-vulnerabilities.yaml
+        ├─ secrets/
+        │   ├─ gitleaks.toml
+        │   └─ trufflehog-scan.sh
+        ├─ penetration/
+        │   ├─ auth-tests.py
+        │   ├─ injection-tests.py
+        │   ├─ sensitive-data-tests.py
+        │   └─ rate-limiting-tests.py
+        └─ README.md
+  
+  4. Testing:
+     ✅ SAST: SonarQube Quality Gate passes (A rating)
+     ✅ DAST: OWASP ZAP scan (0 HIGH/CRITICAL)
+     ✅ Container: Trivy scan (0 CRITICAL)
+     ✅ Secrets: Gitleaks scan (0 secrets found)
+     ✅ Penetration: All OWASP Top 10 tests pass
+  
+  5. Documentation:
+     📄 README.md
+        - Security testing overview
+        - How to run scans
+        - How to interpret results
+     
+     📄 SECURITY-TEST-REPORT.md
+        - SAST results
+        - DAST results
+        - Vulnerabilities found
+        - Remediation plan
+     
+     📄 PCI-DSS-COMPLIANCE.md
+        - PCI-DSS requirements
+        - Compliance validation
+        - Audit evidence
+
+Success Criteria:
+  ✅ SonarQube: Security rating A, 0 vulnerabilities
+  ✅ OWASP ZAP: 0 HIGH/CRITICAL vulnerabilities
+  ✅ Trivy: 0 CRITICAL vulnerabilities
+  ✅ Gitleaks: 0 secrets exposed
+  ✅ Penetration: All OWASP Top 10 tests pass
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete security spec in docs/21 (3,500 lines)
+  - OWASP Top 10 mitigations documented
+  - PCI-DSS requirements known
+
+Dependencies:
+  ✅ SonarQube server - READY
+  ✅ OWASP ZAP - READY
+  ✅ Trivy, Gitleaks - READY
+```
+
+---
+
+### Feature 6.4: Compliance Testing
+
+```yaml
+Feature ID: 6.4
+Feature Name: Compliance Testing (POPIA, FICA, PCI-DSS, SARB)
+Agent Name: Compliance Testing Agent
+Phase: 6 (Testing)
+Estimated Time: 3 days
+
+Role & Expertise:
+  You are a Compliance Specialist with expertise in South African regulations
+  (POPIA, FICA, SARB), PCI-DSS, audit trails, data residency, and compliance
+  validation testing.
+
+Task:
+  Build a comprehensive compliance testing framework that validates the Payments
+  Engine adheres to POPIA (data protection), FICA (financial intelligence), 
+  PCI-DSS (card security), and SARB (central bank) regulations.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/21-SECURITY-ARCHITECTURE.md (Compliance section)
+        - POPIA (Protection of Personal Information Act)
+        - FICA (Financial Intelligence Centre Act)
+        - PCI-DSS (Payment Card Industry Data Security Standard)
+        - SARB (South African Reserve Bank)
+     
+     📄 docs/23-TESTING-ARCHITECTURE.md (Compliance Testing section)
+        - Compliance test automation
+        - Audit trail validation
+  
+  2. Compliance Requirements:
+     
+     **POPIA (Data Protection)**:
+     - Consent management (explicit consent for PII)
+     - Data minimization (collect only required data)
+     - Right to erasure (GDPR-like)
+     - Data breach notification (< 72 hours)
+     - Data encryption (at rest, in transit)
+     - Data retention (7 years for financial records)
+     
+     **FICA (Anti-Money Laundering)**:
+     - Customer due diligence (KYC)
+     - Suspicious transaction reporting (STR)
+     - Record keeping (5 years)
+     - Sanctions screening (SWIFT mandatory)
+     
+     **PCI-DSS (Card Security)**:
+     - Requirement 3: Protect stored cardholder data
+     - Requirement 4: Encrypt transmission (TLS 1.2+)
+     - Requirement 6: Secure code (SAST/DAST)
+     - Requirement 8: Unique IDs (RBAC)
+     - Requirement 10: Log all access (audit trail)
+     - Requirement 11: Regular security testing
+     
+     **SARB (Central Bank Regulations)**:
+     - Real-time settlement reporting
+     - Liquidity management
+     - Clearing system compliance
+  
+  3. Compliance Test Examples:
+     
+     **POPIA Test: Data Encryption**
+     ```java
+     @Test
+     public void testPII_IsEncrypted_InDatabase() {
+         // Given: User with PII
+         User user = createUser("john.doe@example.com", "John", "Doe", "8001015009087");
+         
+         // When: Query database directly
+         String rawData = jdbcTemplate.queryForObject(
+             "SELECT email FROM users WHERE id = ?", 
+             String.class, 
+             user.getId()
+         );
+         
+         // Then: Email should be encrypted (not plaintext)
+         assertThat(rawData).isNotEqualTo("john.doe@example.com");
+         assertThat(rawData).startsWith("ENC:");  // Encryption prefix
+         
+         // And: ID number should be hashed
+         String rawIdNumber = jdbcTemplate.queryForObject(
+             "SELECT id_number FROM users WHERE id = ?", 
+             String.class, 
+             user.getId()
+         );
+         assertThat(rawIdNumber).isNotEqualTo("8001015009087");
+         assertThat(rawIdNumber).hasSize(64);  // SHA-256 hash
+     }
+     
+     @Test
+     public void testPII_NotLogged() {
+         // Given: Payment with PII
+         PaymentRequest request = PaymentRequest.builder()
+             .accountNumber("1234567890")
+             .email("john.doe@example.com")
+             .build();
+         
+         // When: Process payment
+         paymentService.processPayment(request);
+         
+         // Then: Logs should not contain PII
+         String logs = getApplicationLogs();
+         assertThat(logs).doesNotContain("1234567890");
+         assertThat(logs).doesNotContain("john.doe@example.com");
+         assertThat(logs).contains("ACC-****7890");  // Masked
+     }
+     ```
+     
+     **FICA Test: Sanctions Screening**
+     ```java
+     @Test
+     public void testSWIFT_PaymentRequiresSanctionsScreening() {
+         // Given: SWIFT payment
+         PaymentRequest request = PaymentRequest.builder()
+             .paymentType("SWIFT")
+             .creditorName("Sanctioned Entity")
+             .creditorCountry("IR")  // Iran (sanctioned)
+             .build();
+         
+         // When: Submit payment
+         PaymentResponse response = paymentService.processPayment(request);
+         
+         // Then: Payment should be blocked
+         assertThat(response.getStatus()).isEqualTo("SANCTIONS_BLOCKED");
+         
+         // And: Compliance alert should be raised
+         verify(complianceService).raiseAlert(
+             eq("SANCTIONS_VIOLATION"),
+             contains("Sanctioned Entity")
+         );
+     }
+     ```
+     
+     **PCI-DSS Test: Audit Trail**
+     ```java
+     @Test
+     public void testAllPaymentAccess_IsAudited() {
+         // Given: User accesses payment
+         String paymentId = createPayment();
+         
+         // When: Query payment
+         paymentService.getPayment(paymentId);
+         
+         // Then: Audit log should contain access record
+         AuditEvent event = auditService.getLatestEvent(paymentId);
+         assertThat(event.getAction()).isEqualTo("PAYMENT_ACCESSED");
+         assertThat(event.getUserId()).isEqualTo(currentUser.getId());
+         assertThat(event.getTenantId()).isEqualTo(currentTenant.getId());
+         assertThat(event.getTimestamp()).isCloseTo(Instant.now(), within(5, ChronoUnit.SECONDS));
+         assertThat(event.getIpAddress()).isNotNull();
+         assertThat(event.getUserAgent()).isNotNull();
+     }
+     ```
+  
+  4. Technology Stack:
+     - JUnit 5 (test runner)
+     - TestContainers (database tests)
+     - Mockito (mocking)
+     - Custom compliance validators
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Compliance Testing Architecture
+        - POPIA, FICA, PCI-DSS, SARB tests
+        - Audit trail validation
+        - Data protection validation
+  
+  2. LLD (Low-Level Design):
+     📋 Compliance Test Scenarios (80+ tests)
+        - POPIA: 30 tests (encryption, consent, retention)
+        - FICA: 20 tests (KYC, sanctions, STR)
+        - PCI-DSS: 20 tests (encryption, audit, secure code)
+        - SARB: 10 tests (reporting, liquidity)
+  
+  3. Implementation:
+     📁 /compliance-tests/
+        ├─ popia/
+        │   ├─ DataEncryptionTest.java
+        │   ├─ ConsentManagementTest.java
+        │   ├─ RightToErasureTest.java
+        │   ├─ DataRetentionTest.java
+        │   └─ PIIMaskingTest.java
+        ├─ fica/
+        │   ├─ KYCValidationTest.java
+        │   ├─ SanctionsScreeningTest.java
+        │   ├─ SuspiciousTransactionTest.java
+        │   └─ RecordKeepingTest.java
+        ├─ pci-dss/
+        │   ├─ CardDataEncryptionTest.java
+        │   ├─ TLSVersionTest.java
+        │   ├─ AuditTrailTest.java
+        │   ├─ RBACTest.java
+        │   └─ SecureCodeTest.java
+        ├─ sarb/
+        │   ├─ SettlementReportingTest.java
+        │   ├─ LiquidityManagementTest.java
+        │   └─ ClearingComplianceTest.java
+        └─ README.md
+  
+  4. Testing:
+     ✅ POPIA: All 30 tests pass
+     ✅ FICA: All 20 tests pass
+     ✅ PCI-DSS: All 20 tests pass
+     ✅ SARB: All 10 tests pass
+  
+  5. Documentation:
+     📄 README.md
+        - Compliance testing overview
+        - How to run tests
+        - Compliance checklist
+     
+     📄 COMPLIANCE-REPORT.md
+        - POPIA compliance: ✅ PASS
+        - FICA compliance: ✅ PASS
+        - PCI-DSS compliance: ✅ PASS
+        - SARB compliance: ✅ PASS
+     
+     📄 AUDIT-EVIDENCE.md
+        - Test results (screenshots, logs)
+        - Compliance attestation
+        - Audit trail samples
+
+Success Criteria:
+  ✅ All 80+ compliance tests pass
+  ✅ POPIA: Data encrypted, consent managed
+  ✅ FICA: Sanctions screening, KYC validated
+  ✅ PCI-DSS: Audit trail complete
+  ✅ SARB: Reporting accurate
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete compliance spec in docs/21
+  - POPIA, FICA, PCI-DSS, SARB requirements documented
+  - Data protection patterns known
+
+Dependencies:
+  ✅ All 20 microservices deployed - READY
+  ✅ Audit service - READY
+  ✅ Compliance service - READY
+```
+
+---
+
+### Feature 6.5: Production Readiness Testing
+
+```yaml
+Feature ID: 6.5
+Feature Name: Production Readiness Testing (Chaos, DR, Failover)
+Agent Name: Production Readiness Agent
+Phase: 6 (Testing)
+Estimated Time: 4 days
+
+Role & Expertise:
+  You are a Site Reliability Engineer (SRE) with expertise in chaos engineering,
+  disaster recovery (DR), failover testing, and production readiness validation.
+
+Task:
+  Build a comprehensive production readiness testing framework covering chaos
+  engineering (Chaos Mesh), disaster recovery, multi-region failover, and
+  operational readiness to ensure the Payments Engine is production-ready.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/24-SRE-ARCHITECTURE.md (COMPLETE FILE - 3,000 lines)
+        - SLOs, error budgets
+        - Incident management
+        - Disaster recovery (RPO/RTO)
+        - Chaos engineering
+     
+     📄 docs/23-TESTING-ARCHITECTURE.md (Chaos Engineering section)
+        - Chaos Mesh framework
+        - Failure scenarios
+  
+  2. Production Readiness Criteria:
+     
+     **Chaos Engineering**:
+     - Pod failure (random pod killed)
+     - Network latency (inject 500ms delay)
+     - Network partition (split brain)
+     - Database failure (PostgreSQL down)
+     - Service failure (clearing adapter down)
+     - Resource exhaustion (CPU/memory spike)
+     
+     **Disaster Recovery**:
+     - Database backup/restore (RPO: 15 minutes)
+     - Point-in-time recovery (PITR)
+     - Cross-region failover (RTO: 1 hour)
+     - Data consistency validation
+     
+     **Operational Readiness**:
+     - Health checks (all services)
+     - Monitoring dashboards (Grafana)
+     - Alerting (Slack, PagerDuty)
+     - Runbooks (incident response)
+     - On-call rotation (PagerDuty)
+  
+  3. Chaos Mesh Experiments:
+     
+     **Experiment 1: Pod Failure**
+     ```yaml
+     apiVersion: chaos-mesh.org/v1alpha1
+     kind: PodChaos
+     metadata:
+       name: payment-initiation-pod-kill
+     spec:
+       action: pod-kill
+       mode: one
+       selector:
+         namespaces:
+           - payments
+         labelSelectors:
+           app: payment-initiation-service
+       scheduler:
+         cron: "@every 10m"
+     ```
+     
+     **Experiment 2: Network Latency**
+     ```yaml
+     apiVersion: chaos-mesh.org/v1alpha1
+     kind: NetworkChaos
+     metadata:
+       name: clearing-adapter-latency
+     spec:
+       action: delay
+       mode: all
+       selector:
+         namespaces:
+           - payments
+         labelSelectors:
+           app: bankservAfrica-adapter
+       delay:
+         latency: "500ms"
+         correlation: "50"
+         jitter: "100ms"
+       duration: "5m"
+     ```
+     
+     **Experiment 3: Database Failure**
+     ```yaml
+     apiVersion: chaos-mesh.org/v1alpha1
+     kind: PodChaos
+     metadata:
+       name: postgresql-failure
+     spec:
+       action: pod-failure
+       mode: one
+       selector:
+         namespaces:
+           - payments
+         labelSelectors:
+           app: postgresql
+       duration: "2m"
+     ```
+  
+  4. Disaster Recovery Tests:
+     
+     **Test 1: Database Backup & Restore**
+     ```bash
+     # 1. Create backup
+     kubectl exec -n payments postgresql-0 -- \
+       pg_dump -U postgres payments > backup.sql
+     
+     # 2. Corrupt database (simulate disaster)
+     kubectl exec -n payments postgresql-0 -- \
+       psql -U postgres -c "DROP DATABASE payments;"
+     
+     # 3. Restore from backup
+     kubectl exec -n payments postgresql-0 -- \
+       psql -U postgres < backup.sql
+     
+     # 4. Validate data integrity
+     kubectl exec -n payments postgresql-0 -- \
+       psql -U postgres payments -c "SELECT COUNT(*) FROM payments;"
+     ```
+     
+     **Test 2: Multi-Region Failover**
+     ```bash
+     # 1. Primary region (South Africa North) fails
+     az aks stop --name payments-prod-san --resource-group payments-rg
+     
+     # 2. Traffic Manager detects failure (health check)
+     # 3. Routes traffic to secondary region (South Africa West)
+     
+     # 4. Validate: All services up in secondary region
+     kubectl get pods -n payments --context=prod-saw
+     
+     # 5. Validate: Database replicated (PostgreSQL streaming replication)
+     kubectl exec -n payments postgresql-0 --context=prod-saw -- \
+       psql -U postgres payments -c "SELECT COUNT(*) FROM payments;"
+     
+     # 6. Validate: Payment processing works
+     curl -X POST https://api.payments.example.com/v1/payments \
+       -H "Authorization: Bearer $TOKEN" \
+       -d '{"paymentType": "EFT", "amount": 100}'
+     ```
+  
+  5. Operational Readiness Checklist:
+     ```
+     ✅ Health Checks
+        ✅ All 20 services have /health endpoints
+        ✅ Kubernetes liveness probes configured
+        ✅ Kubernetes readiness probes configured
+     
+     ✅ Monitoring
+        ✅ Prometheus scraping all services
+        ✅ Grafana dashboards (4) created
+        ✅ Jaeger tracing enabled
+     
+     ✅ Alerting
+        ✅ 15+ alert rules configured
+        ✅ Slack integration working
+        ✅ PagerDuty integration working
+     
+     ✅ Runbooks
+        ✅ Payment service down (runbook created)
+        ✅ Database down (runbook created)
+        ✅ Clearing adapter timeout (runbook created)
+     
+     ✅ Disaster Recovery
+        ✅ Backup strategy defined (daily, 30-day retention)
+        ✅ Restore tested (PITR working)
+        ✅ Multi-region failover tested (RTO: 1 hour)
+     
+     ✅ Security
+        ✅ SAST passed (SonarQube A rating)
+        ✅ DAST passed (OWASP ZAP 0 HIGH/CRITICAL)
+        ✅ Secrets rotated (every 90 days)
+     
+     ✅ Compliance
+        ✅ POPIA compliant
+        ✅ FICA compliant (KYC, sanctions)
+        ✅ PCI-DSS compliant
+     ```
+  
+  6. Technology Stack:
+     - Chaos Mesh 2.6+ (chaos engineering)
+     - Litmus 3.5+ (alternative chaos tool)
+     - Azure Traffic Manager (multi-region failover)
+     - pg_dump/pg_restore (PostgreSQL backup/restore)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Production Readiness Architecture
+        - Chaos experiments
+        - DR architecture (multi-region)
+        - Failover flow
+  
+  2. LLD (Low-Level Design):
+     📋 Chaos Experiments (10 experiments)
+        - Pod failure, network latency, partition, DB failure
+     
+     📋 DR Tests (5 tests)
+        - Backup/restore, PITR, cross-region failover
+  
+  3. Implementation:
+     📁 /production-readiness-tests/
+        ├─ chaos-engineering/
+        │   ├─ pod-kill.yaml
+        │   ├─ network-latency.yaml
+        │   ├─ network-partition.yaml
+        │   ├─ database-failure.yaml
+        │   ├─ service-failure.yaml
+        │   └─ resource-exhaustion.yaml
+        ├─ disaster-recovery/
+        │   ├─ backup-restore-test.sh
+        │   ├─ pitr-test.sh
+        │   ├─ multi-region-failover-test.sh
+        │   └─ data-consistency-test.sh
+        ├─ operational-readiness/
+        │   ├─ health-check-validator.sh
+        │   ├─ monitoring-validator.sh
+        │   ├─ alerting-validator.sh
+        │   └─ runbook-validator.sh
+        ├─ runbooks/
+        │   ├─ payment-service-down.md
+        │   ├─ database-down.md
+        │   ├─ clearing-adapter-timeout.md
+        │   └─ incident-response-template.md
+        └─ README.md
+  
+  4. Testing:
+     ✅ All 10 chaos experiments pass (system recovers)
+     ✅ Backup/restore: RPO < 15 minutes
+     ✅ Multi-region failover: RTO < 1 hour
+     ✅ Operational readiness checklist: 100% complete
+  
+  5. Documentation:
+     📄 README.md
+        - Production readiness overview
+        - How to run chaos experiments
+        - How to test DR
+     
+     📄 PRODUCTION-READINESS-REPORT.md
+        - Chaos test results
+        - DR test results
+        - Operational readiness checklist
+     
+     📄 RUNBOOK-CATALOG.md
+        - All incident runbooks
+        - Escalation procedures
+
+Success Criteria:
+  ✅ All chaos experiments: system recovers
+  ✅ Database backup/restore: RPO < 15 min
+  ✅ Multi-region failover: RTO < 1 hour
+  ✅ Operational readiness: 100% checklist
+  ✅ Production approved by SRE team
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete SRE spec in docs/24 (3,000 lines)
+  - DR architecture documented
+  - Chaos engineering patterns known
+
+Dependencies:
+  ✅ Chaos Mesh installed - READY
+  ✅ Multi-region AKS clusters - READY
+  ✅ Azure Traffic Manager - READY
+  ✅ PostgreSQL replication - READY
+```
+
+---
+
 ## Context Sufficiency Analysis
 
 ### Summary of Context Completeness
