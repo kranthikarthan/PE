@@ -6,11 +6,12 @@ This repository contains the complete architecture design for a **highly modular
 
 ### Key Design Principles
 - ✅ **AI-Agent Friendly**: Each module < 500 lines, can be built independently
-- ✅ **Microservices Architecture**: 16 independent services
-- ✅ **Event-Driven**: Asynchronous communication via Azure Service Bus
+- ✅ **Microservices Architecture**: 20 independent services
+- ✅ **Event-Driven**: Asynchronous communication via Azure Service Bus / Kafka
 - ✅ **Hexagonal Architecture**: Clean separation of concerns
 - ✅ **Saga Pattern**: Distributed transaction management
 - ✅ **Cloud-Native**: Designed for Azure (AKS, PostgreSQL, CosmosDB, Redis)
+- ✅ **Comprehensive Coverage**: Domestic (SA), International (SWIFT), Real-time + Batch
 
 ---
 
@@ -20,11 +21,15 @@ This repository contains the complete architecture design for a **highly modular
 |----------|-------------|--------|
 | **[00-ARCHITECTURE-OVERVIEW.md](docs/00-ARCHITECTURE-OVERVIEW.md)** | High-level system architecture, patterns, and design | ✅ Complete |
 | **[01-ASSUMPTIONS.md](docs/01-ASSUMPTIONS.md)** | **ALL assumptions made** - Review this first! | ✅ Complete |
-| **[02-MICROSERVICES-BREAKDOWN.md](docs/02-MICROSERVICES-BREAKDOWN.md)** | Detailed specs for all 16 microservices | ✅ Complete |
+| **[02-MICROSERVICES-BREAKDOWN.md](docs/02-MICROSERVICES-BREAKDOWN.md)** | Detailed specs for all 20 microservices | ✅ Complete |
 | **[03-EVENT-SCHEMAS.md](docs/03-EVENT-SCHEMAS.md)** | AsyncAPI 2.0 event schemas | ✅ Complete |
 | **[04-AI-AGENT-TASK-BREAKDOWN.md](docs/04-AI-AGENT-TASK-BREAKDOWN.md)** | **Task breakdown for AI agents** - Critical for AI development | ✅ Complete |
 | **[05-DATABASE-SCHEMAS.md](docs/05-DATABASE-SCHEMAS.md)** | Complete database designs for all services | ✅ Complete |
-| **[06-SOUTH-AFRICA-CLEARING.md](docs/06-SOUTH-AFRICA-CLEARING.md)** | Integration with SAMOS, BankservAfrica, RTC, SASWITCH | ✅ Complete |
+| **[06-SOUTH-AFRICA-CLEARING.md](docs/06-SOUTH-AFRICA-CLEARING.md)** | Integration with SAMOS, BankservAfrica, RTC | ✅ Complete |
+| **[26-PAYSHAP-INTEGRATION.md](docs/26-PAYSHAP-INTEGRATION.md)** 🆕 | SA instant payment system (P2P, mobile/email) | ✅ Complete |
+| **[27-SWIFT-INTEGRATION.md](docs/27-SWIFT-INTEGRATION.md)** 🆕 | International payments with sanctions screening | ✅ Complete |
+| **[28-BATCH-PROCESSING.md](docs/28-BATCH-PROCESSING.md)** 🆕 | Bulk payment file processing (Spring Batch) | ✅ Complete |
+| **[25-IBM-MQ-NOTIFICATIONS.md](docs/25-IBM-MQ-NOTIFICATIONS.md)** 🆕 | Remote notifications engine (IBM MQ option) | ✅ Complete |
 | **[07-AZURE-INFRASTRUCTURE.md](docs/07-AZURE-INFRASTRUCTURE.md)** | Azure infrastructure (AKS, networking, security) | ✅ Complete |
 | **[08-CORE-BANKING-INTEGRATION.md](docs/08-CORE-BANKING-INTEGRATION.md)** | **Integration with external core banking systems** | ✅ Complete |
 | **[09-LIMIT-MANAGEMENT.md](docs/09-LIMIT-MANAGEMENT.md)** | **Customer transaction limit management system** | ✅ Complete |
@@ -38,7 +43,7 @@ This repository contains the complete architecture design for a **highly modular
 | **[17-SERVICE-MESH-ISTIO.md](docs/17-SERVICE-MESH-ISTIO.md)** | **Service Mesh with Istio (Phase 2)** | ✅ Complete |
 | **[18-REACTIVE-ARCHITECTURE.md](docs/18-REACTIVE-ARCHITECTURE.md)** | **Reactive Architecture design (Phase 2)** | ✅ Complete |
 | **[19-GITOPS-ARGOCD.md](docs/19-GITOPS-ARGOCD.md)** | **GitOps with ArgoCD (Phase 2)** | ✅ Complete |
-| **[20-CELL-BASED-ARCHITECTURE.md](docs/20-CELL-BASED-ARCHITECTURE.md)** | **Cell-Based Architecture (Phase 3)** | ✅ Complete |
+| **[20-CELL-BASED-ARCHITECTURE.md](docs/20-CELL-BASED-ARCHITECTURE.md)** | **Cell-Based Architecture (Phase 3) - OPTIONAL for 50+ banks** | ✅ Complete |
 | **[21-SECURITY-ARCHITECTURE.md](docs/21-SECURITY-ARCHITECTURE.md)** | **Security Architecture (Enterprise-Grade)** | ✅ Complete |
 | **[22-DEPLOYMENT-ARCHITECTURE.md](docs/22-DEPLOYMENT-ARCHITECTURE.md)** | **Deployment Architecture (Zero-Downtime)** | ✅ Complete |
 | **[23-TESTING-ARCHITECTURE.md](docs/23-TESTING-ARCHITECTURE.md)** | **Testing Architecture (12,500+ Tests)** | ✅ Complete |
@@ -62,8 +67,8 @@ This repository contains the complete architecture design for a **highly modular
 └────────────────────────────────────┬────────────────────────────┘
                                      │
 ┌────────────────────────────────────▼────────────────────────────┐
-│                    CORE SERVICES (11 Microservices)             │
-│  Payment Initiation │ Validation │ Account │ Routing │ ...     │
+│                    CORE SERVICES (20 Microservices)             │
+│  Payment Init │ Validation │ Account │ Routing │ PayShap │ ... │
 └────────────────────────────────────┬────────────────────────────┘
                                      │
 ┌────────────────────────────────────▼────────────────────────────┐
@@ -71,29 +76,35 @@ This repository contains the complete architecture design for a **highly modular
 └────────────────────────────────────┬────────────────────────────┘
                                      │
 ┌────────────────────────────────────▼────────────────────────────┐
-│              SOUTH AFRICAN CLEARING SYSTEMS                     │
-│   SAMOS (RTGS)  │  BankservAfrica (ACH/RTC)  │  SASWITCH       │
+│              CLEARING SYSTEMS (Domestic + International)        │
+│   SAMOS │ Bankserv(EFT) │ RTC │ PayShap 🆕 │ SWIFT 🆕       │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Microservices
+### Microservices (20 Services)
 
 | # | Service | Purpose | Database | Lines of Code |
 |---|---------|---------|----------|---------------|
 | 1 | Payment Initiation | Accept payment requests | PostgreSQL | ~400 |
-| 2 | Validation Service | Business rules, fraud detection | PostgreSQL + Redis | ~450 |
-| 3 | Account Adapter | **Orchestrate** calls to external core banking systems | PostgreSQL + Redis | ~400 |
+| 2 | Validation Service | Business rules, fraud, limits | PostgreSQL + Redis | ~450 |
+| 3 | Account Adapter | Orchestrate external core banking | PostgreSQL | ~400 |
 | 4 | Routing Service | Determine clearing channel | Redis | ~300 |
-| 5 | Transaction Processing | State machine, ledger | PostgreSQL | ~500 |
-| 6-8 | Clearing Adapters | SAMOS, Bankserv, RTC | PostgreSQL | ~400 each |
-| 9 | Settlement Service | Net settlement, batching | PostgreSQL | ~450 |
-| 10 | Reconciliation Service | Match transactions | PostgreSQL | ~400 |
-| 11 | Notification Service | SMS, Email, Push | PostgreSQL | ~250 |
-| 12 | Reporting Service | Reports, analytics | PostgreSQL + Synapse | ~350 |
-| 13 | Saga Orchestrator | Distributed transactions | PostgreSQL | ~500 |
-| 14 | API Gateway | Routing, auth, rate limiting | Redis | ~300 |
-| 15 | IAM Service | Authentication, RBAC | PostgreSQL | ~400 |
-| 16 | Audit Service | Compliance logging | CosmosDB | ~300 |
+| 5 | Transaction Processing | State machine, execution | PostgreSQL | ~500 |
+| 6 | Saga Orchestrator | Distributed transactions | PostgreSQL | ~500 |
+| 7 | SAMOS Adapter | High-value RTGS | PostgreSQL | ~400 |
+| 8 | BankservAfrica Adapter | EFT batch | PostgreSQL | ~400 |
+| 9 | RTC Adapter | Real-time clearing | PostgreSQL | ~400 |
+| **10** | **PayShap Adapter** 🆕 | **Instant P2P (mobile/email)** | **PostgreSQL** | **~400** |
+| **11** | **SWIFT Adapter** 🆕 | **International + sanctions** | **PostgreSQL** | **~500** |
+| **12** | **Batch Processing** 🆕 | **Bulk files (10K-100K)** | **PostgreSQL** | **~600** |
+| 13 | Settlement Service | Nostro/Vostro settlement | PostgreSQL | ~450 |
+| 14 | Reconciliation Service | Daily reconciliation | PostgreSQL | ~400 |
+| 15 | Tenant Management | Multi-tenancy | PostgreSQL | ~450 |
+| 16 | Notification / IBM MQ | SMS, Email, Push | PostgreSQL (optional) | ~250 |
+| 17 | Reporting Service | Reports, analytics | PostgreSQL + Synapse | ~350 |
+| 18 | API Gateway | Routing, auth, rate limiting | Redis | ~300 |
+| 19 | IAM Service | Authentication, RBAC | PostgreSQL + Azure AD | ~400 |
+| 20 | Audit Service | Compliance logging | CosmosDB | ~300 |
 
 ---
 
