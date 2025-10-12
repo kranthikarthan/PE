@@ -14,6 +14,180 @@ This document provides **detailed prompt templates** for each of the **40+ featu
 
 ---
 
+## ⚠️ CRITICAL: Generic Coding Guardrails
+
+**ALL AI AGENTS MUST FOLLOW THESE GUARDRAILS FOR EVERY FEATURE**
+
+These guardrails ensure code quality, security, performance, and maintainability across the entire Payments Engine.
+
+### 🔒 Security Guardrails
+
+1. **NO Hardcoded Secrets**
+   - ❌ NEVER hardcode passwords, API keys, tokens, or credentials in code
+   - ✅ ALWAYS use Azure Key Vault, environment variables, or configuration files
+   - ✅ Example: `@Value("${azure.storage.connection-string}")` ✅
+   - ❌ Example: `String password = "myPassword123"` ❌
+
+2. **SQL Injection Prevention**
+   - ❌ NEVER use string concatenation for SQL queries
+   - ✅ ALWAYS use parameterized queries or JPA/JPQL
+   - ✅ Example: `@Query("SELECT p FROM Payment p WHERE p.id = :id")` ✅
+   - ❌ Example: `"SELECT * FROM payments WHERE id = '" + id + "'"` ❌
+
+3. **Input Validation**
+   - ✅ ALWAYS validate all user input using Bean Validation (`@Valid`, `@NotNull`, `@Pattern`)
+   - ✅ Sanitize input to prevent XSS, XXE, and injection attacks
+   - ✅ Use whitelisting approach (allow known-good) over blacklisting
+
+4. **Authentication & Authorization**
+   - ✅ ALWAYS check authentication (JWT token) on all endpoints except health checks
+   - ✅ ALWAYS verify authorization (RBAC) before performing operations
+   - ✅ ALWAYS propagate tenant context (`X-Tenant-ID`) for multi-tenancy
+
+5. **Sensitive Data Handling**
+   - ✅ ALWAYS encrypt PII (email, ID numbers) at rest using AES-256
+   - ✅ ALWAYS mask account numbers in logs (e.g., `ACC-****7890`)
+   - ❌ NEVER log passwords, tokens, or full card numbers
+   - ✅ Use HTTPS/TLS 1.2+ for all communications
+
+### 🏗️ Code Quality Guardrails
+
+6. **SOLID Principles**
+   - ✅ Single Responsibility: One class = one responsibility
+   - ✅ Open/Closed: Open for extension, closed for modification
+   - ✅ Liskov Substitution: Subtypes must be substitutable
+   - ✅ Interface Segregation: Small, focused interfaces
+   - ✅ Dependency Inversion: Depend on abstractions, not concretions
+
+7. **Clean Code**
+   - ✅ Use descriptive variable/method names (`calculateTotalAmount` not `calc`)
+   - ✅ Keep methods short (< 20 lines), classes focused (< 300 lines)
+   - ✅ Avoid deep nesting (max 3 levels)
+   - ✅ Use early returns to reduce nesting
+   - ✅ Add JavaDoc for all public methods and classes
+
+8. **Error Handling**
+   - ✅ ALWAYS use specific exceptions (`PaymentNotFoundException` not `RuntimeException`)
+   - ✅ ALWAYS log errors with context (payment ID, tenant ID, correlation ID)
+   - ✅ Use `@ControllerAdvice` for global exception handling
+   - ❌ NEVER swallow exceptions silently
+   - ✅ Include correlation ID in all error responses for traceability
+
+9. **Logging**
+   - ✅ Use SLF4J + Logback for all logging
+   - ✅ Log levels: ERROR (failures), WARN (recoverable), INFO (key events), DEBUG (details)
+   - ✅ ALWAYS include correlation ID, tenant ID in log context (MDC)
+   - ❌ NEVER log PII, passwords, tokens, or full account numbers
+   - ✅ Example: `log.info("Payment initiated: paymentId={}, tenantId={}", paymentId, tenantId)` ✅
+
+### ⚡ Performance Guardrails
+
+10. **Database Best Practices**
+    - ✅ ALWAYS use pagination for list queries (`Pageable`, max 100 records)
+    - ✅ ALWAYS add database indexes on foreign keys and query columns
+    - ❌ NEVER use `SELECT *`, always specify columns
+    - ✅ Use `@Transactional(readOnly = true)` for read operations
+    - ✅ Avoid N+1 queries (use `@EntityGraph` or JOIN FETCH)
+
+11. **Caching**
+    - ✅ Cache frequently accessed, rarely changed data (Redis, 60s-300s TTL)
+    - ✅ Use `@Cacheable` for read operations, `@CacheEvict` for writes
+    - ✅ Include tenant ID in cache key for multi-tenancy
+    - ❌ NEVER cache sensitive data (passwords, tokens) without encryption
+
+12. **API Design**
+    - ✅ Use RESTful conventions (GET, POST, PUT, DELETE)
+    - ✅ Return appropriate HTTP status codes (200, 201, 400, 404, 500)
+    - ✅ Version APIs (`/api/v1/payments`)
+    - ✅ Use pagination, filtering, sorting for list endpoints
+    - ✅ Implement rate limiting (100 requests/minute per user)
+
+### 🧪 Testing Guardrails
+
+13. **Test Coverage**
+    - ✅ MINIMUM 80% code coverage (unit + integration tests)
+    - ✅ Test happy path, edge cases, and failure scenarios
+    - ✅ Use meaningful test names: `shouldRejectPaymentWhenAmountExceedsLimit`
+    - ✅ Use `@DataJpaTest` for repository tests, `@WebMvcTest` for controller tests
+
+14. **Test Best Practices**
+    - ✅ Use test data builders/factories for readability
+    - ✅ Avoid test interdependencies (each test is isolated)
+    - ✅ Mock external dependencies (use `@MockBean`, WireMock)
+    - ✅ Test with multiple tenants to validate RLS (Row-Level Security)
+
+### 📚 Documentation Guardrails
+
+15. **Code Documentation**
+    - ✅ Add JavaDoc for all public classes, methods, and interfaces
+    - ✅ Document assumptions, limitations, and edge cases
+    - ✅ Include examples in JavaDoc for complex methods
+    - ✅ Use `@param`, `@return`, `@throws` tags
+
+16. **API Documentation**
+    - ✅ Use OpenAPI 3.0 (`@OpenAPIDefinition`, `@Operation`)
+    - ✅ Document all request/response schemas
+    - ✅ Include error response examples (400, 404, 500)
+    - ✅ Generate Swagger UI for interactive testing
+
+17. **README.md**
+    - ✅ Include: Overview, Tech Stack, Prerequisites, Setup, Testing, Troubleshooting
+    - ✅ Add clear build/run instructions (`mvn spring-boot:run`)
+    - ✅ Document environment variables and configuration
+
+### 🔧 Configuration Guardrails
+
+18. **Configuration Management**
+    - ✅ Use `application.yml` for configuration (NOT properties files)
+    - ✅ Separate configs per environment (`application-dev.yml`, `application-prod.yml`)
+    - ✅ Use Spring Boot profiles (`@Profile("prod")`)
+    - ✅ Externalize all configurable values (URLs, timeouts, limits)
+
+19. **Dependency Management**
+    - ✅ Use Spring Boot BOM for version management
+    - ✅ Keep dependencies up-to-date (check for CVEs)
+    - ✅ Minimize transitive dependencies
+    - ✅ Use `<dependencyManagement>` in parent POM
+
+### 🎯 Multi-Tenancy Guardrails
+
+20. **Tenant Isolation**
+    - ✅ ALWAYS validate `X-Tenant-ID` header on all requests
+    - ✅ ALWAYS propagate tenant context using `TenantContextHolder`
+    - ✅ Use Row-Level Security (RLS) for database queries
+    - ✅ Include `tenant_id` in all database queries
+    - ❌ NEVER allow cross-tenant data access
+
+### 🚨 Failure Scenarios
+
+21. **Resilience Patterns**
+    - ✅ Use circuit breakers for external calls (`@CircuitBreaker`)
+    - ✅ Implement retry logic with exponential backoff (`@Retry`)
+    - ✅ Set timeouts for all external calls (5-10 seconds)
+    - ✅ Provide fallback methods for degraded functionality
+    - ✅ Use bulkhead pattern to limit concurrent requests
+
+### 📊 Observability Guardrails
+
+22. **Monitoring & Tracing**
+    - ✅ Expose `/actuator/health`, `/actuator/metrics` endpoints
+    - ✅ Add custom metrics using Micrometer (`Counter`, `Gauge`, `Timer`)
+    - ✅ Use OpenTelemetry for distributed tracing
+    - ✅ Propagate correlation ID across all service calls
+
+23. **Health Checks**
+    - ✅ Implement liveness probe (service is running)
+    - ✅ Implement readiness probe (service is ready to accept traffic)
+    - ✅ Check dependencies (database, message bus) in readiness probe
+
+### ⚠️ VIOLATIONS = REJECTED CODE
+
+**If ANY guardrail is violated, the code MUST be fixed before proceeding.**
+
+**Review this section before starting implementation of ANY feature.**
+
+---
+
 ## Table of Contents
 
 1. [Prompt Template Structure](#prompt-template-structure)
@@ -45,6 +219,12 @@ Role & Expertise:
 
 Task:
   Build [feature description] for the Payments Engine.
+
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+  [Feature-specific security, performance, and quality requirements]
+  
+  These are IN ADDITION to the Generic Coding Guardrails above.
+  ALL guardrails (generic + specific) MUST be followed.
 
 Context Provided:
   1. Architecture Documents:
@@ -956,6 +1136,63 @@ Task:
   requests. This service validates input, generates payment IDs, persists
   payments, and publishes PaymentInitiatedEvent.
 
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+  
+  1. **Idempotency** (CRITICAL):
+     - ✅ MUST support idempotency using `X-Idempotency-Key` header
+     - ✅ Store idempotency keys in Redis (24-hour TTL)
+     - ✅ If duplicate key → return cached response (409 Conflict or 200 OK)
+     - ✅ Generate payment ID only ONCE per idempotency key
+  
+  2. **Input Validation** (CRITICAL):
+     - ✅ MUST validate all fields using `@Valid` annotation
+     - ✅ Amount: MUST be > 0, max 2 decimal places
+     - ✅ Currency: MUST be in [ZAR, USD, EUR, GBP]
+     - ✅ Account IDs: MUST match pattern `^[A-Z]+-[0-9]+$`
+     - ✅ Reference: MUST be 1-50 characters, alphanumeric only
+     - ❌ NEVER accept null or empty required fields
+  
+  3. **Security**:
+     - ✅ MUST validate JWT token on ALL endpoints except `/health`
+     - ✅ MUST extract and validate `X-Tenant-ID` header
+     - ✅ MUST propagate tenant context using `TenantContextHolder`
+     - ✅ MUST include `tenant_id` in database INSERT
+     - ❌ NEVER allow payment creation without tenant context
+  
+  4. **Event Publishing**:
+     - ✅ MUST publish `PaymentInitiatedEvent` to Azure Service Bus
+     - ✅ Include correlation ID in event for tracing
+     - ✅ Use `@Transactional` to ensure atomicity (DB + Event)
+     - ✅ If event publish fails → rollback database transaction
+     - ✅ Set message TTL (time-to-live) to 24 hours
+  
+  5. **Payment ID Generation**:
+     - ✅ Format: `PAY-{YYYY}-{NNNNNN}` (e.g., `PAY-2025-000123`)
+     - ✅ MUST be unique across all tenants
+     - ✅ Use database sequence for `NNNNNN` (6 digits, zero-padded)
+     - ❌ NEVER use UUID or random strings (not user-friendly)
+  
+  6. **Error Handling**:
+     - ✅ Return 400 Bad Request for validation errors (with field details)
+     - ✅ Return 409 Conflict for duplicate idempotency key
+     - ✅ Return 500 Internal Server Error for unexpected failures
+     - ✅ Include correlation ID in all error responses
+     - ✅ Log all errors with payment details (masked account numbers)
+  
+  7. **Performance**:
+     - ✅ Target: < 500ms response time (95th percentile)
+     - ✅ Use connection pooling (HikariCP, max 20 connections)
+     - ✅ Async event publishing (non-blocking)
+     - ✅ Add database index on `payment_id`, `tenant_id`, `created_at`
+  
+  8. **Logging**:
+     - ✅ Log: `Payment initiated: paymentId={}, tenantId={}, amount={}, correlationId={}`
+     - ❌ NEVER log full account numbers (mask: `ACC-****7890`)
+     - ✅ Use MDC for correlation ID, tenant ID
+  
+  These are IN ADDITION to the Generic Coding Guardrails.
+  ALL guardrails MUST be followed.
+
 Context Provided:
 
   1. Architecture Documents:
@@ -1325,6 +1562,47 @@ Task:
   rules, regulatory requirements, and Drools-based dynamic rules. Publishes
   PaymentValidatedEvent or PaymentRejectedEvent.
 
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+  
+  1. **Drools Rules** (CRITICAL):
+     - ✅ MUST define at least 10 validation rules (amount, currency, account, sanctions)
+     - ✅ Use rule salience (priority) to control execution order
+     - ✅ MUST store rules in Git repository (version control)
+     - ✅ MUST support hot reload without service restart
+     - ❌ NEVER hardcode business logic in Java (use Drools DRL files)
+  
+  2. **Rule Validation**:
+     - ✅ MUST test each rule individually (unit test per rule)
+     - ✅ MUST validate rule syntax before deployment (KIE validation)
+     - ✅ If rule syntax error → log error, use fallback rules
+     - ❌ NEVER deploy broken rules to production
+  
+  3. **Performance**:
+     - ✅ Cache compiled rules in Redis (5-minute TTL)
+     - ✅ Use KIE container reuse (don't create per request)
+     - ✅ Target: < 200ms rule execution time
+     - ✅ Limit rule complexity (max 10 conditions per rule)
+  
+  4. **Error Handling**:
+     - ✅ If validation fails → collect ALL errors (not just first)
+     - ✅ Return detailed error messages (which rule failed, why)
+     - ✅ Publish `PaymentRejectedEvent` with rejection reasons
+     - ✅ Update payment status to `REJECTED` in database
+  
+  5. **Event Consumption**:
+     - ✅ MUST consume `PaymentInitiatedEvent` from Azure Service Bus
+     - ✅ Use `@ServiceBusQueueTrigger` annotation
+     - ✅ If validation fails → do NOT retry (publish rejection event)
+     - ✅ If rule execution fails → retry 3 times, then DLQ (Dead Letter Queue)
+  
+  6. **Logging**:
+     - ✅ Log: `Payment validated: paymentId={}, result={}, rulesExecuted={}`
+     - ✅ Log: `Payment rejected: paymentId={}, errors={}`
+     - ✅ Log rule execution time for performance monitoring
+  
+  These are IN ADDITION to the Generic Coding Guardrails.
+  ALL guardrails MUST be followed.
+
 Context Provided:
 
   1. Architecture Documents:
@@ -1593,6 +1871,72 @@ Task:
   Build the Account Adapter Service - integrates with multiple external core
   banking systems (current, savings, investment, card, loan accounts) to perform
   debit/credit operations, balance checks, and account validation.
+
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+  
+  1. **Circuit Breaker** (CRITICAL):
+     - ✅ MUST use `@CircuitBreaker` for ALL external system calls
+     - ✅ Circuit opens after 5 consecutive failures (50% threshold)
+     - ✅ Half-open state after 30 seconds (test 1 request)
+     - ✅ MUST provide fallback method for every circuit breaker
+     - ✅ Fallback: Return `SERVICE_UNAVAILABLE` error, do NOT fail silently
+  
+  2. **Retry Strategy** (CRITICAL):
+     - ✅ MUST use `@Retry` with exponential backoff (1s, 2s, 4s)
+     - ✅ Maximum 3 retry attempts per request
+     - ✅ DO NOT retry for 4xx errors (client errors) - only 5xx
+     - ✅ Include `X-Retry-Count` header in retry attempts
+     - ❌ NEVER retry non-idempotent operations without idempotency key
+  
+  3. **Idempotency** (CRITICAL):
+     - ✅ MUST send `X-Idempotency-Key` header for ALL debit/credit operations
+     - ✅ Use payment ID as idempotency key
+     - ✅ If duplicate request → external system returns cached response
+     - ✅ Store idempotency responses in Redis (24-hour TTL)
+  
+  4. **OAuth 2.0 Authentication**:
+     - ✅ MUST use OAuth 2.0 client credentials flow
+     - ✅ Cache access tokens until expiry (Redis)
+     - ✅ Refresh token before expiry (5 minutes buffer)
+     - ❌ NEVER request new token for every API call
+     - ✅ If token refresh fails → use circuit breaker fallback
+  
+  5. **Timeout**:
+     - ✅ MUST set timeout for ALL external calls (5 seconds default)
+     - ✅ Use `RestTemplate` with configured `ClientHttpRequestFactory`
+     - ✅ If timeout → trigger circuit breaker
+     - ✅ Log timeout events for SRE monitoring
+  
+  6. **Bulkhead**:
+     - ✅ MUST use `@Bulkhead` to limit concurrent requests (max 10 per system)
+     - ✅ Reject requests if bulkhead full (503 Service Unavailable)
+     - ✅ Separate bulkhead per external system (5 bulkheads total)
+  
+  7. **Caching**:
+     - ✅ Cache balance queries in Redis (60-second TTL)
+     - ✅ Include account ID + tenant ID in cache key
+     - ✅ Invalidate cache on debit/credit operations
+     - ❌ NEVER cache debit/credit responses (operational data)
+  
+  8. **Error Handling**:
+     - ✅ If external system returns 400 → return to caller (invalid request)
+     - ✅ If external system returns 500 → retry + circuit breaker
+     - ✅ If external system returns 503 → circuit breaker
+     - ✅ Log all external system errors with request/response details
+  
+  9. **Account Routing**:
+     - ✅ Extract account type from account ID prefix (e.g., `CURRENT-12345`)
+     - ✅ Supported types: CURRENT, SAVINGS, INVESTMENT, CARD, LOAN
+     - ✅ If unknown type → throw `UnsupportedAccountTypeException`
+  
+  10. **Monitoring**:
+      - ✅ Track circuit breaker state changes (closed → open → half-open)
+      - ✅ Track retry attempts per external system
+      - ✅ Track cache hit ratio (target: > 80%)
+      - ✅ Expose custom metrics: `external_system_calls_total`, `circuit_breaker_state`
+  
+  These are IN ADDITION to the Generic Coding Guardrails.
+  ALL guardrails MUST be followed.
 
 Context Provided:
 
@@ -2442,6 +2786,69 @@ Task:
   Build the Saga Orchestrator Service - manages the complete payment Saga
   lifecycle using a persistent state machine. Handles orchestration, compensation,
   retries, and failure recovery for all payment flows.
+
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+  
+  1. **State Machine** (CRITICAL):
+     - ✅ MUST persist saga state to database BEFORE and AFTER each transition
+     - ✅ Use pessimistic locking (`@Lock(LockModeType.PESSIMISTIC_WRITE)`) to prevent race conditions
+     - ✅ MUST support state recovery (service restart → resume from last state)
+     - ✅ Validate state transitions (e.g., cannot go from COMPLETED to INITIATED)
+     - ❌ NEVER skip state persistence (risk of data loss)
+  
+  2. **Compensation Logic** (CRITICAL):
+     - ✅ MUST track compensation actions in reverse order
+     - ✅ MUST execute compensations even if some fail (best-effort)
+     - ✅ Log each compensation action (success/failure)
+     - ✅ If compensation fails → mark saga as `COMPENSATION_FAILED`, alert SRE
+     - ✅ Store compensation history for audit trail
+  
+  3. **Idempotency** (CRITICAL):
+     - ✅ MUST handle duplicate events gracefully (check saga state)
+     - ✅ If saga already in terminal state (COMPLETED/COMPENSATED) → ignore event
+     - ✅ If saga in progress → check current state, continue from there
+     - ❌ NEVER re-execute completed steps
+  
+  4. **Retry Strategy**:
+     - ✅ Retry failed sagas 3 times with 1-minute interval
+     - ✅ Use `@Scheduled` job to find and retry failed sagas
+     - ✅ If retry count exhausted → mark as `ABANDONED`, create alert
+     - ✅ Track retry count in saga state (`retry_count` column)
+  
+  5. **Timeout**:
+     - ✅ MUST set timeout for each step (5-10 seconds per external call)
+     - ✅ If step times out → mark as FAILED, trigger compensation
+     - ✅ Total saga timeout: 60 seconds (all steps combined)
+     - ✅ If total timeout → compensate and mark as ABANDONED
+  
+  6. **Event Publishing**:
+     - ✅ Publish events for state transitions: `SagaCompletedEvent`, `SagaFailedEvent`
+     - ✅ Include correlation ID for tracing
+     - ✅ If event publish fails → retry 3 times, then log error (continue saga)
+  
+  7. **Concurrency**:
+     - ✅ Use database locking to prevent concurrent saga updates
+     - ✅ If lock timeout → retry saga processing
+     - ✅ Avoid deadlocks (always acquire locks in same order)
+  
+  8. **Monitoring**:
+     - ✅ Track saga duration per state (identify bottlenecks)
+     - ✅ Track compensation rate (% of sagas compensated)
+     - ✅ Track retry rate, abandoned rate
+     - ✅ Expose metrics: `saga_total`, `saga_completed`, `saga_failed`, `saga_compensated`
+  
+  9. **Error Handling**:
+     - ✅ If ANY step fails → log detailed error (step name, reason, payment ID)
+     - ✅ Include full stack trace in error logs (DEBUG level)
+     - ✅ Update saga with failure reason in database
+  
+  10. **Logging**:
+      - ✅ Log each state transition: `Saga transitioning: paymentId={}, from={}, to={}`
+      - ✅ Log compensation: `Compensating saga: paymentId={}, actions={}`
+      - ✅ Include correlation ID in all logs
+  
+  These are IN ADDITION to the Generic Coding Guardrails.
+  ALL guardrails MUST be followed.
 
 Context Provided:
 
@@ -3993,6 +4400,75 @@ Task:
   international cross-border payments. Handles MT103 (legacy) and pacs.008
   (modern) messages, mandatory sanctions screening (OFAC, UN, EU), FX rate
   lookup, and correspondent bank routing.
+
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+  
+  1. **Sanctions Screening** (CRITICAL - REGULATORY REQUIREMENT):
+     - ✅ MUST perform sanctions screening BEFORE submitting to SWIFT
+     - ✅ Screen against: OFAC, UN, EU sanctions lists
+     - ✅ Screen: Beneficiary name, country, bank name, bank country
+     - ✅ If match found → IMMEDIATELY block payment, set status `SANCTIONS_BLOCKED`
+     - ✅ MUST raise compliance alert for manual review
+     - ❌ NEVER bypass sanctions screening (legal violation, heavy fines)
+     - ✅ Cache sanctions lists in Redis (1-hour TTL, daily refresh)
+  
+  2. **SWIFT Message Format** (CRITICAL):
+     - ✅ Support both MT103 (legacy) and pacs.008 (ISO 20022)
+     - ✅ Validate MT103 format: 35 characters per line, specific field positions
+     - ✅ Validate pacs.008 XML: against ISO 20022 XSD schema
+     - ✅ If validation fails → reject payment, return detailed error
+     - ❌ NEVER send malformed messages to SWIFT (risk of rejection)
+  
+  3. **FX Rate Conversion**:
+     - ✅ Fetch real-time FX rates from external provider (e.g., OpenExchangeRates API)
+     - ✅ Cache rates for 5 minutes (Redis)
+     - ✅ If FX API unavailable → use fallback rates (last known good)
+     - ✅ If no fallback → reject payment with `FX_RATE_UNAVAILABLE`
+     - ✅ Include FX rate, fee in payment record (audit trail)
+  
+  4. **Correspondent Bank Routing**:
+     - ✅ Determine correspondent bank based on beneficiary country
+     - ✅ Use BIC (Bank Identifier Code) for routing
+     - ✅ If correspondent bank unknown → reject payment
+     - ✅ Store correspondent bank relationships in database
+  
+  5. **SWIFT gpi Tracking**:
+     - ✅ Generate UETR (Unique End-to-End Transaction Reference)
+     - ✅ Format: UUID v4 (e.g., `550e8400-e29b-41d4-a716-446655440000`)
+     - ✅ Include UETR in MT103 field 121, pacs.008 `TxId`
+     - ✅ Store UETR for payment tracking
+  
+  6. **Security**:
+     - ✅ Use mTLS (mutual TLS) for SWIFT Alliance Lite2 connection
+     - ✅ Store SWIFT credentials in Azure Key Vault
+     - ✅ Validate SWIFT response signature (message authentication)
+     - ❌ NEVER log SWIFT credentials or full message content (contains PII)
+  
+  7. **Error Handling**:
+     - ✅ If SWIFT rejects (NAK) → parse rejection reason, update payment status
+     - ✅ If SWIFT timeout (> 30s) → mark as `PENDING_SWIFT`, retry
+     - ✅ If sanctions match → do NOT retry, permanently block
+     - ✅ Log all SWIFT errors with UETR for traceability
+  
+  8. **Compliance**:
+     - ✅ MUST comply with FICA (Financial Intelligence Centre Act)
+     - ✅ Record all SWIFT payments for 5 years (audit trail)
+     - ✅ If beneficiary in high-risk country → flag for manual review
+     - ✅ Implement AML (Anti-Money Laundering) checks
+  
+  9. **Performance**:
+     - ✅ Target: < 5s response time (including sanctions screening)
+     - ✅ Parallel execution: sanctions + FX lookup (async)
+     - ✅ Batch SWIFT submissions if possible (10 messages/batch)
+  
+  10. **Monitoring**:
+      - ✅ Track sanctions screening rate (% blocked)
+      - ✅ Track SWIFT submission success rate (> 98%)
+      - ✅ Track FX API availability
+      - ✅ Expose metrics: `swift_payments_total`, `sanctions_blocked_total`, `fx_lookup_failures`
+  
+  These are IN ADDITION to the Generic Coding Guardrails.
+  ALL guardrails MUST be followed.
 
 Context Provided:
 
@@ -5747,6 +6223,72 @@ Task:
   Build the Batch Processing Service - processes bulk payment files uploaded by
   clients or received from clearing systems. Supports multiple file formats,
   parallel processing, fault tolerance, chunk-based processing, and SFTP integration.
+
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+  
+  1. **File Security** (CRITICAL):
+     - ✅ Validate file size: max 50 MB (prevent DoS)
+     - ✅ Validate file type: allow only [CSV, XLSX, XML, JSON, TXT]
+     - ✅ Scan file for viruses/malware (ClamAV or Azure Defender)
+     - ✅ Validate file structure BEFORE processing (schema validation)
+     - ❌ NEVER process files without validation (risk of XXE, billion laughs)
+  
+  2. **File Content Validation** (CRITICAL):
+     - ✅ Validate each record: amount > 0, valid currency, valid account IDs
+     - ✅ Skip invalid records, log to error file
+     - ✅ Generate summary report: total, processed, skipped, failed
+     - ✅ If > 10% records invalid → reject entire file
+  
+  3. **SFTP Security**:
+     - ✅ Use SSH key authentication (NOT password)
+     - ✅ Store SSH private key in Azure Key Vault
+     - ✅ Validate SFTP server fingerprint (prevent MITM)
+     - ✅ Use secure file permissions (600 for private key)
+     - ❌ NEVER download files from untrusted sources
+  
+  4. **Chunk Processing** (CRITICAL):
+     - ✅ Chunk size: 100 records (configurable)
+     - ✅ Process chunks in parallel (thread pool: 5 threads)
+     - ✅ Commit after each chunk (fault tolerance)
+     - ✅ If chunk fails → skip chunk, continue with next
+     - ✅ Track failed records in separate error file
+  
+  5. **File Path Injection Prevention**:
+     - ✅ Validate file paths (no `../` traversal)
+     - ✅ Use whitelist for allowed directories
+     - ✅ Sanitize file names (alphanumeric, hyphens, underscores only)
+     - ❌ NEVER use user input directly in file paths
+  
+  6. **XML Security** (XXE Prevention):
+     - ✅ Disable external entity processing (`XMLInputFactory.setProperty`)
+     - ✅ Disable DTD processing
+     - ✅ Use secure XML parser configuration
+     - ❌ NEVER trust external XML files without validation
+  
+  7. **Performance**:
+     - ✅ Target: 1,000 records/minute
+     - ✅ Use streaming for large files (don't load entire file in memory)
+     - ✅ Delete processed files after 7 days (storage management)
+     - ✅ Monitor memory usage (prevent OOM)
+  
+  8. **Error Reporting**:
+     - ✅ Generate error file: {originalFile}_errors.csv
+     - ✅ Include: line number, record data, error reason
+     - ✅ Upload error file to SFTP server (for client review)
+     - ✅ Send notification on batch completion (success/failure)
+  
+  9. **Idempotency**:
+     - ✅ Use file hash (SHA-256) as idempotency key
+     - ✅ If same file uploaded again → return cached result
+     - ✅ Store processed file hashes in database (30-day retention)
+  
+  10. **Monitoring**:
+      - ✅ Track: files processed, records processed, error rate
+      - ✅ Expose metrics: `batch_files_total`, `batch_records_total`, `batch_errors_total`
+      - ✅ Alert if error rate > 5%
+  
+  These are IN ADDITION to the Generic Coding Guardrails.
+  ALL guardrails MUST be followed.
 
 Context Provided:
 
@@ -7697,6 +8239,85 @@ Task:
   (Istio, Prometheus, Jaeger), and custom application operators (Payment Service,
   Clearing Adapter, Batch Processor, Saga Orchestrator).
 
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+  
+  1. **Custom Operators (Go Code)** (CRITICAL):
+     - ✅ MUST use operator-sdk or Kubebuilder for scaffolding
+     - ✅ MUST define CRDs (Custom Resource Definitions) for 4 operators
+     - ✅ Follow Kubernetes naming conventions (lowercase, hyphens)
+     - ✅ Implement reconciliation loop with exponential backoff
+     - ❌ NEVER block reconciliation (use non-blocking operations)
+  
+  2. **Reconciliation Logic** (CRITICAL):
+     - ✅ MUST be idempotent (safe to call multiple times)
+     - ✅ Requeue after 5 minutes for periodic reconciliation
+     - ✅ If reconciliation fails → log error, requeue with backoff
+     - ✅ Use `ctrl.Result{RequeueAfter: 5*time.Minute}` for success
+     - ✅ Limit reconciliation time (< 30 seconds)
+  
+  3. **CRD Validation** (CRITICAL):
+     - ✅ Define OpenAPI v3 schema for CRD validation
+     - ✅ Validate required fields (replicas, image, database size)
+     - ✅ Validate ranges (replicas: 1-10, CPU: 100m-2000m)
+     - ✅ Use kubebuilder validation tags: `+kubebuilder:validation:Minimum=1`
+     - ❌ NEVER allow invalid CRDs to be created
+  
+  4. **Resource Management**:
+     - ✅ Create Deployment, Service, HPA per PaymentService CR
+     - ✅ Use owner references (for cascading deletion)
+     - ✅ Apply resource quotas (CPU, memory limits)
+     - ✅ If resource creation fails → update CR status with error
+  
+  5. **Backup Automation**:
+     - ✅ Schedule daily backups (2 AM UTC)
+     - ✅ Retention: 30 days (delete older backups)
+     - ✅ Store backups in Azure Blob Storage
+     - ✅ Validate backup integrity (test restore)
+     - ✅ If backup fails → alert SRE team (PagerDuty)
+  
+  6. **Upgrade Automation**:
+     - ✅ Support rolling upgrades (zero downtime)
+     - ✅ Update pods one at a time (wait for readiness)
+     - ✅ If upgrade fails → automatically rollback
+     - ✅ Update CR status: `Upgrading`, `Upgraded`, `UpgradeFailed`
+  
+  7. **Scaling Automation**:
+     - ✅ Support HPA (Horizontal Pod Autoscaler) creation
+     - ✅ Min replicas: 3, max replicas: 10
+     - ✅ Target CPU: 70%
+     - ✅ Update CR status with actual replica count
+  
+  8. **Status Updates** (CRITICAL):
+     - ✅ MUST update CR status after every operation
+     - ✅ Include: observedGeneration, replicas, readyReplicas, conditions
+     - ✅ Use status conditions (type: Ready, status: True/False, reason)
+     - ✅ If status update fails → log error, continue reconciliation
+  
+  9. **RBAC** (CRITICAL):
+     - ✅ Define minimal RBAC permissions (least privilege)
+     - ✅ Use ServiceAccount per operator
+     - ✅ Limit to specific namespaces (not cluster-wide unless required)
+     - ❌ NEVER use cluster-admin role
+  
+  10. **Monitoring**:
+      - ✅ Expose operator metrics (reconciliations_total, errors_total)
+      - ✅ Track CRD count, reconciliation duration
+      - ✅ Integrate with Prometheus (operator metrics endpoint)
+  
+  11. **Testing**:
+      - ✅ Write unit tests for reconciliation logic (Go test)
+      - ✅ Write integration tests using envtest (Kubebuilder)
+      - ✅ Test CRD create, update, delete operations
+      - ✅ Test operator failure recovery
+  
+  12. **Error Handling**:
+      - ✅ If Kubernetes API call fails → return error, requeue
+      - ✅ Log all errors with CR name, namespace
+      - ✅ Update CR status with error message
+  
+  These are IN ADDITION to the Generic Coding Guardrails.
+  ALL guardrails MUST be followed.
+
 Context Provided:
 
   1. Architecture Documents:
@@ -7978,6 +8599,67 @@ Task:
   flows across all 20 microservices, from payment initiation through clearing
   and settlement, including all edge cases and failure scenarios.
 
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+  
+  1. **Test Coverage** (CRITICAL):
+     - ✅ MUST cover all 5 payment types (EFT, RTC, PayShap, SWIFT, Batch)
+     - ✅ MUST test happy path AND failure scenarios for each type
+     - ✅ MUST test multi-tenant isolation (no cross-tenant data access)
+     - ✅ Minimum 50 E2E scenarios across all payment flows
+     - ✅ Critical path coverage: > 95%
+  
+  2. **Test Data Management** (CRITICAL):
+     - ✅ Use dedicated test tenants (TENANT-TEST-001, TENANT-TEST-002)
+     - ✅ Use test accounts with known balances (reset before each test)
+     - ✅ Clean up test data after each test run
+     - ❌ NEVER use production data in tests
+     - ✅ Use test data builders for readability
+  
+  3. **Test Isolation**:
+     - ✅ Each test MUST be independent (no shared state)
+     - ✅ Use `@BeforeEach` to set up test data
+     - ✅ Use `@AfterEach` to clean up test data
+     - ❌ NEVER rely on test execution order
+     - ✅ Use unique payment IDs per test (avoid conflicts)
+  
+  4. **Async Testing**:
+     - ✅ Use Awaitility for async assertions (max 30 seconds wait)
+     - ✅ Poll for payment status every 500ms
+     - ✅ If timeout → fail test with clear message
+     - ✅ Test event propagation (PaymentInitiated → Validated → Routed → Submitted)
+  
+  5. **Failure Scenario Testing**:
+     - ✅ MUST test insufficient balance (account adapter returns error)
+     - ✅ MUST test limit exceeded (limit service rejects)
+     - ✅ MUST test fraud rejection (high-risk score)
+     - ✅ MUST test clearing timeout (clearing adapter timeout)
+     - ✅ MUST test compensation flow (Saga rollback)
+  
+  6. **Mock External Systems**:
+     - ✅ Use WireMock for external systems (core banking, fraud API)
+     - ✅ Mock different responses (success, failure, timeout)
+     - ✅ Simulate network delays (latency injection)
+     - ❌ NEVER call real external systems in E2E tests
+  
+  7. **Test Execution**:
+     - ✅ Target: < 30 minutes total execution time
+     - ✅ Run tests in parallel (5 threads minimum)
+     - ✅ Generate Allure reports (HTML, screenshots)
+     - ✅ Integrate with CI/CD (Azure Pipelines, fail build on test failure)
+  
+  8. **Flaky Tests**:
+     - ❌ ZERO flaky tests allowed (tests must be deterministic)
+     - ✅ If test fails intermittently → investigate and fix (don't ignore)
+     - ✅ Use retry only for infrastructure issues (not logic issues)
+  
+  9. **Logging**:
+     - ✅ Log test name, duration, result (pass/fail)
+     - ✅ Log payment IDs for failed tests (for debugging)
+     - ✅ Include screenshots for UI tests (if applicable)
+  
+  These are IN ADDITION to the Generic Coding Guardrails.
+  ALL guardrails MUST be followed.
+
 Context Provided:
 
   1. Architecture Documents:
@@ -8242,6 +8924,57 @@ Task:
   Payments Engine can handle 1,000 TPS (transactions per second) with p95
   latency < 3 seconds, and identify performance bottlenecks.
 
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+  
+  1. **Performance SLOs** (CRITICAL):
+     - ✅ MUST validate: 1,000 TPS sustained for 5 minutes
+     - ✅ MUST validate: p95 latency < 3 seconds
+     - ✅ MUST validate: p99 latency < 5 seconds
+     - ✅ MUST validate: Error rate < 1%
+     - ✅ If ANY SLO violated → test FAILS
+  
+  2. **Load Test Scenarios**:
+     - ✅ MUST implement all 5 scenarios (sustained, peak, spike, endurance, stress)
+     - ✅ Ramp up gradually (not instant 1,000 TPS)
+     - ✅ Use realistic payment data (CSV with 10K records)
+     - ✅ Mix payment types (70% EFT, 20% RTC, 10% PayShap)
+  
+  3. **Resource Monitoring**:
+     - ✅ Monitor CPU, memory, disk during load test
+     - ✅ Track database connection pool usage (< 80%)
+     - ✅ Track message bus queue depth
+     - ✅ Identify bottlenecks (slowest service, slowest DB query)
+  
+  4. **Bottleneck Analysis** (CRITICAL):
+     - ✅ MUST identify top 5 slowest API endpoints
+     - ✅ MUST identify top 5 slowest database queries
+     - ✅ MUST document bottlenecks in PERFORMANCE-REPORT.md
+     - ✅ Provide tuning recommendations (JVM, DB, HPA)
+  
+  5. **HPA Validation**:
+     - ✅ Verify Horizontal Pod Autoscaler scales pods under load
+     - ✅ Target: CPU < 70% per pod (after scaling)
+     - ✅ Verify scale-up (2,000 TPS → more pods)
+     - ✅ Verify scale-down (load drops → fewer pods)
+  
+  6. **Grafana Dashboards**:
+     - ✅ Create Gatling dashboard in Grafana (real-time metrics)
+     - ✅ Track: TPS, response time (p50/p95/p99), error rate
+     - ✅ Correlate with system metrics (CPU, memory, DB)
+  
+  7. **Test Environment**:
+     - ✅ Use staging environment (prod-like configuration)
+     - ❌ NEVER run load tests against production
+     - ✅ Ensure staging has same resources as prod (pods, DB)
+  
+  8. **Error Handling**:
+     - ✅ If error rate > 1% → FAIL test immediately
+     - ✅ Capture error details (status code, error message)
+     - ✅ Include in PERFORMANCE-REPORT.md
+  
+  These are IN ADDITION to the Generic Coding Guardrails.
+  ALL guardrails MUST be followed.
+
 Context Provided:
 
   1. Architecture Documents:
@@ -8458,6 +9191,80 @@ Task:
   Build a comprehensive security testing framework covering SAST (static),
   DAST (dynamic), container scanning, secrets scanning, and penetration testing
   to ensure the Payments Engine is secure and compliant with PCI-DSS.
+
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+  
+  1. **SAST (Static Analysis)** (CRITICAL):
+     - ✅ MUST achieve SonarQube Security Rating: A (no vulnerabilities)
+     - ✅ MUST have 0 CRITICAL or HIGH vulnerabilities
+     - ✅ Code coverage: > 80%
+     - ✅ MUST fix all bugs before deployment
+     - ❌ NEVER ignore SonarQube quality gate failures
+  
+  2. **DAST (Dynamic Analysis)** (CRITICAL):
+     - ✅ MUST run OWASP ZAP full scan (active attacks)
+     - ✅ MUST have 0 CRITICAL vulnerabilities
+     - ✅ MUST have 0 HIGH vulnerabilities
+     - ✅ Test all OWASP Top 10 vulnerabilities
+     - ✅ If vulnerability found → document, remediate, re-scan
+  
+  3. **Container Security** (CRITICAL):
+     - ✅ MUST run Trivy scan on ALL container images
+     - ✅ MUST have 0 CRITICAL vulnerabilities
+     - ✅ Use minimal base images (Alpine, Distroless)
+     - ✅ Scan for: OS vulnerabilities, library vulnerabilities, misconfigurations
+     - ❌ NEVER deploy images with CRITICAL vulnerabilities
+  
+  4. **Secrets Scanning** (CRITICAL):
+     - ✅ MUST run Gitleaks scan on entire codebase
+     - ✅ MUST have 0 secrets exposed (passwords, API keys, tokens)
+     - ✅ Scan: code, config files, environment variables, Docker files
+     - ✅ If secret found → IMMEDIATELY rotate, remove from Git history
+     - ❌ NEVER commit secrets to Git
+  
+  5. **OWASP Top 10 Testing** (CRITICAL):
+     - ✅ MUST test all 10 OWASP categories:
+       1. Broken Access Control → test RBAC, tenant isolation
+       2. Cryptographic Failures → test encryption, TLS
+       3. Injection → test SQL injection, XSS, XXE
+       4. Insecure Design → test business logic flaws
+       5. Security Misconfiguration → test default passwords, exposed endpoints
+       6. Vulnerable Components → test outdated libraries
+       7. Identification/Authentication → test JWT, OAuth
+       8. Software/Data Integrity → test dependency integrity
+       9. Security Logging → test audit trail completeness
+       10. SSRF → test external URL validation
+  
+  6. **Authentication Testing**:
+     - ✅ Test missing JWT → 401 Unauthorized
+     - ✅ Test invalid JWT → 401 Unauthorized
+     - ✅ Test expired JWT → 401 Unauthorized
+     - ✅ Test token without required scopes → 403 Forbidden
+  
+  7. **Authorization Testing**:
+     - ✅ Test cross-tenant access → 403 Forbidden
+     - ✅ Test RBAC: user without role → 403 Forbidden
+     - ✅ Test privilege escalation attempts
+  
+  8. **Injection Testing**:
+     - ✅ Test SQL injection in all input fields
+     - ✅ Test XSS in payment reference/description
+     - ✅ Test XXE in XML payment files (SWIFT, Batch)
+     - ✅ Test command injection in SFTP paths
+  
+  9. **PCI-DSS Compliance** (CRITICAL):
+     - ✅ Validate Requirement 6.5.1-6.5.10 (secure coding)
+     - ✅ Validate Requirement 11.3 (penetration testing)
+     - ✅ Document compliance evidence in PCI-DSS-COMPLIANCE.md
+  
+  10. **Reporting**:
+      - ✅ Generate comprehensive SECURITY-TEST-REPORT.md
+      - ✅ Include: SAST results, DAST results, vulnerabilities found, remediation plan
+      - ✅ Assign severity (CRITICAL, HIGH, MEDIUM, LOW)
+      - ✅ Provide fix recommendations
+  
+  These are IN ADDITION to the Generic Coding Guardrails.
+  ALL guardrails MUST be followed.
 
 Context Provided:
 
@@ -8686,6 +9493,77 @@ Task:
   Build a comprehensive compliance testing framework that validates the Payments
   Engine adheres to POPIA (data protection), FICA (financial intelligence), 
   PCI-DSS (card security), and SARB (central bank) regulations.
+
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+  
+  1. **POPIA Compliance** (CRITICAL - LEGAL REQUIREMENT):
+     - ✅ MUST verify PII encrypted at rest (email, ID numbers)
+     - ✅ MUST verify PII masked in logs (account numbers: `ACC-****7890`)
+     - ✅ MUST verify consent management (explicit consent recorded)
+     - ✅ MUST verify data retention (7 years for financial records)
+     - ✅ MUST verify right to erasure (delete user data on request)
+     - ❌ If ANY POPIA test fails → BLOCK production deployment
+  
+  2. **FICA Compliance** (CRITICAL - LEGAL REQUIREMENT):
+     - ✅ MUST verify KYC (Know Your Customer) validation
+     - ✅ MUST verify sanctions screening (SWIFT payments)
+     - ✅ MUST verify suspicious transaction reporting (STR)
+     - ✅ MUST verify record keeping (5 years minimum)
+     - ✅ If sanctions match found → MUST block payment, alert compliance team
+     - ❌ If ANY FICA test fails → BLOCK production deployment
+  
+  3. **PCI-DSS Compliance** (CRITICAL - LEGAL REQUIREMENT):
+     - ✅ MUST verify Requirement 3: Cardholder data encrypted
+     - ✅ MUST verify Requirement 4: TLS 1.2+ for transmission
+     - ✅ MUST verify Requirement 6: Secure code (SAST/DAST passed)
+     - ✅ MUST verify Requirement 8: Unique IDs (RBAC implemented)
+     - ✅ MUST verify Requirement 10: All access logged (audit trail)
+     - ✅ MUST verify Requirement 11: Security testing (quarterly)
+     - ❌ If ANY PCI-DSS test fails → BLOCK production deployment
+  
+  4. **SARB Compliance** (CRITICAL - LEGAL REQUIREMENT):
+     - ✅ MUST verify settlement reporting (real-time)
+     - ✅ MUST verify liquidity management
+     - ✅ MUST verify clearing system compliance
+     - ✅ If reporting fails → alert finance team
+  
+  5. **Test Evidence** (CRITICAL):
+     - ✅ Capture test results (pass/fail) with screenshots
+     - ✅ Generate COMPLIANCE-REPORT.md with evidence
+     - ✅ Generate AUDIT-EVIDENCE.md for auditors
+     - ✅ Include: test name, expected result, actual result, timestamp
+     - ✅ Store evidence for 3 years (audit requirement)
+  
+  6. **Data Encryption Testing**:
+     - ✅ Query database directly (bypass application)
+     - ✅ Verify email not in plaintext (starts with `ENC:`)
+     - ✅ Verify ID number hashed (SHA-256, 64 characters)
+     - ✅ Use TestContainers for database access
+  
+  7. **Sanctions Screening Testing**:
+     - ✅ Test with known sanctioned entities (test data)
+     - ✅ Verify payment blocked with status `SANCTIONS_BLOCKED`
+     - ✅ Verify compliance alert raised
+     - ✅ Test all sanctioned countries (Iran, North Korea, Syria, etc.)
+  
+  8. **Audit Trail Testing**:
+     - ✅ Verify ALL payment operations logged
+     - ✅ Verify log contains: user ID, tenant ID, timestamp, IP, user agent
+     - ✅ Verify log immutability (cannot be modified)
+     - ✅ Query CosmosDB directly to verify audit events
+  
+  9. **Test Reporting**:
+     - ✅ Generate compliance report: POPIA ✅, FICA ✅, PCI-DSS ✅, SARB ✅
+     - ✅ If ANY regulation fails → mark as ❌ FAIL
+     - ✅ Document non-compliance in detail
+  
+  10. **Regulatory Updates**:
+      - ✅ Review tests quarterly (regulations change)
+      - ✅ Update tests when regulations updated
+      - ✅ Maintain compliance test suite (living document)
+  
+  These are IN ADDITION to the Generic Coding Guardrails.
+  ALL guardrails MUST be followed.
 
 Context Provided:
 
