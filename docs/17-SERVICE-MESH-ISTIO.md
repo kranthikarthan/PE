@@ -8,7 +8,7 @@ This document provides the **Service Mesh architecture design** using Istio for 
 
 ## Why Service Mesh?
 
-### Current Challenge (17 Microservices)
+### Current Challenge (20 Microservices)
 
 ```
 Payment Service → Account Service

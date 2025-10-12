@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides the **complete Distributed Tracing implementation** using OpenTelemetry for the Payments Engine. Distributed tracing allows you to track requests across all 17 microservices, identify bottlenecks, and debug distributed transactions.
+This document provides the **complete Distributed Tracing implementation** using OpenTelemetry for the Payments Engine. Distributed tracing allows you to track requests across all 20 microservices, identify bottlenecks, and debug distributed transactions.
 
 ---
 

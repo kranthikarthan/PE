@@ -77,7 +77,7 @@ A Cell Contains:
 │                                                         │
 │  ┌──────────────────────────────────────────────────┐  │
 │  │  Compute (AKS Cluster)                           │  │
-│  │  - 17 microservices                              │  │
+│  │  - 20 microservices                              │  │
 │  │  - Istio service mesh                            │  │
 │  │  - 3 BFFs                                        │  │
 │  └──────────────────────────────────────────────────┘  │
@@ -268,7 +268,7 @@ With Cells: Deploy Cell 1 → verify → Cell 2 → Cell 3 ✅
 │  └────────────────────────────────────────────────────────────┘ │
 │                                                                  │
 │  ┌────────────────────────────────────────────────────────────┐ │
-│  │  AKS Cluster (17 Microservices)                            │ │
+│  │  AKS Cluster (20 Microservices)                            │ │
 │  │                                                             │ │
 │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐                 │ │
 │  │  │ Payment  │  │ Account  │  │Validation│                 │ │
@@ -701,7 +701,7 @@ Provisioning Process:
                       ▼
 ┌────────────────────────────────────────────────────────┐
 │ 3. Deploy Applications (GitOps - ArgoCD)               │
-│    - 17 microservices                                  │
+│    - 20 microservices                                  │
 │    - Istio service mesh                                │
 │    - 3 BFFs                                            │
 │    - Monitoring stack (Prometheus, Grafana, Jaeger)   │

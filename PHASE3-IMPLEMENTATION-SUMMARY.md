@@ -97,7 +97,7 @@ A Cell Contains Everything:
 ┌─────────────────────────────────────────┐
 │           COMPLETE STACK                │
 ├─────────────────────────────────────────┤
-│  - 17 microservices (full stack)       │
+│  - 20 microservices (full stack)       │
 │  - 14 PostgreSQL databases             │
 │  - Redis cache                          │
 │  - Kafka cluster (3 brokers)           │
@@ -615,7 +615,7 @@ Alert Scenarios:
     └─────────┘ └─────────┘ └─────────┘
          │           │           │
     Each Cell Contains:
-    ├─ 17 Microservices (complete stack)
+    ├─ 20 Microservices (complete stack)
     ├─ 14 PostgreSQL databases
     ├─ Redis cache
     ├─ Kafka cluster

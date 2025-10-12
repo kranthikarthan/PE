@@ -260,7 +260,7 @@ public Mono<BulkPaymentResponse> initiateBulkPayments(
 
 ### What Was Implemented
 
-✅ **OpenTelemetry SDK**: Added to all 17 microservices  
+✅ **OpenTelemetry SDK**: Added to all 20 microservices  
 ✅ **Automatic Instrumentation**: HTTP, Database (JDBC), Kafka, Redis  
 ✅ **Manual Instrumentation**: Business logic spans with `@WithSpan`  
 ✅ **Trace Context Propagation**: HTTP headers, Kafka headers  
