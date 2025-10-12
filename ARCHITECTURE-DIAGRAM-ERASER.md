@@ -5,7 +5,6 @@
 This document contains the Eraser.ai diagram code for the complete Payments Engine architecture with all 20 microservices.
 
 ---
-<img width="4133" height="5532" alt="17602438426981324194820087386356" src="https://github.com/user-attachments/assets/7cc23307-a86c-4e8d-9e76-ae60e074e294" />
 
 ## How to Use
 
