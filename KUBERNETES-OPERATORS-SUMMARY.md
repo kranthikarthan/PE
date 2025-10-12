@@ -47,7 +47,7 @@ The Payments Engine implements **14 Kubernetes Operators** to automate Day 2 ope
 
 ### Application Operators (4 Custom)
 
-11. ✅ **Payment Gateway Operator** - Payment services lifecycle
+11. ✅ **Payment Service Operator** - Payment services lifecycle
 12. ✅ **Clearing Adapter Operator** - Clearing system adapters
 13. ✅ **Batch Processor Operator** - Batch processing jobs
 14. ✅ **Saga Orchestrator Operator** - Distributed transactions
@@ -164,14 +164,14 @@ kubectl patch paymentgateway payment-service \
 
 ## 🏗️ Custom Operator Example
 
-### Payment Gateway Operator
+### Payment Service Operator
 
 **CRD (Custom Resource Definition)**:
 ```yaml
 apiVersion: payments.io/v1
-kind: PaymentGateway
+kind: PaymentService
 metadata:
-  name: payment-initiation-gateway
+  name: payment-initiation-service
 spec:
   version: "1.5.0"
   image: "acr.azurecr.io/payment-initiation:1.5.0"
