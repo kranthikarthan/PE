@@ -1,8 +1,13 @@
 # Microservices Decomposition Rationale
 
-## Why 17 Microservices? 🤔
+## Why 20 Microservices? 🤔
 
-This document explains the **rationale, principles, and decision-making process** behind decomposing the Payments Engine into **17 microservices** (not 5, not 50, but exactly 17).
+This document explains the **rationale, principles, and decision-making process** behind decomposing the Payments Engine into **20 microservices** (not 5, not 50, but exactly 20).
+
+**Update**: Originally designed with 17 services. Added 3 critical services based on requirements:
+- PayShap Adapter (#10) - SA instant payments
+- SWIFT Adapter (#11) - International payments with sanctions screening
+- Batch Processing Service (#12) - Bulk payment file processing
 
 ---
 

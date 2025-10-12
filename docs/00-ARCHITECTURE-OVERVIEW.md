@@ -137,17 +137,127 @@ This document outlines a **highly modular, AI-agent-buildable payments engine** 
 
 ### Core Payment Services (6 Services)
 
-1. **Payment Initiation Service**
+1. **Payment Initiation Service** (#1)
    - Accept payment requests from channels
    - Generate unique payment IDs
    - Initial validation
    - Tech: Spring Boot, PostgreSQL, Kafka
 
-2. **Validation Service**
+2. **Validation Service** (#2)
    - Business rules validation
    - Fraud detection integration
+   - Limit checks
    - Compliance checks (FICA)
    - Tech: Spring Boot, Redis (caching rules)
+
+3. **Account Adapter Service** (#3)
+   - Interface to external core banking systems
+   - Account balance checks
+   - Debit/credit operations
+   - Tech: Spring Boot, PostgreSQL
+
+4. **Routing Service** (#4)
+   - Determine payment route
+   - Select clearing system
+   - Tech: Spring Boot, Redis
+
+5. **Transaction Processing Service** (#5)
+   - Process validated payments
+   - Execute payment logic
+   - Tech: Spring Boot, PostgreSQL
+
+6. **Saga Orchestrator Service** (#6)
+   - Orchestrate distributed transactions
+   - Compensation logic
+   - Tech: Spring Boot, PostgreSQL
+
+### Clearing Adapters (5 Services)
+
+7. **SAMOS Adapter** (#7)
+   - High-value RTGS payments
+   - ISO 20022 messaging
+   - Tech: Spring Boot, PostgreSQL
+
+8. **BankservAfrica Adapter** (#8)
+   - EFT batch payments
+   - ISO 8583 messaging
+   - Tech: Spring Boot, PostgreSQL
+
+9. **RTC Adapter** (#9)
+   - Real-time clearing
+   - ISO 20022 messaging
+   - Tech: Spring Boot, PostgreSQL
+
+10. **PayShap Adapter** (#10) 🆕
+    - Instant P2P payments (24/7/365)
+    - Proxy registry (mobile/email → account)
+    - ISO 20022 messaging
+    - R 3,000 per transaction limit
+    - Tech: Spring Boot WebFlux, PostgreSQL
+
+11. **SWIFT Adapter** (#11) 🆕
+    - International cross-border payments
+    - Sanctions screening (OFAC, UN, EU) - mandatory
+    - MT103 (legacy) + pacs.008 (modern) messaging
+    - FX rate conversion
+    - Correspondent bank routing
+    - Tech: Spring Boot, PostgreSQL
+
+### Batch Processing (1 Service)
+
+12. **Batch Processing Service** (#12) 🆕
+    - Bulk payment file processing (10K-100K payments/file)
+    - Spring Batch framework
+    - Multiple formats: CSV, Excel, XML, JSON
+    - Parallel processing (10-20 threads)
+    - SFTP server support
+    - Tech: Spring Boot, Spring Batch, PostgreSQL
+
+### Settlement & Reconciliation (2 Services)
+
+13. **Settlement Service** (#13)
+    - Nostro/Vostro account management
+    - Settlement calculations
+    - Tech: Spring Boot, PostgreSQL
+
+14. **Reconciliation Service** (#14)
+    - Daily reconciliation
+    - Exception handling
+    - Tech: Spring Boot, PostgreSQL
+
+### Platform Services (6 Services)
+
+15. **Tenant Management Service** (#15)
+    - Multi-tenancy support
+    - Tenant hierarchy
+    - Tech: Spring Boot, PostgreSQL
+
+16. **Notification Service / IBM MQ Adapter** (#16)
+    - SMS, Email, Push notifications
+    - Option: IBM MQ to remote engine
+    - Tech: Spring Boot, IBM MQ (optional)
+
+17. **Reporting Service** (#17)
+    - Transaction reports
+    - Analytics dashboards
+    - Compliance reports
+    - Tech: Spring Boot, PostgreSQL, Azure Synapse
+
+18. **API Gateway Service** (#18)
+    - External API ingress
+    - Authentication/Authorization
+    - Rate limiting
+    - Tech: Spring Cloud Gateway, Redis
+
+19. **IAM Service** (#19)
+    - User authentication
+    - RBAC/ABAC authorization
+    - Tech: Spring Boot, Azure AD B2C, PostgreSQL
+
+20. **Audit Service** (#20)
+    - Immutable audit trail
+    - 7-year retention
+    - Tech: Spring Boot, CosmosDB
 
 3. **Account Adapter Service** (formerly Account Service)
    - **Orchestrates** calls to external core banking systems
