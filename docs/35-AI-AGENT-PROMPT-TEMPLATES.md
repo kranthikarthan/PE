@@ -5124,6 +5124,1270 @@ Dependencies:
 
 ---
 
+## Phase 5: Infrastructure (5 Features)
+
+### Feature 5.1: Service Mesh (Istio)
+
+```yaml
+Feature ID: 5.1
+Feature Name: Service Mesh (Istio)
+Agent Name: Service Mesh Agent
+Phase: 5 (Infrastructure)
+Estimated Time: 5 days
+
+Role & Expertise:
+  You are a Platform Engineer with expertise in Istio service mesh, mTLS,
+  traffic management, observability, circuit breaking, and Kubernetes networking.
+
+Task:
+  Deploy and configure Istio service mesh for the Payments Engine - provides
+  mTLS encryption, traffic management, observability, circuit breaking, and
+  advanced deployment patterns (canary, blue-green).
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/19-SERVICE-MESH-ISTIO.md (COMPLETE FILE - 2,500 lines)
+        - Istio architecture overview
+        - Service mesh benefits
+        - mTLS (mutual TLS) encryption
+        - Traffic management (routing, load balancing)
+        - Circuit breaking, retries, timeouts
+        - Observability (distributed tracing, metrics)
+        - Canary deployments
+        - Fault injection (chaos testing)
+     
+     📄 docs/32-GATEWAY-ARCHITECTURE-CLARIFICATION.md
+        - Istio replaces Internal API Gateway
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 5.1)
+  
+  2. Istio Components:
+     - Istiod (control plane): Configuration, certificate management
+     - Envoy Proxy (data plane): Sidecar injected into each pod
+     - Istio Ingress Gateway: Entry point for external traffic
+     - Istio Egress Gateway: Exit point for external calls
+  
+  3. Key Features to Configure:
+     
+     **1. mTLS (Mutual TLS)**
+     ```yaml
+     apiVersion: security.istio.io/v1beta1
+     kind: PeerAuthentication
+     metadata:
+       name: default
+       namespace: payments
+     spec:
+       mtls:
+         mode: STRICT  # Enforce mTLS for all services
+     ```
+     
+     **2. Traffic Management**
+     ```yaml
+     apiVersion: networking.istio.io/v1beta1
+     kind: VirtualService
+     metadata:
+       name: payment-initiation
+     spec:
+       hosts:
+       - payment-initiation-service
+       http:
+       - route:
+         - destination:
+             host: payment-initiation-service
+             subset: v1
+           weight: 90
+         - destination:
+             host: payment-initiation-service
+             subset: v2
+           weight: 10  # Canary: 10% traffic to v2
+     ```
+     
+     **3. Circuit Breaking**
+     ```yaml
+     apiVersion: networking.istio.io/v1beta1
+     kind: DestinationRule
+     metadata:
+       name: payment-initiation
+     spec:
+       host: payment-initiation-service
+       trafficPolicy:
+         connectionPool:
+           tcp:
+             maxConnections: 100
+           http:
+             http1MaxPendingRequests: 50
+             maxRequestsPerConnection: 2
+         outlierDetection:
+           consecutiveErrors: 5
+           interval: 30s
+           baseEjectionTime: 30s
+     ```
+     
+     **4. Retries & Timeouts**
+     ```yaml
+     apiVersion: networking.istio.io/v1beta1
+     kind: VirtualService
+     metadata:
+       name: payment-initiation
+     spec:
+       http:
+       - route:
+         - destination:
+             host: payment-initiation-service
+         timeout: 10s
+         retries:
+           attempts: 3
+           perTryTimeout: 3s
+           retryOn: 5xx,reset,connect-failure
+     ```
+  
+  4. Technology Stack:
+     - Istio 1.20+
+     - Kubernetes 1.28+
+     - Helm (for installation)
+     - Kiali (service mesh visualization)
+     - Jaeger (distributed tracing - integrated)
+     - Prometheus (metrics - integrated)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Istio Architecture Diagram
+        - Control plane (Istiod)
+        - Data plane (Envoy sidecars)
+        - Ingress/Egress gateways
+     
+     📊 mTLS Flow Diagram
+        - Certificate issuance
+        - Certificate rotation (every 24 hours)
+        - Pod-to-pod mTLS encryption
+  
+  2. LLD (Low-Level Design):
+     📋 Istio Resource Definitions
+        - PeerAuthentication (mTLS)
+        - VirtualService (routing, retries, timeouts)
+        - DestinationRule (circuit breaking, load balancing)
+        - Gateway (ingress/egress)
+        - ServiceEntry (external services)
+     
+     📋 Sidecar Injection Strategy
+        - Automatic injection (namespace label)
+        - Manual injection (istioctl)
+  
+  3. Implementation:
+     📁 /infrastructure/istio/
+        ├─ installation/
+        │   ├─ istio-operator.yaml
+        │   ├─ istio-values.yaml (Helm values)
+        │   └─ install.sh
+        ├─ security/
+        │   ├─ peer-authentication.yaml (mTLS STRICT)
+        │   ├─ authorization-policy.yaml (RBAC)
+        │   └─ request-authentication.yaml (JWT validation)
+        ├─ traffic-management/
+        │   ├─ virtual-services/
+        │   │   ├─ payment-initiation-vs.yaml
+        │   │   ├─ validation-vs.yaml
+        │   │   └─ ... (20 services)
+        │   ├─ destination-rules/
+        │   │   ├─ payment-initiation-dr.yaml
+        │   │   ├─ validation-dr.yaml
+        │   │   └─ ... (20 services)
+        │   └─ gateways/
+        │       ├─ istio-ingressgateway.yaml
+        │       └─ istio-egressgateway.yaml
+        ├─ observability/
+        │   ├─ kiali.yaml (service mesh dashboard)
+        │   ├─ jaeger.yaml (distributed tracing)
+        │   └─ prometheus.yaml (metrics)
+        ├─ fault-injection/
+        │   ├─ delay-injection.yaml (latency testing)
+        │   └─ abort-injection.yaml (failure testing)
+        ├─ canary-deployments/
+        │   ├─ payment-initiation-canary.yaml
+        │   └─ rollout-strategy.yaml
+        └─ README.md
+  
+  4. Testing:
+     ✅ mTLS Verification
+        - Verify certificate issuance (istioctl proxy-status)
+        - Test encrypted traffic (tcpdump)
+        - Verify certificate rotation (24h)
+     
+     ✅ Traffic Management Tests
+        - Canary deployment (10% → 50% → 100%)
+        - Blue-green deployment
+        - A/B testing
+     
+     ✅ Circuit Breaker Tests
+        - Trigger consecutive errors (5+)
+        - Verify pod ejection
+        - Verify recovery after 30s
+     
+     ✅ Fault Injection Tests
+        - Inject 5s delay (latency testing)
+        - Inject 503 error (failure testing)
+     
+     Target: All services running with Istio sidecars
+  
+  5. Documentation:
+     📄 README.md
+        - Istio overview
+        - Installation guide
+        - How to verify mTLS
+        - Troubleshooting
+     
+     📄 ISTIO-TRAFFIC-MANAGEMENT.md
+        - VirtualService examples
+        - DestinationRule examples
+        - Canary deployment guide
+     
+     📄 ISTIO-SECURITY.md
+        - mTLS configuration
+        - Authorization policies
+        - Certificate management
+     
+     📄 ISTIO-OBSERVABILITY.md
+        - Kiali dashboard
+        - Jaeger tracing
+        - Prometheus metrics
+
+Success Criteria:
+  ✅ Istio installed successfully
+  ✅ All 20 services have Envoy sidecars injected
+  ✅ mTLS enabled (STRICT mode)
+  ✅ Circuit breakers configured
+  ✅ Canary deployment successful
+  ✅ Kiali dashboard accessible
+  ✅ Distributed tracing working (Jaeger)
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete Istio spec in docs/19 (2,500 lines)
+  - All resource types explained
+  - Traffic management patterns
+  - Security configurations
+
+Dependencies:
+  ✅ Kubernetes cluster (AKS) - READY
+  ✅ All 20 microservices deployed
+```
+
+---
+
+### Feature 5.2: Monitoring Stack (Prometheus, Grafana, Jaeger)
+
+```yaml
+Feature ID: 5.2
+Feature Name: Monitoring Stack (Prometheus, Grafana, Jaeger)
+Agent Name: Monitoring Agent
+Phase: 5 (Infrastructure)
+Estimated Time: 4 days
+
+Role & Expertise:
+  You are a Platform Engineer with expertise in Prometheus, Grafana, Jaeger,
+  OpenTelemetry, metrics collection, alerting, and observability.
+
+Task:
+  Deploy and configure the complete monitoring stack - Prometheus (metrics),
+  Grafana (dashboards), Jaeger (distributed tracing), and alerting (Alertmanager).
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/18-DISTRIBUTED-TRACING.md (COMPLETE FILE - 1,500 lines)
+        - OpenTelemetry instrumentation
+        - Distributed tracing architecture
+        - Jaeger deployment
+        - Trace context propagation
+     
+     📄 docs/24-SRE-ARCHITECTURE.md (Section: Monitoring)
+        - Golden signals (latency, traffic, errors, saturation)
+        - SLIs, SLOs, error budgets
+        - Alerting rules
+        - On-call procedures
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 5.2)
+  
+  2. Stack Components:
+     
+     **1. Prometheus** (Metrics)
+     - Time-series database
+     - Scrapes metrics from services (every 15s)
+     - PromQL query language
+     - Retention: 30 days
+     
+     **2. Grafana** (Dashboards)
+     - Visualization platform
+     - Connects to Prometheus
+     - Pre-built dashboards (JVM, Spring Boot, Istio)
+     - Custom dashboards (payment metrics)
+     
+     **3. Jaeger** (Distributed Tracing)
+     - Trace collection (OpenTelemetry)
+     - Trace storage (Elasticsearch or Cassandra)
+     - Trace visualization
+     - Retention: 7 days
+     
+     **4. Alertmanager** (Alerting)
+     - Alert routing
+     - Deduplication, grouping
+     - Integrations (Slack, PagerDuty, email)
+  
+  3. Key Metrics to Monitor:
+     
+     **Golden Signals**:
+     - Latency: Request duration (p50, p95, p99)
+     - Traffic: Requests per second (RPS)
+     - Errors: Error rate (%)
+     - Saturation: CPU, memory, disk usage (%)
+     
+     **Payment-Specific Metrics**:
+     - Payments initiated per minute
+     - Payment success rate (%)
+     - Payment processing time (ms)
+     - Clearing system response time (ms)
+     - Fraud rejection rate (%)
+     - Limit exceeded rate (%)
+  
+  4. Prometheus Scrape Configuration:
+     ```yaml
+     apiVersion: v1
+     kind: ConfigMap
+     metadata:
+       name: prometheus-config
+     data:
+       prometheus.yml: |
+         global:
+           scrape_interval: 15s
+         
+         scrape_configs:
+           - job_name: 'kubernetes-pods'
+             kubernetes_sd_configs:
+             - role: pod
+             relabel_configs:
+             - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+               action: keep
+               regex: true
+             - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+               action: replace
+               target_label: __metrics_path__
+               regex: (.+)
+             - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+               action: replace
+               regex: ([^:]+)(?::\d+)?;(\d+)
+               replacement: $1:$2
+               target_label: __address__
+     ```
+  
+  5. Alert Rules Example:
+     ```yaml
+     groups:
+       - name: payments
+         interval: 30s
+         rules:
+           - alert: HighPaymentErrorRate
+             expr: rate(payment_errors_total[5m]) > 0.05
+             for: 2m
+             labels:
+               severity: critical
+             annotations:
+               summary: "High payment error rate: {{ $value }}"
+               description: "Payment error rate is above 5% for 2 minutes"
+           
+           - alert: SlowPaymentProcessing
+             expr: histogram_quantile(0.95, rate(payment_duration_seconds_bucket[5m])) > 10
+             for: 5m
+             labels:
+               severity: warning
+             annotations:
+               summary: "Slow payment processing: {{ $value }}s"
+               description: "P95 latency is above 10 seconds"
+     ```
+  
+  6. Technology Stack:
+     - Prometheus 2.45+
+     - Grafana 10.0+
+     - Jaeger 1.50+
+     - Alertmanager 0.26+
+     - OpenTelemetry Collector 0.88+
+     - Helm (for installation)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Monitoring Architecture Diagram
+        - Prometheus scraping
+        - Grafana dashboards
+        - Jaeger tracing
+        - Alert routing
+  
+  2. LLD (Low-Level Design):
+     📋 Prometheus Configuration
+        - Scrape configs (all 20 services)
+        - Recording rules
+        - Alert rules
+     
+     📋 Grafana Dashboards
+        - Overview dashboard (all services)
+        - Payment dashboard (payment metrics)
+        - Clearing dashboard (clearing system metrics)
+        - JVM dashboard (Java services)
+     
+     📋 Jaeger Configuration
+        - Collector deployment
+        - Storage backend (Elasticsearch)
+        - Sampling strategy (10% trace sampling)
+  
+  3. Implementation:
+     📁 /infrastructure/monitoring/
+        ├─ prometheus/
+        │   ├─ deployment.yaml
+        │   ├─ config.yaml
+        │   ├─ rules/
+        │   │   ├─ payment-alerts.yaml
+        │   │   ├─ clearing-alerts.yaml
+        │   │   └─ infrastructure-alerts.yaml
+        │   └─ service-monitors/
+        │       ├─ payment-initiation-sm.yaml
+        │       └─ ... (20 services)
+        ├─ grafana/
+        │   ├─ deployment.yaml
+        │   ├─ config.yaml
+        │   └─ dashboards/
+        │       ├─ overview-dashboard.json
+        │       ├─ payment-dashboard.json
+        │       ├─ clearing-dashboard.json
+        │       └─ jvm-dashboard.json
+        ├─ jaeger/
+        │   ├─ deployment.yaml
+        │   ├─ collector.yaml
+        │   ├─ query.yaml
+        │   └─ elasticsearch.yaml (storage)
+        ├─ alertmanager/
+        │   ├─ deployment.yaml
+        │   ├─ config.yaml (Slack, PagerDuty)
+        │   └─ routes.yaml (alert routing)
+        └─ README.md
+  
+  4. Testing:
+     ✅ Metrics Collection
+        - Verify Prometheus scraping all services
+        - Query metrics (PromQL)
+        - Test recording rules
+     
+     ✅ Dashboards
+        - Verify Grafana dashboards load
+        - Test queries
+        - Verify real-time updates
+     
+     ✅ Tracing
+        - Generate test payment
+        - Verify trace in Jaeger
+        - Verify trace propagation (20+ spans)
+     
+     ✅ Alerting
+        - Trigger test alert
+        - Verify Slack notification
+        - Verify PagerDuty alert
+  
+  5. Documentation:
+     📄 README.md
+        - Monitoring stack overview
+        - Installation guide
+        - How to access dashboards
+     
+     📄 PROMETHEUS-GUIDE.md
+        - PromQL queries
+        - Alert rule examples
+        - Troubleshooting
+     
+     📄 GRAFANA-DASHBOARDS.md
+        - Dashboard catalog
+        - How to create custom dashboards
+     
+     📄 JAEGER-TRACING-GUIDE.md
+        - How to view traces
+        - Trace analysis
+        - Troubleshooting
+
+Success Criteria:
+  ✅ Prometheus scraping all services
+  ✅ Grafana dashboards accessible
+  ✅ Jaeger tracing working
+  ✅ Alerts firing correctly
+  ✅ Slack integration working
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete monitoring spec in docs/18, docs/24
+  - Prometheus configuration examples
+  - Grafana dashboard templates
+  - Jaeger setup guide
+
+Dependencies:
+  ✅ Kubernetes cluster (AKS) - READY
+  ✅ All 20 microservices deployed
+  ✅ OpenTelemetry instrumentation (from Phase 0)
+```
+
+---
+
+### Feature 5.3: GitOps (ArgoCD)
+
+```yaml
+Feature ID: 5.3
+Feature Name: GitOps (ArgoCD)
+Agent Name: GitOps Agent
+Phase: 5 (Infrastructure)
+Estimated Time: 3 days
+
+Role & Expertise:
+  You are a Platform Engineer with expertise in GitOps, ArgoCD, Kubernetes
+  declarative deployments, Helm, Kustomize, and CI/CD pipelines.
+
+Task:
+  Deploy and configure ArgoCD for GitOps-based continuous deployment - enables
+  declarative deployments, automated sync, self-healing, and auditable rollbacks.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/20-GITOPS-ARGOCD.md (COMPLETE FILE - 1,800 lines)
+        - GitOps principles
+        - ArgoCD architecture
+        - Application definitions
+        - Sync strategies (manual, automatic)
+        - Self-healing
+        - Rollback procedures
+        - Multi-environment management (dev, staging, prod)
+     
+     📄 docs/22-DEPLOYMENT-ARCHITECTURE.md (Section: CI/CD)
+        - Deployment pipeline
+        - Progressive delivery
+        - Blue-green deployments
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 5.3)
+  
+  2. GitOps Workflow:
+     ```
+     Developer → Git Commit (K8s manifests)
+         ↓
+     Git Repository (source of truth)
+         ↓
+     ArgoCD detects change (polling every 3 minutes)
+         ↓
+     ArgoCD syncs to Kubernetes cluster
+         ↓
+     Application deployed/updated
+         ↓
+     Monitoring & Alerting
+     ```
+  
+  3. ArgoCD Application Definition:
+     ```yaml
+     apiVersion: argoproj.io/v1alpha1
+     kind: Application
+     metadata:
+       name: payment-initiation-service
+       namespace: argocd
+     spec:
+       project: payments-engine
+       source:
+         repoURL: https://github.com/payments/manifests.git
+         targetRevision: main
+         path: services/payment-initiation
+         helm:
+           valueFiles:
+           - values-prod.yaml
+       destination:
+         server: https://kubernetes.default.svc
+         namespace: payments
+       syncPolicy:
+         automated:
+           prune: true
+           selfHeal: true
+           allowEmpty: false
+         syncOptions:
+         - CreateNamespace=true
+         retry:
+           limit: 5
+           backoff:
+             duration: 5s
+             factor: 2
+             maxDuration: 3m
+     ```
+  
+  4. Repository Structure:
+     ```
+     /manifests/
+     ├─ services/
+     │   ├─ payment-initiation/
+     │   │   ├─ Chart.yaml (Helm chart)
+     │   │   ├─ values-dev.yaml
+     │   │   ├─ values-staging.yaml
+     │   │   ├─ values-prod.yaml
+     │   │   └─ templates/
+     │   │       ├─ deployment.yaml
+     │   │       ├─ service.yaml
+     │   │       └─ configmap.yaml
+     │   └─ ... (20 services)
+     ├─ infrastructure/
+     │   ├─ istio/
+     │   ├─ prometheus/
+     │   └─ grafana/
+     └─ argocd-apps/
+         ├─ payment-initiation-app.yaml
+         └─ ... (20 applications)
+     ```
+  
+  5. Technology Stack:
+     - ArgoCD 2.9+
+     - Helm 3.13+
+     - Kustomize 5.2+ (alternative to Helm)
+     - Git (GitHub, GitLab, or Azure Repos)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 GitOps Architecture Diagram
+        - Git repository (source of truth)
+        - ArgoCD controller
+        - Kubernetes cluster
+        - Sync flow
+  
+  2. LLD (Low-Level Design):
+     📋 ArgoCD Projects
+        - payments-engine (all microservices)
+        - infrastructure (Istio, Prometheus, Grafana)
+     
+     📋 Application Definitions (20 services)
+        - payment-initiation-app.yaml
+        - validation-app.yaml
+        - ... (20 applications)
+     
+     📋 Sync Strategies
+        - Automatic sync (staging, prod)
+        - Manual sync (prod critical changes)
+        - Self-healing (auto-revert drift)
+  
+  3. Implementation:
+     📁 /infrastructure/argocd/
+        ├─ installation/
+        │   ├─ argocd-install.yaml
+        │   ├─ argocd-cm.yaml (config)
+        │   └─ install.sh
+        ├─ projects/
+        │   ├─ payments-engine-project.yaml
+        │   └─ infrastructure-project.yaml
+        ├─ applications/
+        │   ├─ payment-initiation-app.yaml
+        │   ├─ validation-app.yaml
+        │   └─ ... (20 applications)
+        ├─ application-sets/
+        │   └─ payments-services-appset.yaml (generates 20 apps)
+        ├─ rbac/
+        │   ├─ argocd-rbac-cm.yaml
+        │   └─ team-permissions.yaml
+        └─ README.md
+     
+     📁 /manifests/ (separate Git repository)
+        ├─ services/
+        │   ├─ payment-initiation/
+        │   │   ├─ Chart.yaml
+        │   │   ├─ values-dev.yaml
+        │   │   ├─ values-prod.yaml
+        │   │   └─ templates/
+        │   │       ├─ deployment.yaml
+        │   │       ├─ service.yaml
+        │   │       └─ hpa.yaml
+        │   └─ ... (20 services)
+        └─ infrastructure/
+            ├─ istio/
+            ├─ prometheus/
+            └─ grafana/
+  
+  4. Testing:
+     ✅ Sync Tests
+        - Deploy service via Git commit
+        - Verify ArgoCD detects change
+        - Verify sync to cluster
+        - Verify health status
+     
+     ✅ Self-Healing Tests
+        - Manually delete deployment
+        - Verify ArgoCD auto-restores
+        - Verify no drift
+     
+     ✅ Rollback Tests
+        - Deploy bad version
+        - Trigger rollback via Git revert
+        - Verify rollback successful
+     
+     ✅ Multi-Environment Tests
+        - Deploy to dev
+        - Promote to staging
+        - Promote to prod
+  
+  5. Documentation:
+     📄 README.md
+        - ArgoCD overview
+        - Installation guide
+        - How to deploy services
+     
+     📄 GITOPS-WORKFLOW.md
+        - Git workflow
+        - ArgoCD sync process
+        - Self-healing
+        - Rollback procedures
+     
+     📄 ARGOCD-UI-GUIDE.md
+        - How to use ArgoCD UI
+        - Application status
+        - Sync operations
+        - Troubleshooting
+
+Success Criteria:
+  ✅ ArgoCD installed successfully
+  ✅ All 20 services defined as ArgoCD Applications
+  ✅ Automatic sync working
+  ✅ Self-healing working
+  ✅ Rollback tested successfully
+  ✅ Multi-environment deployments working
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete ArgoCD spec in docs/20 (1,800 lines)
+  - Application definitions
+  - Sync strategies
+  - Multi-environment patterns
+
+Dependencies:
+  ✅ Kubernetes cluster (AKS) - READY
+  ✅ Git repository (manifests) - READY
+  ✅ All 20 microservices Helm charts - READY
+```
+
+---
+
+### Feature 5.4: Feature Flags (Unleash)
+
+```yaml
+Feature ID: 5.4
+Feature Name: Feature Flags (Unleash)
+Agent Name: Feature Flags Agent
+Phase: 5 (Infrastructure)
+Estimated Time: 3 days
+
+Role & Expertise:
+  You are a Platform Engineer with expertise in feature flags, progressive
+  delivery, A/B testing, canary releases, and kill switches.
+
+Task:
+  Deploy and configure Unleash feature flag platform - enables progressive
+  rollouts, A/B testing, instant rollback (kill switches), and tenant-specific
+  feature control.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/33-FEATURE-FLAGS.md (COMPLETE FILE - 1,200 lines)
+        - Feature flags overview
+        - Unleash architecture
+        - 4 flag types (Release, Experiment, Ops, Permission)
+        - SDK integration (Java)
+        - Strategies (default, gradual rollout, user ID, tenant ID)
+        - Kill switches
+        - A/B testing
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 5.4)
+  
+  2. Unleash Components:
+     - Unleash Server (API + Admin UI)
+     - PostgreSQL (flag storage)
+     - Unleash Proxy (optional, for edge caching)
+     - Unleash SDK (Java client library)
+  
+  3. Flag Types:
+     
+     **1. Release Flags** (feature rollout)
+     - Enable/disable features
+     - Progressive rollout (0% → 10% → 50% → 100%)
+     - Example: `enable_swift_payments`
+     
+     **2. Experiment Flags** (A/B testing)
+     - Multiple variants (A, B, C)
+     - User segmentation
+     - Example: `fraud_detection_algorithm` (v1, v2, v3)
+     
+     **3. Ops Flags** (operational control)
+     - Circuit breakers
+     - Rate limiting
+     - Example: `enable_clearing_timeout`
+     
+     **4. Permission Flags** (access control)
+     - Tenant-specific features
+     - User role-based features
+     - Example: `allow_payshap_tenant_001`
+  
+  4. Unleash SDK Integration (Java):
+     ```java
+     @Service
+     public class PaymentProcessor {
+         
+         @Autowired
+         private Unleash unleash;
+         
+         public void processPayment(Payment payment) {
+             // Release flag: Enable/disable SWIFT payments
+             if (unleash.isEnabled("enable_swift_payments", 
+                     UnleashContext.builder()
+                         .userId(payment.getUserId())
+                         .addProperty("tenantId", payment.getTenantId())
+                         .build())) {
+                 swiftService.processPayment(payment);
+             } else {
+                 throw new UnsupportedOperationException("SWIFT not enabled");
+             }
+             
+             // Experiment flag: A/B test fraud detection algorithms
+             String variant = unleash.getVariant("fraud_detection_algorithm",
+                     UnleashContext.builder()
+                         .userId(payment.getUserId())
+                         .build())
+                     .getName();
+             
+             if ("v2".equals(variant)) {
+                 fraudServiceV2.check(payment);
+             } else {
+                 fraudServiceV1.check(payment);
+             }
+         }
+     }
+     ```
+  
+  5. Rollout Strategies:
+     
+     **Gradual Rollout** (percentage-based)
+     ```
+     0% → Feature disabled for all users
+     10% → Feature enabled for 10% of users
+     50% → Feature enabled for 50% of users
+     100% → Feature enabled for all users
+     ```
+     
+     **Tenant-Based Rollout**
+     ```
+     enable_payshap_tenant_001 → Enabled for TENANT-001 only
+     enable_payshap_tenant_002 → Enabled for TENANT-002 only
+     ```
+  
+  6. Technology Stack:
+     - Unleash 5.6+
+     - PostgreSQL 15+
+     - Unleash Java SDK 9.0+
+     - Helm (for installation)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Feature Flags Architecture
+        - Unleash Server
+        - SDK integration (20 services)
+        - Admin UI
+        - Flag evaluation flow
+  
+  2. LLD (Low-Level Design):
+     📋 Flag Definitions
+        - enable_swift_payments (Release)
+        - enable_payshap (Release)
+        - fraud_detection_algorithm (Experiment)
+        - clearing_timeout (Ops)
+        - allow_payshap_tenant_* (Permission)
+     
+     📋 Rollout Strategies
+        - Gradual rollout (0% → 100%)
+        - Tenant-based rollout
+        - User ID-based rollout
+  
+  3. Implementation:
+     📁 /infrastructure/feature-flags/
+        ├─ unleash/
+        │   ├─ deployment.yaml
+        │   ├─ service.yaml
+        │   ├─ config.yaml
+        │   └─ postgresql.yaml
+        ├─ flags/
+        │   ├─ release-flags.json
+        │   ├─ experiment-flags.json
+        │   ├─ ops-flags.json
+        │   └─ permission-flags.json
+        ├─ sdk-integration/
+        │   ├─ UnleashConfig.java (Spring Boot config)
+        │   ├─ FeatureFlagService.java (wrapper service)
+        │   └─ UnleashHealthIndicator.java
+        └─ README.md
+     
+     Key Implementation (UnleashConfig.java):
+     ```java
+     @Configuration
+     public class UnleashConfig {
+         
+         @Value("${unleash.api.url}")
+         private String unleashUrl;
+         
+         @Value("${unleash.api.token}")
+         private String unleashToken;
+         
+         @Bean
+         public Unleash unleash() {
+             UnleashConfig config = UnleashConfig.builder()
+                 .appName("payment-initiation-service")
+                 .instanceId(getHostname())
+                 .unleashAPI(unleashUrl)
+                 .apiKey(unleashToken)
+                 .synchronousFetchOnInitialisation(true)
+                 .build();
+             
+             return new DefaultUnleash(config);
+         }
+     }
+     ```
+  
+  4. Testing:
+     ✅ Flag Evaluation Tests
+        - Enable flag (100%)
+        - Disable flag (0%)
+        - Gradual rollout (10%, 50%)
+        - Tenant-based flag
+     
+     ✅ Kill Switch Tests
+        - Enable feature
+        - Trigger kill switch (instant disable)
+        - Verify all users affected
+     
+     ✅ A/B Testing
+        - Create experiment flag (2 variants)
+        - Verify 50/50 split
+        - Analyze results
+  
+  5. Documentation:
+     📄 README.md
+        - Unleash overview
+        - Installation guide
+        - How to create flags
+     
+     📄 FEATURE-FLAGS-GUIDE.md
+        - Flag types
+        - Rollout strategies
+        - SDK usage examples
+     
+     📄 KILL-SWITCH-PROCEDURES.md
+        - When to use kill switches
+        - How to trigger
+        - Recovery procedures
+
+Success Criteria:
+  ✅ Unleash deployed successfully
+  ✅ All 20 services integrated with SDK
+  ✅ Flags defined (10+ flags)
+  ✅ Gradual rollout tested
+  ✅ Kill switch tested
+  ✅ A/B testing working
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete feature flags spec in docs/33 (1,200 lines)
+  - SDK integration examples
+  - Rollout strategies
+  - Flag types defined
+
+Dependencies:
+  ✅ Kubernetes cluster (AKS) - READY
+  ✅ PostgreSQL - READY
+  ✅ All 20 microservices deployed
+```
+
+---
+
+### Feature 5.5: Kubernetes Operators (14 Operators)
+
+```yaml
+Feature ID: 5.5
+Feature Name: Kubernetes Operators (14 Operators for Day 2 Operations)
+Agent Name: Operators Agent
+Phase: 5 (Infrastructure)
+Estimated Time: 5 days (most complex infrastructure feature)
+
+Role & Expertise:
+  You are a Platform Engineer with expertise in Kubernetes Operators, Custom
+  Resource Definitions (CRDs), operator-sdk, Go programming, and Day 2 operations
+  (backup, restore, upgrade, scaling).
+
+Task:
+  Deploy and configure 14 Kubernetes Operators for automated Day 2 operations -
+  including infrastructure operators (PostgreSQL, Kafka, Redis), platform operators
+  (Istio, Prometheus, Jaeger), and custom application operators (Payment Service,
+  Clearing Adapter, Batch Processor, Saga Orchestrator).
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/30-KUBERNETES-OPERATORS-DAY2.md (COMPLETE FILE - 2,800 lines)
+        - Operator pattern overview
+        - 14 operators specification
+        - CRD definitions
+        - Reconciliation logic
+        - Day 2 operations (backup, upgrade, scaling)
+        - Go code examples
+     
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 5.5)
+  
+  2. Operator Categories:
+     
+     **Infrastructure Operators (3)**:
+     1. CloudNativePG Operator (PostgreSQL)
+     2. Strimzi Operator (Kafka)
+     3. Redis Enterprise Operator
+     
+     **Platform Operators (7)**:
+     4. Azure Service Operator (ASO)
+     5. Istio Operator
+     6. Prometheus Operator
+     7. Jaeger Operator
+     8. ArgoCD Operator
+     9. Cert-Manager Operator
+     10. External Secrets Operator
+     
+     **Custom Application Operators (4)**:
+     11. Payment Service Operator
+     12. Clearing Adapter Operator
+     13. Batch Processor Operator
+     14. Saga Orchestrator Operator
+  
+  3. Example CRD (Payment Service):
+     ```yaml
+     apiVersion: payments.io/v1alpha1
+     kind: PaymentService
+     metadata:
+       name: payment-initiation
+     spec:
+       replicas: 3
+       image: payments/payment-initiation:v1.0.0
+       database:
+         size: 100Gi
+         backupSchedule: "0 2 * * *"  # Daily at 2 AM
+       features:
+         enableSwift: true
+         enablePayshap: false
+       resources:
+         requests:
+           memory: "1Gi"
+           cpu: "500m"
+         limits:
+           memory: "2Gi"
+           cpu: "1000m"
+       scaling:
+         minReplicas: 3
+         maxReplicas: 10
+         targetCPU: 70
+     status:
+       observedGeneration: 1
+       replicas: 3
+       readyReplicas: 3
+       conditions:
+       - type: Ready
+         status: "True"
+         reason: AllReplicasReady
+     ```
+  
+  4. Operator Reconciliation Logic (Go):
+     ```go
+     func (r *PaymentServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+         log := log.FromContext(ctx)
+         
+         // 1. Fetch PaymentService CR
+         var paymentService paymentsv1alpha1.PaymentService
+         if err := r.Get(ctx, req.NamespacedName, &paymentService); err != nil {
+             return ctrl.Result{}, client.IgnoreNotFound(err)
+         }
+         
+         // 2. Reconcile Deployment
+         deployment := r.desiredDeployment(&paymentService)
+         if err := r.reconcileDeployment(ctx, &paymentService, deployment); err != nil {
+             return ctrl.Result{}, err
+         }
+         
+         // 3. Reconcile Service
+         service := r.desiredService(&paymentService)
+         if err := r.reconcileService(ctx, &paymentService, service); err != nil {
+             return ctrl.Result{}, err
+         }
+         
+         // 4. Reconcile HPA (Horizontal Pod Autoscaler)
+         hpa := r.desiredHPA(&paymentService)
+         if err := r.reconcileHPA(ctx, &paymentService, hpa); err != nil {
+             return ctrl.Result{}, err
+         }
+         
+         // 5. Schedule database backup
+         if err := r.scheduleBackup(ctx, &paymentService); err != nil {
+             return ctrl.Result{}, err
+         }
+         
+         // 6. Update status
+         paymentService.Status.Replicas = deployment.Status.Replicas
+         paymentService.Status.ReadyReplicas = deployment.Status.ReadyReplicas
+         if err := r.Status().Update(ctx, &paymentService); err != nil {
+             return ctrl.Result{}, err
+         }
+         
+         return ctrl.Result{RequeueAfter: 5 * time.Minute}, nil
+     }
+     ```
+  
+  5. Day 2 Operations:
+     
+     **Backup**:
+     - Automated daily backups (2 AM)
+     - Retention: 30 days
+     - Storage: Azure Blob Storage
+     
+     **Restore**:
+     - Point-in-time restore
+     - Cross-region restore
+     - Validation after restore
+     
+     **Upgrade**:
+     - Rolling upgrade (zero downtime)
+     - Blue-green deployment
+     - Automated rollback on failure
+     
+     **Scaling**:
+     - Horizontal Pod Autoscaler (HPA)
+     - Vertical Pod Autoscaler (VPA)
+     - Database scaling (storage, compute)
+  
+  6. Technology Stack:
+     - operator-sdk 1.32+
+     - Go 1.21+
+     - Kubebuilder 3.12+
+     - controller-runtime 0.16+
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Operators Architecture Diagram
+        - 14 operators
+        - CRDs
+        - Reconciliation loops
+        - Day 2 operations flow
+  
+  2. LLD (Low-Level Design):
+     📋 CRD Definitions (4 custom CRDs)
+        - PaymentService
+        - ClearingAdapter
+        - BatchProcessor
+        - SagaOrchestrator
+     
+     📋 Reconciliation Logic
+        - Deployment reconciliation
+        - Service reconciliation
+        - HPA reconciliation
+        - Backup scheduling
+  
+  3. Implementation:
+     📁 /infrastructure/operators/
+        ├─ infrastructure/
+        │   ├─ cloudnativepg/
+        │   │   ├─ operator.yaml
+        │   │   └─ cluster-example.yaml
+        │   ├─ strimzi/
+        │   │   ├─ operator.yaml
+        │   │   └─ kafka-cluster.yaml
+        │   └─ redis/
+        │       ├─ operator.yaml
+        │       └─ redis-cluster.yaml
+        ├─ platform/
+        │   ├─ azure-service-operator/
+        │   ├─ istio-operator/
+        │   ├─ prometheus-operator/
+        │   ├─ jaeger-operator/
+        │   ├─ argocd-operator/
+        │   ├─ cert-manager/
+        │   └─ external-secrets/
+        ├─ application/
+        │   ├─ payment-service-operator/
+        │   │   ├─ api/v1alpha1/
+        │   │   │   └─ paymentservice_types.go
+        │   │   ├─ controllers/
+        │   │   │   └─ paymentservice_controller.go
+        │   │   ├─ config/
+        │   │   │   ├─ crd/
+        │   │   │   ├─ rbac/
+        │   │   │   └─ manager/
+        │   │   └─ Dockerfile
+        │   ├─ clearing-adapter-operator/
+        │   ├─ batch-processor-operator/
+        │   └─ saga-orchestrator-operator/
+        └─ README.md
+  
+  4. Testing:
+     ✅ Operator Installation Tests
+        - Deploy all 14 operators
+        - Verify CRDs created
+        - Verify operator pods running
+     
+     ✅ Reconciliation Tests
+        - Create PaymentService CR
+        - Verify Deployment created
+        - Verify Service created
+        - Verify HPA created
+     
+     ✅ Day 2 Operations Tests
+        - Backup: Trigger backup, verify success
+        - Restore: Restore from backup
+        - Upgrade: Upgrade service version
+        - Scaling: Trigger HPA scaling
+  
+  5. Documentation:
+     📄 README.md
+        - Operators overview
+        - Installation guide (all 14)
+        - CRD reference
+     
+     📄 CUSTOM-OPERATORS-GUIDE.md
+        - Payment Service Operator
+        - Clearing Adapter Operator
+        - Batch Processor Operator
+        - Saga Orchestrator Operator
+     
+     📄 DAY2-OPERATIONS.md
+        - Backup procedures
+        - Restore procedures
+        - Upgrade procedures
+        - Scaling procedures
+
+Success Criteria:
+  ✅ All 14 operators deployed
+  ✅ CRDs created successfully
+  ✅ PaymentService CR deployed (test)
+  ✅ Reconciliation working
+  ✅ Backup scheduled and executed
+  ✅ Upgrade tested successfully
+  ✅ HPA scaling working
+
+Context Sufficiency: ✅ SUFFICIENT
+  - Complete operators spec in docs/30 (2,800 lines)
+  - CRD definitions
+  - Go code examples
+  - Day 2 operations detailed
+
+Dependencies:
+  ✅ Kubernetes cluster (AKS) - READY
+  ✅ operator-sdk installed
+  ✅ Go development environment
+```
+
+---
+
 ## Context Sufficiency Analysis
 
 ### Summary of Context Completeness
