@@ -143,7 +143,7 @@ Partner APIs → Partner BFF (REST + OAuth) → Microservices
 **What it is**: Track requests across multiple services with OpenTelemetry
 
 **Why add it**:
-- ✅ 17 microservices (complex request paths)
+- ✅ 20 microservices (complex request paths)
 - ✅ Debug distributed transactions
 - ✅ Identify bottlenecks
 
@@ -172,7 +172,7 @@ Bottleneck: Validation Service
 **What it is**: Infrastructure layer for service-to-service communication (mTLS, traffic management, observability)
 
 **Why add it**:
-- ✅ 17 microservices (complex communication)
+- ✅ 20 microservices (complex communication)
 - ✅ Running on Kubernetes (natural fit)
 - ✅ Multi-tenant requires strong security
 
@@ -212,7 +212,7 @@ Bottleneck: Validation Service
 **What it is**: Git as single source of truth for infrastructure/applications (declarative, automatic sync)
 
 **Why add it**:
-- ✅ 17 microservices to manage
+- ✅ 20 microservices to manage
 - ✅ Multi-tenant (complex configuration)
 - ✅ Need audit trail and rollback
 

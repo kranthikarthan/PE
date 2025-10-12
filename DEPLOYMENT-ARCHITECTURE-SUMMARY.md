@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-This document summarizes the **comprehensive deployment architecture** for the Payments Engine. It covers **zero-downtime deployments**, **CI/CD automation**, **infrastructure as code**, and **progressive delivery** strategies enabling safe, fast deployments across **17 microservices**, **3 environments**, and **10 cells**.
+This document summarizes the **comprehensive deployment architecture** for the Payments Engine. It covers **zero-downtime deployments**, **CI/CD automation**, **infrastructure as code**, and **progressive delivery** strategies enabling safe, fast deployments across **20 microservices**, **3 environments**, and optional **cell-based scaling** (for 50+ banks).
 
 ---
 
@@ -629,7 +629,7 @@ Your Payments Engine now has **production-ready deployment architecture** with:
 **Investment**: $40K (initial) + $12K/year (ongoing)  
 **Returns**: 5-7x ROI (time saved + reduced failures)
 
-**Ready to deploy 17 microservices safely and automatically across 3 environments and 10 cells!** 🚀
+**Ready to deploy 20 microservices safely and automatically across 3 environments with optional cell-based scaling!** 🚀
 
 ---
 

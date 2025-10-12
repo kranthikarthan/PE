@@ -491,7 +491,7 @@ public class PartnerPaymentBFF {
 - No code changes required
 
 **Why it fits your design**:
-- ✅ You have 17 microservices (complex service-to-service communication)
+- ✅ You have 20 microservices (complex service-to-service communication)
 - ✅ Running on Kubernetes (AKS) - natural fit
 - ✅ Multi-tenant requires strong security
 - ✅ Need distributed tracing
@@ -945,7 +945,7 @@ public class CellRouter {
 - Standard: OpenTelemetry (CNCF project)
 
 **Why it fits your design**:
-- ✅ 17 microservices (complex request paths)
+- ✅ 20 microservices (complex request paths)
 - ✅ Need to debug distributed transactions
 - ✅ Saga spans multiple services
 - ✅ Performance optimization
@@ -1191,7 +1191,7 @@ Logs:
 
 **Why it fits your design**:
 - ✅ Kubernetes deployment (AKS)
-- ✅ 17 microservices to manage
+- ✅ 20 microservices to manage
 - ✅ Multi-tenant (complex configuration)
 - ✅ Need audit trail and rollback
 
