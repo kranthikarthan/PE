@@ -1521,7 +1521,7 @@ orchestration:
   coordinator_agent:
     role: "Build Coordinator"
     responsibilities:
-      - "Monitor all 40 agent tasks"
+      - "Monitor all 52 agent tasks (across 8 phases)"
       - "Detect failures and trigger fallback plans"
       - "Aggregate build status and report progress"
       - "Manage dependency resolution"
@@ -2501,7 +2501,7 @@ Each feature card references its corresponding prompt template in `docs/35-AI-AG
 | 5.2 | `#feature-52-prometheus` |
 | 5.3 | `#feature-53-grafana` |
 | 5.4 | `#feature-54-jaeger` |
-| ... | ... (all 40 features) |
+| ... | ... (all 52 features across 8 phases) |
 
 ### CrewAI Orchestration Example
 
@@ -2560,7 +2560,7 @@ print(result)
 
 See: [`feature-breakdown-tree.yaml`](../feature-breakdown-tree.yaml)
 
-The YAML export contains complete metadata for all 40 features, including:
+The YAML export contains complete metadata for all 52 features (across 8 phases: Phase 0 to Phase 7), including:
 - Agent name, template reference
 - Estimation ranges, nominal days
 - AI factors (retry count, hallucination risk, feedback loops)
