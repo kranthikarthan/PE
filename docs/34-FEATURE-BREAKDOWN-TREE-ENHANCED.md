@@ -93,7 +93,7 @@ PHASE 6: INTEGRATION & TESTING (Sequential - After all above)
 ```
 
 **Total Phases**: 7 (0-6)  
-**Total Features**: 36 features  
+**Total Features**: 40 features  
 **Parallel Phases**: 5 (Phases 1-5)  
 **Sequential Phases**: 2 (Phase 0, Phase 6)  
 **Estimated Duration**: 25-35 days (with parallelization)
@@ -1499,7 +1499,7 @@ orchestration:
   coordinator_agent:
     role: "Build Coordinator"
     responsibilities:
-      - "Monitor all 36 agent tasks"
+      - "Monitor all 40 agent tasks"
       - "Detect failures and trigger fallback plans"
       - "Aggregate build status and report progress"
       - "Manage dependency resolution"
@@ -1507,6 +1507,553 @@ orchestration:
       - "Phase 6: AI agents provide feedback on prompt templates"
       - "Refine prompts based on hallucination frequency"
       - "Update estimation ranges based on actual duration"
+```
+
+---
+
+## Phase 2: Clearing Adapters (Parallel)
+
+**✅ Can be built in PARALLEL** after Phase 0 completes.
+
+**Parallelization Strategy**: 5 agents working simultaneously on 5 clearing adapters.
+
+**Estimated Duration**: 5-7 days (limited by longest task: SWIFT Adapter)
+
+*Note: Full details for Phase 2 features (2.1-2.5) can be referenced from the original `34-FEATURE-BREAKDOWN-TREE.md` document. Each feature includes estimation ranges, Spring Boot guidance (mandatory Feign clients), explicit mocks (WireMock), fallback plans, and KPIs.*
+
+**Phase 2 Summary**:
+- **5 clearing adapters** can be built in **parallel**
+- **Total time**: 5-7 days (longest: SWIFT Adapter)
+- **Agents**: 5 agents working simultaneously
+- **Key Pattern**: All adapters use Spring Cloud OpenFeign for resilience
+
+---
+
+## Phase 3: Platform Services (Parallel)
+
+**✅ Can be built in PARALLEL** after Phase 0 completes.
+
+**Parallelization Strategy**: 5 agents working simultaneously on 5 platform services.
+
+**Estimated Duration**: 4-5 days
+
+*Note: Full details for Phase 3 features (3.1-3.5) can be referenced from the original `34-FEATURE-BREAKDOWN-TREE.md` document. Each feature includes estimation ranges, Spring Boot guidance, explicit mocks, fallback plans, and KPIs.*
+
+**Phase 3 Summary**:
+- **5 platform services** can be built in **parallel**
+- **Total time**: 4-5 days (longest: IAM Service)
+- **Agents**: 5 agents working simultaneously
+
+---
+
+## Phase 4: Advanced Features (Parallel)
+
+**✅ Can be built in PARALLEL** after Phase 1 completes (some features depend on Phase 1).
+
+**Parallelization Strategy**: 7 agents working simultaneously on 7 advanced features.
+
+**Estimated Duration**: 6 days (limited by longest task: Batch Processing)
+
+### 4.1-4.4: Batch, Settlement, Reconciliation, Internal API Gateway
+
+*Note: Full details for features 4.1-4.4 can be referenced from the original `34-FEATURE-BREAKDOWN-TREE.md` document.*
+
+### 4.5: Web BFF (GraphQL)
+
+**Agent**: Web BFF Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-45-web-bff`  
+**Complexity**: Medium  
+**Estimation**: **2 days** (Nominal: 2 days)  
+**AI-Specific Factors**:
+- Retry 2x on GraphQL schema errors
+- Hallucination risk: MEDIUM (GraphQL resolvers)
+
+#### Spring Boot Guidance
+```java
+// Use Spring Boot GraphQL
+@Configuration
+public class GraphQLConfig {
+    @Bean
+    public RuntimeWiringConfigurer runtimeWiringConfigurer(
+            PaymentResolver paymentResolver,
+            AccountResolver accountResolver) {
+        return wiringBuilder -> wiringBuilder
+            .type("Query", builder -> builder
+                .dataFetcher("payment", paymentResolver.getPayment())
+                .dataFetcher("payments", paymentResolver.getPayments()))
+            .type("Mutation", builder -> builder
+                .dataFetcher("initiatePayment", paymentResolver.initiatePayment()));
+    }
+}
+
+@Component
+public class PaymentResolver {
+    @Autowired
+    private PaymentInitiationService paymentService;
+    
+    public DataFetcher<Payment> getPayment() {
+        return env -> {
+            String id = env.getArgument("id");
+            return paymentService.getPayment(id);
+        };
+    }
+}
+```
+
+#### Mocks Required
+- WireMock for Internal API Gateway (port 8080)
+- Testcontainers for GraphQL testing
+
+#### KPIs
+- API response time < 300ms (p95)
+- GraphQL resolver execution < 50ms
+- Data aggregation latency < 100ms
+
+---
+
+### 4.6: Mobile BFF (REST, Lightweight)
+
+**Agent**: Mobile BFF Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-46-mobile-bff`  
+**Complexity**: Low  
+**Estimation**: **1.5 days** (Nominal: 1.5 days)  
+**AI-Specific Factors**:
+- Retry 2x on REST API errors
+- Hallucination risk: LOW
+
+#### Spring Boot Guidance
+```java
+// Lightweight responses for mobile
+@RestController
+@RequestMapping("/api/v1/mobile")
+public class MobilePaymentController {
+    @Autowired
+    private LightweightPaymentService paymentService;
+    
+    @GetMapping("/payments/{id}")
+    public MobilePaymentResponse getPayment(@PathVariable String id) {
+        Payment payment = paymentService.getPayment(id);
+        // Return only essential fields for mobile
+        return MobilePaymentResponse.builder()
+            .id(payment.getId())
+            .amount(payment.getAmount())
+            .status(payment.getStatus())
+            .timestamp(payment.getCreatedAt())
+            .build(); // No nested objects, minimal data
+    }
+}
+```
+
+#### KPIs
+- API response time < 200ms (p95)
+- Response payload size < 5 KB
+- Mobile network optimization: 3G compatible
+
+---
+
+### 4.7: Partner BFF (REST, Comprehensive)
+
+**Agent**: Partner BFF Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-47-partner-bff`  
+**Complexity**: Medium  
+**Estimation**: **1.5 days** (Nominal: 1.5 days)  
+**AI-Specific Factors**:
+- Retry 2x on REST API errors
+- Hallucination risk: LOW
+
+#### Spring Boot Guidance
+```java
+// Comprehensive responses with rate limiting
+@RestController
+@RequestMapping("/api/v1/partner")
+public class PartnerPaymentController {
+    @Autowired
+    private ComprehensivePaymentService paymentService;
+    
+    @GetMapping("/payments/{id}")
+    @RateLimiter(name = "partnerAPI", fallbackMethod = "rateLimitFallback")
+    public ComprehensivePaymentResponse getPayment(@PathVariable String id) {
+        Payment payment = paymentService.getPayment(id);
+        // Return all fields for partners
+        return ComprehensivePaymentResponse.builder()
+            .id(payment.getId())
+            .amount(payment.getAmount())
+            .status(payment.getStatus())
+            .debtor(payment.getDebtor()) // Full details
+            .creditor(payment.getCreditor()) // Full details
+            .auditTrail(payment.getAuditTrail()) // Full audit
+            .build();
+    }
+    
+    public ComprehensivePaymentResponse rateLimitFallback(String id, Exception e) {
+        return ComprehensivePaymentResponse.rateLimitExceeded();
+    }
+}
+```
+
+#### KPIs
+- API response time < 500ms (p95)
+- Rate limiting: 100 requests/minute per partner
+- Throttling: 1000 requests/hour per partner
+
+**Phase 4 Summary**:
+- **7 advanced features** can be built in **parallel**
+- **Total time**: 6 days (longest: Batch Processing)
+- **Agents**: 7 agents working simultaneously
+
+---
+
+## Phase 5: Infrastructure (Parallel)
+
+**✅ Can be built in PARALLEL** throughout project (independent of business services).
+
+**Parallelization Strategy**: 7 agents working simultaneously on 7 infrastructure components.
+
+**Estimated Duration**: 7 days (limited by longest task: Kubernetes Operators)
+
+### 5.1: Service Mesh (Istio)
+
+*Note: Full details in original `34-FEATURE-BREAKDOWN-TREE.md` document.*
+
+---
+
+### 5.2: Prometheus Setup (Metrics Collection)
+
+**Agent**: Prometheus Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-52-prometheus`  
+**Complexity**: Medium  
+**Estimation**: **1.5 days** (Nominal: 1.5 days)  
+**AI-Specific Factors**:
+- Retry 2x on Helm deployment errors
+- Hallucination risk: LOW
+
+#### Spring Boot Guidance
+```yaml
+# application.yml - Expose metrics
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+```
+
+#### KPIs
+- Metrics scraping interval: 15 seconds
+- Metrics retention: 15 days
+- Alert rule count: 50+ rules
+
+---
+
+### 5.3: Grafana Dashboards (Visualization)
+
+**Agent**: Grafana Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-53-grafana`  
+**Complexity**: Medium  
+**Estimation**: **1.5 days** (Nominal: 1.5 days)  
+**AI-Specific Factors**:
+- Retry 2x on dashboard creation errors
+- Hallucination risk: LOW
+
+#### KPIs
+- Dashboard count: 20+ dashboards
+- Dashboard load time: < 3 seconds
+- Data refresh interval: 5 seconds (real-time)
+
+---
+
+### 5.4: Jaeger Distributed Tracing (OpenTelemetry)
+
+**Agent**: Jaeger Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-54-jaeger`  
+**Complexity**: Medium  
+**Estimation**: **1.5 days** (Nominal: 1.5 days)  
+**AI-Specific Factors**:
+- Retry 2x on OpenTelemetry SDK errors
+- Hallucination risk: MEDIUM
+
+#### Spring Boot Guidance
+```java
+// Enable OpenTelemetry tracing
+@Configuration
+public class TracingConfig {
+    @Bean
+    public OpenTelemetry openTelemetry() {
+        return OpenTelemetrySdk.builder()
+            .setTracerProvider(
+                SdkTracerProvider.builder()
+                    .addSpanProcessor(BatchSpanProcessor.builder(
+                        JaegerGrpcSpanExporter.builder()
+                            .setEndpoint("http://jaeger:14250")
+                            .build()
+                    ).build())
+                    .build()
+            )
+            .build();
+    }
+}
+```
+
+#### KPIs
+- Trace sampling rate: 10% (configurable)
+- Trace retention: 7 days
+- Trace query latency: < 1 second
+
+---
+
+### 5.5-5.7: GitOps, Feature Flags, Kubernetes Operators
+
+*Note: Full details for features 5.5-5.7 can be referenced from the original `34-FEATURE-BREAKDOWN-TREE.md` document (renumbered from 5.3-5.5).*
+
+**Phase 5 Summary**:
+- **7 infrastructure components** can be built in **parallel**
+- **Total time**: 7 days (longest: Kubernetes Operators)
+- **Agents**: 7 agents working simultaneously
+
+---
+
+## Phase 6: Integration & Testing (Sequential)
+
+**⚠️ CRITICAL**: Must be completed **sequentially** after all other phases.
+
+**Parallelization Strategy**: Mostly sequential, some parallelization within each feature.
+
+**Estimated Duration**: 15-20 days
+
+*Note: Full details for Phase 6 features (6.1-6.5) can be referenced from the original `34-FEATURE-BREAKDOWN-TREE.md` document. Each feature includes estimation ranges, Spring Boot guidance, explicit mocks, fallback plans, and KPIs.*
+
+**Phase 6 Summary**:
+- **5 testing features** must be completed **sequentially**
+- **Total time**: 15-20 days
+- **Agents**: 5 agents working sequentially (some parallelization within features)
+
+---
+
+## AI Agent Assignment Strategy
+
+### Agent Specialization
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    AI AGENT ASSIGNMENTS (40 Agents)                  │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  Phase 0: Foundation (5 agents, sequential)                         │
+│  ├─ Agent F1: Database Schemas (3-5 days)                           │
+│  ├─ Agent F2: Event Schemas (1-2 days)                              │
+│  ├─ Agent F3: Domain Models (2-4 days)                              │
+│  ├─ Agent F4: Shared Libraries (2-3 days)                           │
+│  └─ Agent F5: Infrastructure Setup (4-6 days)                       │
+│                                                                      │
+│  Phase 1: Core Services (6 agents, parallel)                        │
+│  ├─ Agent C1: Payment Initiation Service (3-5 days)                 │
+│  ├─ Agent C2: Validation Service (3-4 days)                         │
+│  ├─ Agent C3: Account Adapter Service (4-6 days)                    │
+│  ├─ Agent C4: Routing Service (2-3 days)                            │
+│  ├─ Agent C5: Transaction Processing Service (4-5 days)             │
+│  └─ Agent C6: Saga Orchestrator Service (5-7 days)                  │
+│                                                                      │
+│  Phase 2: Clearing Adapters (5 agents, parallel)                    │
+│  ├─ Agent A1: SAMOS Adapter (4-6 days)                              │
+│  ├─ Agent A2: BankservAfrica Adapter (4-6 days)                     │
+│  ├─ Agent A3: RTC Adapter (3-5 days)                                │
+│  ├─ Agent A4: PayShap Adapter (3-5 days)                            │
+│  └─ Agent A5: SWIFT Adapter (5-7 days)                              │
+│                                                                      │
+│  Phase 3: Platform Services (5 agents, parallel)                    │
+│  ├─ Agent P1: Tenant Management Service (3-4 days)                  │
+│  ├─ Agent P2: IAM Service (4-5 days)                                │
+│  ├─ Agent P3: Audit Service (2-3 days)                              │
+│  ├─ Agent P4: Notification Service (3-4 days)                       │
+│  └─ Agent P5: Reporting Service (4-5 days)                          │
+│                                                                      │
+│  Phase 4: Advanced Features (7 agents, parallel)                    │
+│  ├─ Agent V1: Batch Processing Service (5-7 days)                   │
+│  ├─ Agent V2: Settlement Service (4-5 days)                         │
+│  ├─ Agent V3: Reconciliation Service (4-5 days)                     │
+│  ├─ Agent V4: Internal API Gateway (3-4 days)                       │
+│  ├─ Agent V5: Web BFF - GraphQL (2 days)                            │
+│  ├─ Agent V6: Mobile BFF - REST lightweight (1.5 days)              │
+│  └─ Agent V7: Partner BFF - REST comprehensive (1.5 days)           │
+│                                                                      │
+│  Phase 5: Infrastructure (7 agents, parallel)                       │
+│  ├─ Agent I1: Service Mesh - Istio (3-4 days)                       │
+│  ├─ Agent I2: Prometheus Setup (1.5 days)                           │
+│  ├─ Agent I3: Grafana Dashboards (1.5 days)                         │
+│  ├─ Agent I4: Jaeger Distributed Tracing (1.5 days)                 │
+│  ├─ Agent I5: GitOps - ArgoCD (2-3 days)                            │
+│  ├─ Agent I6: Feature Flags - Unleash (2-3 days)                    │
+│  └─ Agent I7: Kubernetes Operators (5-7 days)                       │
+│                                                                      │
+│  Phase 6: Testing (5 agents, mostly sequential)                     │
+│  ├─ Agent T1: E2E Testing (4-5 days)                                │
+│  ├─ Agent T2: Load Testing (3-4 days)                               │
+│  ├─ Agent T3: Security Testing (3-4 days)                           │
+│  ├─ Agent T4: Compliance Testing (3-4 days)                         │
+│  └─ Agent T5: Production Readiness (2-3 days)                       │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+
+Total Agents: 40 agents
+Parallel Agents: Up to 7 agents at once (Phases 4-5)
+Sequential Phases: Phase 0 (foundation), Phase 6 (testing)
+```
+
+### Coordinator Agent
+
+**Role**: Build Coordinator  
+**Responsibilities**:
+- Monitor all 40 agent tasks in real-time
+- Detect failures and trigger fallback plans automatically
+- Aggregate build status and report progress (e.g., "Phase 1: 5/6 complete, 83%")
+- Manage dependency resolution (don't start Phase 1 until Phase 0 complete)
+- Collect metrics (actual duration vs. estimated, hallucination frequency, fallback usage)
+
+**Technology**: CrewAI or custom Python orchestrator
+
+---
+
+## Fallback Plans Per Phase
+
+### Phase 0 Fallback
+- **Scenario**: All agents fail database schema generation
+- **Fallback**: Human DBA takes over, generates schemas manually (1 day)
+- **Mitigation**: Pre-validate PostgreSQL syntax using online tools
+
+### Phase 1 Fallback
+- **Scenario**: 2+ services fail to build
+- **Fallback**: Reduce scope to 3 critical services (Payment Initiation, Validation, Saga)
+- **Mitigation**: Use mocks (WireMock) for non-critical external dependencies
+
+### Phase 2 Fallback
+- **Scenario**: SWIFT adapter sanctions screening fails
+- **Fallback**: Use mock sanctions list (test data) for Phase 1-5, real API in Phase 6
+- **Mitigation**: Pre-validate SWIFT message formats using online validators
+
+### Phase 3 Fallback
+- **Scenario**: IAM service OAuth integration fails
+- **Fallback**: Use JWT with symmetric key (HS256) instead of asymmetric (RS256)
+- **Mitigation**: Simplify to single-tenant mode (skip multi-tenancy for Phase 1)
+
+### Phase 4 Fallback
+- **Scenario**: Batch processing XXE vulnerability not fixed
+- **Fallback**: Disable XML file support, use CSV/JSON only
+- **Mitigation**: Use OWASP dependency checker to validate XML parser configuration
+
+### Phase 5 Fallback
+- **Scenario**: Kubernetes operators fail to reconcile
+- **Fallback**: Use manual Helm charts for resource management
+- **Mitigation**: Test operator reconciliation in local Minikube before AKS deployment
+
+### Phase 6 Fallback
+- **Scenario**: Load testing fails to reach 1,000 TPS
+- **Fallback**: Reduce SLO to 500 TPS for initial release
+- **Mitigation**: Profile with JProfiler/YourKit to identify bottlenecks
+
+---
+
+## Orchestration Integration
+
+### Link to AI Agent Prompt Templates
+
+Each feature card references its corresponding prompt template in `docs/35-AI-AGENT-PROMPT-TEMPLATES.md`:
+
+| Feature ID | Prompt Template Reference |
+|------------|---------------------------|
+| 0.1 | `#feature-01-database-schemas` |
+| 0.2 | `#feature-02-event-schemas` |
+| ... | ... |
+| 4.5 | `#feature-45-web-bff` |
+| 4.6 | `#feature-46-mobile-bff` |
+| 4.7 | `#feature-47-partner-bff` |
+| 5.2 | `#feature-52-prometheus` |
+| 5.3 | `#feature-53-grafana` |
+| 5.4 | `#feature-54-jaeger` |
+| ... | ... (all 40 features) |
+
+### CrewAI Orchestration Example
+
+```python
+from crewai import Agent, Task, Crew
+
+# Define agents
+schema_agent = Agent(
+    role="Database Schema Engineer",
+    goal="Generate PostgreSQL migration scripts",
+    backstory="Expert in database design and Flyway migrations",
+    verbose=True
+)
+
+web_bff_agent = Agent(
+    role="Web BFF Engineer",
+    goal="Build GraphQL API for web clients",
+    backstory="Expert in GraphQL, Spring Boot, data aggregation",
+    verbose=True
+)
+
+# Define tasks
+schema_task = Task(
+    description="Generate PostgreSQL migration scripts for 20+ tables",
+    agent=schema_agent,
+    expected_output="Flyway migration scripts (V001-V005)",
+    context_file="docs/05-DATABASE-SCHEMAS.md"
+)
+
+web_bff_task = Task(
+    description="Build Web BFF service with GraphQL API",
+    agent=web_bff_agent,
+    expected_output="Working GraphQL API with resolvers",
+    context_file="docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-45-web-bff",
+    dependencies=[schema_task]  # Depends on schema completion
+)
+
+# Create crew
+crew = Crew(
+    agents=[schema_agent, web_bff_agent],
+    tasks=[schema_task, web_bff_task],
+    verbose=True,
+    sequential=False  # Allow parallelization where possible
+)
+
+# Execute
+result = crew.kickoff()
+print(result)
+```
+
+---
+
+## YAML Export
+
+**Purpose**: Enable programmatic orchestration tools (CrewAI, LangChain, AutoGPT) to query tasks.
+
+See: [`feature-breakdown-tree.yaml`](../feature-breakdown-tree.yaml)
+
+The YAML export contains complete metadata for all 40 features, including:
+- Agent name, template reference
+- Estimation ranges, nominal days
+- AI factors (retry count, hallucination risk, feedback loops)
+- Spring Boot guidance
+- Mocks required (WireMock ports, Testcontainers)
+- KPIs (measurable success criteria)
+- DoD (Definition of Done)
+- Fallback plans
+- Dependencies
+
+**Sample Query**:
+```python
+import yaml
+
+with open('feature-breakdown-tree.yaml', 'r') as f:
+    tree = yaml.safe_load(f)
+
+# Find all features with no dependencies (can start immediately)
+for phase in tree['phases']:
+    for feature in phase['features']:
+        if not feature.get('dependencies'):
+            print(f"{feature['id']}: {feature['name']} - Start immediately")
 ```
 
 ---
@@ -1550,7 +2097,7 @@ orchestration:
 
 1. **Validate Enhanced Tree**: Prototype Phase 0 and Phase 1 with actual AI agents (GPT-4, Claude, Cursor AI)
 2. **Refine Estimations**: Update ranges based on actual agent performance
-3. **Extend YAML**: Complete all 36 features in YAML export
+3. **Extend YAML**: Complete all 40 features in YAML export
 4. **Integrate with CrewAI**: Test multi-agent orchestration
 5. **Feedback Loop**: Phase 6 agents provide feedback on prompt quality, update templates
 
