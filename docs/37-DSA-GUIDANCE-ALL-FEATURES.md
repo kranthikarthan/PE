@@ -1251,6 +1251,9 @@ public ReportResult generateReport(ReportRequest request) {
 - ✅ **HashMap<String, JobExecution>**: Track job status (O(1))
 - ✅ **Chunk-based Processing**: Process records in chunks (e.g., 1000 records/chunk)
 - ✅ **Thread Pool**: Parallel chunk processing
+- ✅ **Token Bucket**: Rate limiting for downstream systems
+- ✅ **Semaphore**: Control concurrent access to slow systems
+- ✅ **Adaptive Throttler**: Dynamic rate adjustment
 
 **Algorithms**:
 - ✅ **Chunk Processing**: Read → Process → Write pattern
@@ -1259,8 +1262,525 @@ public ReportResult generateReport(ReportRequest request) {
   - Time: O(N / (C * T)) where T = number of threads
 - ✅ **Skip/Retry Logic**: Handle record-level failures
   - Time: O(1) per skip/retry decision
+- ✅ **Token Bucket Throttling**: Limit TPS to downstream systems
+  - Time: O(1) per token acquisition
+- ✅ **Adaptive Rate Limiting**: Adjust rate based on downstream response time
+  - Time: O(1) per rate adjustment
+
+---
+
+## 🚦 Throttling Patterns for Slow Downstream Systems
+
+When downstream systems (core banking, clearing systems, external APIs) are slow or have TPS limits, use these patterns:
+
+### 1. Token Bucket Pattern (Smooth Rate Limiting)
+
+**Use Case**: Downstream system has TPS limit (e.g., 100 TPS)
 
 **Implementation**:
+```java
+@Component
+public class TokenBucketThrottler {
+    private final Bucket bucket;
+    
+    public TokenBucketThrottler(@Value("${downstream.max-tps}") int maxTps) {
+        // Bucket capacity = 2x TPS (allow burst)
+        // Refill rate = maxTps tokens per second
+        Bandwidth limit = Bandwidth.classic(maxTps * 2, 
+            Refill.intervally(maxTps, Duration.ofSeconds(1)));
+        this.bucket = Bucket4j.builder()
+            .addLimit(limit)
+            .build();
+    }
+    
+    public void throttle() {
+        // Block until token available (smooth rate limiting)
+        bucket.asBlocking().consume(1);
+    }
+    
+    public boolean tryThrottle() {
+        // Try to acquire token (non-blocking)
+        return bucket.tryConsume(1);
+    }
+}
+
+// Usage in Spring Batch ItemWriter
+@Component
+public class ThrottledPaymentWriter implements ItemWriter<Payment> {
+    @Autowired
+    private TokenBucketThrottler throttler;
+    
+    @Autowired
+    private CoreBankingClient coreBankingClient;
+    
+    @Override
+    public void write(List<? extends Payment> items) throws Exception {
+        for (Payment payment : items) {
+            // Wait for token before calling downstream system
+            throttler.throttle(); // Blocks if rate exceeded
+            
+            // Call downstream system (now within TPS limit)
+            coreBankingClient.debitAccount(payment);
+        }
+    }
+}
+```
+
+**Benefits**:
+- ✅ Smooth rate limiting (no sudden spikes)
+- ✅ Allows burst traffic (up to 2x capacity)
+- ✅ Fair distribution of tokens
+- ✅ Prevents downstream overload
+
+**Complexity**: O(1) per token acquisition
+
+---
+
+### 2. Adaptive Throttling Pattern (Dynamic Rate Adjustment)
+
+**Use Case**: Downstream system response time varies (slow during peak hours)
+
+**Implementation**:
+```java
+@Component
+public class AdaptiveThrottler {
+    private final AtomicInteger currentTps = new AtomicInteger(100); // Start at 100 TPS
+    private final AtomicLong lastAdjustmentTime = new AtomicLong(System.currentTimeMillis());
+    
+    private static final int MIN_TPS = 10;
+    private static final int MAX_TPS = 500;
+    private static final long SLOW_RESPONSE_THRESHOLD_MS = 2000; // 2 seconds
+    private static final long FAST_RESPONSE_THRESHOLD_MS = 500;  // 500ms
+    
+    public void recordResponse(long responseTimeMs) {
+        long now = System.currentTimeMillis();
+        long timeSinceLastAdjustment = now - lastAdjustmentTime.get();
+        
+        // Adjust every 10 seconds
+        if (timeSinceLastAdjustment < 10_000) {
+            return;
+        }
+        
+        int current = currentTps.get();
+        
+        if (responseTimeMs > SLOW_RESPONSE_THRESHOLD_MS) {
+            // Downstream is slow, reduce TPS by 20%
+            int newTps = Math.max(MIN_TPS, (int) (current * 0.8));
+            if (currentTps.compareAndSet(current, newTps)) {
+                lastAdjustmentTime.set(now);
+                log.info("Reducing TPS: {} → {} (response time: {}ms)", 
+                    current, newTps, responseTimeMs);
+            }
+        } else if (responseTimeMs < FAST_RESPONSE_THRESHOLD_MS) {
+            // Downstream is fast, increase TPS by 10%
+            int newTps = Math.min(MAX_TPS, (int) (current * 1.1));
+            if (currentTps.compareAndSet(current, newTps)) {
+                lastAdjustmentTime.set(now);
+                log.info("Increasing TPS: {} → {} (response time: {}ms)", 
+                    current, newTps, responseTimeMs);
+            }
+        }
+    }
+    
+    public int getCurrentTps() {
+        return currentTps.get();
+    }
+    
+    public long getDelayMs() {
+        // Convert TPS to delay in milliseconds
+        return 1000L / currentTps.get();
+    }
+}
+
+// Usage in Spring Batch ItemWriter
+@Component
+public class AdaptiveThrottledWriter implements ItemWriter<Payment> {
+    @Autowired
+    private AdaptiveThrottler throttler;
+    
+    @Override
+    public void write(List<? extends Payment> items) throws Exception {
+        for (Payment payment : items) {
+            long start = System.currentTimeMillis();
+            
+            // Add delay based on current TPS
+            Thread.sleep(throttler.getDelayMs());
+            
+            // Call downstream system
+            coreBankingClient.debitAccount(payment);
+            
+            long responseTime = System.currentTimeMillis() - start;
+            
+            // Record response time for adaptive adjustment
+            throttler.recordResponse(responseTime);
+        }
+    }
+}
+```
+
+**Benefits**:
+- ✅ Automatically adjusts to downstream capacity
+- ✅ Handles peak hours (reduces TPS)
+- ✅ Maximizes throughput during off-peak (increases TPS)
+- ✅ No manual tuning required
+
+**Complexity**: O(1) per response recording
+
+---
+
+### 3. Semaphore-Based Throttling (Concurrent Request Limiting)
+
+**Use Case**: Downstream system can only handle N concurrent requests
+
+**Implementation**:
+```java
+@Component
+public class SemaphoreThrottler {
+    private final Semaphore semaphore;
+    
+    public SemaphoreThrottler(@Value("${downstream.max-concurrent}") int maxConcurrent) {
+        this.semaphore = new Semaphore(maxConcurrent, true); // Fair semaphore
+    }
+    
+    public void acquire() throws InterruptedException {
+        semaphore.acquire(); // Block until permit available
+    }
+    
+    public void release() {
+        semaphore.release();
+    }
+    
+    public boolean tryAcquire(long timeoutMs) throws InterruptedException {
+        return semaphore.tryAcquire(timeoutMs, TimeUnit.MILLISECONDS);
+    }
+}
+
+// Usage in Spring Batch ItemWriter
+@Component
+public class ConcurrencyLimitedWriter implements ItemWriter<Payment> {
+    @Autowired
+    private SemaphoreThrottler throttler;
+    
+    @Override
+    public void write(List<? extends Payment> items) throws Exception {
+        for (Payment payment : items) {
+            try {
+                // Acquire permit (max concurrent requests enforced)
+                throttler.acquire();
+                
+                // Call downstream system
+                coreBankingClient.debitAccount(payment);
+            } finally {
+                // Always release permit
+                throttler.release();
+            }
+        }
+    }
+}
+```
+
+**Benefits**:
+- ✅ Limits concurrent requests to downstream
+- ✅ Prevents connection pool exhaustion
+- ✅ Fair permit distribution
+- ✅ Works with parallel batch processing
+
+**Complexity**: O(1) per acquire/release
+
+---
+
+### 4. Spring Batch Throttling (Built-in)
+
+**Use Case**: Simple throttling at chunk level
+
+**Implementation**:
+```java
+@Bean
+public Step processPaymentStep() {
+    return stepBuilderFactory.get("processPaymentStep")
+        .<PaymentRecord, Payment>chunk(1000)
+        .reader(paymentFileReader())
+        .processor(paymentProcessor())
+        .writer(paymentWriter())
+        .taskExecutor(taskExecutor())
+        .throttleLimit(10) // Max 10 concurrent chunks
+        .build();
+}
+
+// For more control, use custom TaskExecutor with rate limiting
+@Bean
+public TaskExecutor throttledTaskExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(5); // Limit concurrent threads
+    executor.setMaxPoolSize(10);
+    executor.setQueueCapacity(1000); // Buffer for overflow
+    executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+    executor.setThreadNamePrefix("batch-throttled-");
+    executor.initialize();
+    return executor;
+}
+```
+
+**Benefits**:
+- ✅ Built-in Spring Batch feature
+- ✅ Simple configuration
+- ✅ Works at chunk level
+- ✅ Integrates with task executor
+
+**Complexity**: O(1) per chunk scheduling
+
+---
+
+### 5. Backpressure Pattern (Reactive Streams)
+
+**Use Case**: Spring Batch with Reactive downstream (WebFlux, R2DBC)
+
+**Implementation**:
+```java
+@Component
+public class ReactiveThrottledWriter implements ItemWriter<Payment> {
+    @Autowired
+    private WebClient coreBankingClient;
+    
+    @Override
+    public void write(List<? extends Payment> items) throws Exception {
+        Flux.fromIterable(items)
+            .flatMap(payment -> 
+                coreBankingClient.post()
+                    .uri("/debit")
+                    .bodyValue(payment)
+                    .retrieve()
+                    .bodyToMono(Void.class)
+                    .timeout(Duration.ofSeconds(30))
+                    .retry(3),
+                5 // Max 5 concurrent requests (backpressure)
+            )
+            .blockLast(); // Block until all complete (for Spring Batch compatibility)
+    }
+}
+```
+
+**Benefits**:
+- ✅ Built-in backpressure support
+- ✅ Non-blocking I/O
+- ✅ Higher throughput
+- ✅ Automatic buffering
+
+**Complexity**: O(1) per item (non-blocking)
+
+---
+
+### 6. Circuit Breaker + Throttling (Combined)
+
+**Use Case**: Downstream system fails under load, need circuit breaker + rate limiting
+
+**Implementation**:
+```java
+@Component
+public class ResilientThrottledWriter implements ItemWriter<Payment> {
+    @Autowired
+    private TokenBucketThrottler throttler;
+    
+    @Autowired
+    private CircuitBreaker circuitBreaker;
+    
+    @Autowired
+    private CoreBankingClient coreBankingClient;
+    
+    @Override
+    public void write(List<? extends Payment> items) throws Exception {
+        for (Payment payment : items) {
+            // 1. Throttle first (prevent overload)
+            throttler.throttle();
+            
+            // 2. Use circuit breaker (fail fast if downstream is down)
+            circuitBreaker.executeSupplier(() -> {
+                coreBankingClient.debitAccount(payment);
+                return null;
+            });
+        }
+    }
+}
+
+@Configuration
+public class CircuitBreakerConfig {
+    @Bean
+    public CircuitBreakerRegistry circuitBreakerRegistry() {
+        CircuitBreakerConfig config = CircuitBreakerConfig.custom()
+            .slidingWindowSize(100)
+            .failureRateThreshold(50) // Open if 50% failures
+            .waitDurationInOpenState(Duration.ofSeconds(30))
+            .permittedNumberOfCallsInHalfOpenState(10)
+            .build();
+        
+        return CircuitBreakerRegistry.of(config);
+    }
+    
+    @Bean
+    public CircuitBreaker circuitBreaker(CircuitBreakerRegistry registry) {
+        return registry.circuitBreaker("coreBanking");
+    }
+}
+```
+
+**Benefits**:
+- ✅ Prevents overload (throttling)
+- ✅ Fails fast when downstream is down (circuit breaker)
+- ✅ Automatic recovery
+- ✅ Reduces cascade failures
+
+---
+
+### 7. Batch Size Adjustment (Dynamic Chunk Sizing)
+
+**Use Case**: Adjust batch size based on downstream capacity
+
+**Implementation**:
+```java
+@Component
+public class DynamicChunkSizer {
+    private final AtomicInteger currentChunkSize = new AtomicInteger(1000);
+    
+    private static final int MIN_CHUNK_SIZE = 100;
+    private static final int MAX_CHUNK_SIZE = 5000;
+    
+    public void adjustChunkSize(long avgProcessingTimeMs) {
+        int current = currentChunkSize.get();
+        
+        if (avgProcessingTimeMs > 5000) {
+            // Slow, reduce chunk size
+            int newSize = Math.max(MIN_CHUNK_SIZE, (int) (current * 0.8));
+            currentChunkSize.set(newSize);
+            log.info("Reducing chunk size: {} → {}", current, newSize);
+        } else if (avgProcessingTimeMs < 1000) {
+            // Fast, increase chunk size
+            int newSize = Math.min(MAX_CHUNK_SIZE, (int) (current * 1.2));
+            currentChunkSize.set(newSize);
+            log.info("Increasing chunk size: {} → {}", current, newSize);
+        }
+    }
+    
+    public int getCurrentChunkSize() {
+        return currentChunkSize.get();
+    }
+}
+
+// Use in Spring Batch (requires custom job builder)
+@Bean
+public Job dynamicChunkJob(JobBuilderFactory jobBuilderFactory, 
+                            StepBuilderFactory stepBuilderFactory,
+                            DynamicChunkSizer chunkSizer) {
+    return jobBuilderFactory.get("dynamicChunkJob")
+        .start(stepBuilderFactory.get("step1")
+            .<PaymentRecord, Payment>chunk(chunkSizer.getCurrentChunkSize())
+            .reader(reader())
+            .processor(processor())
+            .writer(writer())
+            .build())
+        .build();
+}
+```
+
+**Benefits**:
+- ✅ Adapts to downstream capacity
+- ✅ Maximizes throughput
+- ✅ Reduces memory pressure
+- ✅ Handles variable load
+
+---
+
+## 📊 Throttling Pattern Comparison
+
+| Pattern | Use Case | TPS Control | Burst Handling | Adaptive | Complexity |
+|---------|----------|-------------|----------------|----------|------------|
+| **Token Bucket** | Fixed TPS limit | ✅ Precise | ✅ Yes (2x) | ❌ No | O(1) |
+| **Adaptive Throttling** | Variable capacity | ✅ Dynamic | ✅ Yes | ✅ Yes | O(1) |
+| **Semaphore** | Concurrent limit | ⚠️ Indirect | ❌ No | ❌ No | O(1) |
+| **Spring Batch Throttle** | Chunk-level limit | ⚠️ Coarse | ❌ No | ❌ No | O(1) |
+| **Backpressure (Reactive)** | Reactive downstream | ✅ Automatic | ✅ Yes | ✅ Yes | O(1) |
+| **Circuit Breaker + Throttle** | Unreliable downstream | ✅ Yes | ⚠️ Limited | ❌ No | O(1) |
+| **Dynamic Chunk Sizing** | Variable load | ⚠️ Indirect | ✅ Yes | ✅ Yes | O(1) |
+
+---
+
+## 🎯 Recommended Approach
+
+**For Production Batch Processing**, use a **combination**:
+
+```java
+@Component
+public class ProductionBatchWriter implements ItemWriter<Payment> {
+    @Autowired
+    private TokenBucketThrottler tokenBucket; // Rate limiting (100 TPS)
+    
+    @Autowired
+    private AdaptiveThrottler adaptive; // Dynamic adjustment
+    
+    @Autowired
+    private CircuitBreaker circuitBreaker; // Fail fast
+    
+    @Autowired
+    private SemaphoreThrottler semaphore; // Concurrent limit (10)
+    
+    @Autowired
+    private CoreBankingClient coreBankingClient;
+    
+    @Override
+    public void write(List<? extends Payment> items) throws Exception {
+        for (Payment payment : items) {
+            try {
+                // 1. Limit concurrent requests
+                semaphore.acquire();
+                
+                // 2. Rate limit (TPS)
+                tokenBucket.throttle();
+                
+                // 3. Add adaptive delay
+                Thread.sleep(adaptive.getDelayMs());
+                
+                long start = System.currentTimeMillis();
+                
+                // 4. Call downstream with circuit breaker
+                circuitBreaker.executeSupplier(() -> {
+                    coreBankingClient.debitAccount(payment);
+                    return null;
+                });
+                
+                long responseTime = System.currentTimeMillis() - start;
+                
+                // 5. Record for adaptive adjustment
+                adaptive.recordResponse(responseTime);
+                
+            } finally {
+                semaphore.release();
+            }
+        }
+    }
+}
+```
+
+**Configuration**:
+```yaml
+downstream:
+  max-tps: 100              # Token bucket limit
+  max-concurrent: 10        # Semaphore limit
+  circuit-breaker:
+    failure-rate: 50        # Open at 50% failures
+    wait-duration: 30s      # Wait 30s before half-open
+```
+
+**Result**:
+- ✅ Respects downstream TPS limit (100 TPS)
+- ✅ Limits concurrent requests (10)
+- ✅ Adapts to downstream capacity
+- ✅ Fails fast when downstream is down
+- ✅ Prevents cascade failures
+
+**Complexity**: O(1) per record
+
+---
+
+**Basic Implementation**:
 ```java
 // Spring Batch chunk processing
 @Bean
