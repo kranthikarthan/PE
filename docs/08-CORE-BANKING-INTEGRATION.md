@@ -437,6 +437,49 @@ Some implementations use account number prefixes to determine routing:
 
 ## Circuit Breaker Pattern
 
+### ⚠️ IMPORTANT: Resilience4j for EXTERNAL Calls Only
+
+**Architectural Decision**: See [`docs/36-RESILIENCE-PATTERNS-DECISION.md`](36-RESILIENCE-PATTERNS-DECISION.md) for complete guidance.
+
+**Key Principle**:
+- ✅ **Use Resilience4j** for calls TO **external core banking systems** (NORTH-SOUTH traffic)
+- ✅ **Use Istio** for calls BETWEEN **internal microservices** (EAST-WEST traffic)
+
+**Why Resilience4j for Core Banking Integration?**
+- Core banking systems are **OUTSIDE** the Kubernetes cluster (on-premise or separate network)
+- Istio sidecars **do NOT intercept** external traffic (only internal service mesh traffic)
+- Fine-grained control per external system (different circuit breakers for Current vs Savings)
+- Business logic fallbacks (e.g., use cached balance when external system is down)
+
+**Example**:
+```java
+// ✅ CORRECT: Use Resilience4j for external core banking call
+@Service
+public class CurrentAccountService {
+    @CircuitBreaker(name = "currentAccountsSystem", fallbackMethod = "getAccountFallback")
+    @Retry(name = "currentAccountsSystem")
+    @Timeout(name = "currentAccountsSystem")
+    public AccountDTO getAccount(String accountNumber) {
+        // Call EXTERNAL core banking system (NORTH-SOUTH)
+        return coreBankingClient.getAccount(accountNumber);
+    }
+    
+    // Fallback with business logic
+    private AccountDTO getAccountFallback(String accountNumber, Exception e) {
+        return cacheService.getCachedAccount(accountNumber);
+    }
+}
+
+// ✅ CORRECT: Do NOT use Resilience4j for internal calls
+@Service
+public class PaymentService {
+    // NO @CircuitBreaker needed - Istio handles this (EAST-WEST)
+    public ValidationResponse validate(Payment payment) {
+        return validationServiceClient.validate(payment);  // Internal call
+    }
+}
+```
+
 ### Configuration
 
 ```yaml

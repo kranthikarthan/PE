@@ -3,6 +3,50 @@
 ## Overview
 This document provides detailed information about integrating with South African payment clearing systems, including technical specifications, message formats, and operational procedures.
 
+### ⚠️ IMPORTANT: Resilience Patterns for External Clearing Systems
+
+**Architectural Decision**: See [`docs/36-RESILIENCE-PATTERNS-DECISION.md`](36-RESILIENCE-PATTERNS-DECISION.md) for complete guidance.
+
+**Key Principle**:
+- ✅ **Use Resilience4j** for calls TO **external clearing systems** (SAMOS, BankservAfrica, RTC, PayShap, SWIFT)
+- ✅ **Use Istio** for calls BETWEEN **internal microservices** (Routing Service → SAMOS Adapter)
+
+**Why Resilience4j for Clearing Adapters?**
+- Clearing systems are **OUTSIDE** the Kubernetes cluster (external infrastructure)
+- Istio sidecars **do NOT intercept** external traffic (only internal service mesh traffic)
+- Fine-grained control per clearing system (different circuit breakers for SAMOS vs BankservAfrica)
+- Business logic fallbacks specific to each clearing system
+
+**Example**:
+```java
+// ✅ CORRECT: Use Resilience4j for external clearing system call
+@Service
+public class SamosAdapterService {
+    @CircuitBreaker(name = "samosSystem", fallbackMethod = "submitPaymentFallback")
+    @Retry(name = "samosSystem")
+    @Timeout(name = "samosSystem")
+    public SubmitResponse submitPayment(PaymentRequest request) {
+        // Call EXTERNAL SAMOS RTGS system (NORTH-SOUTH)
+        return samosClient.submitPayment(request);
+    }
+    
+    // Fallback with business logic
+    private SubmitResponse submitPaymentFallback(PaymentRequest request, Exception e) {
+        // Queue payment for retry when SAMOS is back online
+        return queueService.queueForRetry(request);
+    }
+}
+
+// ✅ CORRECT: Do NOT use Resilience4j for internal calls
+@Service
+public class RoutingService {
+    // NO @CircuitBreaker needed - Istio handles this (EAST-WEST)
+    public SubmitResponse routeToSamos(PaymentRequest request) {
+        return samosAdapterClient.submitPayment(request);  // Internal call
+    }
+}
+```
+
 ---
 
 ## South African Payment Landscape

@@ -4,6 +4,36 @@
 
 This document provides the **Service Mesh architecture design** using Istio for the Payments Engine. A service mesh adds a dedicated infrastructure layer for service-to-service communication, providing traffic management, security, and observability without code changes.
 
+### ⚠️ IMPORTANT: Istio for INTERNAL Traffic Only (EAST-WEST)
+
+**Architectural Decision**: See [`docs/36-RESILIENCE-PATTERNS-DECISION.md`](36-RESILIENCE-PATTERNS-DECISION.md) for complete guidance.
+
+**Key Principle**:
+- ✅ **Istio handles**: Service-to-service calls **WITHIN Kubernetes cluster** (EAST-WEST traffic)
+- ❌ **Istio does NOT handle**: Calls to **external APIs OUTSIDE Kubernetes** (NORTH-SOUTH traffic)
+
+**Decision Matrix**:
+
+| Traffic Type | Technology | Use Case | Example |
+|--------------|------------|----------|---------|
+| **EAST-WEST** (Internal) | **Istio** | Microservice → Microservice | Payment Service → Validation Service |
+| **NORTH-SOUTH** (External) | **Resilience4j** | Microservice → External API | Account Adapter → Core Banking System |
+
+**What Istio Provides**:
+- ✅ Circuit breakers for **internal calls**
+- ✅ Retries for **internal calls**
+- ✅ Timeouts for **internal calls**
+- ✅ Automatic mTLS between services
+- ✅ Load balancing
+- ✅ Traffic routing (canary, blue-green)
+- ✅ Observability (metrics, tracing, logging)
+
+**What Istio Does NOT Provide**:
+- ❌ Resilience for calls to on-premise core banking systems
+- ❌ Resilience for calls to external SWIFT APIs
+- ❌ Resilience for calls to external clearing systems (SAMOS, BankservAfrica, PayShap)
+- ➡️ Use **Resilience4j** for these (see Account Adapter, Clearing Adapters)
+
 ---
 
 ## Why Service Mesh?

@@ -1874,8 +1874,16 @@ Task:
 
 ⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
   
+  0. **⚠️ ARCHITECTURAL DECISION: Resilience4j for EXTERNAL Calls Only** (CRITICAL):
+     - ✅ MUST use Resilience4j (`@CircuitBreaker`, `@Retry`, `@Timeout`) for calls TO **external core banking systems** (NORTH-SOUTH traffic)
+     - ❌ DO NOT use Resilience4j for calls FROM other services TO Account Adapter (EAST-WEST traffic) - Istio handles this
+     - 📖 See: `docs/36-RESILIENCE-PATTERNS-DECISION.md` for complete guidance
+     - **Rule**: "If the call goes OUTSIDE Kubernetes, use Resilience4j. Otherwise, use Istio."
+     - ✅ External calls: Account Adapter → Core Banking System (use Resilience4j)
+     - ❌ Internal calls: Payment Service → Account Adapter (DO NOT use Resilience4j, Istio handles)
+  
   1. **Circuit Breaker** (CRITICAL):
-     - ✅ MUST use `@CircuitBreaker` for ALL external system calls
+     - ✅ MUST use `@CircuitBreaker` for ALL **external** system calls (core banking systems)
      - ✅ Circuit opens after 5 consecutive failures (50% threshold)
      - ✅ Half-open state after 30 seconds (test 1 request)
      - ✅ MUST provide fallback method for every circuit breaker
@@ -3758,6 +3766,16 @@ Expected Deliverables:
         - Docker build
         - Kubernetes deployment
         - Secret management (certificates)
+
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+
+  0. **⚠️ ARCHITECTURAL DECISION: Resilience4j for EXTERNAL Calls Only** (CRITICAL):
+     - ✅ MUST use Resilience4j (`@CircuitBreaker`, `@Retry`, `@Timeout`) for calls TO **external SAMOS RTGS system** (NORTH-SOUTH traffic)
+     - ❌ DO NOT use Resilience4j for calls FROM other services TO SAMOS Adapter (EAST-WEST traffic) - Istio handles this
+     - 📖 See: `docs/36-RESILIENCE-PATTERNS-DECISION.md` for complete guidance
+     - **Rule**: "If the call goes OUTSIDE Kubernetes, use Resilience4j. Otherwise, use Istio."
+     - ✅ External calls: SAMOS Adapter → SAMOS RTGS System (use Resilience4j)
+     - ❌ Internal calls: Routing Service → SAMOS Adapter (DO NOT use Resilience4j, Istio handles)
 
 Success Criteria:
   ✅ Service builds successfully
