@@ -2,14 +2,18 @@
 
 ## Overview
 
-This document provides **comprehensive Data Structures and Algorithms guidance** for all 40 features across 7 phases of the Payments Engine. Each feature includes recommendations for optimal data structures, algorithms, time/space complexity considerations, and Java-specific implementations.
+This document provides **comprehensive Data Structures & Algorithms (DSA) guidance** for Java/Spring Boot features and **Configuration Best Practices** for infrastructure/testing features across 7 phases of the Payments Engine.
 
-**Purpose**: Help AI agents make informed decisions about data structures and algorithms to ensure optimal performance, scalability, and maintainability.
+**Scope**:
+- ✅ **DSA Guidance** (26 features): Java/Spring Boot microservices, adapters, utilities
+- 🔧 **Configuration Guidance** (14 features): Terraform, YAML configs, SQL, testing tools
+
+**Purpose**: Help AI agents make informed decisions about data structures, algorithms, and configuration for optimal performance, scalability, and maintainability.
 
 **Target Audience**: AI coding agents, developers, architects
 
 **Date**: 2025-10-12  
-**Status**: ✅ Complete
+**Status**: ✅ Complete (Updated to exclude non-Java features)
 
 ---
 
@@ -29,84 +33,141 @@ This document provides **comprehensive Data Structures and Algorithms guidance**
 
 ## Phase 0: Foundation (5 Features)
 
+**DSA Applicable**: 2 out of 5 features (0.3, 0.4 are Java-based)  
+**Configuration Guidance**: 3 out of 5 features (0.1, 0.2, 0.5 are SQL/YAML/HCL-based)
+
+---
+
 ### Feature 0.1: Database Schemas
 
-**Purpose**: Generate PostgreSQL migration scripts (Flyway)
+**Type**: 🔧 **Configuration** (Flyway SQL/DDL - NOT Java)
 
-**Data Structures**:
-- ✅ **HashMap<String, TableDefinition>**: Store table metadata (O(1) lookup)
-- ✅ **LinkedHashMap<String, Column>**: Preserve column insertion order
-- ✅ **ArrayList<String>**: Store SQL DDL statements in execution order
-- ✅ **Set<String>**: Track unique constraint names, index names (prevent duplicates)
-- ✅ **Graph (Adjacency List)**: Model foreign key dependencies between tables
+**Purpose**: Generate PostgreSQL migration scripts using Flyway
 
-**Algorithms**:
-- ✅ **Topological Sort** (DFS-based): Order tables by foreign key dependencies
-  - Time: O(V + E) where V = tables, E = foreign keys
-  - Ensures parent tables are created before child tables
-- ✅ **Depth-First Search (DFS)**: Detect circular foreign key dependencies
-  - Time: O(V + E)
-  - Prevent infinite loops in schema generation
+**Best Practices** (SQL/Flyway):
 
-**Implementation**:
-```java
-// Topological sort for table creation order
-public List<String> getTableCreationOrder(Map<String, List<String>> dependencies) {
-    Set<String> visited = new HashSet<>();
-    Stack<String> stack = new Stack<>();
-    
-    for (String table : dependencies.keySet()) {
-        if (!visited.contains(table)) {
-            topologicalSortDFS(table, dependencies, visited, stack);
-        }
-    }
-    
-    List<String> result = new ArrayList<>();
-    while (!stack.isEmpty()) {
-        result.add(stack.pop());
-    }
-    return result; // Correct creation order
-}
+1. ✅ **Naming Convention**:
+   - Migrations: `V{version}__{description}.sql` (e.g., `V001__create_payments_table.sql`)
+   - Repeatable: `R__{description}.sql` (e.g., `R__insert_reference_data.sql`)
+   
+2. ✅ **Table Creation Order**:
+   - Manually order by foreign key dependencies (no runtime algorithm needed)
+   - Create parent tables before child tables
+   - Example: `tenants` → `customers` → `payments` → `payment_items`
+
+3. ✅ **Indexing Strategy**:
+   - Primary keys: `pk_{table_name}` (e.g., `pk_payments`)
+   - Foreign keys: `fk_{table}_{ref_table}` (e.g., `fk_payments_customers`)
+   - Indexes: `idx_{table}_{column}` (e.g., `idx_payments_status`)
+   - Composite indexes: `idx_{table}_{col1}_{col2}`
+
+4. ✅ **Schema Versioning**:
+   - Never modify existing migrations (append-only)
+   - Use separate migration files for schema changes
+   - Include rollback scripts in comments
+
+5. ✅ **Performance Considerations**:
+   - Use `CREATE INDEX CONCURRENTLY` for zero-downtime indexing
+   - Partition large tables (e.g., payments by month: `payments_2025_01`)
+   - Use PostgreSQL row-level security (RLS) for multi-tenancy
+
+**Example Migration**:
+```sql
+-- V001__create_payments_table.sql
+CREATE TABLE IF NOT EXISTS payments (
+    payment_id VARCHAR(50) PRIMARY KEY,
+    tenant_id VARCHAR(50) NOT NULL,
+    amount DECIMAL(19, 4) NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT fk_payments_tenants FOREIGN KEY (tenant_id) REFERENCES tenants(tenant_id)
+);
+
+CREATE INDEX CONCURRENTLY idx_payments_tenant_id ON payments(tenant_id);
+CREATE INDEX CONCURRENTLY idx_payments_status ON payments(status);
+CREATE INDEX CONCURRENTLY idx_payments_created_at ON payments(created_at);
 ```
 
-**Complexity**:
-- Time: O(T + F) where T = tables, F = foreign keys
-- Space: O(T) for visited set and stack
+**Complexity**: N/A (SQL declarative, no runtime algorithms)
 
 ---
 
 ### Feature 0.2: Event Schemas (AsyncAPI)
 
+**Type**: 🔧 **Configuration** (AsyncAPI YAML/JSON - NOT Java)
+
 **Purpose**: Generate AsyncAPI specifications for 25+ events
 
-**Data Structures**:
-- ✅ **HashMap<String, EventSchema>**: Map event name to schema (O(1) lookup)
-- ✅ **TreeMap<String, EventSchema>**: Store events in alphabetical order (for documentation)
-- ✅ **LinkedHashMap<String, Field>**: Preserve field order in JSON Schema
-- ✅ **Set<String>**: Track required fields (validation)
+**Best Practices** (AsyncAPI/JSON Schema):
 
-**Algorithms**:
-- ✅ **JSON Schema Validation**: Recursive validation algorithm
-  - Time: O(N) where N = number of fields
-- ✅ **Tree Traversal**: Navigate nested event structures
-  - Time: O(N) where N = total fields
+1. ✅ **AsyncAPI Structure**:
+   ```yaml
+   asyncapi: '2.6.0'
+   info:
+     title: Payments Engine Events
+     version: '1.0.0'
+   channels:
+     payment.initiated:
+       publish:
+         message:
+           $ref: '#/components/messages/PaymentInitiated'
+   ```
 
-**Implementation**:
-```java
-// Validate event against JSON schema
-public boolean validateEvent(JsonNode event, JsonSchema schema) {
-    for (String requiredField : schema.getRequiredFields()) {
-        if (!event.has(requiredField)) {
-            return false; // Missing required field
-        }
-    }
-    return true;
-}
+2. ✅ **Event Naming Convention**:
+   - Domain.Action format: `payment.initiated`, `payment.validated`, `payment.completed`
+   - Use past tense for completed actions
+   - Lowercase with dots as separators
+
+3. ✅ **Schema Best Practices**:
+   - Define reusable schemas in `components/schemas`
+   - Use `$ref` for common types (Money, Address, Customer)
+   - Mark required fields explicitly
+   - Include field descriptions
+   - Use `format` for validation (email, uuid, date-time)
+
+4. ✅ **Versioning**:
+   - Include `schemaVersion` in event payload
+   - Use semantic versioning (1.0.0, 1.1.0, 2.0.0)
+   - Maintain backward compatibility
+
+5. ✅ **Common Event Structure**:
+   ```json
+   {
+     "eventId": "uuid",
+     "eventType": "payment.initiated",
+     "eventTime": "2025-10-12T10:00:00Z",
+     "schemaVersion": "1.0.0",
+     "tenantId": "TENANT001",
+     "correlationId": "uuid",
+     "payload": { ... }
+   }
+   ```
+
+**Example Event Schema**:
+```yaml
+PaymentInitiated:
+  type: object
+  required:
+    - eventId
+    - eventType
+    - eventTime
+    - tenantId
+    - payload
+  properties:
+    eventId:
+      type: string
+      format: uuid
+    eventType:
+      type: string
+      const: payment.initiated
+    eventTime:
+      type: string
+      format: date-time
+    payload:
+      $ref: '#/components/schemas/PaymentPayload'
 ```
 
-**Complexity**:
-- Time: O(N) per event validation (N = fields)
-- Space: O(D) where D = max nesting depth (recursion stack)
+**Complexity**: N/A (Declarative schema, validated at runtime by event bus)
 
 ---
 
@@ -195,36 +256,98 @@ LRUCache<String, PaymentResponse> idempotencyCache = new LRUCache<>(10000);
 
 ### Feature 0.5: Infrastructure Setup (Terraform)
 
-**Purpose**: Provision Azure infrastructure (AKS, PostgreSQL, Redis, Service Bus)
+**Type**: 🔧 **Configuration** (Terraform HCL - NOT Java)
 
-**Data Structures**:
-- ✅ **HashMap<String, Resource>**: Map resource name to definition
-- ✅ **Graph (Directed Acyclic Graph)**: Model resource dependencies
-- ✅ **PriorityQueue<Resource>**: Order resources by deployment priority
-- ✅ **Set<String>**: Track provisioned resources (idempotency)
+**Purpose**: Provision Azure infrastructure using Terraform
 
-**Algorithms**:
-- ✅ **Topological Sort**: Order resource creation by dependencies
-  - Time: O(R + D) where R = resources, D = dependencies
-- ✅ **DFS**: Detect circular dependencies
-  - Time: O(R + D)
+**Best Practices** (Terraform/HCL):
 
-**Implementation**:
-```java
-// Topological sort for Terraform resource creation
-public List<Resource> getProvisioningOrder(Map<String, List<String>> dependencies) {
-    // Similar to Feature 0.1 (Database Schemas)
-    return topologicalSort(dependencies);
+1. ✅ **Module Structure**:
+   ```
+   terraform/
+   ├── modules/
+   │   ├── aks/
+   │   ├── postgresql/
+   │   ├── redis/
+   │   └── service-bus/
+   ├── environments/
+   │   ├── dev/
+   │   ├── staging/
+   │   └── prod/
+   └── main.tf
+   ```
+
+2. ✅ **Resource Naming Convention**:
+   ```hcl
+   resource "azurerm_kubernetes_cluster" "aks" {
+     name                = "${var.environment}-payments-aks"
+     resource_group_name = azurerm_resource_group.main.name
+     location            = var.location
+     dns_prefix          = "${var.environment}-payments"
+   }
+   ```
+
+3. ✅ **Dependency Management**:
+   - Use implicit dependencies (resource references)
+   - Use `depends_on` for explicit dependencies
+   - Terraform automatically handles topological ordering
+
+4. ✅ **State Management**:
+   - Use Azure Blob Storage backend for remote state
+   - Enable state locking with `use_microsoft_graph = true`
+   - Separate state files per environment
+
+5. ✅ **Security Best Practices**:
+   - Store secrets in Azure Key Vault
+   - Use Azure AD service principal for authentication
+   - Never commit `.tfvars` files with secrets
+   - Use `sensitive = true` for sensitive outputs
+
+**Example Terraform Configuration**:
+```hcl
+# main.tf
+resource "azurerm_kubernetes_cluster" "aks" {
+  name                = "${var.environment}-payments-aks"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  dns_prefix          = "${var.environment}-payments"
+  kubernetes_version  = var.kubernetes_version
+
+  default_node_pool {
+    name       = "default"
+    node_count = var.node_count
+    vm_size    = "Standard_D4s_v3"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+  }
+}
+
+# Backend configuration
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "terraform-state-rg"
+    storage_account_name = "terraformstate"
+    container_name       = "tfstate"
+    key                  = "payments-engine.tfstate"
+  }
 }
 ```
 
-**Complexity**:
-- Time: O(R + D) where R = resources, D = dependencies
-- Space: O(R) for tracking visited resources
+**Complexity**: N/A (Terraform handles dependency resolution automatically)
 
 ---
 
 ## Phase 1: Core Services (6 Features)
+
+**DSA Applicable**: ✅ ALL 6 features (Java Spring Boot microservices)
+
+---
 
 ### Feature 1.1: Payment Initiation Service
 
@@ -1542,142 +1665,418 @@ public class SlidingWindowRateLimiter {
 
 ### Feature 5.1: Service Mesh (Istio)
 
-**Purpose**: Deploy Istio for traffic management, security, observability
+**Type**: 🔧 **Configuration** (Istio YAML - NOT Java)
 
-**Data Structures**:
-- ✅ **Graph (Service Topology)**: Model service dependencies
-- ✅ **HashMap<String, ServiceConfig>**: Istio configurations per service (O(1))
-- ✅ **Priority Queue**: Order circuit breaker activations by time
+**Purpose**: Deploy Istio service mesh for traffic management, security, observability
 
-**Algorithms**:
-- ✅ **Circuit Breaker State Machine**: Track open/closed/half-open states
-  - Time: O(1) per state transition
-- ✅ **Load Balancing (Consistent Hashing)**: Distribute traffic evenly
-  - Time: O(log N) where N = service instances
+**Best Practices** (Istio YAML):
 
-**Complexity**:
-- Time: O(1) for config lookup, O(log N) for load balancing
-- Space: O(S) where S = number of services
+1. ✅ **VirtualService Configuration**:
+   ```yaml
+   apiVersion: networking.istio.io/v1beta1
+   kind: VirtualService
+   metadata:
+     name: payment-service
+   spec:
+     hosts:
+     - payment-service
+     http:
+     - match:
+       - headers:
+           x-tenant-id:
+             exact: TENANT001
+       route:
+       - destination:
+           host: payment-service
+           subset: v2
+       timeout: 5s
+       retries:
+         attempts: 3
+         perTryTimeout: 2s
+   ```
+
+2. ✅ **DestinationRule (Circuit Breaker)**:
+   ```yaml
+   apiVersion: networking.istio.io/v1beta1
+   kind: DestinationRule
+   metadata:
+     name: payment-service
+   spec:
+     host: payment-service
+     trafficPolicy:
+       connectionPool:
+         tcp:
+           maxConnections: 100
+         http:
+           http1MaxPendingRequests: 50
+           http2MaxRequests: 100
+       outlierDetection:
+         consecutiveErrors: 5
+         interval: 30s
+         baseEjectionTime: 30s
+   ```
+
+3. ✅ **mTLS (Security)**:
+   ```yaml
+   apiVersion: security.istio.io/v1beta1
+   kind: PeerAuthentication
+   metadata:
+     name: default
+     namespace: payments
+   spec:
+     mtls:
+       mode: STRICT
+   ```
+
+4. ✅ **Load Balancing**:
+   - Round robin (default)
+   - Least request
+   - Random
+   - Consistent hashing (for session affinity)
+
+5. ✅ **Observability**:
+   - Automatic metrics (Prometheus)
+   - Distributed tracing (Jaeger)
+   - Access logs
+
+**Complexity**: N/A (Istio control plane handles routing, no application code)
 
 ---
 
 ### Feature 5.2: Prometheus Setup
 
-**Purpose**: Metrics collection and alerting
+**Type**: 🔧 **Configuration** (Prometheus YAML - NOT Java)
 
-**Data Structures**:
-- ✅ **Time-Series Database**: Store metrics over time
-- ✅ **HashMap<String, MetricFamily>**: Index metrics by name (O(1))
-- ✅ **CircularBuffer**: Store recent metric samples (fixed size)
+**Purpose**: Metrics collection, aggregation, and alerting
 
-**Algorithms**:
-- ✅ **Time-Series Aggregation**: Sum, average, percentile calculations
-  - Time: O(N) where N = number of samples in time range
-- ✅ **Range Query**: Retrieve metrics for time window
-  - Time: O(log N + K) where K = samples in range
+**Best Practices** (Prometheus YAML):
 
-**Complexity**:
-- Time: O(1) for metric recording, O(N) for aggregation
-- Space: O(M * T) where M = metrics, T = time retention
+1. ✅ **Prometheus Configuration**:
+   ```yaml
+   global:
+     scrape_interval: 15s
+     evaluation_interval: 15s
+   
+   scrape_configs:
+     - job_name: 'payments-services'
+       kubernetes_sd_configs:
+         - role: pod
+           namespaces:
+             names:
+               - payments
+       relabel_configs:
+         - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+           action: keep
+           regex: true
+         - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+           action: replace
+           target_label: __metrics_path__
+   ```
+
+2. ✅ **Metric Naming Convention**:
+   - Counter: `{service}_requests_total`, `{service}_errors_total`
+   - Gauge: `{service}_active_connections`, `{service}_memory_bytes`
+   - Histogram: `{service}_request_duration_seconds`
+   - Summary: `{service}_response_size_bytes`
+
+3. ✅ **Alerting Rules**:
+   ```yaml
+   groups:
+     - name: payments_alerts
+       rules:
+         - alert: HighErrorRate
+           expr: |
+             rate(payment_service_errors_total[5m]) > 0.05
+           for: 5m
+           labels:
+             severity: critical
+           annotations:
+             summary: "High error rate on payment service"
+   ```
+
+4. ✅ **Retention & Storage**:
+   - Retention: 15 days (default)
+   - Use Thanos for long-term storage
+   - Enable compaction for disk efficiency
+
+**Complexity**: N/A (Prometheus handles time-series storage and queries)
 
 ---
 
 ### Feature 5.3: Grafana Dashboards
 
-**Purpose**: Metrics visualization
+**Type**: 🔧 **Configuration** (Grafana JSON - NOT Java)
 
-**Data Structures**:
-- ✅ **JSON Object**: Store dashboard definitions
-- ✅ **HashMap<String, Dashboard>**: Cache dashboards (O(1) lookup)
-- ✅ **Time-Series Array**: Data points for charts
+**Purpose**: Metrics visualization and monitoring dashboards
 
-**Algorithms**:
-- ✅ **Data Downsampling**: Reduce points for visualization
-  - Time: O(N / R) where R = reduction factor
-- ✅ **Interpolation**: Fill gaps in time series
-  - Time: O(N) linear interpolation
+**Best Practices** (Grafana JSON):
 
-**Complexity**:
-- Time: O(N / R) for downsampling
-- Space: O(D) where D = dashboard size
+1. ✅ **Dashboard Structure**:
+   ```json
+   {
+     "dashboard": {
+       "title": "Payment Service Overview",
+       "panels": [
+         {
+           "id": 1,
+           "title": "Request Rate",
+           "type": "graph",
+           "targets": [
+             {
+               "expr": "rate(payment_service_requests_total[5m])",
+               "legendFormat": "{{method}} {{status}}"
+             }
+           ]
+         }
+       ]
+     }
+   }
+   ```
+
+2. ✅ **Dashboard Organization** (20+ dashboards):
+   - **Golden Signals**: Latency, Traffic, Errors, Saturation
+   - **Per Service**: Payment, Validation, Routing, Saga, etc. (20 services)
+   - **Infrastructure**: AKS, PostgreSQL, Redis, Service Bus
+   - **Business Metrics**: Payment volume, success rate, revenue
+
+3. ✅ **Panel Best Practices**:
+   - Use time-series graphs for trends
+   - Use stat panels for current values
+   - Use tables for detailed data
+   - Set appropriate refresh intervals (5s for critical, 1m for others)
+   - Load time < 3s per dashboard
+
+4. ✅ **Alerting Integration**:
+   - Link Grafana alerts to Prometheus rules
+   - Use notification channels (Email, Slack, PagerDuty)
+
+5. ✅ **Variables & Templates**:
+   ```json
+   "templating": {
+     "list": [
+       {
+         "name": "service",
+         "type": "query",
+         "query": "label_values(service)"
+       }
+     ]
+   }
+   ```
+
+**Complexity**: N/A (Grafana handles rendering, queries Prometheus)
 
 ---
 
 ### Feature 5.4: Jaeger Distributed Tracing
 
-**Purpose**: End-to-end request tracing
+**Type**: 🔧 **Configuration** (Jaeger YAML + OpenTelemetry - NOT Java)
 
-**Data Structures**:
-- ✅ **Span Tree**: Hierarchical trace structure
-- ✅ **HashMap<String, Span>**: Index spans by span ID (O(1))
-- ✅ **Graph (Call Graph)**: Visualize service dependencies
+**Purpose**: End-to-end request tracing across microservices
 
-**Algorithms**:
-- ✅ **Tree Traversal**: Build trace from spans
-  - Time: O(S) where S = number of spans
-- ✅ **Sampling (Probabilistic)**: Sample 10% of requests
-  - Time: O(1) per decision (random number generation)
+**Best Practices** (Jaeger/OpenTelemetry YAML):
 
-**Complexity**:
-- Time: O(S) for trace assembly where S = spans
-- Space: O(S) for trace storage
+1. ✅ **Jaeger Deployment**:
+   ```yaml
+   apiVersion: jaegertracing.io/v1
+   kind: Jaeger
+   metadata:
+     name: jaeger
+   spec:
+     strategy: production
+     storage:
+       type: elasticsearch
+       options:
+         es:
+           server-urls: http://elasticsearch:9200
+     sampling:
+       options:
+         default_strategy:
+           type: probabilistic
+           param: 0.1  # Sample 10% of traces
+   ```
+
+2. ✅ **OpenTelemetry Collector**:
+   ```yaml
+   receivers:
+     otlp:
+       protocols:
+         grpc:
+         http:
+   
+   processors:
+     batch:
+       timeout: 10s
+   
+   exporters:
+     jaeger:
+       endpoint: jaeger-collector:14250
+   
+   service:
+     pipelines:
+       traces:
+         receivers: [otlp]
+         processors: [batch]
+         exporters: [jaeger]
+   ```
+
+3. ✅ **Trace Sampling Strategy**:
+   - **Production**: 10% sampling (performance vs visibility)
+   - **Staging**: 50% sampling
+   - **Dev**: 100% sampling
+   - Always trace errors (100%)
+   - Always trace slow requests (> 5s)
+
+4. ✅ **Trace Retention**:
+   - **Hot storage** (Elasticsearch): 7 days
+   - **Archival** (Azure Blob): 90 days
+   - Trace TTL cleanup job
+
+5. ✅ **Context Propagation**:
+   - Use W3C Trace Context standard
+   - Propagate `traceparent` header
+   - Include `X-B3-TraceId` for Zipkin compatibility
+
+**Complexity**: N/A (Jaeger/OpenTelemetry handles trace collection and storage)
 
 ---
 
 ### Feature 5.5: GitOps (ArgoCD)
 
-**Purpose**: Declarative continuous deployment
+**Type**: 🔧 **Configuration** (ArgoCD YAML + Git - NOT Java)
 
-**Data Structures**:
-- ✅ **Git Tree**: Repository structure
-- ✅ **Diff Algorithm (Myers)**: Compare desired vs actual state
-- ✅ **DAG (Directed Acyclic Graph)**: Deployment dependencies
+**Purpose**: Declarative continuous deployment with GitOps workflow
 
-**Algorithms**:
-- ✅ **Myers Diff Algorithm**: Find minimal changes
-  - Time: O(N * D) where N = lines, D = diff size
-- ✅ **Three-Way Merge**: Merge Git, cluster, desired state
-  - Time: O(N) where N = resources
+**Best Practices** (ArgoCD YAML):
 
-**Complexity**:
-- Time: O(N * D) for diff, O(N) for sync
-- Space: O(N) for state storage
+1. ✅ **Application Definition**:
+   ```yaml
+   apiVersion: argoproj.io/v1alpha1
+   kind: Application
+   metadata:
+     name: payment-service
+     namespace: argocd
+   spec:
+     project: payments-engine
+     source:
+       repoURL: https://github.com/org/payments-manifests
+       targetRevision: main
+       path: k8s/payment-service
+     destination:
+       server: https://kubernetes.default.svc
+       namespace: payments
+     syncPolicy:
+       automated:
+         prune: true
+         selfHeal: true
+         allowEmpty: false
+       syncOptions:
+         - CreateNamespace=true
+       retry:
+         limit: 5
+         backoff:
+           duration: 5s
+           factor: 2
+           maxDuration: 3m
+   ```
+
+2. ✅ **Repository Structure**:
+   ```
+   payments-manifests/
+   ├── k8s/
+   │   ├── payment-service/
+   │   │   ├── deployment.yaml
+   │   │   ├── service.yaml
+   │   │   └── kustomization.yaml
+   │   ├── validation-service/
+   │   └── ...
+   ├── helm-charts/
+   └── environments/
+       ├── dev/
+       ├── staging/
+       └── prod/
+   ```
+
+3. ✅ **Sync Strategy**:
+   - **Automated Sync**: Enable for dev/staging
+   - **Manual Sync**: Require for production (with approval)
+   - **Prune**: Remove resources not in Git
+   - **Self-Heal**: Revert manual changes to cluster
+
+4. ✅ **Rollback Strategy**:
+   - Git revert for rollbacks
+   - ArgoCD tracks deployment history
+   - One-click rollback to previous commit
+
+5. ✅ **Health Checks**:
+   - Use `argocd.argoproj.io/sync-wave` annotations for ordering
+   - Define custom health checks for CRDs
+   - Monitor sync status (Healthy, Progressing, Degraded)
+
+**Complexity**: N/A (ArgoCD handles reconciliation, Git stores state)
 
 ---
 
 ### Feature 5.6: Feature Flags (Unleash)
 
-**Purpose**: Progressive delivery and A/B testing
+**Type**: 🔧 **Configuration** (Unleash YAML - NOT Java)
 
-**Data Structures**:
-- ✅ **HashMap<String, FeatureFlag>**: Flag configuration (O(1) lookup)
-- ✅ **BitSet**: Efficient storage for user cohorts (large-scale A/B testing)
-- ✅ **Bloom Filter**: Quick check if user is in experiment group
+**Purpose**: Progressive delivery, A/B testing, and kill switches
 
-**Algorithms**:
-- ✅ **Consistent Hashing**: Assign users to experiments
-  - Time: O(1) per assignment
-- ✅ **Percentage Rollout**: Gradually enable features (0% → 100%)
-  - Time: O(1) per check (hash user ID, compare to threshold)
+**Best Practices** (Unleash Configuration):
 
-**Implementation**:
-```java
-// Feature flag evaluation
-public boolean isEnabled(String flagName, UnleashContext context) {
-    FeatureFlag flag = flags.get(flagName); // O(1)
-    if (flag == null) return false;
-    
-    // Check if user is in rollout percentage
-    int hash = Math.abs(context.getUserId().hashCode());
-    int bucket = hash % 100; // Map to 0-99
-    
-    return bucket < flag.getRolloutPercentage(); // O(1)
-}
-```
+1. ✅ **Flag Types** (4 types):
+   - **Release**: Gradual feature rollout (0% → 100%)
+   - **Experiment**: A/B testing (50/50 split)
+   - **Ops**: Kill switches (instant on/off)
+   - **Permission**: Per-tenant feature access
 
-**Complexity**:
-- Time: O(1) for flag evaluation
-- Space: O(F) where F = number of flags
+2. ✅ **Flag Naming Convention**:
+   - Domain.Feature format: `payment.swift-integration`, `validation.drools-hot-reload`
+   - Use kebab-case
+   - Include version for breaking changes: `payment.api-v2`
+
+3. ✅ **Activation Strategies**:
+   ```yaml
+   strategies:
+     - name: gradualRolloutUserId
+       parameters:
+         rollout: 25
+         groupId: payment-service
+     - name: tenantId
+       parameters:
+         tenantIds: "TENANT001,TENANT002"
+   ```
+
+4. ✅ **Rollout Plan**:
+   - **0-10%**: Internal testing (1-2 days)
+   - **10-50%**: Early adopters (2-3 days)
+   - **50-100%**: General availability (3-5 days)
+   - Monitor metrics at each stage
+
+5. ✅ **Flag Lifecycle**:
+   - **Created** → **Testing** → **Production** → **Archived** (after 30 days at 100%)
+   - Remove code references to archived flags
+   - Maximum 50 active flags (prevent technical debt)
+
+6. ✅ **SDK Integration** (Java client example):
+   ```java
+   @Autowired
+   private Unleash unleash;
+   
+   public void processPayment(Payment payment) {
+       if (unleash.isEnabled("payment.swift-integration", 
+           UnleashContext.builder()
+               .userId(payment.getCustomerId())
+               .sessionId(payment.getTenantId())
+               .build())) {
+           // New SWIFT integration
+       } else {
+           // Legacy integration
+       }
+   }
+   ```
+
+**Complexity**: O(1) for flag evaluation (handled by Unleash SDK)
 
 ---
 
@@ -1727,123 +2126,305 @@ public void reconcile(CustomResource resource) {
 
 ## Phase 6: Testing (5 Features)
 
+**DSA Applicable**: 0 out of 5 features (ALL are test tool configurations, NOT Java)  
+**Configuration Guidance**: 5 out of 5 features (Cucumber, Gatling, OWASP tools, checklists)
+
+---
+
 ### Feature 6.1: End-to-End Testing
 
-**Purpose**: Validate complete payment flows
+**Type**: 🔧 **Configuration** (Cucumber/RestAssured - Test DSL, NOT Java DSA)
 
-**Data Structures**:
-- ✅ **Graph (Test Dependency Graph)**: Model test execution order
-- ✅ **HashMap<String, TestResult>**: Store test results (O(1) lookup)
-- ✅ **Queue<TestCase>**: Test execution queue
+**Purpose**: Validate complete payment flows with BDD tests
 
-**Algorithms**:
-- ✅ **Topological Sort**: Order tests by dependencies
-  - Time: O(T + D) where T = tests, D = dependencies
-- ✅ **Test Parallelization**: Run independent tests in parallel
-  - Time: O(T / P) where P = parallel threads
+**Best Practices** (Cucumber/RestAssured):
 
-**Complexity**:
-- Time: O(T) for sequential, O(T / P) for parallel execution
-- Space: O(T) for test results
+1. ✅ **Cucumber Feature Files** (Gherkin syntax):
+   ```gherkin
+   Feature: Payment Initiation
+     
+     Scenario: Successful domestic payment
+       Given a valid customer "CUST001" with tenant "TENANT001"
+       And sufficient balance in account "ACC123"
+       When customer initiates payment of R 1000 to account "ACC456"
+       Then payment status should be "INITIATED"
+       And idempotency key should be cached
+       And PaymentInitiated event should be published
+   ```
+
+2. ✅ **RestAssured Test Implementation**:
+   ```java
+   @When("customer initiates payment of R {double} to account {string}")
+   public void initiatePayment(Double amount, String toAccount) {
+       response = given()
+           .header("X-Tenant-ID", tenantId)
+           .header("X-Idempotency-Key", UUID.randomUUID().toString())
+           .contentType("application/json")
+           .body(paymentRequest)
+       .when()
+           .post("/api/v1/payments")
+       .then()
+           .statusCode(201)
+           .extract().response();
+   }
+   ```
+
+3. ✅ **Test Organization** (50+ scenarios):
+   - **Happy Path**: Successful payments (domestic, international, SWIFT)
+   - **Validation Failures**: Invalid amount, missing fields, format errors
+   - **Business Rules**: Limit exceeded, fraud detected, duplicate prevention
+   - **Infrastructure**: Circuit breaker, timeout, retry scenarios
+   - **Multi-Tenancy**: Cross-tenant isolation, tenant-specific limits
+
+4. ✅ **Test Data Management**:
+   - Use TestContainers for PostgreSQL, Redis
+   - Use WireMock for external APIs (core banking, SWIFT, clearing systems)
+   - Separate test data per scenario (no shared state)
+
+5. ✅ **Assertions**:
+   - Response status, body, headers
+   - Database state (using Spring JdbcTemplate)
+   - Event publication (using EmbeddedKafka or Azure Service Bus TestProxy)
+   - Cache state (Redis)
+
+**Complexity**: N/A (Declarative BDD tests, no algorithmic complexity)
 
 ---
 
 ### Feature 6.2: Load Testing
 
-**Purpose**: Validate performance under load (Gatling)
+**Type**: 🔧 **Configuration** (Gatling Scala DSL - NOT Java DSA)
 
-**Data Structures**:
-- ✅ **Histogram**: Store response time distribution
-- ✅ **Circular Buffer**: Store recent request/response pairs
-- ✅ **Priority Queue**: Track slowest requests (for analysis)
+**Purpose**: Validate performance under load (1,000 TPS)
 
-**Algorithms**:
-- ✅ **Percentile Calculation**: Compute p50, p95, p99
-  - Time: O(N log N) for sorting (or O(N) with streaming algorithm)
-- ✅ **Request Generation (Poisson Process)**: Model realistic load
-  - Time: O(1) per request generation
+**Best Practices** (Gatling Scala):
 
-**Implementation**:
-```java
-// Streaming percentile calculation (t-digest algorithm)
-public class StreamingPercentile {
-    private final TDigest digest = new TDigest(100);
-    
-    public void add(double value) {
-        digest.add(value); // O(log N) amortized
-    }
-    
-    public double percentile(double p) {
-        return digest.quantile(p / 100.0); // O(1)
-    }
-}
-```
+1. ✅ **Gatling Simulation**:
+   ```scala
+   class PaymentLoadTest extends Simulation {
+     val httpProtocol = http
+       .baseUrl("https://payments-api.example.com")
+       .header("X-Tenant-ID", "TENANT001")
+     
+     val scn = scenario("Payment Initiation")
+       .exec(http("Initiate Payment")
+         .post("/api/v1/payments")
+         .header("X-Idempotency-Key", "#{idempotencyKey}")
+         .body(StringBody("""{"amount": 1000, "currency": "ZAR"}"""))
+         .check(status.is(201))
+         .check(jsonPath("$.paymentId").saveAs("paymentId"))
+       )
+       .pause(1)
+     
+     setUp(
+       scn.inject(
+         rampUsersPerSec(10) to(1000) during(5.minutes),
+         constantUsersPerSec(1000) during(30.minutes)
+       )
+     ).protocols(httpProtocol)
+   }
+   ```
 
-**Complexity**:
-- Time: O(log N) per sample, O(1) for percentile query (streaming)
-- Space: O(C) where C = compression factor (much smaller than O(N))
+2. ✅ **Performance SLOs**:
+   - **Throughput**: 1,000 TPS sustained
+   - **Latency**:
+     - p50 < 100ms
+     - p95 < 500ms
+     - p99 < 1000ms
+   - **Error Rate**: < 0.1%
+
+3. ✅ **Load Scenarios** (5 scenarios):
+   - Baseline: 100 TPS for 10 minutes
+   - Ramp-up: 0 → 1,000 TPS over 5 minutes
+   - Sustained: 1,000 TPS for 30 minutes
+   - Spike: 1,000 → 5,000 TPS (2 minutes)
+   - Stress: Increase until failure (find breaking point)
+
+4. ✅ **Metrics Collection**:
+   - Response time percentiles
+   - Requests per second
+   - Error rate by type
+   - Resource utilization (CPU, memory, DB connections)
+
+5. ✅ **Bottleneck Analysis**:
+   - Database connection pool size
+   - Redis cache hit rate
+   - Kafka consumer lag
+   - HPA (Horizontal Pod Autoscaler) behavior
+
+**Complexity**: N/A (Declarative load test, no algorithmic complexity)
 
 ---
 
 ### Feature 6.3: Security Testing
 
-**Purpose**: SAST, DAST, penetration testing
+**Type**: 🔧 **Configuration** (OWASP ZAP, Trivy, SonarQube - NOT Java DSA)
 
-**Data Structures**:
-- ✅ **Graph (Call Graph)**: Model security vulnerability propagation
-- ✅ **Trie**: Store common attack patterns (SQL injection, XSS)
-- ✅ **HashMap<String, Vulnerability>**: Index vulnerabilities (O(1))
+**Purpose**: SAST, DAST, dependency scanning, container scanning
 
-**Algorithms**:
-- ✅ **Pattern Matching**: Detect vulnerabilities using regex
-  - Time: O(M * N) where M = patterns, N = code size
-- ✅ **Taint Analysis**: Track data flow from sources to sinks
-  - Time: O(V + E) where V = variables, E = data flows
+**Best Practices** (Security Tool Configuration):
 
-**Complexity**:
-- Time: O(M * N) for pattern matching
-- Space: O(V) for vulnerability storage
+1. ✅ **SAST (SonarQube)**:
+   ```yaml
+   sonar.projectKey=payments-engine
+   sonar.sources=src/main/java
+   sonar.tests=src/test/java
+   sonar.java.binaries=target/classes
+   sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+   sonar.qualitygate.wait=true
+   ```
+
+2. ✅ **DAST (OWASP ZAP)**:
+   ```yaml
+   # zap-config.yaml
+   env:
+     contexts:
+       - name: Payments API
+         urls:
+           - https://payments-api-dev.example.com
+     parameters:
+       failOnError: true
+       failOnWarning: false
+   jobs:
+     - type: spider
+       parameters:
+         maxDuration: 10
+     - type: passiveScan-wait
+     - type: activeScan
+       parameters:
+         maxRuleDurationInMins: 5
+   ```
+
+3. ✅ **Container Scanning (Trivy)**:
+   ```bash
+   trivy image --severity HIGH,CRITICAL payment-service:latest
+   trivy fs --security-checks vuln,config ./
+   ```
+
+4. ✅ **Dependency Scanning (OWASP Dependency-Check)**:
+   ```xml
+   <plugin>
+     <groupId>org.owasp</groupId>
+     <artifactId>dependency-check-maven</artifactId>
+     <configuration>
+       <failBuildOnCVSS>7</failBuildOnCVSS>
+       <suppressionFiles>
+         <suppressionFile>owasp-suppressions.xml</suppressionFile>
+       </suppressionFiles>
+     </configuration>
+   </plugin>
+   ```
+
+5. ✅ **Security Tests** (100+ tests):
+   - **OWASP Top 10**: Injection, broken auth, XSS, XXE, etc.
+   - **API Security**: Authentication bypass, authorization flaws, rate limiting
+   - **Secrets Management**: No hardcoded secrets, Key Vault integration
+   - **Data Protection**: Encryption at rest/transit, PII masking
+
+**Complexity**: N/A (Automated security scanning tools)
 
 ---
 
 ### Feature 6.4: Compliance Testing
 
-**Purpose**: Validate POPIA, FICA, PCI-DSS compliance
+**Type**: 🔧 **Configuration** (Test Checklists - NOT Java DSA)
 
-**Data Structures**:
-- ✅ **Checklist (ArrayList)**: Compliance requirements
-- ✅ **HashMap<String, ComplianceResult>**: Test results per requirement (O(1))
-- ✅ **Graph**: Model compliance dependencies
+**Purpose**: Validate POPIA, FICA, PCI-DSS, SARB compliance
 
-**Algorithms**:
-- ✅ **Checklist Validation**: Verify all requirements met
-  - Time: O(R) where R = requirements
-- ✅ **Evidence Collection**: Gather audit evidence
-  - Time: O(E) where E = evidence items
+**Best Practices** (Compliance Checklists):
 
-**Complexity**:
-- Time: O(R) for validation
-- Space: O(R) for checklist
+1. ✅ **POPIA (Protection of Personal Information Act) - 25+ tests**:
+   - Data subject consent (opt-in)
+   - Right to access personal data
+   - Right to erasure (GDPR-like)
+   - Data breach notification (< 72 hours)
+   - Data minimization (collect only necessary data)
+
+2. ✅ **FICA (Financial Intelligence Centre Act) - 20+ tests**:
+   - Customer Due Diligence (CDD)
+   - Know Your Customer (KYC)
+   - Suspicious transaction reporting
+   - Record retention (5 years minimum)
+
+3. ✅ **PCI-DSS (Payment Card Industry) - 15+ tests**:
+   - No storage of CVV/PIN
+   - Card number masking (show last 4 digits only)
+   - Encryption of card data at rest
+   - TLS 1.2+ for card data in transit
+   - Access control (least privilege)
+
+4. ✅ **SARB (South African Reserve Bank) - 20+ tests**:
+   - Payment system participation requirements
+   - Clearing system integration
+   - Settlement finality
+   - Operational risk management
+   - Audit trail completeness
+
+5. ✅ **Test Evidence Collection**:
+   - Screenshots of compliance features
+   - Audit logs demonstrating compliance
+   - Policy documents
+   - Penetration test reports
+
+**Complexity**: N/A (Manual checklists and test scripts)
 
 ---
 
 ### Feature 6.5: Production Readiness
 
+**Type**: 🔧 **Configuration** (Runbooks & Checklists - NOT Java DSA)
+
 **Purpose**: Final verification before production deployment
 
-**Data Structures**:
-- ✅ **Checklist (ArrayList)**: Readiness criteria
-- ✅ **HashMap<String, CheckResult>**: Results per check (O(1))
+**Best Practices** (Production Readiness Checklist):
 
-**Algorithms**:
-- ✅ **Health Check**: Verify all services healthy
-  - Time: O(S) where S = services
-- ✅ **Smoke Testing**: Quick validation of critical paths
-  - Time: O(T) where T = smoke tests
+1. ✅ **Infrastructure Readiness** (20 checks):
+   - [ ] AKS cluster provisioned (3+ nodes)
+   - [ ] PostgreSQL HA enabled (read replicas)
+   - [ ] Redis cluster mode enabled (6+ nodes)
+   - [ ] Azure Service Bus namespace created
+   - [ ] Key Vault configured with secrets
+   - [ ] Application Gateway with WAF enabled
+   - [ ] DNS records configured
+   - [ ] TLS certificates valid (> 30 days)
 
-**Complexity**:
-- Time: O(S + T) for health checks and smoke tests
-- Space: O(S) for service status
+2. ✅ **Application Readiness** (25 checks):
+   - [ ] All 20 microservices deployed
+   - [ ] Health checks passing (liveness, readiness)
+   - [ ] HPA configured (min 3, max 30 pods)
+   - [ ] Resource limits set (CPU, memory)
+   - [ ] ConfigMaps and Secrets mounted
+   - [ ] PodDisruptionBudgets configured
+   - [ ] NetworkPolicies enforced
+   - [ ] Service mesh (Istio) installed
+
+3. ✅ **Security Readiness** (15 checks):
+   - [ ] mTLS enabled (Istio STRICT mode)
+   - [ ] RBAC configured (least privilege)
+   - [ ] Azure AD B2C integration tested
+   - [ ] API authentication working (OAuth 2.0)
+   - [ ] Secrets rotated (Key Vault)
+   - [ ] Security scans passed (zero HIGH/CRITICAL)
+   - [ ] PCI-DSS compliant
+
+4. ✅ **Observability Readiness** (10 checks):
+   - [ ] Prometheus scraping all services
+   - [ ] Grafana dashboards created (20+ dashboards)
+   - [ ] Jaeger collecting traces (10% sampling)
+   - [ ] Azure Monitor alerts configured
+   - [ ] Log aggregation working (Azure Log Analytics)
+   - [ ] SLO dashboards created
+   - [ ] On-call rotation defined
+
+5. ✅ **DR Readiness** (10 checks):
+   - [ ] Backup strategy defined (daily, weekly, monthly)
+   - [ ] Disaster recovery plan documented
+   - [ ] Multi-region failover tested
+   - [ ] RTO/RPO defined and tested
+   - [ ] Runbooks created for incidents
+   - [ ] Chaos engineering tests passed
+
+**Complexity**: N/A (Checklists and runbooks, no algorithms)
 
 ---
 
@@ -2028,7 +2609,25 @@ public TaskExecutor taskExecutor() {
 
 ## Summary
 
-This DSA guidance document provides **comprehensive recommendations** for all 40 features across 7 phases. Key principles:
+This document provides **DSA guidance for Java/Spring Boot features** and **Configuration best practices for infrastructure/testing features** across all 40 features in 7 phases.
+
+### Coverage Breakdown
+
+**✅ DSA Guidance (26 features)**:
+- Phase 0: 2 features (Domain Models, Shared Libraries)
+- Phase 1: 6 features (ALL core services)
+- Phase 2: 5 features (ALL clearing adapters)
+- Phase 3: 5 features (ALL platform services)
+- Phase 4: 7 features (ALL advanced features + BFFs)
+- Phase 5: 1 feature (Kubernetes Operators - Go/Java)
+- Phase 6: 0 features
+
+**🔧 Configuration Guidance (14 features)**:
+- Phase 0: 3 features (Database Schemas, Event Schemas, Terraform)
+- Phase 5: 6 features (Istio, Prometheus, Grafana, Jaeger, ArgoCD, Unleash)
+- Phase 6: 5 features (E2E Testing, Load Testing, Security Testing, Compliance Testing, Production Readiness)
+
+### Key DSA Principles (for Java features)
 
 1. ✅ **Choose appropriate data structures** based on operation requirements (O(1) lookup, O(log N) sorted, etc.)
 2. ✅ **Optimize for common case** (e.g., use HashMap for frequent lookups, PriorityQueue for ordering)
@@ -2037,15 +2636,36 @@ This DSA guidance document provides **comprehensive recommendations** for all 40
 5. ✅ **Use caching strategically** (LRU cache, cache-aside pattern, TTL-based eviction)
 6. ✅ **Batch when possible** (chunk processing, DataLoader for GraphQL, bulk database operations)
 
-**Total DSA Patterns Covered**: 50+ patterns  
-**Total Algorithms Covered**: 35+ algorithms  
-**Total Data Structures**: 30+ data structures
+### Key Configuration Principles (for infrastructure/testing features)
+
+1. ✅ **Declarative over imperative** (YAML, SQL, Gherkin, Scala DSL)
+2. ✅ **Version control all configs** (GitOps, IaC, test scripts)
+3. ✅ **Follow naming conventions** (Flyway migrations, Prometheus metrics, feature flags)
+4. ✅ **Automate everything** (CI/CD, infrastructure provisioning, testing)
+5. ✅ **Document runbooks** (Production readiness, incident response)
+
+### Statistics
+
+**Java/Spring Boot Features (DSA)**:
+- **Total DSA Patterns Covered**: 50+ patterns  
+- **Total Algorithms Covered**: 35+ algorithms  
+- **Total Data Structures**: 30+ data structures
+- **Code Examples**: 22+ working implementations
+
+**Infrastructure/Testing Features (Configuration)**:
+- **SQL Best Practices**: Flyway migrations, indexing, partitioning
+- **YAML Configs**: Istio, Prometheus, Grafana, Jaeger, ArgoCD, Unleash
+- **Test Frameworks**: Cucumber, Gatling, OWASP ZAP, Trivy, SonarQube
+- **Checklists**: 80+ compliance checks, 80+ production readiness checks
 
 **Status**: ✅ Complete - Ready for AI agent development
 
 ---
 
 **Created**: 2025-10-12  
-**Version**: 1.0  
+**Updated**: 2025-10-12 (Split DSA vs Configuration)  
+**Version**: 2.0  
 **Maintained by**: Architecture Team
+
+
 
