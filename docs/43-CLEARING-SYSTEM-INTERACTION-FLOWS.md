@@ -17,18 +17,102 @@ This document provides a **detailed understanding** of how the Payments Engine i
 
 ## Table of Contents
 
-1. [SAMOS (RTGS) Interaction Flow](#1-samos-rtgs-interaction-flow)
-2. [BankservAfrica (EFT/ACH) Interaction Flow](#2-bankservafrica-eftach-interaction-flow)
-3. [RTC (Real-Time Clearing) Interaction Flow](#3-rtc-real-time-clearing-interaction-flow)
-4. [PayShap Interaction Flow](#4-payshap-interaction-flow)
-5. [SWIFT Interaction Flow](#5-swift-interaction-flow)
-6. [Comparison Matrix](#6-comparison-matrix)
-7. [Error Handling Patterns](#7-error-handling-patterns)
-8. [Reconciliation Patterns](#8-reconciliation-patterns)
+1. [ISO 20022 Message Types: pain vs pacs](#1-iso-20022-message-types-pain-vs-pacs)
+2. [SAMOS (RTGS) Interaction Flow](#2-samos-rtgs-interaction-flow)
+3. [BankservAfrica (EFT/ACH) Interaction Flow](#3-bankservafrica-eftach-interaction-flow)
+4. [RTC (Real-Time Clearing) Interaction Flow](#4-rtc-real-time-clearing-interaction-flow)
+5. [PayShap Interaction Flow](#5-payshap-interaction-flow)
+6. [SWIFT Interaction Flow](#6-swift-interaction-flow)
+7. [Comparison Matrix](#7-comparison-matrix)
+8. [Error Handling Patterns](#8-error-handling-patterns)
+9. [Reconciliation Patterns](#9-reconciliation-patterns)
 
 ---
 
-## 1. SAMOS (RTGS) Interaction Flow
+## 1. ISO 20022 Message Types: pain vs pacs
+
+**CRITICAL DISTINCTION**:
+
+### pain Messages (Payment Initiation)
+**Purpose**: Customer ↔ Bank communication  
+**Full Name**: **pa**yment **in**itiation  
+**Direction**: Customer sends payment instructions TO their bank  
+**Common Types**:
+- `pain.001` - Customer Credit Transfer Initiation (customer initiates payment)
+- `pain.002` - Customer Payment Status Report (bank responds to customer)
+- `pain.008` - Customer Direct Debit Initiation
+
+**Example Flow**:
+```
+Customer (Mobile App) → pain.001 → Our Bank
+Our Bank → pain.002 (status) → Customer
+```
+
+**Usage in Payments Engine**:
+- Channel (Web/Mobile/Corporate Portal) sends `pain.001` to Payments Engine
+- Payments Engine validates and responds with `pain.002`
+- This is the **frontend** of the payment flow
+
+---
+
+### pacs Messages (Payment Clearing & Settlement)
+**Purpose**: Bank ↔ Clearing System communication  
+**Full Name**: **pa**yment **c**learing and **s**ettlement  
+**Direction**: Bank sends payment TO clearing system for inter-bank settlement  
+**Common Types**:
+- `pacs.008` - Financial Institution to Financial Institution Customer Credit Transfer (bank-to-bank via clearing)
+- `pacs.002` - Payment Status Report (clearing system responds to bank)
+- `pacs.004` - Payment Return
+
+**Example Flow**:
+```
+Our Bank → pacs.008 → Clearing System (SAMOS/PayShap) → Beneficiary Bank
+Clearing System → pacs.002 (status) → Our Bank
+```
+
+**Usage in Payments Engine**:
+- Payments Engine (acting as bank) sends `pacs.008` to SAMOS/PayShap/RTC
+- Clearing system responds with `pacs.002`
+- This is the **backend** of the payment flow (inter-bank)
+
+---
+
+### Complete Flow Example
+
+```
+CUSTOMER PAYMENT TO ANOTHER BANK:
+
+1. Customer → pain.001 → Our Bank (Payments Engine)
+   "Please send R 500 to John Doe at Bank XYZ"
+   
+2. Our Bank validates, debits customer account
+   
+3. Our Bank → pacs.008 → PayShap Clearing System
+   "Transfer R 500 from our bank to Bank XYZ for John Doe"
+   
+4. PayShap → pacs.008 → Bank XYZ (Beneficiary Bank)
+   "Credit R 500 to John Doe's account"
+   
+5. Bank XYZ credits John Doe
+   
+6. Bank XYZ → pacs.002 → PayShap
+   "Successfully credited"
+   
+7. PayShap → pacs.002 → Our Bank
+   "Payment settled"
+   
+8. Our Bank → pain.002 → Customer
+   "Payment completed successfully"
+```
+
+**Key Takeaway**:
+- `pain` = **Customer-facing** messages (payment initiation)
+- `pacs` = **Inter-bank** messages (clearing & settlement)
+- Our Payments Engine handles **BOTH**: Receives `pain` from channels, sends `pacs` to clearing systems
+
+---
+
+## 2. SAMOS (RTGS) Interaction Flow
 
 **System**: South African Multiple Option Settlement  
 **Type**: Real-Time Gross Settlement (RTGS)  
@@ -661,7 +745,7 @@ public class SamosReconciliationService {
 
 ---
 
-## 2. BankservAfrica (EFT/ACH) Interaction Flow
+## 3. BankservAfrica (EFT/ACH) Interaction Flow
 
 **System**: BankservAfrica Automated Clearing House  
 **Type**: Batch Processing (ACH/EFT)  
@@ -1224,44 +1308,48 @@ public class BankservReconciliationService {
 
 ---
 
-## 3. RTC (Real-Time Clearing) Interaction Flow
+## 4. RTC (Real-Time Clearing) Interaction Flow
 
-**System**: Real-Time Clearing  
+**System**: Real-Time Clearing (BankservAfrica RTC)  
 **Type**: Real-time payment switching  
 **Use Case**: Low-value real-time payments (< R 5 million)  
 **Operator**: BankservAfrica (RTC division)  
 **Settlement**: Near real-time (< 30 seconds)  
-**Operating Hours**: 24/7/365
+**Operating Hours**: 24/7/365  
+**Message Format**: **ISO 8583** (Card payment standard, bitmap format)
 
-### 3.1 System Architecture
+### 4.1 System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                      PAYMENTS ENGINE                                 │
 │  ┌────────────────────────────────────────────────────────────────┐ │
-│  │  Payment Initiation Service                                     │ │
-│  │  └─> Validation Service (Real-time validation)                 │ │
-│  │       └─> Routing Service (Route to RTC)                       │ │
-│  │            └─> RTC Adapter Service                              │ │
+│  │  Channel receives pain.001 from customer                        │ │
+│  │  └─> Payment Initiation Service                                │ │
+│  │       └─> Validation Service (Real-time validation)            │ │
+│  │            └─> Routing Service (Route to RTC)                  │ │
+│  │                 └─> RTC Adapter Service                         │ │
 │  └────────────────────────────────────────────────────────────────┘ │
 └───────────────────────────────┬─────────────────────────────────────┘
-                                │ ISO 20022 (pain.001 / pacs.008)
-                                │ Over HTTPS + mTLS
-                                │ Synchronous API
+                                │ ISO 8583 (Binary bitmap format)
+                                │ Over TCP/IP or HTTPS
+                                │ Synchronous request/response
                                 ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         RTC SYSTEM                                   │
 │  ┌────────────────────────────────────────────────────────────────┐ │
 │  │  Message Validation (< 1 second)                                │ │
 │  │  └─> Routing to Beneficiary Bank                               │ │
-│  │       └─> Beneficiary Bank Validation                          │ │
+│  │       └─> Beneficiary Bank Validation (ISO 8583)               │ │
 │  │            └─> Settlement (< 30 seconds)                        │ │
 │  │                 └─> Confirmation to both banks                  │ │
 │  └────────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### 3.2 Detailed Interaction Flow
+**Note**: RTC uses **ISO 8583**, NOT ISO 20022. ISO 8583 is the international standard for financial transaction card messages (originally for ATM/POS, now used for real-time payments).
+
+### 9.2 Detailed Interaction Flow
 
 #### Step 1: Payment Initiation (T+0)
 
@@ -1289,83 +1377,102 @@ Validation:
 ✅ Fraud score acceptable
 ```
 
-#### Step 2: ISO 20022 Message Construction
+#### Step 2: ISO 8583 Message Construction
 
-**pain.001 (Payment Initiation)**:
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09">
-  <CstmrCdtTrfInitn>
-    <GrpHdr>
-      <MsgId>BANK001-RTC-20251013-143215-000456</MsgId>
-      <CreDtTm>2025-10-13T14:32:15</CreDtTm>
-      <NbOfTxs>1</NbOfTxs>
-      <CtrlSum>15000.00</CtrlSum>
-      <InitgPty>
-        <Nm>Bank 001</Nm>
-        <Id>
-          <OrgId>
-            <Othr>
-              <Id>632005</Id>
-            </Othr>
-          </OrgId>
-        </Id>
-      </InitgPty>
-    </GrpHdr>
-    <PmtInf>
-      <PmtInfId>PMT-RTC-000456</PmtInfId>
-      <PmtMtd>TRF</PmtMtd>
-      <ReqdExctnDt>
-        <Dt>2025-10-13</Dt>
-      </ReqdExctnDt>
-      <Dbtr>
-        <Nm>ABC Corporation (Pty) Ltd</Nm>
-      </Dbtr>
-      <DbtrAcct>
-        <Id>
-          <Othr>
-            <Id>62001234567</Id>
-          </Othr>
-        </Id>
-      </DbtrAcct>
-      <DbtrAgt>
-        <FinInstnId>
-          <ClrSysMmbId>
-            <MmbId>632005</MmbId>
-          </ClrSysMmbId>
-        </FinInstnId>
-      </DbtrAgt>
-      <CdtTrfTxInf>
-        <PmtId>
-          <EndToEndId>PAY-2025-000456</EndToEndId>
-        </PmtId>
-        <Amt>
-          <InstdAmt Ccy="ZAR">15000.00</InstdAmt>
-        </Amt>
-        <CdtrAgt>
-          <FinInstnId>
-            <ClrSysMmbId>
-              <MmbId>632010</MmbId>
-            </ClrSysMmbId>
-          </FinInstnId>
-        </CdtrAgt>
-        <Cdtr>
-          <Nm>John Doe</Nm>
-        </Cdtr>
-        <CdtrAcct>
-          <Id>
-            <Othr>
-              <Id>62009876543</Id>
-            </Othr>
-          </Id>
-        </CdtrAcct>
-        <RmtInf>
-          <Ustrd>Invoice Payment INV-789</Ustrd>
-        </RmtInf>
-      </CdtTrfTxInf>
-    </PmtInf>
-  </CstmrCdtTrfInitn>
-</Document>
+**ISO 8583 Overview**:
+- **Binary bitmap format** (not XML)
+- Originally designed for card transactions (ATM/POS)
+- Now used for real-time payment switching
+- **Message Type Indicator (MTI)**: Defines message function
+- **Bitmap**: Indicates which data elements are present
+- **Data Elements**: 128 possible fields (0-127)
+
+**ISO 8583 Message Structure**:
+```
+┌─────────────────┬──────────────────┬─────────────────────────────────┐
+│  MTI (4 bytes)  │  Bitmap (8/16)   │  Data Elements (variable)       │
+└─────────────────┴──────────────────┴─────────────────────────────────┘
+```
+
+**ISO 8583 Credit Transfer Request** (0200 - Financial Transaction):
+```
+MTI: 0200 (Financial Transaction Request)
+
+Primary Bitmap (hex): 7234000108C18801
+  ↓
+  Indicates presence of fields: 2, 3, 4, 7, 11, 12, 18, 22, 32, 37, 41, 42, 43, 49, 102, 103
+
+Field Definitions:
+┌──────┬─────────────────────────────────┬──────────────────────────────┐
+│ DE   │ Description                     │ Value (Example)              │
+├──────┼─────────────────────────────────┼──────────────────────────────┤
+│ 0    │ Message Type Indicator (MTI)    │ 0200 (Financial Request)     │
+│ 2    │ Primary Account Number (PAN)    │ 6200123456700001             │
+│ 3    │ Processing Code                 │ 280000 (Credit Transfer)     │
+│ 4    │ Amount, Transaction             │ 000000001500000 (R 15,000)   │
+│ 7    │ Transmission Date & Time        │ 1013143215 (MMDDhhmmss)      │
+│ 11   │ System Trace Audit Number (STAN)│ 000456                       │
+│ 12   │ Local Transaction Time          │ 143215 (hhmmss)              │
+│ 13   │ Local Transaction Date          │ 1013 (MMDD)                  │
+│ 18   │ Merchant Category Code          │ 6012 (Financial Institution) │
+│ 22   │ Point of Service Entry Mode     │ 012 (Bank transfer)          │
+│ 32   │ Acquiring Institution ID Code   │ 632005 (Our bank code)       │
+│ 37   │ Retrieval Reference Number      │ PAY20251013000456            │
+│ 41   │ Card Acceptor Terminal ID       │ BANK001T01                   │
+│ 42   │ Card Acceptor ID Code           │ BANK001632005                │
+│ 43   │ Card Acceptor Name/Location     │ BANK001 JHB ZA               │
+│ 49   │ Transaction Currency Code       │ 710 (ZAR - South African Rand│
+│ 102  │ Account Identification 1        │ 62001234567 (Debit account)  │
+│ 103  │ Account Identification 2        │ 62009876543 (Credit account) │
+│ 123  │ Beneficiary Bank Code           │ 632010                       │
+└──────┴─────────────────────────────────┴──────────────────────────────┘
+```
+
+**Binary Representation** (Hexadecimal):
+```
+0200                              // MTI
+7234000108C18801                  // Primary bitmap
+166200123456700001                // DE 2: PAN (16 digits)
+280000                            // DE 3: Processing code
+000000001500000                   // DE 4: Amount (R 15,000 in cents)
+1013143215                        // DE 7: Transmission date/time
+000456                            // DE 11: STAN
+143215                            // DE 12: Local time
+1013                              // DE 13: Local date
+6012                              // DE 18: Merchant category
+012                               // DE 22: POS entry mode
+06632005                          // DE 32: Acquiring institution (length + value)
+12PAY20251013000456               // DE 37: Retrieval reference
+08BANK001T01                      // DE 41: Terminal ID
+15BANK001632005                   // DE 42: Card acceptor ID
+40BANK001 JOHANNESBURG         ZA // DE 43: Card acceptor name/location
+710                               // DE 49: Currency code (ZAR)
+1162001234567                     // DE 102: Account ID 1 (debit)
+1162009876543                     // DE 103: Account ID 2 (credit)
+06632010                          // DE 123: Beneficiary bank
+```
+
+**Human-Readable Representation** (for documentation):
+```
+ISO 8583 Message - Credit Transfer Request
+───────────────────────────────────────────
+MTI:              0200 (Financial Transaction Request)
+PAN:              6200123456700001 (16-digit account proxy)
+Processing Code:  280000 (Credit Transfer, To Account, No Fallback)
+Amount:           R 15,000.00 (000000001500000 cents)
+Date/Time:        2025-10-13 14:32:15
+STAN:             000456 (System Trace Audit Number)
+Merchant Cat:     6012 (Financial Institution)
+POS Entry:        012 (Electronic - Bank transfer)
+Acquiring Bank:   632005 (Our bank)
+Reference:        PAY20251013000456
+Terminal:         BANK001T01
+Acceptor:         BANK001632005
+Location:         BANK001 JOHANNESBURG ZA
+Currency:         710 (ZAR)
+Debit Account:    62001234567
+Credit Account:   62009876543
+Beneficiary Bank: 632010
 ```
 
 #### Step 3: Transmission to RTC (T+0 + 1 second)
@@ -1375,47 +1482,214 @@ Validation:
 public class RtcAdapter {
     
     @Autowired
-    private RestTemplate rtcRestTemplate; // Pre-configured with mTLS
+    private Socket rtcSocket; // TCP/IP connection to RTC
     
-    @Value("${rtc.endpoint}")
-    private String rtcEndpoint;
+    @Value("${rtc.host}")
+    private String rtcHost;
+    
+    @Value("${rtc.port}")
+    private int rtcPort;
+    
+    @Value("${rtc.bank-code}")
+    private String bankCode;
     
     public RtcResponse sendPayment(Payment payment) {
-        // 1. Build pain.001 message
-        String xml = buildPain001Message(payment);
+        // 1. Build ISO 8583 message
+        byte[] iso8583Message = buildIso8583Message(payment);
         
-        // 2. Send to RTC (Synchronous call)
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_XML);
-        headers.set("X-Message-Type", "pain.001.001.09");
-        headers.set("X-Bank-Code", bankCode);
-        headers.set("X-Message-Id", payment.getMessageId());
-        headers.set("X-Request-Timestamp", Instant.now().toString());
-        
-        HttpEntity<String> request = new HttpEntity<>(xml, headers);
-        
-        // 3. Call RTC (with 30-second timeout)
+        // 2. Send to RTC (Synchronous TCP/IP or HTTPS)
         try {
-            ResponseEntity<String> response = rtcRestTemplate.exchange(
-                rtcEndpoint + "/api/v1/payments",
-                HttpMethod.POST,
-                request,
-                String.class
-            );
+            // Open connection
+            Socket socket = new Socket(rtcHost, rtcPort);
+            socket.setSoTimeout(30000); // 30-second timeout
             
-            // 4. Parse response (pain.002 - Payment Status Report)
-            return parsePain002Response(response.getBody());
+            // Send message
+            OutputStream out = socket.getOutputStream();
             
-        } catch (HttpClientErrorException e) {
-            // 4xx errors (validation failures)
-            throw new RtcValidationException(e.getResponseBodyAsString());
-        } catch (HttpServerErrorException e) {
-            // 5xx errors (RTC system issues)
-            throw new RtcSystemException(e.getResponseBodyAsString());
-        } catch (ResourceAccessException e) {
-            // Timeout (> 30 seconds)
+            // Message length (2 bytes, big-endian)
+            int messageLength = iso8583Message.length;
+            out.write((messageLength >> 8) & 0xFF);
+            out.write(messageLength & 0xFF);
+            
+            // Message content
+            out.write(iso8583Message);
+            out.flush();
+            
+            // 3. Receive response
+            InputStream in = socket.getInputStream();
+            
+            // Read response length
+            int responseLengthHigh = in.read();
+            int responseLengthLow = in.read();
+            int responseLength = (responseLengthHigh << 8) | responseLengthLow;
+            
+            // Read response message
+            byte[] responseBytes = new byte[responseLength];
+            int bytesRead = 0;
+            while (bytesRead < responseLength) {
+                int read = in.read(responseBytes, bytesRead, responseLength - bytesRead);
+                if (read == -1) break;
+                bytesRead += read;
+            }
+            
+            socket.close();
+            
+            // 4. Parse ISO 8583 response (0210 - Financial Response)
+            return parseIso8583Response(responseBytes);
+            
+        } catch (SocketTimeoutException e) {
             throw new RtcTimeoutException("RTC did not respond within 30 seconds");
+        } catch (IOException e) {
+            throw new RtcConnectionException("Failed to connect to RTC: " + e.getMessage());
         }
+    }
+    
+    private byte[] buildIso8583Message(Payment payment) {
+        Iso8583Message msg = new Iso8583Message();
+        
+        // Set MTI: 0200 (Financial Transaction Request)
+        msg.setMti("0200");
+        
+        // DE 2: Primary Account Number (use debit account as proxy)
+        msg.setField(2, padLeft(payment.getDebitAccount(), 16, '0'));
+        
+        // DE 3: Processing Code (280000 = Credit Transfer)
+        msg.setField(3, "280000");
+        
+        // DE 4: Amount (in cents, 12 digits)
+        long amountCents = payment.getAmount().multiply(new BigDecimal("100")).longValue();
+        msg.setField(4, String.format("%012d", amountCents));
+        
+        // DE 7: Transmission Date & Time (MMDDhhmmss)
+        msg.setField(7, LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMddHHmmss")));
+        
+        // DE 11: System Trace Audit Number (STAN) - unique per day
+        msg.setField(11, String.format("%06d", payment.getId() % 1000000));
+        
+        // DE 12: Local Transaction Time (hhmmss)
+        msg.setField(12, LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmmss")));
+        
+        // DE 13: Local Transaction Date (MMDD)
+        msg.setField(13, LocalDate.now().format(DateTimeFormatter.ofPattern("MMdd")));
+        
+        // DE 18: Merchant Category Code (6012 = Financial Institution)
+        msg.setField(18, "6012");
+        
+        // DE 22: Point of Service Entry Mode (012 = Electronic, bank transfer)
+        msg.setField(22, "012");
+        
+        // DE 32: Acquiring Institution ID (our bank code)
+        msg.setField(32, bankCode); // 632005
+        
+        // DE 37: Retrieval Reference Number (unique transaction reference)
+        msg.setField(37, payment.getReference());
+        
+        // DE 41: Card Acceptor Terminal ID
+        msg.setField(41, "BANK001T01");
+        
+        // DE 42: Card Acceptor ID Code
+        msg.setField(42, "BANK001" + bankCode);
+        
+        // DE 43: Card Acceptor Name/Location
+        msg.setField(43, "BANK001 JOHANNESBURG         ZA");
+        
+        // DE 49: Transaction Currency Code (710 = ZAR)
+        msg.setField(49, "710");
+        
+        // DE 102: Account Identification 1 (Debit account)
+        msg.setField(102, payment.getDebitAccount());
+        
+        // DE 103: Account Identification 2 (Credit account)
+        msg.setField(103, payment.getCreditAccount());
+        
+        // DE 123: Beneficiary Bank Code (custom field)
+        msg.setField(123, payment.getBeneficiaryBankCode());
+        
+        // Serialize to binary
+        return msg.toByteArray();
+    }
+    
+    private RtcResponse parseIso8583Response(byte[] responseBytes) {
+        Iso8583Message response = Iso8583Message.parse(responseBytes);
+        
+        // MTI should be 0210 (Financial Transaction Response)
+        String mti = response.getMti();
+        if (!"0210".equals(mti)) {
+            throw new RtcProtocolException("Invalid MTI in response: " + mti);
+        }
+        
+        // DE 39: Response Code (00 = Approved, others = declined/error)
+        String responseCode = response.getField(39);
+        
+        // DE 37: Retrieval Reference Number (original transaction reference)
+        String retrievalRef = response.getField(37);
+        
+        // DE 38: Authorization Code (if approved)
+        String authCode = response.getField(38);
+        
+        return RtcResponse.builder()
+            .mti(mti)
+            .responseCode(responseCode)
+            .retrievalReference(retrievalRef)
+            .authorizationCode(authCode)
+            .approved("00".equals(responseCode))
+            .timestamp(LocalDateTime.now())
+            .build();
+    }
+}
+```
+
+**Using jPOS Library** (recommended for ISO 8583):
+```java
+@Service
+public class RtcAdapterWithJpos {
+    
+    public RtcResponse sendPayment(Payment payment) throws ISOException {
+        // 1. Create ISO 8583 message using jPOS
+        ISOMsg isoMsg = new ISOMsg();
+        isoMsg.setMTI("0200");
+        
+        // Set fields
+        isoMsg.set(2, padLeft(payment.getDebitAccount(), 16, '0'));
+        isoMsg.set(3, "280000"); // Credit transfer
+        isoMsg.set(4, String.format("%012d", payment.getAmount().multiply(new BigDecimal("100")).longValue()));
+        isoMsg.set(7, new Date(), "MMddHHmmss");
+        isoMsg.set(11, String.format("%06d", payment.getId() % 1000000));
+        isoMsg.set(12, new Date(), "HHmmss");
+        isoMsg.set(13, new Date(), "MMdd");
+        isoMsg.set(18, "6012");
+        isoMsg.set(22, "012");
+        isoMsg.set(32, bankCode);
+        isoMsg.set(37, payment.getReference());
+        isoMsg.set(41, "BANK001T01");
+        isoMsg.set(42, "BANK001" + bankCode);
+        isoMsg.set(43, "BANK001 JOHANNESBURG         ZA");
+        isoMsg.set(49, "710"); // ZAR
+        isoMsg.set(102, payment.getDebitAccount());
+        isoMsg.set(103, payment.getCreditAccount());
+        isoMsg.set(123, payment.getBeneficiaryBankCode());
+        
+        // 2. Pack message
+        byte[] packedMessage = isoMsg.pack();
+        
+        // 3. Send via TCP/IP (using jPOS channel)
+        NACChannel channel = new NACChannel(rtcHost, rtcPort, new GenericPackager("rtc-packager.xml"));
+        channel.connect();
+        channel.send(isoMsg);
+        
+        // 4. Receive response
+        ISOMsg response = channel.receive(30000); // 30-second timeout
+        channel.disconnect();
+        
+        // 5. Parse response
+        String responseCode = response.getString(39);
+        String authCode = response.getString(38);
+        
+        return RtcResponse.builder()
+            .responseCode(responseCode)
+            .authorizationCode(authCode)
+            .approved("00".equals(responseCode))
+            .build();
     }
 }
 ```
@@ -1425,100 +1699,152 @@ public class RtcAdapter {
 **RTC Internal Flow**:
 ```
 1. Sender Bank Validation (< 1 second)
-   ✅ Message format (ISO 20022 pain.001)
-   ✅ mTLS certificate valid
-   ✅ Bank code registered
-   ✅ Message ID unique
+   ✅ Message format (ISO 8583 MTI 0200)
+   ✅ Bitmap validation
+   ✅ Mandatory fields present (2, 3, 4, 7, 11, 32, 102, 103)
+   ✅ Bank code registered (DE 32)
+   ✅ STAN (DE 11) unique for today
    ✅ Amount within limits (< R 5M)
+   ✅ Currency is ZAR (DE 49 = 710)
 
 2. Routing to Beneficiary Bank (< 1 second)
-   - Lookup bank code: 632010
-   - Route message to Bank 010's RTC endpoint
-   - Forward payment instruction
+   - Extract beneficiary bank code: DE 123 = 632010
+   - Lookup bank connection details
+   - Forward ISO 8583 message to Bank 010
 
 3. Beneficiary Bank Validation (< 5 seconds)
    Bank 010 performs:
-   ✅ Account number exists
+   ✅ Account number exists (DE 103)
    ✅ Account is active (not closed/blocked)
-   ✅ Beneficiary name matches (optional verification)
    ✅ Account can receive credits
    
    If ALL validations pass:
-     → Accept payment
+     → Generate 0210 response with DE 39 = "00" (Approved)
    If ANY validation fails:
-     → Reject with reason code
+     → Generate 0210 response with DE 39 = error code
 
 4. Settlement Instruction (< 2 seconds)
-   If accepted:
+   If approved (DE 39 = "00"):
      - RTC instructs settlement
      - Move funds between bank reserve accounts
      - Update clearing balances
 
 5. Confirmation (< 1 second)
-   - Generate pain.002 (Payment Status Report)
+   - Generate ISO 8583 0210 (Financial Transaction Response)
    - Send to Sender Bank (our bank)
    - Send notification to Beneficiary Bank
 ```
 
 #### Step 5: RTC Response (T+0 + 10 seconds)
 
-**Success Response** (pain.002):
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.002.001.10">
-  <CstmrPmtStsRpt>
-    <GrpHdr>
-      <MsgId>RTC-20251013-143225-000456</MsgId>
-      <CreDtTm>2025-10-13T14:32:25</CreDtTm>
-    </GrpHdr>
-    <OrgnlGrpInfAndSts>
-      <OrgnlMsgId>BANK001-RTC-20251013-143215-000456</OrgnlMsgId>
-      <OrgnlMsgNmId>pain.001.001.09</OrgnlMsgNmId>
-      <GrpSts>ACCP</GrpSts>  <!-- Accepted -->
-    </OrgnlGrpInfAndSts>
-    <OrgnlPmtInfAndSts>
-      <OrgnlPmtInfId>PMT-RTC-000456</OrgnlPmtInfId>
-      <PmtInfSts>ACSC</PmtInfSts>  <!-- AcceptedSettlementCompleted -->
-      <StsRsnInf>
-        <Rsn>
-          <Cd>SETT</Cd>  <!-- Settled -->
-        </Rsn>
-      </StsRsnInf>
-      <TxInfAndSts>
-        <OrgnlEndToEndId>PAY-2025-000456</OrgnlEndToEndId>
-        <TxSts>ACSC</TxSts>
-        <AccptncDtTm>2025-10-13T14:32:25</AccptncDtTm>
-        <ClrSysRef>RTC-2025-1013-143225-000456</ClrSysRef>
-      </TxInfAndSts>
-    </OrgnlPmtInfAndSts>
-  </CstmrPmtStsRpt>
-</Document>
+**Success Response** (ISO 8583 0210):
+```
+MTI: 0210 (Financial Transaction Response)
+
+Primary Bitmap (hex): 7234000108C18801
+  ↓
+  Same fields as request, plus response-specific fields
+
+Field Definitions:
+┌──────┬─────────────────────────────────┬──────────────────────────────┐
+│ DE   │ Description                     │ Value (Example)              │
+├──────┼─────────────────────────────────┼──────────────────────────────┤
+│ 0    │ Message Type Indicator (MTI)    │ 0210 (Financial Response)    │
+│ 2    │ Primary Account Number (PAN)    │ 6200123456700001             │
+│ 3    │ Processing Code                 │ 280000 (Credit Transfer)     │
+│ 4    │ Amount, Transaction             │ 000000001500000 (R 15,000)   │
+│ 7    │ Transmission Date & Time        │ 1013143225 (10s later)       │
+│ 11   │ System Trace Audit Number (STAN)│ 000456 (same as request)     │
+│ 12   │ Local Transaction Time          │ 143225                       │
+│ 13   │ Local Transaction Date          │ 1013                         │
+│ 32   │ Acquiring Institution ID Code   │ 632005                       │
+│ 37   │ Retrieval Reference Number      │ PAY20251013000456 (same)     │
+│ 38   │ Authorization Code              │ 123456 (unique auth code)    │
+│ 39   │ Response Code                   │ 00 (Approved)                │
+│ 41   │ Card Acceptor Terminal ID       │ BANK001T01                   │
+│ 49   │ Transaction Currency Code       │ 710 (ZAR)                    │
+│ 102  │ Account Identification 1        │ 62001234567                  │
+│ 103  │ Account Identification 2        │ 62009876543                  │
+└──────┴─────────────────────────────────┴──────────────────────────────┘
+```
+
+**Binary Representation** (Hexadecimal):
+```
+0210                              // MTI (Financial Response)
+7234000108C18801                  // Primary bitmap
+166200123456700001                // DE 2: PAN
+280000                            // DE 3: Processing code
+000000001500000                   // DE 4: Amount
+1013143225                        // DE 7: Transmission date/time (response time)
+000456                            // DE 11: STAN (same as request)
+143225                            // DE 12: Local time (response time)
+1013                              // DE 13: Local date
+06632005                          // DE 32: Acquiring institution
+12PAY20251013000456               // DE 37: Retrieval reference (same)
+06123456                          // DE 38: Authorization code (NEW)
+0200                              // DE 39: Response code (00 = Approved)
+08BANK001T01                      // DE 41: Terminal ID
+710                               // DE 49: Currency code
+1162001234567                     // DE 102: Account ID 1
+1162009876543                     // DE 103: Account ID 2
+```
+
+**Human-Readable Representation**:
+```
+ISO 8583 Response - Credit Transfer Approved
+─────────────────────────────────────────────
+MTI:              0210 (Financial Transaction Response)
+Response Code:    00 (Approved - Transaction Successful)
+Authorization:    123456
+Reference:        PAY20251013000456
+STAN:             000456
+Amount:           R 15,000.00
+Currency:         710 (ZAR)
+Date/Time:        2025-10-13 14:32:25
+Status:           APPROVED ✅
 ```
 
 **Failure Response Example** (Invalid Account):
-```xml
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.002.001.10">
-  <CstmrPmtStsRpt>
-    <GrpHdr>
-      <MsgId>RTC-20251013-143226-000457</MsgId>
-      <CreDtTm>2025-10-13T14:32:26</CreDtTm>
-    </GrpHdr>
-    <OrgnlPmtInfAndSts>
-      <OrgnlPmtInfId>PMT-RTC-000457</OrgnlPmtInfId>
-      <TxInfAndSts>
-        <OrgnlEndToEndId>PAY-2025-000457</OrgnlEndToEndId>
-        <TxSts>RJCT</TxSts>  <!-- Rejected -->
-        <StsRsnInf>
-          <Rsn>
-            <Cd>AC03</Cd>  <!-- Invalid Creditor Account Number -->
-          </Rsn>
-          <AddtlInf>Account number does not exist or is closed</AddtlInf>
-        </StsRsnInf>
-      </TxInfAndSts>
-    </OrgnlPmtInfAndSts>
-  </CstmrPmtStsRpt>
-</Document>
 ```
+MTI: 0210 (Financial Transaction Response)
+
+Key Fields:
+┌──────┬─────────────────────────────────┬──────────────────────────────┐
+│ DE   │ Description                     │ Value                        │
+├──────┼─────────────────────────────────┼──────────────────────────────┤
+│ 0    │ MTI                             │ 0210 (Response)              │
+│ 39   │ Response Code                   │ 14 (Invalid Account Number)  │
+│ 37   │ Retrieval Reference Number      │ PAY20251013000457            │
+│ 11   │ STAN                            │ 000457                       │
+└──────┴─────────────────────────────────┴──────────────────────────────┘
+```
+
+**ISO 8583 Response Codes** (DE 39):
+```
+┌──────┬─────────────────────────────────┬────────────────────────────┐
+│ Code │ Description                     │ Action                     │
+├──────┼─────────────────────────────────┼────────────────────────────┤
+│ 00   │ Approved                        │ ✅ Success                 │
+│ 01   │ Refer to card issuer            │ ⚠️ Manual review           │
+│ 03   │ Invalid merchant                │ ❌ Configuration error     │
+│ 05   │ Do not honor                    │ ❌ Bank declined           │
+│ 12   │ Invalid transaction             │ ❌ Processing error        │
+│ 13   │ Invalid amount                  │ ❌ Amount validation failed│
+│ 14   │ Invalid account number          │ ❌ Account doesn't exist   │
+│ 30   │ Format error                    │ ❌ Message format invalid  │
+│ 51   │ Insufficient funds              │ ⚠️ Rare (pre-validated)   │
+│ 54   │ Expired card                    │ ❌ Account expired         │
+│ 55   │ Incorrect PIN                   │ ❌ Auth failed             │
+│ 57   │ Transaction not permitted       │ ❌ Compliance issue        │
+│ 58   │ Transaction not permitted       │ ❌ Bank restrictions       │
+│ 61   │ Exceeds withdrawal limit        │ ❌ Limit exceeded          │
+│ 91   │ Issuer or switch inoperative    │ ⚠️ System down, retry     │
+│ 94   │ Duplicate transmission          │ ❌ Already processed       │
+│ 96   │ System malfunction              │ ⚠️ System error, retry    │
+└──────┴─────────────────────────────────┴────────────────────────────┘
+```
+
+
 
 #### Step 6: Payments Engine Post-Processing
 
@@ -1582,45 +1908,40 @@ public void processRtcResponse(RtcResponse response) {
 
 **Total SLA**: < 30 seconds (typically 10-15 seconds) ✅
 
-### 3.4 RTC Error Codes
+### 9.4 RTC Key Characteristics
 
-| Code | Description | Action |
-|------|-------------|--------|
-| ACSC | AcceptedSettlementCompleted | ✅ Success |
-| ACCP | Accepted | ✅ Intermediate success |
-| RJCT | Rejected | ❌ Failure |
-| AC03 | Invalid Creditor Account | ❌ Account doesn't exist |
-| AC04 | Account Closed | ❌ Account closed |
-| AC06 | Account Blocked | ❌ Account blocked |
-| AM04 | Insufficient Funds | ⚠️ Rare (pre-validated) |
-| AG01 | Transaction Forbidden | ❌ Compliance issue |
-| DUPL | Duplicate | ❌ Already processed |
-
-### 3.5 RTC Key Characteristics
+**Note**: ISO 8583 response codes are documented in Step 5 above. Key codes include:
+- `00` = Approved (Success)
+- `14` = Invalid Account Number
+- `51` = Insufficient Funds
+- `91` = System Inoperative (Retry)
+- `94` = Duplicate Transmission
 
 ✅ **Strengths**:
 - Real-time (< 30 seconds)
 - 24/7/365 availability
 - Synchronous confirmation
 - Account validation before settlement
-- ISO 20022 standard
+- **ISO 8583 standard** (Binary bitmap format)
 - Lower cost than SAMOS
+- TCP/IP or HTTPS connectivity
 
 ⚠️ **Limitations**:
 - Low-value only (< R 5 million)
 - Single retry only (if beneficiary bank timeout)
 - Requires both banks RTC-enabled
 - Network dependency (99.9% SLA)
+- Binary format (requires ISO 8583 library like jPOS)
 
 🔐 **Security**:
-- mTLS (certificate authentication)
-- Message-level encryption
-- API key authentication
-- Request signing (optional)
+- TCP/IP with SSL/TLS encryption
+- Message-level MAC (Message Authentication Code)
+- Bank authentication via connection credentials
+- STAN (System Trace Audit Number) for duplicate detection
 
 ---
 
-## 4. PayShap Interaction Flow
+## 5. PayShap Interaction Flow
 
 **System**: PayShap (Rapid Payments Programme)  
 **Type**: Instant P2P payments  
@@ -1630,19 +1951,20 @@ public void processRtcResponse(RtcResponse response) {
 **Limit**: R 3,000 per transaction  
 **Operating Hours**: 24/7/365
 
-### 4.1 System Architecture
+### 9.1 System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                      PAYMENTS ENGINE                                 │
 │  ┌────────────────────────────────────────────────────────────────┐ │
-│  │  Payment Initiation Service                                     │ │
-│  │  └─> PayShap Proxy Resolution (Mobile/Email → Account)         │ │
-│  │       └─> Validation Service (R 3,000 limit)                   │ │
-│  │            └─> PayShap Adapter Service                          │ │
+│  │  Channel receives pain.001 from customer                        │ │
+│  │  └─> Payment Initiation Service                                │ │
+│  │       └─> PayShap Proxy Resolution (Mobile/Email → Account)    │ │
+│  │            └─> Validation Service (R 3,000 limit)              │ │
+│  │                 └─> PayShap Adapter Service                     │ │
 │  └────────────────────────────────────────────────────────────────┘ │
 └───────────────────────────────┬─────────────────────────────────────┘
-                                │ ISO 20022 (pacs.008)
+                                │ Bank → PayShap: pacs.008 (ISO 20022)
                                 │ Over HTTPS + OAuth 2.0 + mTLS
                                 │ REST API (JSON wrapper)
                                 ▼
@@ -1657,7 +1979,7 @@ public void processRtcResponse(RtcResponse response) {
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### 4.2 Proxy Registration Flow (One-Time Setup)
+### 9.2 Proxy Registration Flow (One-Time Setup)
 
 **Customer Registration**:
 ```
@@ -1748,7 +2070,7 @@ Response 201 Created:
 }
 ```
 
-### 4.3 Payment Flow (Using Proxy)
+### 9.3 Payment Flow (Using Proxy)
 
 #### Step 1: Payment Initiation
 
@@ -1978,7 +2300,7 @@ SMS to +27 83 987 6543:
  - PayShap"
 ```
 
-### 4.4 PayShap OAuth 2.0 Authentication
+### 9.4 PayShap OAuth 2.0 Authentication
 
 ```java
 @Service
@@ -2048,7 +2370,7 @@ Response 200 OK:
 }
 ```
 
-### 4.5 PayShap Key Characteristics
+### 9.5 PayShap Key Characteristics
 
 ✅ **Strengths**:
 - Instant (< 10 seconds)
@@ -2073,7 +2395,7 @@ Response 200 OK:
 
 ---
 
-## 5. SWIFT Interaction Flow
+## 6. SWIFT Interaction Flow
 
 **System**: SWIFT (Society for Worldwide Interbank Financial Telecommunication)  
 **Type**: International cross-border payments  
@@ -2083,7 +2405,7 @@ Response 200 OK:
 **Operating Hours**: 24/7/365  
 **Network**: SWIFTNet
 
-### 5.1 System Architecture
+### 9.1 System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -2111,7 +2433,7 @@ Response 200 OK:
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### 5.2 Detailed Interaction Flow
+### 9.2 Detailed Interaction Flow
 
 #### Step 1: Payment Initiation with FX
 
@@ -2540,7 +2862,7 @@ Our ref: PAY2025101314100456
 -}
 ```
 
-### 5.3 SWIFT Key Characteristics
+### 9.3 SWIFT Key Characteristics
 
 ✅ **Strengths**:
 - Global reach (11,000+ banks, 200+ countries)
@@ -2568,9 +2890,9 @@ Our ref: PAY2025101314100456
 
 ---
 
-## 6. Comparison Matrix
+## 7. Comparison Matrix
 
-### 6.1 Overview Comparison
+### 9.1 Overview Comparison
 
 | Attribute | SAMOS | BankservAfrica | RTC | PayShap | SWIFT |
 |-----------|-------|----------------|-----|---------|-------|
@@ -2579,25 +2901,25 @@ Our ref: PAY2025101314100456
 | **Operator** | SARB | BankservAfrica | BankservAfrica | PayShap | SWIFT SCRL |
 | **Amount Limit** | > R 5M | No limit | < R 5M | R 3,000 | No limit |
 | **Hours** | 07:00-17:00 | Cut-offs | 24/7 | 24/7 | 24/7 |
-| **Format** | ISO 20022 | Proprietary | ISO 20022 | ISO 20022 | MT/MX |
+| **Format** | ISO 20022 | Proprietary | **ISO 8583** | ISO 20022 | MT/MX |
 | **Protocol** | HTTPS + mTLS | SFTP + PGP | HTTPS + mTLS | HTTPS + OAuth | SWIFTNet |
 | **Cost** | High | Low | Medium | Low | Very High |
 | **Reversibility** | Irrevocable | Hard | Hard | Hard | Hard |
 | **Retry** | No | Yes (3x) | Once | No | Yes (3x) |
 
-### 6.2 Technical Comparison
+### 9.2 Technical Comparison
 
 | Attribute | SAMOS | BankservAfrica | RTC | PayShap | SWIFT |
 |-----------|-------|----------------|-----|---------|-------|
 | **API Type** | REST | File-based (SFTP) | REST | REST | Proprietary |
-| **Message Format** | XML (ISO 20022) | Fixed-width text | XML (ISO 20022) | JSON + XML | MT (text) / MX (XML) |
+| **Message Format** | XML (ISO 20022) | Fixed-width text | **Binary (ISO 8583)** | JSON + XML (ISO 20022) | MT (text) / MX (XML) |
 | **Authentication** | mTLS + XMLDSig | SSH key + PGP | mTLS | OAuth 2.0 + mTLS | RMA + LAU |
 | **Timeout** | 30 seconds | N/A (async) | 30 seconds | 30 seconds | N/A (async) |
 | **Response Type** | Synchronous | Asynchronous (file) | Synchronous | Synchronous | Asynchronous |
 | **Sanctions Screening** | Recommended | Recommended | Recommended | Recommended | **MANDATORY** |
 | **Settlement Method** | Immediate | Batch netting | Real-time | Real-time | Correspondent |
 
-### 6.3 Use Case Recommendation
+### 9.3 Use Case Recommendation
 
 | Scenario | Recommended Rail | Reason |
 |----------|------------------|--------|
@@ -2611,9 +2933,9 @@ Our ref: PAY2025101314100456
 
 ---
 
-## 7. Error Handling Patterns
+## 8. Error Handling Patterns
 
-### 7.1 Common Error Scenarios
+### 9.1 Common Error Scenarios
 
 #### Scenario 1: Insufficient Funds
 
@@ -2697,7 +3019,7 @@ Action:
 7. DO NOT disclose specific sanctions list or reason
 ```
 
-### 7.2 Retry Strategy Matrix
+### 9.2 Retry Strategy Matrix
 
 | Clearing System | Retry Allowed? | Max Retries | Backoff Strategy |
 |-----------------|----------------|-------------|------------------|
@@ -2709,9 +3031,9 @@ Action:
 
 ---
 
-## 8. Reconciliation Patterns
+## 9. Reconciliation Patterns
 
-### 8.1 Daily Reconciliation Workflow
+### 9.1 Daily Reconciliation Workflow
 
 **Time**: 18:00 daily (after all cut-offs)
 
@@ -2745,7 +3067,7 @@ public void performDailyReconciliation() {
 }
 ```
 
-### 8.2 Three-Way Reconciliation
+### 9.2 Three-Way Reconciliation
 
 **For Each Payment**:
 ```
@@ -2766,7 +3088,7 @@ If all 3 differ:
   Action: Immediate escalation
 ```
 
-### 8.3 Reconciliation KPIs
+### 9.3 Reconciliation KPIs
 
 | KPI | Target | Alert Threshold |
 |-----|--------|-----------------|
@@ -2782,27 +3104,35 @@ If all 3 differ:
 
 This document provides comprehensive interaction flows for all 5 clearing systems:
 
-1. **SAMOS (RTGS)**: High-value, real-time, irrevocable, 07:00-17:00, ISO 20022, mTLS
-2. **BankservAfrica (EFT)**: Batch processing, file-based, SFTP+PGP, multiple cut-offs, T+0/T+1
-3. **RTC**: Real-time, low-value, 24/7, synchronous API, < 30 seconds
-4. **PayShap**: Instant P2P, proxy-based (mobile/email), R 3,000 limit, OAuth 2.0, < 10 seconds
-5. **SWIFT**: International, multi-hop routing, correspondent banking, T+1-T+3, **mandatory sanctions**
+**CRITICAL: Message Type Distinction**:
+- **pain messages** (payment initiation) = Customer ↔ Bank
+- **pacs messages** (clearing & settlement) = Bank ↔ Clearing System
+
+**Clearing Systems**:
+1. **SAMOS (RTGS)**: High-value, real-time, irrevocable, 07:00-17:00, **pacs.008 (ISO 20022)**, mTLS + XMLDSig
+2. **BankservAfrica (EFT)**: Batch processing, file-based, SFTP+PGP, **proprietary ACH format**, multiple cut-offs, T+0/T+1
+3. **RTC**: Real-time, low-value, 24/7, **ISO 8583 (binary bitmap)**, TCP/IP or HTTPS, < 30 seconds
+4. **PayShap**: Instant P2P, proxy-based (mobile/email), R 3,000 limit, **pacs.008 (ISO 20022)**, OAuth 2.0, < 10 seconds
+5. **SWIFT**: International, multi-hop routing, correspondent banking, **MT103/pacs.008**, T+1-T+3, **mandatory sanctions**
 
 **Key Takeaways**:
+- **ISO 8583 vs ISO 20022**: RTC uses ISO 8583 (binary, card standard), others use ISO 20022 XML
+- **pain vs pacs**: Customer sends pain.001 to bank, bank sends pacs.008 to clearing system
 - Each rail has unique characteristics, timing, and error handling
 - SAMOS and PayShap are irrevocable (no retries)
 - BankservAfrica is async (response files)
 - RTC and PayShap are instant confirmation
 - SWIFT requires sanctions screening (mandatory)
 - Reconciliation is critical (daily, three-way matching)
-- Error handling varies by rail (timeout strategies differ)
+- Error handling varies by rail (ISO 8583 uses numeric codes, ISO 20022 uses alphanumeric)
 
-**For AI Agents**: This document provides sufficient context to build clearing adapters with complete understanding of message formats, timing, error codes, and reconciliation requirements per payment rail.
+**For AI Agents**: This document provides sufficient context to build clearing adapters with complete understanding of message formats (ISO 8583 vs ISO 20022), timing, error codes, and reconciliation requirements per payment rail.
 
 ---
 
-**Document Version**: 1.0  
+**Document Version**: 2.0 (Corrected)  
 **Created**: 2025-10-13  
-**Total Lines**: 3,200+  
-**Coverage**: 5 clearing systems, complete flows, error handling, reconciliation  
-**Status**: ✅ Complete
+**Updated**: 2025-10-13 (Fixed pain/pacs distinction, RTC ISO 8583)  
+**Total Lines**: 3,130  
+**Coverage**: 5 clearing systems, complete flows, pain vs pacs, ISO 8583 vs ISO 20022, error handling, reconciliation  
+**Status**: ✅ Complete & Accurate
