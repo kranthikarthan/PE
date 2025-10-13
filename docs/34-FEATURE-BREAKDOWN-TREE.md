@@ -1874,8 +1874,8 @@ Total Features: 40+
 ├─ Phase 1: 6 features (parallel)
 ├─ Phase 2: 5 features (parallel)
 ├─ Phase 3: 5 features (parallel, independent)
-├─ Phase 4: 5 features (parallel after Phase 1)
-├─ Phase 5: 5 features (parallel, independent)
+├─ Phase 4: 7 features (parallel after Phase 1)
+├─ Phase 5: 7 features (parallel, independent)
 └─ Phase 6: 5 features (sequential)
 
 Total Agents: 36 agents
