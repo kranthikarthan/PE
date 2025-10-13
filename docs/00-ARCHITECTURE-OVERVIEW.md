@@ -4,7 +4,7 @@
 
 This document outlines a **highly modular, AI-agent-buildable payments engine** designed for South Africa's financial ecosystem with international payment capabilities. The architecture follows modern patterns including microservices, event-driven architecture, hexagonal architecture, and Saga patterns to ensure each component can be developed independently by AI agents.
 
-**System Scope**: 20 microservices covering domestic (SA), international (SWIFT), real-time, and batch payment processing.
+**System Scope**: 22 microservices covering domestic (SA), international (SWIFT), real-time, batch payment processing, and operations management.
 
 ## Core Design Principles
 
@@ -148,7 +148,9 @@ This document outlines a **highly modular, AI-agent-buildable payments engine** 
 
 ## Microservices Breakdown
 
-**Total**: 20 Microservices (19 if removing Internal API Gateway - see gateway clarification)
+**Total**: 22 Microservices (21 if removing Internal API Gateway - see gateway clarification)
+
+**Latest Addition**: Phase 7 - Operations & Channel Management (Services #21, #22) 🆕
 
 ### Core Payment Services (6 Services)
 
@@ -274,6 +276,25 @@ This document outlines a **highly modular, AI-agent-buildable payments engine** 
     - Immutable audit trail
     - 7-year retention
     - Tech: Spring Boot, CosmosDB
+
+### Operations & Management (2 Services) 🆕
+
+21. **Operations Management Service** (#21) 🆕
+    - Monitor health of all 22 microservices
+    - Manage circuit breakers (force open/close)
+    - Toggle feature flags (Unleash integration)
+    - Control Kubernetes pods (restart, scale, view logs)
+    - Centralized operations dashboard
+    - Tech: Spring Boot, K8s Java Client, Unleash SDK, PostgreSQL
+
+22. **Metrics Aggregation Service** (#22) 🆕
+    - Aggregate Prometheus metrics from all services
+    - Real-time dashboard data (payment volume, success rate, latency)
+    - Alert management (trigger when thresholds exceeded)
+    - WebSocket/SSE for real-time updates
+    - Tech: Spring Boot WebFlux, Prometheus Client, Redis, PostgreSQL
+
+---
 
 3. **Account Adapter Service** (formerly Account Service)
    - **Orchestrates** calls to external core banking systems

@@ -2185,7 +2185,256 @@ GET /api/v1/users/me
 16. IAM Service
 17. Audit Service
 
+### Phase 7: Operations & Channel Management (NEW) 🆕
+21. Operations Management Service
+22. Metrics Aggregation Service
+
+---
+
+## 21. Operations Management Service (NEW) 🆕
+
+### Responsibilities
+- Monitor health of all 22 microservices (aggregate `/actuator/health`)
+- Manage circuit breakers (force open/close via Resilience4j)
+- Toggle feature flags (integrate with Unleash SDK)
+- Control Kubernetes pods (restart, scale, view logs via K8s API)
+- Provide centralized operations dashboard for ops team
+- Audit all management operations
+
+### Technology Stack
+- **Language**: Java 17, Spring Boot 3.x
+- **Client Libraries**: 
+  - Kubernetes Java Client (io.fabric8)
+  - Unleash Client SDK
+  - Resilience4j (circuit breaker integration)
+  - Prometheus Java Client
+- **Database**: PostgreSQL (operations_audit_log table)
+- **Cache**: Redis (health data cache, 30-second TTL)
+- **Observability**: OpenTelemetry, Micrometer
+
+### API Endpoints
+
+```http
+# Service Health Monitoring
+GET  /api/ops/v1/services
+  Description: List all 22 microservices with health status
+  Response: [{"id":"payment-initiation","status":"UP","uptime":3600}]
+
+GET  /api/ops/v1/services/{id}/health
+  Description: Get detailed health for specific service
+  Response: {"status":"UP","components":{"db":"UP","redis":"UP"}}
+
+GET  /api/ops/v1/services/{id}/metrics
+  Description: Get Prometheus metrics for service
+  Response: Prometheus format metrics
+
+# Circuit Breaker Management
+GET  /api/ops/v1/circuit-breakers
+  Description: List all circuit breakers with state
+  Response: [{"name":"account-service","state":"CLOSED","failureRate":0.01}]
+
+POST /api/ops/v1/circuit-breakers/{id}/open
+  Description: Force open circuit breaker (stop all calls)
+
+POST /api/ops/v1/circuit-breakers/{id}/close
+  Description: Force close circuit breaker (resume calls)
+
+# Feature Flag Management
+GET  /api/ops/v1/feature-flags
+  Description: List all feature flags with state
+  Response: [{"name":"kafka-response","enabled":true,"tenants":["TENANT-001"]}]
+
+POST /api/ops/v1/feature-flags/{id}/toggle
+  Description: Toggle feature flag (enable/disable)
+  Body: {"enabled":true,"tenantId":"TENANT-001"}
+
+# Kubernetes Pod Management
+GET  /api/ops/v1/pods
+  Description: List all pods in payments-engine namespace
+  Response: [{"name":"payment-init-7d4f9","status":"Running","restarts":0}]
+
+POST /api/ops/v1/pods/{id}/restart
+  Description: Restart pod (delete pod, K8s will recreate)
+
+POST /api/ops/v1/pods/{id}/logs
+  Description: Get pod logs (last 1000 lines)
+  Response: {"logs":"2025-10-12 10:00:00 INFO ..."}
+```
+
+### Database Schema
+```sql
+CREATE TABLE operations_audit_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id VARCHAR(50) NOT NULL,
+    operation_type VARCHAR(50) NOT NULL,  -- CIRCUIT_BREAKER_TOGGLE, FEATURE_FLAG_TOGGLE, POD_RESTART
+    target_resource VARCHAR(100) NOT NULL,  -- service-name or pod-name
+    action VARCHAR(50) NOT NULL,  -- OPEN, CLOSE, ENABLE, DISABLE, RESTART
+    performed_by VARCHAR(100) NOT NULL,  -- user email
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    details JSONB,  -- additional context
+    result VARCHAR(20) NOT NULL,  -- SUCCESS, FAILURE
+    error_message TEXT
+);
+
+CREATE INDEX idx_ops_audit_tenant ON operations_audit_log(tenant_id);
+CREATE INDEX idx_ops_audit_timestamp ON operations_audit_log(timestamp DESC);
+CREATE INDEX idx_ops_audit_operation ON operations_audit_log(operation_type);
+```
+
+### Security
+- **Authentication**: JWT token required (ops team only)
+- **Authorization**: Require `OPS_ADMIN` role for write operations, `OPS_VIEWER` for read
+- **Audit**: Log all operations to `operations_audit_log` table
+- **K8s RBAC**: Service account with limited permissions (only `payments-engine` namespace)
+
+### Dependencies
+- All 22 microservices (for health monitoring)
+- Kubernetes API
+- Unleash Feature Flag Service
+- Resilience4j (circuit breakers)
+- Prometheus (metrics)
+
+---
+
+## 22. Metrics Aggregation Service (NEW) 🆕
+
+### Responsibilities
+- Aggregate Prometheus metrics from all 22 microservices
+- Provide real-time dashboard data (payment volume, success rate, latency)
+- Manage alerts (trigger when thresholds exceeded)
+- Store alert history in PostgreSQL
+- Provide WebSocket/SSE for real-time updates to React frontend
+- Cache aggregated metrics in Redis (60-second TTL)
+
+### Technology Stack
+- **Language**: Java 17, Spring Boot 3.x with WebFlux (reactive)
+- **Client Libraries**: 
+  - Prometheus Java Client
+  - Spring WebFlux (non-blocking)
+  - Micrometer
+- **Database**: PostgreSQL (alert_history table)
+- **Cache**: Redis (aggregated metrics, 60-second TTL)
+- **Observability**: OpenTelemetry
+
+### API Endpoints
+
+```http
+# System Metrics
+GET  /api/metrics/v1/summary
+  Description: Overall system metrics (uptime, requests/sec, error rate)
+  Response: {"uptime":86400,"requestsPerSecond":1500,"errorRate":0.01}
+
+GET  /api/metrics/v1/services/{id}/metrics
+  Description: Per-service metrics
+  Response: {"cpuUsage":0.5,"memoryUsage":0.7,"requestCount":10000}
+
+# Payment Metrics
+GET  /api/metrics/v1/payments/volume
+  Description: Payment volume over time (last 24 hours)
+  Response: [{"timestamp":"2025-10-12T10:00:00Z","count":120}]
+
+GET  /api/metrics/v1/payments/success-rate
+  Description: Success rate by payment type
+  Response: [{"type":"EFT","successRate":0.99},{"type":"RTC","successRate":0.98}]
+
+# Latency Metrics
+GET  /api/metrics/v1/latency/p95
+  Description: p95 latency by service
+  Response: [{"service":"payment-initiation","p95":150}]
+
+# Error Metrics
+GET  /api/metrics/v1/errors/top
+  Description: Top errors by count (last 24 hours)
+  Response: [{"error":"INSUFFICIENT_FUNDS","count":45}]
+
+# Alert Management
+GET  /api/metrics/v1/alerts
+  Description: Active alerts
+  Response: [{"id":"alert-1","type":"HIGH_ERROR_RATE","threshold":0.05,"current":0.07}]
+
+POST /api/metrics/v1/alerts/{id}/acknowledge
+  Description: Acknowledge alert (mark as seen)
+
+# Real-Time Dashboard
+GET  /api/metrics/v1/dashboard/realtime
+  Description: Real-time dashboard data (WebSocket/SSE)
+  Response: {"paymentVolume":120,"successRate":0.99,"avgLatency":150}
+
+GET  /api/metrics/v1/dashboard/historical
+  Description: Historical trends (last 7 days)
+  Response: [{"date":"2025-10-12","paymentCount":10000,"successRate":0.99}]
+```
+
+### Database Schema
+```sql
+CREATE TABLE alert_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_type VARCHAR(50) NOT NULL,  -- HIGH_ERROR_RATE, HIGH_LATENCY, SERVICE_DOWN
+    service_name VARCHAR(100),
+    threshold_value DECIMAL(10,2) NOT NULL,
+    current_value DECIMAL(10,2) NOT NULL,
+    triggered_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    acknowledged_at TIMESTAMP,
+    acknowledged_by VARCHAR(100),
+    resolved_at TIMESTAMP,
+    severity VARCHAR(20) NOT NULL,  -- CRITICAL, WARNING, INFO
+    details JSONB
+);
+
+CREATE INDEX idx_alert_history_triggered ON alert_history(triggered_at DESC);
+CREATE INDEX idx_alert_history_type ON alert_history(alert_type);
+CREATE INDEX idx_alert_history_service ON alert_history(service_name);
+```
+
+### Metrics to Aggregate
+```yaml
+Payment Metrics:
+  - payments_total (by type, status, tenant)
+  - payments_amount_total (by currency)
+  - payments_duration_seconds (p50, p95, p99)
+
+System Metrics:
+  - http_requests_total (by endpoint, status)
+  - jvm_memory_used_bytes
+  - jvm_threads_live
+  - resilience4j_circuitbreaker_state
+
+Business Metrics:
+  - active_tenants_count
+  - daily_payment_volume
+  - fraud_detection_rate
+```
+
+### Alert Rules
+```yaml
+- name: HighErrorRate
+  condition: error_rate > 0.05  # 5%
+  duration: 5m
+  severity: CRITICAL
+  
+- name: HighLatency
+  condition: p95_latency > 10000  # 10 seconds
+  duration: 2m
+  severity: WARNING
+  
+- name: ServiceDown
+  condition: service_health == "DOWN"
+  duration: 1m
+  severity: CRITICAL
+```
+
+### Security
+- **Authentication**: JWT token required
+- **Authorization**: Require `OPS_VIEWER` role for all operations
+- **Rate Limiting**: 100 requests/minute per user
+
+### Dependencies
+- All 22 microservices (for metrics scraping)
+- Prometheus (metrics source)
+- Redis (caching)
+
 ---
 
 **Next**: See `03-API-CONTRACTS.md` for detailed OpenAPI specifications
 **Next**: See `04-EVENT-SCHEMAS.md` for AsyncAPI event schemas
+**Next**: See `40-PHASE-7-DETAILED-DESIGN.md` for complete Phase 7 specifications

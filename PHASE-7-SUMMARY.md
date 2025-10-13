@@ -25,16 +25,17 @@
 | **7.6** | Reconciliation Management APIs | Enhance Service #12 | 500 | 2-3 | P1 |
 | **TOTAL** | **6 Backend Features** | **2 new + 4 enhanced** | **4,800** | **19-27** | - |
 
-### Frontend (React) UIs (5 features)
+### Frontend (React) UIs (6 features) 🆕
 
 | Feature ID | Feature Name | Purpose | Lines of Code | Days | Priority |
 |------------|--------------|---------|---------------|------|----------|
-| **7.7** | React Ops Portal - Service Management UI | Monitor 20 services, circuit breakers, feature flags, pods | 1,500 | 4-5 | P0 |
+| **7.7** | React Ops Portal - Service Management UI | Monitor 22 services, circuit breakers, feature flags, pods | 1,500 | 4-5 | P0 |
 | **7.8** | React Ops Portal - Payment Repair UI | Failed payments, retry, compensate, saga management | 1,800 | 5-6 | P0 |
 | **7.9** | React Ops Portal - Transaction Enquiries UI | Advanced search, transaction detail, audit trail, export | 1,500 | 4-5 | P0 |
 | **7.10** | React Ops Portal - Reconciliation & Monitoring UI | Unmatched payments, manual matching, real-time dashboard, alerts | 1,200 | 4-5 | P1 |
-| **7.11** | Channel Onboarding UI | Self-service channel setup (Webhook, Kafka, WebSocket, Polling, Push) | 1,300 | 3-4 | P1 |
-| **TOTAL** | **5 Frontend Features** | **Operations Portal + Channel Management** | **7,300** | **20-25** | - |
+| **7.11** | Channel Onboarding UI | Self-service channel setup (Webhook, Kafka, WebSocket, Polling, Push, payment-type topics) | 1,300 | 3-4 | P1 |
+| **7.12** | Clearing System Onboarding UI | Self-service clearing config (SAMOS, BankservAfrica, RTC, PayShap, SWIFT) 🆕 | 1,500 | 5-7 | P0 |
+| **TOTAL** | **6 Frontend Features** | **Operations Portal + Channel/Clearing Management** | **8,800** | **25-32** | - |
 
 ---
 
@@ -156,8 +157,8 @@ Operations Portal (React 18 + TypeScript + Material-UI v5)
 | Category | Lines of Code | Days | Priority |
 |----------|---------------|------|----------|
 | 4 Ops Portal UIs | 6,000 | 17-21 | P0 |
-| 1 Channel Onboarding UI | 1,300 | 3-4 | P1 |
-| **Total Frontend** | **7,300** | **20-25** | - |
+| 2 Onboarding UIs (Channel + Clearing) 🆕 | 2,800 | 8-11 | P0/P1 |
+| **Total Frontend** | **8,800** 🆕 | **25-32** 🆕 | - |
 
 ### Testing
 
@@ -169,11 +170,11 @@ Operations Portal (React 18 + TypeScript + Material-UI v5)
 | Load Testing | 3-4 | P1 |
 | **Total Testing** | **23-30** | - |
 
-**Grand Total**: 62-82 agent-days  
+**Grand Total**: 67-89 agent-days 🆕  
 **Timeline Options**:
-- 5 agents (parallel): 13-17 days
+- 5 agents (parallel): 14-18 days
 - 10 agents (parallel): 7-9 days
-- 11 agents (max parallel): 6-8 days
+- 12 agents (max parallel): 6-9 days 🆕
 
 ---
 
@@ -465,7 +466,7 @@ Week 6: Production Rollout
 
 1. **Validate Phase 7**: Review with ops team to confirm all requirements met
 2. **Prioritize Features**: Confirm P0 vs P1 priorities
-3. **Assign AI Agents**: Allocate 11 specialized agents to Phase 7 features
+3. **Assign AI Agents**: Allocate 12 specialized agents to Phase 7 features
 4. **Kick off Development**: Start with backend services (7.1-7.6) in parallel
 5. **Iterative Testing**: Test each feature as it's completed
 6. **User Acceptance**: Ops team UAT before production deployment
@@ -474,8 +475,8 @@ Week 6: Production Rollout
 
 **Document Version**: 1.0  
 **Created**: 2025-10-12  
-**Total Features**: 11 (Phase 7)  
-**Total Lines of Code**: ~12,100 lines  
-**Estimated Duration**: 62-82 agent-days (or 6-8 days with 11 agents in parallel)  
+**Total Features**: 12 (Phase 7) 🆕  
+**Total Lines of Code**: ~13,600 lines  
+**Estimated Duration**: 67-89 agent-days (or 6-9 days with 12 agents in parallel)  
 **Status**: ✅ PLANNED - Ready for AI-Driven Development
 

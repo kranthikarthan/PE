@@ -10831,9 +10831,9 @@ Template: PROMPT-7.1-OPERATIONS-MANAGEMENT-SERVICE
 **Context Provided**:
 
 1. Architecture Documents:
-   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Operations Management Service)
-   - Lines 1-300 (complete service specification)
-   - Service health monitoring (20 microservices)
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section 2.1: Operations Management Service)
+   - Lines 132-214 (complete service specification)
+   - Service health monitoring (22 microservices)
    - Circuit breaker management (Resilience4j integration)
    - Feature flag management (Unleash SDK integration)
    - K8s pod management (restart, scale, view logs)
@@ -10983,8 +10983,8 @@ Template: PROMPT-7.2-METRICS-AGGREGATION-SERVICE
 **Context Provided**:
 
 1. Architecture Documents:
-   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Metrics Aggregation Service)
-   - Lines 301-600 (complete service specification)
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section 2.2: Metrics Aggregation Service)
+   - Lines 215-284 (complete service specification)
    - Real-time metrics aggregation
    - Dashboard data APIs
    - Alert management
@@ -11113,8 +11113,8 @@ Template: PROMPT-7.3-PAYMENT-REPAIR-APIs
 **Context Provided**:
 
 1. Architecture Documents:
-   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Payment Repair APIs)
-   - Lines 601-900 (complete API specification)
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section 2.3: Payment Repair APIs)
+   - Lines 285-350 (complete API specification)
    - Failed payment retrieval
    - Retry mechanisms
    - Compensation APIs
@@ -11209,8 +11209,8 @@ Template: PROMPT-7.4-SAGA-MANAGEMENT-APIs
 **Context Provided**:
 
 1. Architecture Documents:
-   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Saga Management APIs)
-   - Lines 901-1200 (complete API specification)
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section 2.4: Saga Management APIs)
+   - Lines 351-420 (complete API specification)
    - Saga state visualization
    - Manual saga control
    - Stuck saga resolution
@@ -11293,8 +11293,8 @@ Template: PROMPT-7.5-TRANSACTION-SEARCH-APIs
 **Context Provided**:
 
 1. Architecture Documents:
-   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Transaction Search APIs)
-   - Lines 1201-1500 (complete API specification)
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section 2.5: Transaction Search APIs)
+   - Lines 421-497 (complete API specification)
    - Advanced search filters
    - Transaction detail view
    - Export functionality
@@ -11416,8 +11416,8 @@ Template: PROMPT-7.6-RECONCILIATION-MANAGEMENT-APIs
 **Context Provided**:
 
 1. Architecture Documents:
-   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Reconciliation Management APIs)
-   - Lines 1501-1783 (complete API specification)
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section 2.6: Reconciliation Management APIs)
+   - Lines 498-563 (complete API specification)
    - Unmatched payment queries
    - Manual matching
    - Reconciliation reports
@@ -11497,8 +11497,8 @@ Template: PROMPT-7.7-REACT-SERVICE-MANAGEMENT-UI
 **Context Provided**:
 
 1. Architecture Documents:
-   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Frontend UIs - Service Management)
-   - Lines 1784-2100 (complete UI specification)
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section 3.1: Service Management UI - Feature 7.7)
+   - Lines 566-650 (complete UI specification)
    - Service health dashboard
    - Circuit breaker management
    - Feature flag toggles
@@ -11618,8 +11618,8 @@ Template: PROMPT-7.8-REACT-PAYMENT-REPAIR-UI
 **Context Provided**:
 
 1. Architecture Documents:
-   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Frontend UIs - Payment Repair)
-   - Lines 2101-2400 (complete UI specification)
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section 3.2: Payment Repair UI - Feature 7.8)
+   - Lines 651-734 (complete UI specification)
    - Failed payment list
    - Payment detail view
    - Retry/compensate actions
@@ -11724,8 +11724,8 @@ Template: PROMPT-7.9-REACT-TRANSACTION-ENQUIRIES-UI
 **Context Provided**:
 
 1. Architecture Documents:
-   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Frontend UIs - Transaction Enquiries)
-   - Lines 2401-2700 (complete UI specification)
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section 3.3: Transaction Enquiries UI - Feature 7.9)
+   - Lines 735-845 (complete UI specification)
    - Advanced search form
    - Transaction results table
    - Transaction detail view
@@ -11821,8 +11821,8 @@ Template: PROMPT-7.10-REACT-RECONCILIATION-MONITORING-UI
 **Context Provided**:
 
 1. Architecture Documents:
-   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Frontend UIs - Reconciliation & Monitoring)
-   - Lines 2701-3000 (complete UI specification)
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section 3.4: Reconciliation & Monitoring UI - Feature 7.10)
+   - Lines 846-965 (complete UI specification)
    - Unmatched payment list
    - Manual matching interface
    - Real-time dashboard
@@ -11905,6 +11905,8 @@ Template: PROMPT-7.11-CHANNEL-ONBOARDING-UI
 1. Architecture Documents:
    📄 docs/39-CHANNEL-INTEGRATION-MECHANISMS.md (Section 11: Channel Onboarding)
    - Lines 1986-3650 (complete onboarding specification)
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section 3.5: Channel Onboarding UI - Feature 7.11)
+   - Lines 966-1072 (component structure and implementation)
    - 4-step wizard: Basic Info, Response Pattern, Pattern Config, Review
    - Support for 5 response patterns: Webhook, Kafka, WebSocket, Polling, Push
    - Payment-type-specific Kafka topics (EFT, RTC, SWIFT, etc.)

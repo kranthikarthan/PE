@@ -18,7 +18,7 @@
 
 1. [Architecture Overview](#architecture-overview)
 2. [Backend Services (Features 7.1-7.6)](#backend-services-features-71-76)
-3. [Frontend UIs (Features 7.7-7.11)](#frontend-uis-features-77-711)
+3. [Frontend UIs (Features 7.7-7.12)](#frontend-uis-features-77-712) 🆕
 4. [API Specifications](#api-specifications)
 5. [Database Schema](#database-schema)
 6. [Security & RBAC](#security--rbac)
@@ -561,7 +561,7 @@ public class ReconciliationManagementController {
 
 ---
 
-## 3. Frontend UIs (Features 7.7-7.11)
+## 3. Frontend UIs (Features 7.7-7.12)
 
 ### 3.1 Service Management UI - Feature 7.7
 
@@ -1067,6 +1067,176 @@ src/pages/ChannelOnboarding/
 ```
 
 **Lines**: ~1,300 lines
+
+---
+
+### 3.6 Clearing System Onboarding UI - Feature 7.12 🆕
+
+**Pages**: 2 pages (onboarding wizard, clearing system list)  
+**Steps**: 5 (clearing system selection, communication pattern, security config, retry policy, review & test)  
+**Clearing Systems**: SAMOS, BankservAfrica (EFT), RTC, PayShap, SWIFT
+
+**Purpose**: Self-service clearing system configuration UI for tenants to configure integration with South African clearing systems without backend team involvement.
+
+**Main Components**:
+
+```tsx
+// src/pages/ClearingSystemOnboarding/ClearingSystemOnboardingPage.tsx
+
+import React, { useState } from 'react';
+import { Stepper, Step, StepLabel, Box, Button, Paper } from '@mui/material';
+import { useForm, FormProvider } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
+import ClearingSystemSelector from './ClearingSystemSelector';
+import CommunicationPatternConfig from './CommunicationPatternConfig';
+import SecurityConfig from './SecurityConfig';
+import RetryPolicyConfig from './RetryPolicyConfig';
+import ReviewAndTest from './ReviewAndTest';
+import { clearingSystemApi } from '../../api/clearingSystemApi';
+
+const steps = [
+  'Select Clearing System',
+  'Communication Pattern',
+  'Security Configuration',
+  'Retry Policy',
+  'Review & Test',
+];
+
+export default function ClearingSystemOnboardingPage() {
+  const [activeStep, setActiveStep] = useState(0);
+  const methods = useForm();
+  
+  const createClearingSystemMutation = useMutation({
+    mutationFn: (data: any) => clearingSystemApi.createClearingSystem(data),
+  });
+  
+  const renderStepContent = (step: number) => {
+    switch (step) {
+      case 0: return <ClearingSystemSelector />;
+      case 1: return <CommunicationPatternConfig />;
+      case 2: return <SecurityConfig />;
+      case 3: return <RetryPolicyConfig />;
+      case 4: return <ReviewAndTest />;
+    }
+  };
+  
+  return (
+    <FormProvider {...methods}>
+      <Paper sx={{ p: 3 }}>
+        <Stepper activeStep={activeStep}>
+          {steps.map((label) => (
+            <Step key={label}><StepLabel>{label}</StepLabel></Step>
+          ))}
+        </Stepper>
+        
+        <Box sx={{ mt: 3 }}>
+          {renderStepContent(activeStep)}
+        </Box>
+        
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+          <Button
+            disabled={activeStep === 0}
+            onClick={() => setActiveStep(prev => prev - 1)}
+          >
+            Back
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              if (activeStep === steps.length - 1) {
+                methods.handleSubmit(data => createClearingSystemMutation.mutate(data))();
+              } else {
+                setActiveStep(prev => prev + 1);
+              }
+            }}
+          >
+            {activeStep === steps.length - 1 ? 'Create Configuration' : 'Next'}
+          </Button>
+        </Box>
+      </Paper>
+    </FormProvider>
+  );
+}
+```
+
+**Component Structure**:
+```
+src/pages/ClearingSystemOnboarding/
+├── ClearingSystemOnboardingPage.tsx     // Main wizard (5 steps)
+├── ClearingSystemSelector.tsx           // Step 1: SAMOS, BankservAfrica, RTC, PayShap, SWIFT
+├── CommunicationPatternConfig.tsx       // Step 2: Synchronous, Asynchronous, Batch
+├── SecurityConfig.tsx                   // Step 3: mTLS, OAuth 2.0, SFTP, SWIFTNet PKI
+│   ├── MtlsConfig.tsx                   // mTLS form (certificate upload)
+│   ├── OAuth2Config.tsx                 // OAuth 2.0 form (token endpoint, client ID/secret)
+│   ├── SftpKeyConfig.tsx                // SFTP form (SSH key, PGP key upload)
+│   └── SwiftNetConfig.tsx               // SWIFTNet PKI form (SWIFT certificate)
+├── RetryPolicyConfig.tsx                // Step 4: Retry count, backoff strategy, timeout
+├── ReviewAndTest.tsx                    // Step 5: Review config, test connection
+├── ClearingSystemListPage.tsx           // List all clearing configs
+└── ClearingSystemCard.tsx               // Individual clearing system card
+```
+
+**Communication Patterns Supported**:
+- **Synchronous**: SAMOS (RTGS), RTC, PayShap
+- **Asynchronous**: SWIFT (store-and-forward)
+- **Batch**: BankservAfrica (EFT) - file-based, SFTP
+
+**Security Mechanisms**:
+1. **mTLS (Mutual TLS)**: SAMOS, RTC
+   - Upload client certificate (.p12 or .pfx)
+   - Certificate stored in Azure Key Vault
+   - Digital signature (XMLDSig) for SAMOS
+
+2. **OAuth 2.0 + mTLS**: PayShap
+   - Token endpoint, client ID, client secret
+   - JWT tokens (5-minute lifetime)
+   - Optional mTLS on top of OAuth
+
+3. **SFTP + PGP Encryption**: BankservAfrica
+   - SSH key authentication
+   - PGP encryption for ACH files
+   - Detached signature (.sig file)
+
+4. **SWIFTNet PKI**: SWIFT
+   - SWIFT-issued certificates
+   - RMA (Relationship Management Application)
+   - LAU (Login Authentication)
+
+**Retry Policies** (Per Clearing System):
+```yaml
+SAMOS:
+  max_attempts: 0  # No retries for RTGS
+  reason: "RTGS - no retries allowed"
+
+BankservAfrica (EFT):
+  max_attempts: 3
+  backoff: EXPONENTIAL
+  initial_delay: 60000ms  # 1 minute
+  reason: "Batch processing allows retries"
+
+RTC:
+  max_attempts: 1
+  backoff: NONE
+  reason: "Real-time - single retry only"
+
+PayShap:
+  max_attempts: 0  # No retries for instant
+  reason: "Instant payments - no retries"
+
+SWIFT:
+  max_attempts: 3
+  backoff: EXPONENTIAL
+  initial_delay: 300000ms  # 5 minutes
+  reason: "Asynchronous - retries recommended"
+```
+
+**Test Connection**:
+- Send test message to clearing system
+- Display success/failure result
+- Show response time
+- Validate configuration before activation
+
+**Backend API Reference**: See `docs/42-CLEARING-SYSTEM-ONBOARDING.md` for complete specifications
 
 ---
 
@@ -1774,8 +1944,8 @@ Trace ID: trace-abc-123
 
 **Document Version**: 1.0  
 **Created**: 2025-10-12  
-**Total Pages**: 40+  
-**Total Features**: 11  
+**Total Pages**: 45+  
+**Total Features**: 12 🆕  
 **Related Documents**:
 - `docs/38-REACT-FRONTEND-OPS-ANALYSIS.md` (Gap Analysis)
 - `docs/39-CHANNEL-INTEGRATION-MECHANISMS.md` (Channel Integration)
