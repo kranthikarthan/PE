@@ -376,11 +376,12 @@ Overall Status:         ✅ READY FOR AI AGENT DEVELOPMENT
 - **Phase 4: Advanced Features** - Complete prompts (5 features)
 - **Phase 5: Infrastructure** - Complete prompts (5 features)
 - **Phase 6: Testing** - Complete prompts (5 features)
-- **Feature-Specific Guardrails** - 13 features with tailored guardrails ✅ NEW
+- **Feature-Specific Guardrails** - 13 features with tailored guardrails ✅
+- **DSA Guidance Reference** - Links to comprehensive DSA document ✅ NEW
 - Context sufficiency analysis
 - All 40 features cataloged
 
-**Size**: 10,400+ lines (includes 900+ lines of guardrails)
+**Size**: 10,860+ lines (includes 900+ lines of guardrails + DSA references)
 
 **Phase 2 Detailed Prompts**:
 1. ✅ SAMOS Adapter (ISO 20022, RTGS, mTLS)
