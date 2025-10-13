@@ -3,12 +3,20 @@
 # Purpose: Enable programmatic access for AI agent orchestration tools (CrewAI, LangChain, AutoGPT)
 
 metadata:
-  version: "1.0"
+  version: "1.1"
   total_phases: 7
-  total_features: 36
+  total_features: 40
   estimated_duration_days: "25-35"
   created_date: "2025-10-11"
   last_updated: "2025-10-11"
+  change_log:
+    - version: "1.1"
+      date: "2025-10-11"
+      changes:
+        - "Expanded Phase 4: 5 → 7 features (split BFF Layer into 3: Web, Mobile, Partner)"
+        - "Expanded Phase 5: 5 → 7 features (split Monitoring Stack into 3: Prometheus, Grafana, Jaeger)"
+        - "Renumbered Phase 5 features: GitOps (5.3→5.5), Feature Flags (5.4→5.6), K8s Operators (5.5→5.7)"
+        - "Total features: 36 → 40"
 
 phases:
   - id: "phase-0"
@@ -602,7 +610,23 @@ phases:
         fallback_plan: "If sanctions API fails → Use cached list (24-hour TTL)"
         dependencies: ["phase-0"]
   
-  # ... (Phase 3-6 features omitted for brevity, follow same pattern)
+  # Phase 3: Platform Services (5 features: 3.1-3.5)
+  # Phase 4: Advanced Features (7 features: 4.1-4.7)
+  #   - 4.5: Web BFF (GraphQL) - NEW
+  #   - 4.6: Mobile BFF (REST, lightweight) - NEW
+  #   - 4.7: Partner BFF (REST, comprehensive) - NEW
+  # Phase 5: Infrastructure (7 features: 5.1-5.7)
+  #   - 5.2: Prometheus Setup - NEW
+  #   - 5.3: Grafana Dashboards - NEW
+  #   - 5.4: Jaeger Distributed Tracing - NEW
+  #   - 5.5: GitOps (ArgoCD) - RENUMBERED from 5.3
+  #   - 5.6: Feature Flags (Unleash) - RENUMBERED from 5.4
+  #   - 5.7: Kubernetes Operators - RENUMBERED from 5.5
+  # Phase 6: Integration & Testing (5 features: 6.1-6.5)
+  # 
+  # Total: 40 features (5 + 6 + 5 + 5 + 7 + 7 + 5)
+  # 
+  # Note: Full YAML expansion for all 40 features available in complete version
 
 orchestration:
   tools:
@@ -640,10 +664,11 @@ orchestration:
   coordinator_agent:
     role: "Build Coordinator"
     responsibilities:
-      - "Monitor all 36 agent tasks"
+      - "Monitor all 40 agent tasks"
       - "Detect failures and trigger fallback plans"
-      - "Aggregate build status and report progress"
-      - "Manage dependency resolution"
+      - "Aggregate build status and report progress (e.g., Phase 1: 5/6 complete, 83%)"
+      - "Manage dependency resolution (don't start Phase 1 until Phase 0 complete)"
+      - "Collect metrics (actual vs. estimated duration, hallucination frequency, fallback usage)"
     feedback_loops:
       - "Phase 6: AI agents provide feedback on prompt templates"
       - "Refine prompts based on hallucination frequency"
