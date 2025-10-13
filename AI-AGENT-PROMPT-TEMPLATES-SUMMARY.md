@@ -428,24 +428,25 @@ Overall Status:         ✅ READY FOR AI AGENT DEVELOPMENT
 
 ---
 
-## ⚠️ Coding Guardrails (NEW)
+## ⚠️ Coding Guardrails & DSA Guidance (UPDATED)
 
-**Generic Guardrails**: 23 rules for ALL features
+**Generic Guardrails**: 26 rules for ALL 40 features
 - 🔒 Security (5): No hardcoded secrets, SQL injection prevention, input validation, auth/authz, sensitive data
-- 🏗️ Code Quality (4): SOLID, clean code, error handling, logging
+- 🏗️ Code Quality (5): SOLID, **DSA best practices** ✅ NEW, clean code, error handling, logging
 - ⚡ Performance (3): Database best practices, caching, API design
 - 🧪 Testing (2): 80% coverage, test best practices
 - 📚 Documentation (3): JavaDoc, OpenAPI, README
 - 🔧 Configuration (2): YAML configs, dependency management
 - 🎯 Multi-Tenancy (1): Tenant isolation, RLS
-- 🚨 Resilience (1): Circuit breakers, retry, timeouts
+- 🚨 Resilience (3): **Istio vs Resilience4j decision** ✅ NEW, circuit breakers, retry
 - 📊 Observability (2): Monitoring, health checks
 
 **Specific Guardrails**: 13 features with tailored rules
 - Payment Initiation (8): Idempotency, input validation, event publishing
 - Validation Service (6): Drools rules, hot reload, error collection
-- Account Adapter (10): Circuit breaker, retry, OAuth, caching
+- Account Adapter (11): **Istio vs Resilience4j** ✅ NEW, circuit breaker, retry, OAuth, caching
 - Saga Orchestrator (10): State machine, compensation, locking
+- SAMOS Adapter (NEW): **Istio vs Resilience4j** ✅ for external clearing calls
 - SWIFT Adapter (10): Sanctions screening (MANDATORY), message format, compliance
 - Batch Processing (10): File security, XXE prevention, chunk processing
 - K8s Operators (12): CRD validation, reconciliation idempotency, RBAC
@@ -454,7 +455,16 @@ Overall Status:         ✅ READY FOR AI AGENT DEVELOPMENT
 - Security Testing (10): SAST/DAST, OWASP Top 10, zero vulnerabilities
 - Compliance Testing (10): POPIA/FICA/PCI-DSS/SARB (ALL LEGAL REQUIREMENTS)
 
-**Total Guardrails**: 150+ rules
+**DSA Guidance**: Comprehensive for ALL 40 features ✅ NEW
+- 50+ DSA patterns (LRU cache, token bucket, Trie, Bloom filter, etc.)
+- 35+ algorithms (Topological sort, Levenshtein, MapReduce, etc.)
+- 30+ data structures (HashMap, TreeMap, PriorityQueue, Graph, etc.)
+- Time/space complexity analysis per feature
+- 22+ production-ready code examples
+- Java Collections cheat sheet
+- Document: `docs/37-DSA-GUIDANCE-ALL-FEATURES.md` (2,050+ lines)
+
+**Total Guardrails**: 170+ rules (includes DSA patterns)
 
 **Critical**: Top 10 guardrails with severe consequences documented
 - Sanctions screening bypass → millions in fines, criminal charges
@@ -462,7 +472,9 @@ Overall Status:         ✅ READY FOR AI AGENT DEVELOPMENT
 - Idempotency failure → duplicate payments, financial loss
 - XXE not disabled → remote code execution
 
-**Summary Document**: `CODING-GUARDRAILS-SUMMARY.md`
+**Summary Documents**: 
+- `CODING-GUARDRAILS-SUMMARY.md` (Guardrails)
+- `docs/37-DSA-GUIDANCE-ALL-FEATURES.md` (DSA Guidance)
 
 ---
 
