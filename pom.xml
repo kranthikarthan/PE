@@ -55,7 +55,7 @@
         <nimbus-jose-jwt.version>9.31</nimbus-jose-jwt.version>
         <azure-keyvault.version>4.10.3</azure-keyvault.version>
         <azure-identity.version>1.18.0</azure-identity.version>
-        <opentelemetry.version>1.34.1</opentelemetry.version>
+        <opentelemetry.version>1.54.1</opentelemetry.version>
         <logstash-logback.version>7.4</logstash-logback.version>
         
         <!-- Plugin Versions -->
