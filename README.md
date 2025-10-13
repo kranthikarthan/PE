@@ -37,6 +37,7 @@ This repository contains the complete architecture design for a **highly modular
 | **[33-FEATURE-FLAGS.md](docs/33-FEATURE-FLAGS.md)** 🆕 | **Feature Flags with Unleash (Progressive Delivery, A/B Testing)** | ✅ Complete |
 | **[34-FEATURE-BREAKDOWN-TREE.md](docs/34-FEATURE-BREAKDOWN-TREE.md)** 🆕 | **Feature Breakdown Tree for AI Agent Development (40+ features, 7 phases)** | ✅ Complete |
 | **[35-AI-AGENT-PROMPT-TEMPLATES.md](docs/35-AI-AGENT-PROMPT-TEMPLATES.md)** 🆕 | **Complete Prompt Templates for All 36 Features (10,400+ lines with guardrails)** | ✅ Complete |
+| **[36-RESILIENCE-PATTERNS-DECISION.md](docs/36-RESILIENCE-PATTERNS-DECISION.md)** 🆕 | **⚠️ CRITICAL: Istio vs Resilience4j Decision (EAST-WEST vs NORTH-SOUTH)** | ✅ Complete |
 | **[CODING-GUARDRAILS-SUMMARY.md](CODING-GUARDRAILS-SUMMARY.md)** 🆕 | **⚠️ Coding Guardrails: 150+ Rules (23 Generic + 127 Specific)** | ✅ Complete |
 | **[07-AZURE-INFRASTRUCTURE.md](docs/07-AZURE-INFRASTRUCTURE.md)** | Azure infrastructure (AKS, networking, security) | ✅ Complete |
 | **[08-CORE-BANKING-INTEGRATION.md](docs/08-CORE-BANKING-INTEGRATION.md)** | **Integration with external core banking systems** | ✅ Complete |
