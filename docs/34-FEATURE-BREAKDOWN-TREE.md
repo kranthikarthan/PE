@@ -1869,7 +1869,7 @@ Each feature is considered DONE when:
 ### Total Breakdown
 
 ```
-Total Features: 40+
+Total Features: 40
 ├─ Phase 0: 5 features (sequential/parallel)
 ├─ Phase 1: 6 features (parallel)
 ├─ Phase 2: 5 features (parallel)
@@ -1878,8 +1878,8 @@ Total Features: 40+
 ├─ Phase 5: 7 features (parallel, independent)
 └─ Phase 6: 5 features (sequential)
 
-Total Agents: 36 agents
-Max Parallel: 16 agents (Week 2-3)
+Total Agents: 40 agents
+Max Parallel: 18 agents (Week 2-3)
 Total Duration: 20-25 working days
 ```
 
