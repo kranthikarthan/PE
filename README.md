@@ -43,6 +43,7 @@ This repository contains the complete architecture design for a **highly modular
 | **[PHASE-7-SUMMARY.md](PHASE-7-SUMMARY.md)** 🆕 | **📋 Phase 7 Summary: Operations & Channel Management (11 features, 2 new services, 5 UIs)** | ✅ Complete |
 | **[40-PHASE-7-DETAILED-DESIGN.md](docs/40-PHASE-7-DETAILED-DESIGN.md)** 🆕 | **🏗️ Phase 7 Detailed Design: Backend APIs, React UIs, Testing, Deployment** | ✅ Complete |
 | **[41-PAYMENT-TYPE-KAFKA-TOPICS.md](docs/41-PAYMENT-TYPE-KAFKA-TOPICS.md)** 🆕 | **📊 Payment-Type-Specific Kafka Topics: Configure separate topics per payment type (EFT, RTC, SWIFT, etc.)** | ✅ Complete |
+| **[42-CLEARING-SYSTEM-ONBOARDING.md](docs/42-CLEARING-SYSTEM-ONBOARDING.md)** 🆕 | **🏦 Clearing System Onboarding: Self-service config for SAMOS, BankservAfrica, RTC, PayShap, SWIFT (Sync/Async, XML/JSON, mTLS/OAuth, Retry)** | ✅ Complete |
 | **[39-CHANNEL-INTEGRATION-MECHANISMS.md](docs/39-CHANNEL-INTEGRATION-MECHANISMS.md)** 🆕 | **🔄 Channel Integration: HYBRID Pattern (Sync+Async) + Payment-Type Kafka Topics** | ✅ Complete |
 | **[CODING-GUARDRAILS-SUMMARY.md](CODING-GUARDRAILS-SUMMARY.md)** 🆕 | **⚠️ Coding Guardrails: 170+ Rules (26 Generic + 127 Specific)** | ✅ Complete |
 | **[07-AZURE-INFRASTRUCTURE.md](docs/07-AZURE-INFRASTRUCTURE.md)** | Azure infrastructure (AKS, networking, security) | ✅ Complete |
