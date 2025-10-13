@@ -455,14 +455,16 @@ Overall Status:         ✅ READY FOR AI AGENT DEVELOPMENT
 - Security Testing (10): SAST/DAST, OWASP Top 10, zero vulnerabilities
 - Compliance Testing (10): POPIA/FICA/PCI-DSS/SARB (ALL LEGAL REQUIREMENTS)
 
-**DSA Guidance**: Comprehensive for ALL 40 features ✅ NEW
-- 50+ DSA patterns (LRU cache, token bucket, Trie, Bloom filter, etc.)
-- 35+ algorithms (Topological sort, Levenshtein, MapReduce, etc.)
-- 30+ data structures (HashMap, TreeMap, PriorityQueue, Graph, etc.)
-- Time/space complexity analysis per feature
-- 22+ production-ready code examples
-- Java Collections cheat sheet
-- Document: `docs/37-DSA-GUIDANCE-ALL-FEATURES.md` (2,050+ lines)
+**DSA Guidance** (26 Java features) + **Configuration Guidance** (14 infra/test features) ✅ UPDATED
+- **DSA (26 features)**: 50+ patterns, 35+ algorithms, 30+ data structures, 22+ code examples
+  - Phase 0: Domain Models, Shared Libraries
+  - Phase 1-4: ALL Java/Spring Boot services (23 features)
+  - Phase 5: Kubernetes Operators (Go/Java)
+- **Configuration (14 features)**: SQL, YAML, Gherkin, Scala DSL best practices
+  - Phase 0: Database Schemas (Flyway), Event Schemas (AsyncAPI), Terraform (HCL)
+  - Phase 5: Istio, Prometheus, Grafana, Jaeger, ArgoCD, Unleash (6 features)
+  - Phase 6: E2E, Load, Security, Compliance, Production Readiness testing (5 features)
+- Document: `docs/37-DSA-GUIDANCE-ALL-FEATURES.md` (2,670+ lines)
 
 **Total Guardrails**: 170+ rules (includes DSA patterns)
 
