@@ -1,0 +1,683 @@
+# Feature Breakdown Tree - YAML Export for Orchestration
+# Version: 1.0
+# Purpose: Enable programmatic access for AI agent orchestration tools (CrewAI, LangChain, AutoGPT)
+
+metadata:
+  version: "1.0"
+  total_phases: 7
+  total_features: 36
+  estimated_duration_days: "25-35"
+  created_date: "2025-10-11"
+  last_updated: "2025-10-11"
+
+phases:
+  - id: "phase-0"
+    name: "Foundation"
+    type: "sequential"
+    description: "Must be completed FIRST before any services"
+    estimated_duration_days: "10-12"
+    features:
+      - id: "0.1"
+        name: "Database Schemas"
+        agent: "Schema Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-01-database-schemas"
+        complexity: "medium"
+        estimation_days: "3-5"
+        nominal_days: 4
+        ai_factors:
+          - "Retry 2x on SQL syntax errors"
+          - "Hallucination risk: LOW"
+        spring_boot_guidance:
+          - "Use Flyway for migrations"
+          - "Enable Row-Level Security (RLS)"
+        mocks_required: []
+        input:
+          - "docs/05-DATABASE-SCHEMAS.md"
+        output:
+          - "PostgreSQL migration scripts (Flyway)"
+          - "All tables created"
+          - "Indexes defined"
+          - "RLS configured"
+        kpis:
+          - metric: "Database migration time"
+            target: "< 60 seconds"
+          - metric: "Indexed query performance"
+            target: "< 50ms (p95)"
+        dod:
+          - "All 20+ tables created successfully"
+          - "All foreign key constraints validated"
+          - "RLS policies tested (100% tenant isolation)"
+        fallback_plan: "If agent fails → Human DBA reviews, generates manually"
+        dependencies: []
+      
+      - id: "0.2"
+        name: "Event Schemas (AsyncAPI)"
+        agent: "Event Schema Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-02-event-schemas"
+        complexity: "low"
+        estimation_days: "1-2"
+        nominal_days: 1
+        ai_factors:
+          - "Retry 2x on JSON Schema validation errors"
+          - "Hallucination risk: LOW"
+        spring_boot_guidance:
+          - "Use Spring Cloud Stream for event publishing"
+          - "Include correlation ID in message headers"
+        mocks_required: []
+        input:
+          - "docs/03-EVENT-SCHEMAS.md"
+        output:
+          - "AsyncAPI 2.0 specifications"
+          - "Event payload definitions (JSON Schema)"
+        kpis:
+          - metric: "Event schema validation time"
+            target: "< 100ms per event"
+          - metric: "Event size"
+            target: "< 10 KB (compressed)"
+        dod:
+          - "All 25+ events defined in AsyncAPI 2.0"
+          - "JSON Schema validation passes"
+        fallback_plan: "If agent fails → Human architect reviews, generates manually"
+        dependencies: []
+      
+      - id: "0.3"
+        name: "Domain Models"
+        agent: "Domain Model Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-03-domain-models"
+        complexity: "medium"
+        estimation_days: "2-4"
+        nominal_days: 3
+        ai_factors:
+          - "Retry 2x on compilation errors"
+          - "Hallucination risk: MEDIUM (complex DDD)"
+          - "Feedback loop: Review aggregates for DDD correctness"
+        spring_boot_guidance:
+          - "Use Spring Data JPA for domain entities"
+          - "Make value objects immutable (records)"
+          - "Add business logic in domain model (not service layer)"
+        mocks_required: []
+        input:
+          - "docs/14-DDD-IMPLEMENTATION.md"
+          - "docs/05-DATABASE-SCHEMAS.md"
+        output:
+          - "Java domain entities (JPA annotated)"
+          - "Value objects (immutable)"
+          - "Aggregates (with business logic)"
+        kpis:
+          - metric: "Domain model unit test coverage"
+            target: "> 90%"
+          - metric: "Value object immutability"
+            target: "100% (no setters)"
+        dod:
+          - "All aggregates, value objects, entities defined"
+          - "Business logic in domain model"
+          - "All domain classes compile"
+        fallback_plan: "If agent fails → Human DDD expert reviews, refactors"
+        dependencies: ["0.1"]
+      
+      - id: "0.4"
+        name: "Shared Libraries"
+        agent: "Library Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-04-shared-libraries"
+        complexity: "medium"
+        estimation_days: "2-3"
+        nominal_days: 3
+        ai_factors:
+          - "Retry 2x on Maven dependency conflicts"
+          - "Hallucination risk: LOW"
+        spring_boot_guidance:
+          - "Use Spring Boot BOM for version management"
+          - "Publish to Maven local repository"
+        mocks_required: []
+        input:
+          - "docs/29-ENTERPRISE-INTEGRATION-PATTERNS.md"
+          - "Domain models (from 0.3)"
+          - "Event schemas (from 0.2)"
+        output:
+          - "Shared utility libraries"
+          - "Event publishing library"
+          - "API client library"
+          - "Error handling framework"
+        kpis:
+          - metric: "Library dependency resolution time"
+            target: "< 10 seconds"
+          - metric: "Event publishing latency"
+            target: "< 50ms (p95)"
+        dod:
+          - "All 4 shared libraries built"
+          - "Unit tests for all utilities (> 80% coverage)"
+          - "Integration test for event publisher"
+        fallback_plan: "If Maven dependency conflicts → Resolve manually"
+        dependencies: ["0.2", "0.3"]
+      
+      - id: "0.5"
+        name: "Infrastructure Setup"
+        agent: "Infrastructure Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-05-infrastructure-setup"
+        complexity: "high"
+        estimation_days: "4-6"
+        nominal_days: 5
+        ai_factors:
+          - "Retry 3x on Terraform apply failures"
+          - "Hallucination risk: MEDIUM (Terraform syntax)"
+          - "Feedback loop: Validate Terraform plan before apply"
+        spring_boot_guidance:
+          - "Configure application.yml for Azure resources"
+          - "Use Spring Cloud Azure for seamless integration"
+        mocks_required: []
+        input:
+          - "docs/07-AZURE-INFRASTRUCTURE.md"
+        output:
+          - "AKS cluster provisioned"
+          - "Azure PostgreSQL Flexible Server"
+          - "Azure Cache for Redis"
+          - "Azure Service Bus"
+          - "VNet and NSGs configured"
+        kpis:
+          - metric: "Infrastructure provisioning time"
+            target: "< 30 minutes"
+          - metric: "AKS cluster ready state"
+            target: "100% (all nodes healthy)"
+          - metric: "Database connection latency"
+            target: "< 10ms"
+        dod:
+          - "AKS cluster accessible via kubectl"
+          - "PostgreSQL connection successful"
+          - "Redis connection successful"
+          - "Azure Service Bus topic/queue created"
+        fallback_plan: "If Terraform fails → Review plan, fix syntax, re-apply"
+        dependencies: []  # Can run in parallel with 0.1-0.4
+  
+  - id: "phase-1"
+    name: "Core Services"
+    type: "parallel"
+    description: "Can be built in PARALLEL after Phase 0"
+    estimated_duration_days: "5-7"
+    parallelization_strategy: "6 agents working simultaneously"
+    features:
+      - id: "1.1"
+        name: "Payment Initiation Service"
+        agent: "Payment Initiation Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-11-payment-initiation-service"
+        complexity: "medium"
+        estimation_days: "3-5"
+        nominal_days: 4
+        ai_factors:
+          - "Retry 2x on REST API errors"
+          - "Hallucination risk: LOW"
+        spring_boot_guidance:
+          - "Use @Transactional for ACID guarantees"
+          - "Implement transactional outbox pattern for events"
+          - "Use Spring Boot Actuator for health checks"
+        mocks_required:
+          - name: "WireMock"
+            purpose: "Mock external fraud API (future)"
+          - name: "Testcontainers"
+            purpose: "PostgreSQL integration tests"
+          - name: "EmbeddedRedis"
+            purpose: "Idempotency testing"
+        input:
+          - "Domain models (Payment, PaymentId)"
+          - "Event schemas (PaymentInitiatedEvent)"
+          - "Database schema (payments table)"
+          - "Shared libraries"
+        output:
+          - "REST API (3 endpoints)"
+          - "Payment creation logic"
+          - "Event publishing"
+          - "Dockerized service"
+          - "Kubernetes deployment"
+        kpis:
+          - metric: "API response time"
+            target: "< 500ms (p95)"
+          - metric: "Event publishing latency"
+            target: "< 50ms (p95)"
+          - metric: "Idempotency cache hit rate"
+            target: "> 30% (production)"
+        dod:
+          - "All 3 REST endpoints functional"
+          - "Idempotency working (Redis)"
+          - "Event published to Azure Service Bus"
+          - "Unit test coverage > 80%"
+          - "Integration tests pass"
+          - "Swagger UI accessible"
+          - "Service deploys to AKS"
+        fallback_plan: "If agent fails → Human developer reviews code, fixes bugs"
+        dependencies: ["phase-0"]
+      
+      - id: "1.2"
+        name: "Validation Service"
+        agent: "Validation Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-12-validation-service"
+        complexity: "medium"
+        estimation_days: "3-4"
+        nominal_days: 3
+        ai_factors:
+          - "Retry 2x on Drools rule syntax errors"
+          - "Hallucination risk: MEDIUM (Drools DRL)"
+          - "Feedback loop: Validate rules with KIE server"
+        spring_boot_guidance:
+          - "Use Drools for business rules"
+          - "Hot reload from Git repository"
+        mocks_required:
+          - name: "Testcontainers"
+            purpose: "PostgreSQL"
+        input:
+          - "Payment domain model"
+          - "Drools rules (10+)"
+          - "Event schemas"
+        output:
+          - "Drools rules engine"
+          - "10+ validation rules"
+          - "Event consumer (Azure Service Bus)"
+          - "Event publisher"
+        kpis:
+          - metric: "Rule execution time"
+            target: "< 200ms per payment"
+          - metric: "Rule cache hit rate"
+            target: "> 80% (Redis)"
+          - metric: "Validation throughput"
+            target: "> 100 payments/second"
+        dod:
+          - "All 10+ Drools rules working"
+          - "Hot reload functional"
+          - "Event consumption working"
+          - "Unit test per rule"
+        fallback_plan: "If Drools syntax errors → Use online validator, fix"
+        dependencies: ["phase-0"]
+      
+      - id: "1.3"
+        name: "Account Adapter Service"
+        agent: "Account Adapter Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-13-account-adapter-service"
+        complexity: "high"
+        estimation_days: "4-6"
+        nominal_days: 5
+        ai_factors:
+          - "Retry 3x on REST client config errors"
+          - "Hallucination risk: HIGH (Resilience4j config)"
+          - "Feedback loop: Test circuit breaker manually"
+        spring_boot_guidance:
+          - "Use Spring Cloud OpenFeign for REST clients"
+          - "Configure Resilience4j (circuit breaker, retry, bulkhead, timeout)"
+        mocks_required:
+          - name: "WireMock"
+            purpose: "5 external core banking systems (ports 8091-8095)"
+        input:
+          - "External core banking API specs"
+          - "OAuth 2.0 configuration"
+          - "Resilience4j config"
+        output:
+          - "5 REST clients (Feign)"
+          - "Circuit breaker, retry, bulkhead configured"
+          - "OAuth 2.0 token management"
+          - "Balance cache (Redis, 60s TTL)"
+        kpis:
+          - metric: "External API call latency"
+            target: "< 2 seconds (p95)"
+          - metric: "Circuit breaker state transition"
+            target: "< 100ms"
+          - metric: "Cache hit rate"
+            target: "> 80% (balance queries)"
+          - metric: "OAuth token refresh success"
+            target: "> 99%"
+        dod:
+          - "All 5 REST clients functional"
+          - "Circuit breaker tested (opens after 5 failures)"
+          - "Retry tested (exponential backoff)"
+          - "OAuth 2.0 token cached"
+          - "Balance cache working"
+        fallback_plan: "If circuit breaker fails → Manually test with 500 errors"
+        dependencies: ["phase-0"]
+      
+      - id: "1.4"
+        name: "Routing Service"
+        agent: "Routing Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-14-routing-service"
+        complexity: "low"
+        estimation_days: "2-3"
+        nominal_days: 3
+        ai_factors:
+          - "Retry 2x on Drools rule errors"
+          - "Hallucination risk: LOW"
+        spring_boot_guidance:
+          - "Use Drools for routing rules"
+          - "Rule priority using salience"
+        mocks_required: []
+        input:
+          - "Payment domain model"
+          - "Drools routing rules (5+ rules)"
+        output:
+          - "Routing logic (Drools)"
+          - "5 clearing system routes"
+        kpis:
+          - metric: "Routing decision time"
+            target: "< 100ms"
+        dod:
+          - "All 5 routing rules working"
+          - "Hot reload functional"
+        fallback_plan: "If Drools fails → Hardcode routing logic (Phase 1)"
+        dependencies: ["phase-0"]
+      
+      - id: "1.5"
+        name: "Transaction Processing Service"
+        agent: "Transaction Processing Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-15-transaction-processing-service"
+        complexity: "medium"
+        estimation_days: "4-5"
+        nominal_days: 5
+        ai_factors:
+          - "Retry 2x on orchestration logic errors"
+          - "Hallucination risk: MEDIUM"
+        spring_boot_guidance:
+          - "Use @Transactional for ACID"
+          - "Implement compensation logic (rollback)"
+        mocks_required:
+          - name: "WireMock"
+            purpose: "Account Adapter, Fraud API, Limit Service"
+        input:
+          - "5-step orchestration flow"
+          - "Compensation logic"
+        output:
+          - "Orchestration service"
+          - "Compensation actions"
+        kpis:
+          - metric: "Transaction processing time"
+            target: "< 3 seconds (p95)"
+        dod:
+          - "5-step orchestration working"
+          - "Compensation tested"
+        fallback_plan: "If orchestration fails → Simplify to 3 steps"
+        dependencies: ["phase-0"]
+      
+      - id: "1.6"
+        name: "Saga Orchestrator Service"
+        agent: "Saga Orchestrator Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-16-saga-orchestrator-service"
+        complexity: "high"
+        estimation_days: "5-7"
+        nominal_days: 6
+        ai_factors:
+          - "Retry 3x on state machine logic errors"
+          - "Hallucination risk: HIGH (complex state machine)"
+          - "Feedback loop: Test state transitions manually"
+        spring_boot_guidance:
+          - "Use pessimistic locking (@Lock)"
+          - "Persist state BEFORE and AFTER transitions"
+        mocks_required:
+          - name: "Testcontainers"
+            purpose: "PostgreSQL (saga state)"
+        input:
+          - "9-state persistent state machine"
+          - "Compensation actions"
+        output:
+          - "Saga orchestrator"
+          - "State machine"
+          - "Compensation logic"
+        kpis:
+          - metric: "Saga duration"
+            target: "< 60 seconds (total)"
+          - metric: "Compensation rate"
+            target: "< 5%"
+        dod:
+          - "9-state machine working"
+          - "Compensation tested"
+          - "State recovery tested"
+        fallback_plan: "If state machine fails → Use simpler 5-state version"
+        dependencies: ["phase-0"]
+  
+  - id: "phase-2"
+    name: "Clearing Adapters"
+    type: "parallel"
+    description: "Can be built in PARALLEL after Phase 0"
+    estimated_duration_days: "5-7"
+    parallelization_strategy: "5 agents working simultaneously"
+    features:
+      - id: "2.1"
+        name: "SAMOS Adapter"
+        agent: "SAMOS Adapter Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-21-samos-adapter"
+        complexity: "high"
+        estimation_days: "4-6"
+        nominal_days: 5
+        ai_factors:
+          - "Retry 2x on ISO 20022 formatting errors"
+          - "Hallucination risk: MEDIUM"
+        spring_boot_guidance:
+          - "Use Spring Cloud OpenFeign for SAMOS API"
+          - "Validate ISO 20022 XML against XSD"
+        mocks_required:
+          - name: "WireMock"
+            purpose: "SAMOS RTGS system (port 9001)"
+        input:
+          - "ISO 20022 message specs (pacs.008)"
+          - "SAMOS API documentation"
+        output:
+          - "SAMOS REST client"
+          - "ISO 20022 message builder"
+        kpis:
+          - metric: "Message validation time"
+            target: "< 200ms"
+          - metric: "SAMOS submission success rate"
+            target: "> 98%"
+        dod:
+          - "ISO 20022 messages valid"
+          - "SAMOS submission working"
+        fallback_plan: "If ISO 20022 invalid → Use online validator"
+        dependencies: ["phase-0"]
+      
+      - id: "2.2"
+        name: "BankservAfrica Adapter"
+        agent: "BankservAfrica Adapter Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-22-bankservafrica-adapter"
+        complexity: "high"
+        estimation_days: "4-6"
+        nominal_days: 5
+        ai_factors:
+          - "Retry 2x on ISO 8583 formatting errors"
+          - "Hallucination risk: MEDIUM"
+        spring_boot_guidance:
+          - "Use jPOS library for ISO 8583"
+          - "Implement SFTP client for batch files"
+        mocks_required:
+          - name: "WireMock"
+            purpose: "BankservAfrica ACH system (port 9002)"
+          - name: "EmbeddedSFTP"
+            purpose: "SFTP server for batch files"
+        input:
+          - "ISO 8583 message specs"
+          - "BankservAfrica API docs"
+        output:
+          - "BankservAfrica REST client"
+          - "ISO 8583 message builder"
+          - "SFTP client"
+        kpis:
+          - metric: "ISO 8583 validation time"
+            target: "< 100ms"
+        dod:
+          - "ISO 8583 messages valid"
+          - "BankservAfrica submission working"
+        fallback_plan: "If ISO 8583 invalid → Use jPOS simulator"
+        dependencies: ["phase-0"]
+      
+      - id: "2.3"
+        name: "RTC Adapter"
+        agent: "RTC Adapter Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-23-rtc-adapter"
+        complexity: "medium"
+        estimation_days: "3-5"
+        nominal_days: 4
+        ai_factors:
+          - "Retry 2x on ISO 20022 errors"
+          - "Hallucination risk: LOW"
+        spring_boot_guidance:
+          - "Use Spring Cloud OpenFeign"
+          - "Real-time processing (< 10 seconds)"
+        mocks_required:
+          - name: "WireMock"
+            purpose: "RTC system (port 9003)"
+        input:
+          - "ISO 20022 specs (pacs.008)"
+        output:
+          - "RTC REST client"
+        kpis:
+          - metric: "RTC submission time"
+            target: "< 10 seconds"
+        dod:
+          - "Real-time submission working"
+        fallback_plan: "If RTC timeout → Increase timeout to 30s"
+        dependencies: ["phase-0"]
+      
+      - id: "2.4"
+        name: "PayShap Adapter"
+        agent: "PayShap Adapter Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-24-payshap-adapter"
+        complexity: "medium"
+        estimation_days: "3-5"
+        nominal_days: 4
+        ai_factors:
+          - "Retry 2x on ISO 20022 errors"
+          - "Hallucination risk: LOW"
+        spring_boot_guidance:
+          - "Use Spring Cloud OpenFeign"
+          - "Instant P2P (< 5 seconds)"
+        mocks_required:
+          - name: "WireMock"
+            purpose: "PayShap system (port 9004)"
+        input:
+          - "ISO 20022 specs (pacs.008)"
+          - "Mobile/email lookup API"
+        output:
+          - "PayShap REST client"
+        kpis:
+          - metric: "PayShap submission time"
+            target: "< 5 seconds"
+        dod:
+          - "Instant P2P working"
+        fallback_plan: "If PayShap timeout → Use fallback to RTC"
+        dependencies: ["phase-0"]
+      
+      - id: "2.5"
+        name: "SWIFT Adapter"
+        agent: "SWIFT Adapter Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-25-swift-adapter"
+        complexity: "high"
+        estimation_days: "5-7"
+        nominal_days: 6
+        ai_factors:
+          - "Retry 3x on SWIFT message errors"
+          - "Hallucination risk: HIGH (SWIFT MT103/MX)"
+          - "Feedback loop: Test sanctions screening manually"
+        spring_boot_guidance:
+          - "Use SWIFT Alliance Lite2 client"
+          - "MANDATORY sanctions screening (OFAC, UN, EU)"
+          - "Validate MT103 and pacs.008 formats"
+        mocks_required:
+          - name: "WireMock"
+            purpose: "SWIFT Alliance Lite2 (port 9005)"
+          - name: "WireMock"
+            purpose: "Sanctions screening API (port 9006)"
+          - name: "WireMock"
+            purpose: "FX rate API (port 9007)"
+        input:
+          - "SWIFT MT103/MX specs"
+          - "Sanctions list (OFAC, UN, EU)"
+          - "FX rate API"
+        output:
+          - "SWIFT client"
+          - "Sanctions screening engine"
+          - "FX conversion logic"
+        kpis:
+          - metric: "SWIFT submission time"
+            target: "< 5 seconds (including sanctions)"
+          - metric: "Sanctions screening rate"
+            target: "100% (all payments)"
+          - metric: "SWIFT success rate"
+            target: "> 98%"
+        dod:
+          - "MT103 and pacs.008 messages valid"
+          - "Sanctions screening working"
+          - "FX conversion working"
+          - "SWIFT submission working"
+        fallback_plan: "If sanctions API fails → Use cached list (24-hour TTL)"
+        dependencies: ["phase-0"]
+  
+  # ... (Phase 3-6 features omitted for brevity, follow same pattern)
+
+orchestration:
+  tools:
+    - name: "CrewAI"
+      description: "Multi-agent orchestration framework"
+      integration: "Use agent roles, tasks, and dependencies"
+      example_code: |
+        from crewai import Agent, Task, Crew
+        
+        schema_agent = Agent(
+            role="Database Schema Engineer",
+            goal="Generate PostgreSQL migration scripts",
+            backstory="Expert in database design",
+            verbose=True
+        )
+        
+        schema_task = Task(
+            description="Generate PostgreSQL migrations",
+            agent=schema_agent,
+            expected_output="Flyway migration scripts",
+            context_file="docs/05-DATABASE-SCHEMAS.md"
+        )
+        
+        crew = Crew(agents=[schema_agent], tasks=[schema_task])
+        result = crew.kickoff()
+    
+    - name: "LangChain"
+      description: "LLM orchestration framework"
+      integration: "Use prompt templates and task chains"
+    
+    - name: "AutoGPT"
+      description: "Autonomous AI agent framework"
+      integration: "Use task descriptions and expected outputs"
+  
+  coordinator_agent:
+    role: "Build Coordinator"
+    responsibilities:
+      - "Monitor all 36 agent tasks"
+      - "Detect failures and trigger fallback plans"
+      - "Aggregate build status and report progress"
+      - "Manage dependency resolution"
+    feedback_loops:
+      - "Phase 6: AI agents provide feedback on prompt templates"
+      - "Refine prompts based on hallucination frequency"
+      - "Update estimation ranges based on actual duration"
+
+validation:
+  prototype_phases:
+    - phase: "Phase 0"
+      description: "Validate foundation tasks with actual AI agents"
+      expected_outcomes:
+        - "Flyway migrations generated correctly"
+        - "AsyncAPI schemas valid"
+        - "Domain models compile"
+    
+    - phase: "Phase 1"
+      description: "Validate core services with actual AI agents"
+      expected_outcomes:
+        - "Payment Initiation Service deploys to AKS"
+        - "Validation Service rules execute correctly"
+        - "Account Adapter circuit breaker works"
+  
+  metrics_collection:
+    - metric: "Actual vs. Estimated Duration"
+      frequency: "Per feature"
+      purpose: "Refine estimation ranges"
+    
+    - metric: "Hallucination Frequency"
+      frequency: "Per feature"
+      purpose: "Identify problematic prompts"
+    
+    - metric: "Fallback Plan Usage"
+      frequency: "Per feature"
+      purpose: "Improve agent resilience"
+    
+    - metric: "KPI Achievement"
+      frequency: "Per feature"
+      purpose: "Validate quality gates"

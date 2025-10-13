@@ -1,0 +1,1558 @@
+# Feature Breakdown Tree - AI Agent Build Strategy (ENHANCED)
+
+## Overview
+
+This document provides a **feature-level breakdown** of the Payments Engine, organized into a **dependency tree** showing which features can be built in **parallel** and which must be built in **sequence**.
+
+**Purpose**: Enable AI agents to build features independently with minimal context, avoiding overwhelm.
+
+**Key Principle**: Each feature is **self-contained** with clear inputs, outputs, dependencies, and **resilience strategies**.
+
+**✨ NEW in Enhanced Version**:
+- 📊 Mermaid diagrams for visual dependency graph
+- 🎯 Estimation ranges with AI-specific factors
+- 🔧 Spring Boot specific guidance per feature
+- 🛡️ Fallback plans for agent failures
+- 📈 KPIs tied to Definition of Done
+- 🔗 Direct links to AI Agent Prompt Templates
+- 📋 YAML export for programmatic orchestration
+
+---
+
+## Table of Contents
+
+1. [Build Phases Overview](#build-phases-overview)
+2. [Visual Dependency Graph (Mermaid)](#visual-dependency-graph-mermaid)
+3. [Timeline Visualization (Mermaid)](#timeline-visualization-mermaid)
+4. [Phase 0: Foundation (Sequential)](#phase-0-foundation-sequential)
+5. [Phase 1: Core Services (Parallel)](#phase-1-core-services-parallel)
+6. [Phase 2: Clearing Adapters (Parallel)](#phase-2-clearing-adapters-parallel)
+7. [Phase 3: Platform Services (Parallel)](#phase-3-platform-services-parallel)
+8. [Phase 4: Advanced Features (Parallel)](#phase-4-advanced-features-parallel)
+9. [Phase 5: Infrastructure (Parallel)](#phase-5-infrastructure-parallel)
+10. [Phase 6: Integration & Testing (Sequential)](#phase-6-integration--testing-sequential)
+11. [AI Agent Assignment Strategy](#ai-agent-assignment-strategy)
+12. [Fallback Plans Per Phase](#fallback-plans-per-phase)
+13. [Orchestration Integration](#orchestration-integration)
+14. [YAML Export](#yaml-export)
+
+---
+
+## Build Phases Overview
+
+```
+PHASE 0: FOUNDATION (Sequential - Must be done first)
+├─ 0.1: Database Schemas (3-5 days)
+├─ 0.2: Event Schemas (1-2 days)
+├─ 0.3: Domain Models (2-4 days)
+├─ 0.4: Shared Libraries (2-3 days)
+└─ 0.5: Infrastructure Setup (4-6 days)
+
+PHASE 1: CORE SERVICES (Parallel - Independent)
+├─ 1.1: Payment Initiation Service (3-5 days)
+├─ 1.2: Validation Service (3-4 days)
+├─ 1.3: Account Adapter Service (4-6 days)
+├─ 1.4: Routing Service (2-3 days)
+├─ 1.5: Transaction Processing Service (4-5 days)
+└─ 1.6: Saga Orchestrator Service (5-7 days)
+
+PHASE 2: CLEARING ADAPTERS (Parallel - Independent)
+├─ 2.1: SAMOS Adapter (4-6 days)
+├─ 2.2: BankservAfrica Adapter (4-6 days)
+├─ 2.3: RTC Adapter (3-5 days)
+├─ 2.4: PayShap Adapter (3-5 days)
+└─ 2.5: SWIFT Adapter (5-7 days)
+
+PHASE 3: PLATFORM SERVICES (Parallel - Independent)
+├─ 3.1: Tenant Management Service (3-4 days)
+├─ 3.2: IAM Service (4-5 days)
+├─ 3.3: Audit Service (2-3 days)
+├─ 3.4: Notification Service / IBM MQ Adapter (3-4 days)
+└─ 3.5: Reporting Service (4-5 days)
+
+PHASE 4: ADVANCED FEATURES (Parallel - Independent)
+├─ 4.1: Batch Processing Service (5-7 days)
+├─ 4.2: Settlement Service (4-5 days)
+├─ 4.3: Reconciliation Service (4-5 days)
+├─ 4.4: Internal API Gateway Service (3-4 days)
+└─ 4.5: BFF Layer (4-6 days - 3 BFFs)
+
+PHASE 5: INFRASTRUCTURE (Parallel - Independent)
+├─ 5.1: Service Mesh (Istio) (3-4 days)
+├─ 5.2: Monitoring Stack (3-4 days)
+├─ 5.3: GitOps (ArgoCD) (2-3 days)
+├─ 5.4: Feature Flags (Unleash) (2-3 days)
+└─ 5.5: Kubernetes Operators (5-7 days - 14 operators)
+
+PHASE 6: INTEGRATION & TESTING (Sequential - After all above)
+├─ 6.1: End-to-End Testing (4-5 days)
+├─ 6.2: Load Testing (3-4 days)
+├─ 6.3: Security Testing (3-4 days)
+├─ 6.4: Compliance Testing (3-4 days)
+└─ 6.5: Production Readiness (2-3 days)
+```
+
+**Total Phases**: 7 (0-6)  
+**Total Features**: 36 features  
+**Parallel Phases**: 5 (Phases 1-5)  
+**Sequential Phases**: 2 (Phase 0, Phase 6)  
+**Estimated Duration**: 25-35 days (with parallelization)
+
+---
+
+## Visual Dependency Graph (Mermaid)
+
+### Complete Dependency Graph
+
+```mermaid
+graph TD
+    %% Phase 0: Foundation
+    subgraph Phase0[Phase 0: Foundation - Sequential]
+        F01[0.1 Database Schemas]
+        F02[0.2 Event Schemas]
+        F03[0.3 Domain Models]
+        F04[0.4 Shared Libraries]
+        F05[0.5 Infrastructure Setup]
+    end
+
+    F01 --> F03
+    F02 --> F04
+    F03 --> F04
+
+    %% Phase 1: Core Services
+    subgraph Phase1[Phase 1: Core Services - Parallel]
+        F11[1.1 Payment Initiation]
+        F12[1.2 Validation]
+        F13[1.3 Account Adapter]
+        F14[1.4 Routing]
+        F15[1.5 Transaction Processing]
+        F16[1.6 Saga Orchestrator]
+    end
+
+    Phase0 --> F11
+    Phase0 --> F12
+    Phase0 --> F13
+    Phase0 --> F14
+    Phase0 --> F15
+    Phase0 --> F16
+
+    %% Phase 2: Clearing Adapters
+    subgraph Phase2[Phase 2: Clearing Adapters - Parallel]
+        F21[2.1 SAMOS Adapter]
+        F22[2.2 BankservAfrica Adapter]
+        F23[2.3 RTC Adapter]
+        F24[2.4 PayShap Adapter]
+        F25[2.5 SWIFT Adapter]
+    end
+
+    Phase0 --> F21
+    Phase0 --> F22
+    Phase0 --> F23
+    Phase0 --> F24
+    Phase0 --> F25
+
+    %% Phase 3: Platform Services
+    subgraph Phase3[Phase 3: Platform Services - Parallel]
+        F31[3.1 Tenant Management]
+        F32[3.2 IAM Service]
+        F33[3.3 Audit Service]
+        F34[3.4 Notification Service]
+        F35[3.5 Reporting Service]
+    end
+
+    Phase0 --> F31
+    Phase0 --> F32
+    Phase0 --> F33
+    Phase0 --> F34
+    F11 --> F35
+
+    %% Phase 4: Advanced Features
+    subgraph Phase4[Phase 4: Advanced Features - Parallel]
+        F41[4.1 Batch Processing]
+        F42[4.2 Settlement]
+        F43[4.3 Reconciliation]
+        F44[4.4 Internal API Gateway]
+        F45[4.5 BFF Layer]
+    end
+
+    F11 --> F41
+    F21 --> F42
+    F42 --> F43
+    Phase1 --> F44
+    F11 --> F45
+
+    %% Phase 5: Infrastructure
+    subgraph Phase5[Phase 5: Infrastructure - Parallel]
+        F51[5.1 Service Mesh]
+        F52[5.2 Monitoring Stack]
+        F53[5.3 GitOps]
+        F54[5.4 Feature Flags]
+        F55[5.5 K8s Operators]
+    end
+
+    Phase0 --> F51
+    Phase0 --> F52
+    Phase0 --> F53
+    Phase0 --> F54
+    Phase0 --> F55
+
+    %% Phase 6: Testing
+    subgraph Phase6[Phase 6: Testing - Sequential]
+        F61[6.1 E2E Testing]
+        F62[6.2 Load Testing]
+        F63[6.3 Security Testing]
+        F64[6.4 Compliance Testing]
+        F65[6.5 Production Readiness]
+    end
+
+    Phase1 --> F61
+    Phase2 --> F61
+    Phase3 --> F61
+    Phase4 --> F61
+    Phase5 --> F61
+
+    F61 --> F62
+    F62 --> F63
+    F63 --> F64
+    F64 --> F65
+
+    style Phase0 fill:#ffcccc
+    style Phase1 fill:#ccffcc
+    style Phase2 fill:#ccffcc
+    style Phase3 fill:#ccffcc
+    style Phase4 fill:#ccffcc
+    style Phase5 fill:#ccffcc
+    style Phase6 fill:#ffcccc
+```
+
+---
+
+## Timeline Visualization (Mermaid)
+
+### Gantt Chart with Parallelization
+
+```mermaid
+gantt
+    title Payments Engine Build Timeline (25-35 Days)
+    dateFormat YYYY-MM-DD
+    
+    section Phase 0
+    Database Schemas          :p0_1, 2025-10-11, 4d
+    Event Schemas            :p0_2, 2025-10-11, 2d
+    Domain Models            :p0_3, after p0_1, 3d
+    Shared Libraries         :p0_4, after p0_2 p0_3, 3d
+    Infrastructure Setup     :p0_5, 2025-10-11, 5d
+    
+    section Phase 1 (Parallel)
+    Payment Initiation       :p1_1, after p0_4 p0_5, 4d
+    Validation Service       :p1_2, after p0_4 p0_5, 3d
+    Account Adapter          :p1_3, after p0_4 p0_5, 5d
+    Routing Service          :p1_4, after p0_4 p0_5, 3d
+    Transaction Processing   :p1_5, after p0_4 p0_5, 5d
+    Saga Orchestrator        :p1_6, after p0_4 p0_5, 6d
+    
+    section Phase 2 (Parallel)
+    SAMOS Adapter            :p2_1, after p0_4 p0_5, 5d
+    BankservAfrica Adapter   :p2_2, after p0_4 p0_5, 5d
+    RTC Adapter              :p2_3, after p0_4 p0_5, 4d
+    PayShap Adapter          :p2_4, after p0_4 p0_5, 4d
+    SWIFT Adapter            :p2_5, after p0_4 p0_5, 6d
+    
+    section Phase 3 (Parallel)
+    Tenant Management        :p3_1, after p0_4 p0_5, 4d
+    IAM Service              :p3_2, after p0_4 p0_5, 5d
+    Audit Service            :p3_3, after p0_4 p0_5, 3d
+    Notification Service     :p3_4, after p0_4 p0_5, 4d
+    Reporting Service        :p3_5, after p1_1, 5d
+    
+    section Phase 4 (Parallel)
+    Batch Processing         :p4_1, after p1_1, 6d
+    Settlement Service       :p4_2, after p2_1, 5d
+    Reconciliation Service   :p4_3, after p4_2, 5d
+    Internal API Gateway     :p4_4, after p1_6, 4d
+    BFF Layer                :p4_5, after p1_1, 5d
+    
+    section Phase 5 (Parallel)
+    Service Mesh             :p5_1, after p0_5, 4d
+    Monitoring Stack         :p5_2, after p0_5, 4d
+    GitOps                   :p5_3, after p0_5, 3d
+    Feature Flags            :p5_4, after p0_5, 3d
+    K8s Operators            :p5_5, after p0_5, 6d
+    
+    section Phase 6 (Sequential)
+    E2E Testing              :p6_1, after p1_6 p2_5 p3_5 p4_3 p5_5, 5d
+    Load Testing             :p6_2, after p6_1, 4d
+    Security Testing         :p6_3, after p6_2, 4d
+    Compliance Testing       :p6_4, after p6_3, 4d
+    Production Readiness     :p6_5, after p6_4, 3d
+```
+
+**Critical Path**: Phase 0 → Phase 1 (Saga) → Phase 4 (Reconciliation) → Phase 6 (All Testing) = **35 days**
+
+**Optimized Path (with max parallelization)**: **25-30 days**
+
+---
+
+## Phase 0: Foundation (Sequential)
+
+**⚠️ CRITICAL**: Must be completed FIRST before any services.
+
+### 0.1: Database Schemas
+
+**Agent**: Schema Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-01-database-schemas`  
+**Complexity**: Medium  
+**Estimation**: **3-5 days** (Nominal: 4 days)  
+**AI-Specific Factors**:
+- Retry 2x on SQL syntax errors
+- Schema validation against PostgreSQL 14+ compatibility
+- Hallucination risk: LOW (schemas are deterministic)
+
+#### Spring Boot Guidance
+```java
+// Use Flyway for migrations
+@Configuration
+public class FlywayConfig {
+    @Bean
+    public Flyway flyway(DataSource dataSource) {
+        return Flyway.configure()
+            .dataSource(dataSource)
+            .locations("classpath:db/migration")
+            .baselineOnMigrate(true)
+            .load();
+    }
+}
+
+// Enable Row-Level Security (RLS) in migrations
+// V005__enable_rls.sql
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON payments
+    USING (tenant_id = current_setting('app.current_tenant_id')::uuid);
+```
+
+#### Input
+- `docs/05-DATABASE-SCHEMAS.md` (Database design for all 20 services)
+- PostgreSQL 14+ compatibility requirements
+
+#### Output
+- PostgreSQL migration scripts (Flyway)
+- All tables created (20+ tables)
+- Indexes defined (50+ indexes)
+- Row-level security (RLS) configured per tenant
+
+#### Artifacts
+```
+/database/migrations/
+├─ V001__create_payment_tables.sql
+├─ V002__create_tenant_tables.sql
+├─ V003__create_audit_tables.sql
+├─ V004__create_indexes.sql
+└─ V005__enable_rls.sql
+```
+
+#### Definition of Done (DoD) + KPIs
+- ✅ All 20+ tables created successfully
+- ✅ All foreign key constraints validated
+- ✅ RLS policies tested (tenant isolation: 100% no leakage)
+- ✅ **KPI**: Database migration time < 60 seconds
+- ✅ **KPI**: Query performance: Indexed queries < 50ms (p95)
+- ✅ All migrations tested on PostgreSQL 14
+
+#### Fallback Plan
+- If agent fails → Human DBA reviews schema, generates migrations manually
+- If migration fails → Rollback using Flyway, retry with corrected SQL
+- If RLS misconfigured → Use test tenants to validate isolation, fix policies
+
+#### No Dependencies
+
+---
+
+### 0.2: Event Schemas (AsyncAPI)
+
+**Agent**: Event Schema Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-02-event-schemas`  
+**Complexity**: Low  
+**Estimation**: **1-2 days** (Nominal: 1 day)  
+**AI-Specific Factors**:
+- Retry 2x on JSON Schema validation errors
+- Hallucination risk: LOW (event schemas are spec-driven)
+
+#### Spring Boot Guidance
+```java
+// Use Spring Cloud Stream for event publishing
+@Configuration
+@EnableBinding(Source.class)
+public class EventPublisherConfig {
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+}
+
+// Publish events with correlation ID
+@Service
+public class PaymentEventPublisher {
+    @Autowired
+    private Source source;
+    
+    public void publishPaymentInitiated(Payment payment) {
+        PaymentInitiatedEvent event = new PaymentInitiatedEvent(payment);
+        Message<PaymentInitiatedEvent> message = MessageBuilder
+            .withPayload(event)
+            .setHeader("correlationId", MDC.get("correlationId"))
+            .setHeader("tenantId", TenantContextHolder.getTenantId())
+            .build();
+        source.output().send(message);
+    }
+}
+```
+
+#### Input
+- `docs/03-EVENT-SCHEMAS.md` (25+ event definitions)
+- AsyncAPI 2.0 specification
+
+#### Output
+- AsyncAPI 2.0 specifications
+- Event payload definitions (JSON Schema)
+- Avro schemas (optional for Kafka)
+- Java event classes (POJOs)
+
+#### Artifacts
+```
+/events/
+├─ asyncapi.yaml
+├─ payment-initiated-event.json
+├─ payment-validated-event.json
+├─ payment-completed-event.json
+└─ ... (all 25+ events)
+```
+
+#### Definition of Done (DoD) + KPIs
+- ✅ All 25+ events defined in AsyncAPI 2.0
+- ✅ JSON Schema validation passes for all events
+- ✅ Java classes generated from schemas
+- ✅ **KPI**: Event schema validation time < 100ms per event
+- ✅ **KPI**: Event size < 10 KB (compressed)
+
+#### Fallback Plan
+- If agent fails → Human architect reviews event schemas, generates manually
+- If JSON Schema invalid → Use online validators to fix syntax
+- If Avro generation fails → Skip Avro, use JSON only (acceptable for Azure Service Bus)
+
+#### No Dependencies
+
+---
+
+### 0.3: Domain Models
+
+**Agent**: Domain Model Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-03-domain-models`  
+**Complexity**: Medium  
+**Estimation**: **2-4 days** (Nominal: 3 days)  
+**AI-Specific Factors**:
+- Retry 2x on compilation errors
+- Hallucination risk: MEDIUM (complex DDD concepts may confuse AI)
+- Feedback loop: Review aggregates, value objects for DDD correctness
+
+#### Spring Boot Guidance
+```java
+// Use Spring Data JPA for domain entities
+@Entity
+@Table(name = "payments")
+@EntityListeners(AuditingEntityListener.class)
+public class Payment {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "payment_seq")
+    private UUID id;
+    
+    @Embedded
+    private PaymentId paymentId; // Value Object
+    
+    @Embedded
+    private Amount amount; // Value Object
+    
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status;
+    
+    @Column(name = "tenant_id", nullable = false)
+    private UUID tenantId;
+    
+    @CreatedDate
+    private Instant createdAt;
+    
+    @LastModifiedDate
+    private Instant updatedAt;
+    
+    // Business methods (not just getters/setters!)
+    public void validate() {
+        if (amount.value().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidPaymentException("Amount must be positive");
+        }
+    }
+    
+    public void markAsValidated() {
+        if (status != PaymentStatus.INITIATED) {
+            throw new IllegalStateException("Payment must be in INITIATED state");
+        }
+        this.status = PaymentStatus.VALIDATED;
+    }
+}
+
+// Value Object (immutable)
+@Embeddable
+public record PaymentId(String value) {
+    public PaymentId {
+        if (!value.matches("PAY-\\d{4}-\\d{6}")) {
+            throw new IllegalArgumentException("Invalid payment ID format");
+        }
+    }
+}
+
+// Domain Event
+public record PaymentInitiatedEvent(
+    UUID paymentId,
+    UUID tenantId,
+    BigDecimal amount,
+    String currency,
+    Instant timestamp
+) {}
+```
+
+#### Input
+- `docs/14-DDD-IMPLEMENTATION.md` (Bounded contexts, aggregates, value objects)
+- `docs/05-DATABASE-SCHEMAS.md` (Database tables)
+
+#### Output
+- Java domain entities (JPA annotated)
+- Value objects (immutable)
+- Aggregates (with business logic)
+- Domain events (POJOs)
+
+#### Artifacts
+```
+/shared-domain/src/main/java/com/payments/domain/
+├─ payment/
+│   ├─ Payment.java (Aggregate Root)
+│   ├─ PaymentId.java (Value Object)
+│   ├─ Amount.java (Value Object)
+│   └─ PaymentStatus.java (Enum)
+├─ account/
+│   ├─ Account.java
+│   └─ AccountId.java
+└─ events/
+    ├─ PaymentInitiatedEvent.java
+    └─ PaymentCompletedEvent.java
+```
+
+#### Definition of Done (DoD) + KPIs
+- ✅ All aggregates, value objects, entities defined
+- ✅ Domain events generated
+- ✅ Business logic in domain model (not in service layer)
+- ✅ All domain classes compile without errors
+- ✅ **KPI**: Domain model unit test coverage > 90%
+- ✅ **KPI**: Value object immutability: 100% (no setters)
+
+#### Fallback Plan
+- If agent fails → Human DDD expert reviews models, refactors to proper DDD
+- If compilation errors → Retry with fixed imports, annotations
+- If business logic incorrect → Pair with domain expert to refine rules
+
+#### Dependencies
+- 0.1 (Database Schemas)
+
+---
+
+### 0.4: Shared Libraries
+
+**Agent**: Library Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-04-shared-libraries`  
+**Complexity**: Medium  
+**Estimation**: **2-3 days** (Nominal: 3 days)  
+**AI-Specific Factors**:
+- Retry 2x on Maven dependency conflicts
+- Hallucination risk: LOW (utility code is straightforward)
+
+#### Spring Boot Guidance
+```java
+// Idempotency Handler (Redis-backed)
+@Component
+public class IdempotencyHandler {
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+    
+    public <T> Optional<T> getIdempotentResponse(String idempotencyKey, Class<T> type) {
+        String json = redisTemplate.opsForValue().get("idempotency:" + idempotencyKey);
+        if (json != null) {
+            return Optional.of(objectMapper.readValue(json, type));
+        }
+        return Optional.empty();
+    }
+    
+    public <T> void saveIdempotentResponse(String idempotencyKey, T response) {
+        String json = objectMapper.writeValueAsString(response);
+        redisTemplate.opsForValue().set(
+            "idempotency:" + idempotencyKey, 
+            json, 
+            24, TimeUnit.HOURS
+        );
+    }
+}
+
+// Correlation ID Filter (MDC)
+@Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
+public class CorrelationIdFilter extends OncePerRequestFilter {
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, 
+                                     HttpServletResponse response, 
+                                     FilterChain filterChain) throws ServletException, IOException {
+        String correlationId = request.getHeader("X-Correlation-ID");
+        if (correlationId == null) {
+            correlationId = UUID.randomUUID().toString();
+        }
+        MDC.put("correlationId", correlationId);
+        response.setHeader("X-Correlation-ID", correlationId);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            MDC.remove("correlationId");
+        }
+    }
+}
+
+// Tenant Context Holder (ThreadLocal)
+public class TenantContextHolder {
+    private static final ThreadLocal<UUID> currentTenant = new ThreadLocal<>();
+    
+    public static void setTenantId(UUID tenantId) {
+        currentTenant.set(tenantId);
+    }
+    
+    public static UUID getTenantId() {
+        return currentTenant.get();
+    }
+    
+    public static void clear() {
+        currentTenant.remove();
+    }
+}
+```
+
+#### Input
+- `docs/29-ENTERPRISE-INTEGRATION-PATTERNS.md` (Idempotent Receiver, Correlation ID)
+- Domain models (from 0.3)
+- Event schemas (from 0.2)
+
+#### Output
+- Shared utility libraries (Maven/Gradle modules)
+- Event publishing library (Azure Service Bus client)
+- API client library (RestTemplate wrapper with circuit breakers)
+- Error handling framework (custom exceptions, error codes)
+
+#### Artifacts
+```
+/shared-libraries/
+├─ payment-common/
+│   ├─ IdempotencyHandler.java
+│   ├─ CorrelationIdFilter.java
+│   └─ TenantContextHolder.java
+├─ event-publisher/
+│   ├─ EventPublisher.java
+│   └─ ServiceBusPublisher.java
+├─ api-client/
+│   ├─ RestApiClient.java
+│   └─ CircuitBreakerWrapper.java
+└─ error-handling/
+    ├─ PaymentException.java
+    └─ ErrorCode.java
+```
+
+#### Definition of Done (DoD) + KPIs
+- ✅ All 4 shared libraries built and published to Maven repo
+- ✅ Unit tests for all utility classes (> 80% coverage)
+- ✅ Integration test for event publisher (Azure Service Bus)
+- ✅ **KPI**: Library dependency resolution time < 10 seconds
+- ✅ **KPI**: Event publishing latency < 50ms (p95)
+
+#### Fallback Plan
+- If agent fails → Human developer reviews libraries, adds missing utilities
+- If Maven dependency conflicts → Resolve manually using dependency tree analysis
+- If event publisher fails → Use WireMock to simulate Azure Service Bus
+
+#### Dependencies
+- 0.2 (Event Schemas)
+- 0.3 (Domain Models)
+
+---
+
+### 0.5: Infrastructure Setup
+
+**Agent**: Infrastructure Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-05-infrastructure-setup`  
+**Complexity**: High  
+**Estimation**: **4-6 days** (Nominal: 5 days)  
+**AI-Specific Factors**:
+- Retry 3x on Terraform apply failures
+- Hallucination risk: MEDIUM (Terraform syntax may confuse AI)
+- Feedback loop: Validate Terraform plan before apply
+
+#### Spring Boot Guidance
+```yaml
+# application.yml (connect to Azure resources)
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST}:5432/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+  redis:
+    host: ${REDIS_HOST}
+    port: 6379
+    password: ${REDIS_PASSWORD}
+    ssl: true
+  cloud:
+    azure:
+      servicebus:
+        connection-string: ${SERVICEBUS_CONNECTION_STRING}
+```
+
+#### Input
+- `docs/07-AZURE-INFRASTRUCTURE.md` (AKS, PostgreSQL, Redis, Service Bus)
+- Azure subscription details
+
+#### Output
+- AKS cluster provisioned (3-node minimum)
+- Azure PostgreSQL Flexible Server (General Purpose, 4 vCores)
+- Azure Cache for Redis (Standard tier)
+- Azure Service Bus (Premium tier for high throughput)
+- Virtual Network (VNet) and subnets configured
+- Network Security Groups (NSGs) applied
+
+#### Artifacts
+```
+/terraform/
+├─ aks.tf
+├─ postgresql.tf
+├─ redis.tf
+├─ service-bus.tf
+├─ networking.tf
+└─ azure-resources.tfstate
+```
+
+#### Definition of Done (DoD) + KPIs
+- ✅ AKS cluster accessible via kubectl
+- ✅ PostgreSQL database connection successful
+- ✅ Redis cache connection successful
+- ✅ Azure Service Bus topic/queue created
+- ✅ **KPI**: Infrastructure provisioning time < 30 minutes
+- ✅ **KPI**: AKS cluster ready state: 100% (all nodes healthy)
+- ✅ **KPI**: Database connection pool latency < 10ms
+
+#### Fallback Plan
+- If Terraform fails → Review Terraform plan, fix syntax errors, re-apply
+- If AKS provisioning timeout → Increase timeout in Terraform config (60 minutes)
+- If PostgreSQL connection fails → Verify firewall rules, NSG allows traffic
+- If agent overwhelmed → Split into 3 sub-tasks: AKS, Databases, Networking
+
+#### Dependencies
+- None (can run in parallel with 0.1-0.4)
+
+---
+
+## Phase 1: Core Services (Parallel)
+
+**✅ Can be built in PARALLEL** after Phase 0 completes.
+
+**Parallelization Strategy**: 6 agents working simultaneously on 6 services.
+
+**Estimated Duration**: 5-7 days (limited by longest task: Saga Orchestrator)
+
+### 1.1: Payment Initiation Service
+
+**Agent**: Payment Initiation Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-11-payment-initiation-service`  
+**Complexity**: Medium  
+**Estimation**: **3-5 days** (Nominal: 4 days)  
+**AI-Specific Factors**:
+- Retry 2x on REST API errors
+- Hallucination risk: LOW (CRUD API is standard)
+- Feedback loop: Validate API contract with OpenAPI spec
+
+#### Spring Boot Guidance
+```java
+// Use @Transactional for ACID guarantees
+@Service
+@Transactional
+public class PaymentInitiationService {
+    @Autowired
+    private PaymentRepository paymentRepository;
+    
+    @Autowired
+    private EventPublisher eventPublisher;
+    
+    @Autowired
+    private IdempotencyHandler idempotencyHandler;
+    
+    public PaymentResponse initiatePayment(PaymentRequest request, String idempotencyKey) {
+        // Check idempotency
+        Optional<PaymentResponse> cached = idempotencyHandler.getIdempotentResponse(
+            idempotencyKey, PaymentResponse.class
+        );
+        if (cached.isPresent()) {
+            return cached.get(); // Return cached response (409 Conflict or 200 OK)
+        }
+        
+        // Create payment
+        Payment payment = Payment.builder()
+            .paymentId(generatePaymentId())
+            .tenantId(TenantContextHolder.getTenantId())
+            .amount(request.amount())
+            .currency(request.currency())
+            .status(PaymentStatus.INITIATED)
+            .build();
+        
+        // Validate domain rules
+        payment.validate();
+        
+        // Save to database
+        payment = paymentRepository.save(payment);
+        
+        // Publish event (transactional outbox pattern)
+        PaymentInitiatedEvent event = new PaymentInitiatedEvent(payment);
+        eventPublisher.publish("payment-initiated", event);
+        
+        // Save idempotent response
+        PaymentResponse response = new PaymentResponse(payment);
+        idempotencyHandler.saveIdempotentResponse(idempotencyKey, response);
+        
+        return response;
+    }
+    
+    private String generatePaymentId() {
+        // Format: PAY-{YYYY}-{NNNNNN}
+        int year = LocalDate.now().getYear();
+        long sequence = paymentRepository.getNextSequence();
+        return String.format("PAY-%d-%06d", year, sequence);
+    }
+}
+
+// Use Spring Boot Actuator for health checks
+@Component
+public class PaymentInitiationHealthIndicator implements HealthIndicator {
+    @Autowired
+    private PaymentRepository paymentRepository;
+    
+    @Override
+    public Health health() {
+        try {
+            paymentRepository.count(); // Test database connection
+            return Health.up()
+                .withDetail("database", "accessible")
+                .withDetail("tenantId", TenantContextHolder.getTenantId())
+                .build();
+        } catch (Exception e) {
+            return Health.down()
+                .withDetail("error", e.getMessage())
+                .build();
+        }
+    }
+}
+```
+
+#### Mocks Required
+- **WireMock** for external fraud API (not needed in Phase 1, but plan ahead)
+- **Testcontainers** for PostgreSQL (integration tests)
+- **EmbeddedRedis** for idempotency testing
+
+#### Input
+- Domain models (`Payment`, `PaymentId`)
+- Event schemas (`PaymentInitiatedEvent`)
+- Database schema (`payments` table)
+- Shared libraries (IdempotencyHandler, CorrelationIdFilter)
+
+#### Output
+- REST API (3 endpoints)
+- Payment creation logic
+- Event publishing (transactional outbox)
+- Dockerized service
+- Kubernetes deployment manifests
+
+#### Endpoints
+```
+POST   /api/v1/payments
+GET    /api/v1/payments/{id}
+GET    /api/v1/payments/status/{id}
+GET    /actuator/health
+GET    /actuator/metrics
+```
+
+#### Artifacts
+```
+/services/payment-initiation-service/
+├─ src/main/java/com/payments/initiation/
+│   ├─ controller/PaymentController.java
+│   ├─ service/PaymentInitiationService.java
+│   ├─ repository/PaymentRepository.java
+│   └─ event/PaymentEventPublisher.java
+├─ src/test/java/
+│   ├─ PaymentInitiationServiceTest.java (unit)
+│   └─ PaymentControllerIntegrationTest.java (integration)
+├─ Dockerfile
+├─ k8s/deployment.yaml
+├─ k8s/service.yaml
+└─ pom.xml
+```
+
+#### Definition of Done (DoD) + KPIs
+- ✅ All 3 REST endpoints functional
+- ✅ Idempotency working (Redis cache hit > 0%)
+- ✅ Event published to Azure Service Bus
+- ✅ Unit test coverage > 80%
+- ✅ Integration tests pass (Testcontainers)
+- ✅ **KPI**: API response time < 500ms (p95)
+- ✅ **KPI**: Event publishing latency < 50ms (p95)
+- ✅ **KPI**: Idempotency cache hit rate > 30% (in production)
+- ✅ Swagger UI accessible at `/swagger-ui.html`
+- ✅ Service deploys to AKS successfully
+
+#### Fallback Plan
+- If agent fails → Human developer reviews code, fixes bugs
+- If REST API errors → Use Postman/curl to test endpoints, debug responses
+- If event publishing fails → Use Azure Service Bus Explorer to verify messages
+- If deployment fails → Check Kubernetes logs (`kubectl logs`), fix container issues
+
+#### Dependencies
+- Phase 0 (all foundation)
+
+---
+
+### 1.2: Validation Service
+
+**Agent**: Validation Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-12-validation-service`  
+**Complexity**: Medium  
+**Estimation**: **3-4 days** (Nominal: 3 days)  
+**AI-Specific Factors**:
+- Retry 2x on Drools rule syntax errors
+- Hallucination risk: MEDIUM (Drools DRL syntax may confuse AI)
+- Feedback loop: Validate rules with KIE server before deployment
+
+#### Spring Boot Guidance
+```java
+// Use Drools for business rules
+@Configuration
+public class DroolsConfig {
+    @Bean
+    public KieContainer kieContainer() {
+        KieServices kieServices = KieServices.Factory.get();
+        KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
+        
+        // Load rules from Git repository
+        Resource[] resources = gitRuleLoader.loadRules("validation-rules/**/*.drl");
+        for (Resource resource : resources) {
+            kieFileSystem.write(resource);
+        }
+        
+        KieBuilder kieBuilder = kieServices.newKieBuilder(kieFileSystem);
+        kieBuilder.buildAll();
+        
+        if (kieBuilder.getResults().hasMessages(Message.Level.ERROR)) {
+            throw new IllegalStateException("Drools rule compilation failed");
+        }
+        
+        return kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
+    }
+}
+
+// Hot reload Drools rules from Git
+@Service
+public class ValidationService {
+    @Autowired
+    private KieContainer kieContainer;
+    
+    @Autowired
+    private EventPublisher eventPublisher;
+    
+    public ValidationResult validate(Payment payment) {
+        KieSession kieSession = kieContainer.newKieSession();
+        kieSession.insert(payment);
+        
+        ValidationResult result = new ValidationResult();
+        kieSession.setGlobal("result", result);
+        
+        kieSession.fireAllRules();
+        kieSession.dispose();
+        
+        if (result.isValid()) {
+            eventPublisher.publish("payment-validated", new PaymentValidatedEvent(payment));
+        } else {
+            eventPublisher.publish("payment-rejected", new PaymentRejectedEvent(payment, result.getErrors()));
+        }
+        
+        return result;
+    }
+}
+```
+
+#### Mocks Required
+- **Testcontainers** for PostgreSQL
+- **EmbeddedKafka** for event testing (if using Kafka instead of Service Bus)
+
+#### Input
+- Payment domain model
+- Drools rules (10+ rules from `docs/31-DROOLS-RULES-ENGINE.md`)
+- Event schemas (`PaymentValidatedEvent`, `PaymentRejectedEvent`)
+
+#### Output
+- Drools rules engine (KIE server)
+- 10+ validation rules (amount, currency, account, sanctions)
+- Event consumer (Azure Service Bus trigger)
+- Event publisher (validation result)
+
+#### Artifacts
+```
+/services/validation-service/
+├─ src/main/java/com/payments/validation/
+│   ├─ service/ValidationService.java
+│   ├─ rules/ (Drools DRL files)
+│   │   ├─ amount-validation.drl
+│   │   ├─ currency-validation.drl
+│   │   └─ sanctions-validation.drl
+│   └─ event/ValidationEventHandler.java
+├─ src/test/java/
+│   ├─ ValidationServiceTest.java
+│   └─ DroolsRulesTest.java (test each rule)
+├─ Dockerfile
+└─ k8s/deployment.yaml
+```
+
+#### Definition of Done (DoD) + KPIs
+- ✅ All 10+ Drools rules working
+- ✅ Hot reload from Git functional
+- ✅ Event consumption working (Azure Service Bus)
+- ✅ Event publishing working (validated/rejected)
+- ✅ Unit test per rule (10+ tests)
+- ✅ **KPI**: Rule execution time < 200ms per payment
+- ✅ **KPI**: Rule cache hit rate > 80% (Redis)
+- ✅ **KPI**: Validation throughput > 100 payments/second
+
+#### Fallback Plan
+- If Drools syntax errors → Use online Drools validator, fix syntax
+- If hot reload fails → Restart service manually (acceptable for Phase 1)
+- If event consumption fails → Check Azure Service Bus subscription, verify permissions
+
+#### Dependencies
+- Phase 0 (all foundation)
+
+---
+
+### 1.3: Account Adapter Service
+
+**Agent**: Account Adapter Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-13-account-adapter-service`  
+**Complexity**: High  
+**Estimation**: **4-6 days** (Nominal: 5 days)  
+**AI-Specific Factors**:
+- Retry 3x on REST client configuration errors
+- Hallucination risk: HIGH (Resilience4j config may confuse AI)
+- Feedback loop: Test circuit breaker manually with failures
+
+#### Spring Boot Guidance
+```java
+// Use Spring Cloud OpenFeign for REST clients with Resilience4j
+@FeignClient(
+    name = "current-account-service",
+    url = "${external.current-account.url}",
+    configuration = FeignConfig.class
+)
+public interface CurrentAccountClient {
+    @PostMapping("/api/v1/accounts/{accountId}/debit")
+    @CircuitBreaker(name = "currentAccountService", fallbackMethod = "debitFallback")
+    @Retry(name = "currentAccountService")
+    @Bulkhead(name = "currentAccountService")
+    @Cacheable(value = "balances", key = "#accountId", unless = "#result == null")
+    DebitResponse debit(
+        @PathVariable String accountId,
+        @RequestBody DebitRequest request,
+        @RequestHeader("X-Idempotency-Key") String idempotencyKey
+    );
+    
+    default DebitResponse debitFallback(String accountId, DebitRequest request, 
+                                         String idempotencyKey, Exception e) {
+        log.error("Circuit breaker activated for debit: accountId={}", accountId, e);
+        return DebitResponse.failure("SERVICE_UNAVAILABLE", 
+                                     "Current account system is temporarily unavailable");
+    }
+}
+
+// Configure Resilience4j
+@Configuration
+public class Resilience4jConfig {
+    @Bean
+    public Customizer<Resilience4JCircuitBreakerFactory> defaultCustomizer() {
+        return factory -> factory.configureDefault(id -> new Resilience4JConfigBuilder(id)
+            .circuitBreakerConfig(CircuitBreakerConfig.custom()
+                .failureRateThreshold(50) // Open after 50% failures
+                .waitDurationInOpenState(Duration.ofSeconds(30))
+                .slidingWindowSize(10)
+                .build())
+            .timeLimiterConfig(TimeLimiterConfig.custom()
+                .timeoutDuration(Duration.ofSeconds(5))
+                .build())
+            .build());
+    }
+}
+```
+
+#### Mocks Required (CRITICAL)
+- **WireMock** for 5 external core banking systems:
+  - Current Account Service (port 8091)
+  - Savings Account Service (port 8092)
+  - Investment Account Service (port 8093)
+  - Card Account Service (port 8094)
+  - Loan Account Service (port 8095)
+
+```java
+// WireMock stub example
+@BeforeEach
+void setupWireMock() {
+    wireMockServer.stubFor(post(urlEqualTo("/api/v1/accounts/CURRENT-12345/debit"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody("{\"status\":\"SUCCESS\",\"transactionId\":\"TXN-123\"}")));
+    
+    // Simulate 500 error for circuit breaker testing
+    wireMockServer.stubFor(post(urlEqualTo("/api/v1/accounts/CURRENT-ERROR/debit"))
+        .willReturn(aResponse().withStatus(500).withFixedDelay(6000)));
+}
+```
+
+#### Input
+- External core banking API specs (from `docs/08-CORE-BANKING-INTEGRATION.md`)
+- OAuth 2.0 configuration (client credentials)
+- Resilience4j config
+
+#### Output
+- 5 REST clients (Feign) for external systems
+- Circuit breaker, retry, bulkhead, timeout configured
+- OAuth 2.0 token management (cached in Redis)
+- Balance cache (Redis, 60s TTL)
+
+#### Artifacts
+```
+/services/account-adapter-service/
+├─ src/main/java/com/payments/account/
+│   ├─ client/
+│   │   ├─ CurrentAccountClient.java
+│   │   ├─ SavingsAccountClient.java
+│   │   └─ InvestmentAccountClient.java
+│   ├─ service/AccountAdapterService.java
+│   ├─ config/Resilience4jConfig.java
+│   └─ oauth/OAuth2TokenManager.java
+├─ src/test/java/
+│   ├─ AccountAdapterServiceTest.java
+│   └─ CircuitBreakerIntegrationTest.java (WireMock)
+├─ Dockerfile
+└─ k8s/deployment.yaml
+```
+
+#### Definition of Done (DoD) + KPIs
+- ✅ All 5 REST clients functional
+- ✅ Circuit breaker tested (opens after 5 failures)
+- ✅ Retry tested (exponential backoff 1s, 2s, 4s)
+- ✅ OAuth 2.0 token cached in Redis
+- ✅ Balance cache working (60s TTL)
+- ✅ **KPI**: External API call latency < 2 seconds (p95)
+- ✅ **KPI**: Circuit breaker state transition time < 100ms
+- ✅ **KPI**: Cache hit rate > 80% (balance queries)
+- ✅ **KPI**: OAuth token refresh success rate > 99%
+
+#### Fallback Plan
+- If circuit breaker fails → Manually test with 10 consecutive 500 errors
+- If OAuth token fails → Use mock token for Phase 1 (real OAuth in Phase 6)
+- If Feign client errors → Use RestTemplate as fallback
+- If agent overwhelmed → Split into 3 sub-tasks: REST clients, Resilience4j, OAuth
+
+#### Dependencies
+- Phase 0 (all foundation)
+
+---
+
+## Fallback Plans Per Phase
+
+### Phase 0 Fallback
+- **Scenario**: All agents fail database schema generation
+- **Fallback**: Human DBA takes over, generates schemas manually (1 day)
+- **Mitigation**: Pre-validate PostgreSQL syntax using online tools
+
+### Phase 1 Fallback
+- **Scenario**: 2+ services fail to build
+- **Fallback**: Reduce scope to 3 critical services (Payment Initiation, Validation, Saga)
+- **Mitigation**: Use mocks (WireMock) for non-critical external dependencies
+
+### Phase 2 Fallback
+- **Scenario**: SWIFT adapter sanctions screening fails
+- **Fallback**: Use mock sanctions list (test data) for Phase 1-5, real API in Phase 6
+- **Mitigation**: Pre-validate SWIFT message formats using online validators
+
+### Phase 3 Fallback
+- **Scenario**: IAM service OAuth integration fails
+- **Fallback**: Use JWT with symmetric key (HS256) instead of asymmetric (RS256)
+- **Mitigation**: Simplify to single-tenant mode (skip multi-tenancy for Phase 1)
+
+### Phase 4 Fallback
+- **Scenario**: Batch processing XXE vulnerability not fixed
+- **Fallback**: Disable XML file support, use CSV/JSON only
+- **Mitigation**: Use OWASP dependency checker to validate XML parser configuration
+
+### Phase 5 Fallback
+- **Scenario**: Kubernetes operators fail to reconcile
+- **Fallback**: Use manual Helm charts for resource management
+- **Mitigation**: Test operator reconciliation in local Minikube before AKS deployment
+
+### Phase 6 Fallback
+- **Scenario**: Load testing fails to reach 1,000 TPS
+- **Fallback**: Reduce SLO to 500 TPS for initial release
+- **Mitigation**: Profile with JProfiler/YourKit to identify bottlenecks
+
+---
+
+## Orchestration Integration
+
+### Link to AI Agent Prompt Templates
+
+Each feature card references its corresponding prompt template:
+
+| Feature ID | Prompt Template Reference |
+|------------|---------------------------|
+| 0.1 | `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-01-database-schemas` |
+| 0.2 | `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-02-event-schemas` |
+| 0.3 | `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-03-domain-models` |
+| 1.1 | `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-11-payment-initiation-service` |
+| 1.2 | `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-12-validation-service` |
+| 1.3 | `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-13-account-adapter-service` |
+| ... | ... (all 36 features) |
+
+### CrewAI Orchestration Example
+
+```python
+from crewai import Agent, Task, Crew
+
+# Define agents
+schema_agent = Agent(
+    role="Database Schema Engineer",
+    goal="Generate PostgreSQL migration scripts",
+    backstory="Expert in database design and Flyway migrations",
+    verbose=True,
+    allow_delegation=False
+)
+
+domain_model_agent = Agent(
+    role="Domain-Driven Design Expert",
+    goal="Create domain entities, value objects, and aggregates",
+    backstory="Expert in DDD and Java Spring Boot",
+    verbose=True,
+    allow_delegation=False
+)
+
+payment_initiation_agent = Agent(
+    role="Payment Service Engineer",
+    goal="Build Payment Initiation microservice",
+    backstory="Expert in REST APIs, event-driven architecture",
+    verbose=True,
+    allow_delegation=False
+)
+
+# Define tasks
+schema_task = Task(
+    description="Generate PostgreSQL migration scripts for 20+ tables",
+    agent=schema_agent,
+    expected_output="Flyway migration scripts (V001-V005)",
+    context_file="docs/05-DATABASE-SCHEMAS.md"
+)
+
+domain_model_task = Task(
+    description="Create Java domain entities with JPA annotations",
+    agent=domain_model_agent,
+    expected_output="Java classes for Payment, PaymentId, Amount, etc.",
+    context_file="docs/14-DDD-IMPLEMENTATION.md",
+    dependencies=[schema_task]
+)
+
+payment_initiation_task = Task(
+    description="Build Payment Initiation Service with REST API",
+    agent=payment_initiation_agent,
+    expected_output="Working microservice with 3 endpoints",
+    context_file="docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-11-payment-initiation-service",
+    dependencies=[domain_model_task]
+)
+
+# Create crew
+crew = Crew(
+    agents=[schema_agent, domain_model_agent, payment_initiation_agent],
+    tasks=[schema_task, domain_model_task, payment_initiation_task],
+    verbose=True,
+    sequential=False  # Allow parallelization where possible
+)
+
+# Execute
+result = crew.kickoff()
+print(result)
+```
+
+---
+
+## YAML Export
+
+**Purpose**: Enable programmatic orchestration tools (CrewAI, LangChain, AutoGPT) to query tasks.
+
+See: [`feature-breakdown-tree.yaml`](feature-breakdown-tree.yaml)
+
+```yaml
+# Feature Breakdown Tree - YAML Export for Orchestration
+version: "1.0"
+total_phases: 7
+total_features: 36
+estimated_duration_days: 25-35
+
+phases:
+  - id: "phase-0"
+    name: "Foundation"
+    type: "sequential"
+    description: "Must be completed FIRST before any services"
+    estimated_duration_days: 10-12
+    features:
+      - id: "0.1"
+        name: "Database Schemas"
+        agent: "Schema Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-01-database-schemas"
+        complexity: "medium"
+        estimation_days: 3-5
+        nominal_days: 4
+        ai_factors:
+          - "Retry 2x on SQL syntax errors"
+          - "Hallucination risk: LOW"
+        spring_boot_guidance:
+          - "Use Flyway for migrations"
+          - "Enable Row-Level Security (RLS)"
+        mocks_required: []
+        input:
+          - "docs/05-DATABASE-SCHEMAS.md"
+        output:
+          - "PostgreSQL migration scripts (Flyway)"
+          - "All tables created"
+          - "Indexes defined"
+          - "RLS configured"
+        kpis:
+          - metric: "Database migration time"
+            target: "< 60 seconds"
+          - metric: "Indexed query performance"
+            target: "< 50ms (p95)"
+        dod:
+          - "All 20+ tables created successfully"
+          - "All foreign key constraints validated"
+          - "RLS policies tested (100% tenant isolation)"
+        fallback_plan: "If agent fails → Human DBA reviews, generates manually"
+        dependencies: []
+      
+      - id: "0.2"
+        name: "Event Schemas (AsyncAPI)"
+        agent: "Event Schema Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-02-event-schemas"
+        complexity: "low"
+        estimation_days: 1-2
+        nominal_days: 1
+        ai_factors:
+          - "Retry 2x on JSON Schema validation errors"
+          - "Hallucination risk: LOW"
+        spring_boot_guidance:
+          - "Use Spring Cloud Stream for event publishing"
+          - "Include correlation ID in message headers"
+        mocks_required: []
+        input:
+          - "docs/03-EVENT-SCHEMAS.md"
+        output:
+          - "AsyncAPI 2.0 specifications"
+          - "Event payload definitions (JSON Schema)"
+        kpis:
+          - metric: "Event schema validation time"
+            target: "< 100ms per event"
+          - metric: "Event size"
+            target: "< 10 KB (compressed)"
+        dod:
+          - "All 25+ events defined in AsyncAPI 2.0"
+          - "JSON Schema validation passes"
+        fallback_plan: "If agent fails → Human architect reviews, generates manually"
+        dependencies: []
+      
+      - id: "0.3"
+        name: "Domain Models"
+        agent: "Domain Model Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-03-domain-models"
+        complexity: "medium"
+        estimation_days: 2-4
+        nominal_days: 3
+        ai_factors:
+          - "Retry 2x on compilation errors"
+          - "Hallucination risk: MEDIUM (complex DDD)"
+          - "Feedback loop: Review aggregates for DDD correctness"
+        spring_boot_guidance:
+          - "Use Spring Data JPA for domain entities"
+          - "Make value objects immutable (records)"
+          - "Add business logic in domain model (not service layer)"
+        mocks_required: []
+        input:
+          - "docs/14-DDD-IMPLEMENTATION.md"
+          - "docs/05-DATABASE-SCHEMAS.md"
+        output:
+          - "Java domain entities (JPA annotated)"
+          - "Value objects (immutable)"
+          - "Aggregates (with business logic)"
+        kpis:
+          - metric: "Domain model unit test coverage"
+            target: "> 90%"
+          - metric: "Value object immutability"
+            target: "100% (no setters)"
+        dod:
+          - "All aggregates, value objects, entities defined"
+          - "Business logic in domain model"
+          - "All domain classes compile"
+        fallback_plan: "If agent fails → Human DDD expert reviews, refactors"
+        dependencies: ["0.1"]
+  
+  - id: "phase-1"
+    name: "Core Services"
+    type: "parallel"
+    description: "Can be built in PARALLEL after Phase 0"
+    estimated_duration_days: 5-7
+    parallelization_strategy: "6 agents working simultaneously"
+    features:
+      - id: "1.1"
+        name: "Payment Initiation Service"
+        agent: "Payment Initiation Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-11-payment-initiation-service"
+        complexity: "medium"
+        estimation_days: 3-5
+        nominal_days: 4
+        ai_factors:
+          - "Retry 2x on REST API errors"
+          - "Hallucination risk: LOW"
+        spring_boot_guidance:
+          - "Use @Transactional for ACID guarantees"
+          - "Implement transactional outbox pattern for events"
+          - "Use Spring Boot Actuator for health checks"
+        mocks_required:
+          - name: "WireMock"
+            purpose: "Mock external fraud API (not needed in Phase 1)"
+          - name: "Testcontainers"
+            purpose: "PostgreSQL integration tests"
+          - name: "EmbeddedRedis"
+            purpose: "Idempotency testing"
+        input:
+          - "Domain models (Payment, PaymentId)"
+          - "Event schemas (PaymentInitiatedEvent)"
+          - "Database schema (payments table)"
+          - "Shared libraries"
+        output:
+          - "REST API (3 endpoints)"
+          - "Payment creation logic"
+          - "Event publishing"
+          - "Dockerized service"
+          - "Kubernetes deployment"
+        kpis:
+          - metric: "API response time"
+            target: "< 500ms (p95)"
+          - metric: "Event publishing latency"
+            target: "< 50ms (p95)"
+          - metric: "Idempotency cache hit rate"
+            target: "> 30% (production)"
+        dod:
+          - "All 3 REST endpoints functional"
+          - "Idempotency working (Redis)"
+          - "Event published to Azure Service Bus"
+          - "Unit test coverage > 80%"
+          - "Integration tests pass"
+          - "Swagger UI accessible"
+          - "Service deploys to AKS"
+        fallback_plan: "If agent fails → Human developer reviews code, fixes bugs"
+        dependencies: ["phase-0"]
+      
+      # ... (remaining Phase 1 features)
+  
+  # ... (remaining phases)
+
+orchestration:
+  tools:
+    - name: "CrewAI"
+      description: "Multi-agent orchestration framework"
+      integration: "Use agent roles, tasks, and dependencies"
+    - name: "LangChain"
+      description: "LLM orchestration framework"
+      integration: "Use prompt templates and task chains"
+    - name: "AutoGPT"
+      description: "Autonomous AI agent framework"
+      integration: "Use task descriptions and expected outputs"
+  
+  coordinator_agent:
+    role: "Build Coordinator"
+    responsibilities:
+      - "Monitor all 36 agent tasks"
+      - "Detect failures and trigger fallback plans"
+      - "Aggregate build status and report progress"
+      - "Manage dependency resolution"
+    feedback_loops:
+      - "Phase 6: AI agents provide feedback on prompt templates"
+      - "Refine prompts based on hallucination frequency"
+      - "Update estimation ranges based on actual duration"
+```
+
+---
+
+## Recommendations Applied Summary
+
+✅ **1. Incorporated Visuals and Dynamics**:
+- Added Mermaid dependency graph (complete system view)
+- Added Mermaid Gantt chart (timeline with parallelization)
+- Created YAML export for programmatic access (see `feature-breakdown-tree.yaml`)
+
+✅ **2. Refined Estimations and Resilience**:
+- All features now have **ranges** (e.g., 3-5 days) + nominal estimate
+- Added **AI-specific factors**: retry counts, hallucination risk levels
+- Added **feedback loops** in Phase 6 for prompt refinement
+
+✅ **3. Enhanced Spring Boot Guidance**:
+- Per feature: added specific Boot directives (e.g., `@Transactional`, `@CircuitBreaker`)
+- Phase 2 adapters: mandated **Feign clients** for API resilience
+- Added code examples for idempotency, circuit breakers, RLS, Drools
+
+✅ **4. Strengthened Dependencies**:
+- Explicitly listed **mocks** (WireMock, Testcontainers, EmbeddedRedis)
+- Added **"Fallback Plan"** section per feature and per phase
+- Defined escalation paths for agent failures
+
+✅ **5. Added Metrics and Validation**:
+- Tied **DoD to KPIs** (e.g., "API latency < 500ms", "Cache hit rate > 80%")
+- All features have measurable success criteria
+- Recommended: Prototype Phase 1 with agents to validate tree efficacy
+
+✅ **6. Orchestration Integration**:
+- Linked to `35-AI-AGENT-PROMPT-TEMPLATES.md` by feature ID
+- Added **CrewAI orchestration example** (Python code)
+- Defined coordinator agent responsibilities
+- YAML export enables tool integration
+
+---
+
+## Next Steps
+
+1. **Validate Enhanced Tree**: Prototype Phase 0 and Phase 1 with actual AI agents (GPT-4, Claude, Cursor AI)
+2. **Refine Estimations**: Update ranges based on actual agent performance
+3. **Extend YAML**: Complete all 36 features in YAML export
+4. **Integrate with CrewAI**: Test multi-agent orchestration
+5. **Feedback Loop**: Phase 6 agents provide feedback on prompt quality, update templates
+
+**Status**: ✅ ENHANCED - Ready for AI-Driven Development with Comprehensive Guardrails and Orchestration Support
+
