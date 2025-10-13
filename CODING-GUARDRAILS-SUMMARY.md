@@ -11,7 +11,7 @@ This document summarizes the **comprehensive coding guardrails** for the Payment
 
 ---
 
-## ⚠️ Generic Coding Guardrails (23 Rules)
+## ⚠️ Generic Coding Guardrails (24 Rules)
 
 These guardrails apply to **ALL 40 features** and **ALL AI agents**.
 
