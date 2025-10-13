@@ -80,7 +80,7 @@ PHASE 6: INTEGRATION & TESTING (Sequential - After all above)
 ```
 
 **Total Phases**: 7 (0-6)  
-**Total Features**: 40+ features  
+**Total Features**: 40 features  
 **Parallel Phases**: 5 (Phases 1-5)  
 **Sequential Phases**: 2 (Phase 0, Phase 6)
 
@@ -1053,49 +1053,108 @@ POST   /api/v1/reconciliation/exceptions/{id}/resolve
 
 ---
 
-### 4.5: BFF Layer (3 BFFs)
+### 4.5: Web BFF (GraphQL)
 
-**Agent**: BFF Agent  
+**Agent**: Web BFF Agent  
 **Context Required**: `docs/15-BFF-IMPLEMENTATION.md`  
-**Complexity**: High (5 days for all 3)
+**Complexity**: Medium (2 days)
 
 **Input**:
 - Internal API Gateway routes
-- GraphQL schema (Web BFF)
-- REST API specs (Mobile/Partner BFFs)
+- GraphQL schema
+- Frontend requirements (React)
 
 **Output**:
-- 3 separate BFF services:
-  1. **Web BFF** (GraphQL)
-  2. **Mobile BFF** (REST lightweight)
-  3. **Partner API BFF** (REST comprehensive)
+- Web BFF service (GraphQL API)
+- Optimized for browser clients
+- Data aggregation from multiple services
 
 **Artifacts**:
 ```
 /services/web-bff/
 ├─ src/main/java/com/payments/bff/web/
-│   ├─ graphql/PaymentResolver.java
-│   └─ service/PaymentAggregationService.java
+│   ├─ graphql/
+│   │   ├─ PaymentResolver.java
+│   │   ├─ AccountResolver.java
+│   │   └─ TransactionResolver.java
+│   ├─ service/PaymentAggregationService.java
+│   └─ config/GraphQLConfig.java
+├─ src/main/resources/graphql/schema.graphqls
+├─ Dockerfile
+└─ k8s/deployment.yaml
+```
 
+**Dependencies**: Phase 0, Phase 1, Internal API Gateway (4.4)
+
+---
+
+### 4.6: Mobile BFF (REST, Lightweight)
+
+**Agent**: Mobile BFF Agent  
+**Context Required**: `docs/15-BFF-IMPLEMENTATION.md`  
+**Complexity**: Low (1.5 days)
+
+**Input**:
+- Internal API Gateway routes
+- REST API specs
+- Mobile app requirements (iOS/Android)
+
+**Output**:
+- Mobile BFF service (REST API)
+- Lightweight responses (minimal data)
+- Optimized for mobile networks
+
+**Artifacts**:
+```
 /services/mobile-bff/
 ├─ src/main/java/com/payments/bff/mobile/
 │   ├─ controller/MobilePaymentController.java
+│   ├─ dto/LightweightPaymentResponse.java
 │   └─ service/LightweightPaymentService.java
+├─ Dockerfile
+└─ k8s/deployment.yaml
+```
 
+**Dependencies**: Phase 0, Phase 1, Internal API Gateway (4.4)
+
+---
+
+### 4.7: Partner BFF (REST, Comprehensive)
+
+**Agent**: Partner BFF Agent  
+**Context Required**: `docs/15-BFF-IMPLEMENTATION.md`  
+**Complexity**: Medium (1.5 days)
+
+**Input**:
+- Internal API Gateway routes
+- REST API specs (comprehensive)
+- Partner API requirements (rate limiting, throttling)
+
+**Output**:
+- Partner BFF service (REST API)
+- Comprehensive responses (all data)
+- Rate limiting and throttling
+
+**Artifacts**:
+```
 /services/partner-bff/
 ├─ src/main/java/com/payments/bff/partner/
 │   ├─ controller/PartnerPaymentController.java
-│   └─ service/ComprehensivePaymentService.java
+│   ├─ dto/ComprehensivePaymentResponse.java
+│   ├─ service/ComprehensivePaymentService.java
+│   └─ ratelimit/RateLimitingFilter.java
+├─ Dockerfile
+└─ k8s/deployment.yaml
 ```
 
-**Dependencies**: Phase 0, Phase 1, Internal API Gateway
+**Dependencies**: Phase 0, Phase 1, Internal API Gateway (4.4)
 
 ---
 
 **Phase 4 Summary**:
-- **5 advanced features** can be built in **parallel**
-- **Total time**: 5 days (longest: Batch Processing, BFF Layer)
-- **Agents**: 5 agents working simultaneously
+- **7 advanced features** can be built in **parallel**
+- **Total time**: 6 days (longest: Batch Processing)
+- **Agents**: 7 agents working simultaneously
 
 ---
 
@@ -1210,7 +1269,7 @@ POST   /api/v1/reconciliation/exceptions/{id}/resolve
 
 ---
 
-### 5.4: Feature Flags (Unleash)
+### 5.6: Feature Flags (Unleash)
 
 **Agent**: Feature Flags Agent  
 **Context Required**: `docs/33-FEATURE-FLAGS.md`  
@@ -1243,7 +1302,7 @@ POST   /api/v1/reconciliation/exceptions/{id}/resolve
 
 ---
 
-### 5.5: Kubernetes Operators (14 Operators)
+### 5.7: Kubernetes Operators (14 Operators)
 
 **Agent**: Operators Agent  
 **Context Required**: `docs/30-KUBERNETES-OPERATORS-DAY2.md`  
@@ -1291,9 +1350,9 @@ POST   /api/v1/reconciliation/exceptions/{id}/resolve
 ---
 
 **Phase 5 Summary**:
-- **5 infrastructure components** can be built in **parallel**
+- **7 infrastructure components** can be built in **parallel**
 - **Total time**: 7 days (longest: Kubernetes Operators)
-- **Agents**: 5 agents working simultaneously
+- **Agents**: 7 agents working simultaneously
 
 ---
 
@@ -1554,19 +1613,23 @@ Success Criteria:
 │  ├─ Agent P4: Notification Service                                  │
 │  └─ Agent P5: Reporting Service                                     │
 │                                                                      │
-│  Phase 4: Advanced Features (5 agents, parallel)                    │
+│  Phase 4: Advanced Features (7 agents, parallel)                    │
 │  ├─ Agent V1: Batch Processing Service                              │
 │  ├─ Agent V2: Settlement Service                                    │
 │  ├─ Agent V3: Reconciliation Service                                │
 │  ├─ Agent V4: Internal API Gateway                                  │
-│  └─ Agent V5: BFF Layer (3 BFFs)                                    │
+│  ├─ Agent V5: Web BFF (GraphQL)                                     │
+│  ├─ Agent V6: Mobile BFF (REST, lightweight)                        │
+│  └─ Agent V7: Partner BFF (REST, comprehensive)                     │
 │                                                                      │
-│  Phase 5: Infrastructure (5 agents, parallel)                       │
+│  Phase 5: Infrastructure (7 agents, parallel)                       │
 │  ├─ Agent I1: Service Mesh (Istio)                                  │
-│  ├─ Agent I2: Monitoring Stack                                      │
-│  ├─ Agent I3: GitOps (ArgoCD)                                       │
-│  ├─ Agent I4: Feature Flags (Unleash)                               │
-│  └─ Agent I5: Kubernetes Operators                                  │
+│  ├─ Agent I2: Prometheus Setup (Metrics Collection)                 │
+│  ├─ Agent I3: Grafana Dashboards (Visualization)                    │
+│  ├─ Agent I4: Jaeger Distributed Tracing (OpenTelemetry)            │
+│  ├─ Agent I5: GitOps (ArgoCD)                                       │
+│  ├─ Agent I6: Feature Flags (Unleash)                               │
+│  └─ Agent I7: Kubernetes Operators (14 operators)                   │
 │                                                                      │
 │  Phase 6: Testing (5 agents, mostly sequential)                     │
 │  ├─ Agent T1: E2E Testing                                           │
@@ -1577,8 +1640,8 @@ Success Criteria:
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 
-Total Agents: 36 agents
-Parallel Agents: Up to 6 agents at once (Phases 1-5)
+Total Agents: 40 agents
+Parallel Agents: Up to 7 agents at once (Phases 4-5)
 Sequential Phases: Phase 0 (foundation), Phase 6 (testing)
 ```
 
@@ -1851,6 +1914,13 @@ Total Duration: 20-25 working days
 ---
 
 **This breakdown enables efficient AI agent-based development with minimal context and maximum parallelization!** ✅
+
+---
+
+**Last Updated**: 2025-10-12  
+**Version**: 1.0  
+**Status**: ✅ Complete
+!** ✅
 
 ---
 
