@@ -113,7 +113,7 @@ PHASE 7: OPERATIONS & CHANNEL MANAGEMENT (Parallel - After Phase 6) 🆕
 ```
 
 **Total Phases**: 8 (0-7) 🆕  
-**Total Features**: 52 features 🆕 (40 + 12 new)  
+**Total Features**: 50 features 🆕 (38 in Phase 0-6 + 12 in Phase 7)  
 **Parallel Phases**: 6 (Phases 1-5, Phase 7) 🆕  
 **Sequential Phases**: 2 (Phase 0, Phase 6)  
 **Estimated Duration**: 25-40 days (with parallelization)
@@ -192,7 +192,9 @@ graph TD
         F42[4.2 Settlement]
         F43[4.3 Reconciliation]
         F44[4.4 Internal API Gateway]
-        F45[4.5 BFF Layer]
+        F45[4.5 Web BFF - GraphQL]
+        F46[4.6 Mobile BFF - REST lightweight]
+        F47[4.7 Partner BFF - REST comprehensive]
     end
 
     F11 --> F41
@@ -200,6 +202,8 @@ graph TD
     F42 --> F43
     Phase1 --> F44
     F11 --> F45
+    F11 --> F46
+    F11 --> F47
 
     %% Phase 5: Infrastructure
     subgraph Phase5[Phase 5: Infrastructure - Parallel]
@@ -236,6 +240,39 @@ graph TD
     F63 --> F64
     F64 --> F65
 
+    %% Phase 7: Operations & Channel Management (NEW)
+    subgraph Phase7[Phase 7: Operations & Channel Management - Parallel]
+        F71[7.1 Operations Mgmt Service]
+        F72[7.2 Metrics Aggregation]
+        F73[7.3 Payment Repair APIs]
+        F74[7.4 Saga Management APIs]
+        F75[7.5 Transaction Search APIs]
+        F76[7.6 Reconciliation Mgmt APIs]
+        F77[7.7 React Ops - Service Mgmt UI]
+        F78[7.8 React Ops - Payment Repair UI]
+        F79[7.9 React Ops - Transaction UI]
+        F710[7.10 React Ops - Recon & Mon UI]
+        F711[7.11 Channel Onboarding UI]
+        F712[7.12 Clearing Onboarding UI]
+    end
+
+    %% Phase 7 depends on Phase 6 completion
+    F65 --> F71
+    F65 --> F72
+    F65 --> F73
+    F65 --> F74
+    F65 --> F75
+    F65 --> F76
+    F65 --> F711
+    F65 --> F712
+
+    %% Frontend UIs depend on their backend APIs
+    F71 --> F77
+    F72 --> F77
+    F73 --> F78
+    F75 --> F79
+    F76 --> F710
+
     style Phase0 fill:#ffcccc
     style Phase1 fill:#ccffcc
     style Phase2 fill:#ccffcc
@@ -243,6 +280,7 @@ graph TD
     style Phase4 fill:#ccffcc
     style Phase5 fill:#ccffcc
     style Phase6 fill:#ffcccc
+    style Phase7 fill:#ccffcc
 ```
 
 ---
@@ -1535,7 +1573,7 @@ orchestration:
   coordinator_agent:
     role: "Build Coordinator"
     responsibilities:
-      - "Monitor all 52 agent tasks (across 8 phases)"
+      - "Monitor all 50 agent tasks (across 8 phases)"
       - "Detect failures and trigger fallback plans"
       - "Aggregate build status and report progress"
       - "Manage dependency resolution"
@@ -2379,7 +2417,7 @@ export default function SecurityConfig() {
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    AI AGENT ASSIGNMENTS (52 Agents)                  │
+│                    AI AGENT ASSIGNMENTS (50 Agents)                  │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
 │  Phase 0: Foundation (5 agents, sequential)                         │
@@ -2438,7 +2476,7 @@ export default function SecurityConfig() {
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 
-Total Agents: 52 agents 🆕 (40 original + 12 new in Phase 7)
+Total Agents: 50 agents 🆕 (38 for Phase 0-6 + 12 for Phase 7)
 Total Phases: 8 (Phase 0 to Phase 7) 🆕
 Parallel Agents: Up to 12 agents at once (Phase 7) 🆕
 Sequential Phases: Phase 0 (foundation), Phase 6 (testing)
@@ -2515,7 +2553,7 @@ Each feature card references its corresponding prompt template in `docs/35-AI-AG
 | 5.2 | `#feature-52-prometheus` |
 | 5.3 | `#feature-53-grafana` |
 | 5.4 | `#feature-54-jaeger` |
-| ... | ... (all 52 features across 8 phases) |
+| ... | ... (all 50 features across 8 phases) |
 
 ### CrewAI Orchestration Example
 
@@ -2574,7 +2612,7 @@ print(result)
 
 See: [`feature-breakdown-tree.yaml`](../feature-breakdown-tree.yaml)
 
-The YAML export contains complete metadata for all 52 features (across 8 phases: Phase 0 to Phase 7), including:
+The YAML export contains complete metadata for all 50 features (across 8 phases: Phase 0 to Phase 7), including:
 - Agent name, template reference
 - Estimation ranges, nominal days
 - AI factors (retry count, hallucination risk, feedback loops)
@@ -2827,7 +2865,7 @@ Total Context: ~2,000 lines
 
 1. **Validate Enhanced Tree**: Prototype Phase 0 and Phase 1 with actual AI agents (GPT-4, Claude, Cursor AI)
 2. **Refine Estimations**: Update ranges based on actual agent performance
-3. **Extend YAML**: Complete all 52 features in YAML export (including Phase 7)
+3. **Extend YAML**: Complete all 50 features in YAML export (including Phase 7)
 4. **Integrate with CrewAI**: Test multi-agent orchestration
 5. **Feedback Loop**: Phase 6 agents provide feedback on prompt quality, update templates
 6. **Archive Regular File**: Enhanced version is now the single source of truth
@@ -2843,8 +2881,8 @@ Total Context: ~2,000 lines
 
 **Document Version**: 3.0 (MERGED & ENHANCED) 🆕  
 **Last Updated**: 2025-10-13  
-**Total Features**: 52 (40 original + 12 Phase 7)  
-**Total Agents**: 52  
+**Total Features**: 50 (38 in Phase 0-6 + 12 in Phase 7)  
+**Total Agents**: 50  
 **Estimated Duration**: 25-40 days (with maximum parallelization)  
 **Merge Status**: ✅ Complete - All unique content from both files consolidated
 
