@@ -140,7 +140,7 @@ Act as MAANG software architect who has banking knowledge, vast modern architect
 ### Milestone 13: Feature Breakdown Tree (Final)
 - **Request**: "I want to break it down into features that can be built either in parallel or in sequence. And show that tree. So that I can use each agent for each feature so that I use less context and give less work for an agent and not overwhelm it."
 - **Achievement**: 
-  - 40+ features across 7 phases
+  - 40 features across 7 phases (36 expanded to 40)
   - Parallel/sequential dependency tree
   - Minimal context per agent (~2K lines vs 85K)
   - 36 AI agents strategy
@@ -434,7 +434,7 @@ Act as MAANG software architect who has banking knowledge, vast modern architect
   - `34-FEATURE-BREAKDOWN-TREE.md` (1,850+ lines)
   - `FEATURE-BREAKDOWN-SUMMARY.md`
 - **Breakdown**:
-  - 40+ features across 7 phases
+  - 40 features across 7 phases (36 expanded to 40)
   - Phase 0: Foundation (5 features, sequential)
   - Phase 1: Core Services (6 features, parallel)
   - Phase 2: Clearing Adapters (5 features, parallel)
@@ -868,7 +868,7 @@ Act as MAANG software architect who has banking knowledge, vast modern architect
 ### Version 9.0: Feature Breakdown Tree (Final)
 
 **Changes**:
-- 40+ features across 7 phases
+- 40 features across 7 phases (36 expanded to 40)
 - Parallel/sequential dependency tree
 - Minimal context per agent (~2K lines)
 - 36 AI agents strategy
@@ -929,7 +929,7 @@ Quality Score:             10.0/10 ✅
 ### Build Strategy
 
 ```
-Total Features:            40+
+Total Features:            40 (confirmed)
 Total Phases:              7 (0-6)
 ├─ Phase 0:                Foundation (5 features, sequential)
 ├─ Phase 1:                Core Services (6 features, parallel)
@@ -1146,8 +1146,13 @@ This conversation history captures the complete journey of designing a **world-c
 - **Duration**: 2 days (39 user requests)
 - **Output**: 75+ documents, ~85,000 lines
 - **Architecture**: 20 microservices, 7 modern patterns, 27 EIP patterns, 14 operators, 75+ rules
-- **Build Strategy**: 40+ features, 7 phases, 36 AI agents, 25-30 days
+- **Build Strategy**: 40 features (confirmed), 7 phases, 40 AI agents, 25-30 days
 - **Quality**: 100% alignment, 0 redundancies, 10.0/10 score
+
+**Note**: Feature count expanded from 36 to 40 by splitting:
+- Phase 4: BFF Layer (1 feature) → 3 features (Web BFF, Mobile BFF, Partner BFF)
+- Phase 5: Monitoring Stack (1 feature) → 3 features (Prometheus, Grafana, Jaeger)
+- Phase 5 renumbering: GitOps (5.3→5.5), Feature Flags (5.4→5.6), K8s Operators (5.5→5.7)
 
 **Result**: A **comprehensive, battle-tested architecture** ready for implementation by AI coding agents with **5x faster delivery** and **no overwhelm**.
 
