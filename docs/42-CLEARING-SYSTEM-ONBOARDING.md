@@ -1561,17 +1561,1162 @@ public TestConnectionResult testSAMOSConnection(ClearingSystemConfiguration conf
 
 ---
 
+## 12. Dynamic Clearing Adapter
+
+### 12.1 Config-Driven Adapter Implementation
+
+```java
+@Service
+public class DynamicClearingAdapter {
+    
+    @Autowired
+    private ClearingSystemConfigurationRepository configRepo;
+    
+    @Autowired
+    private Map<MessageFormat, MessageTransformer> messageTransformers;
+    
+    @Autowired
+    private Map<TransportProtocol, TransportClient> transportClients;
+    
+    @Autowired
+    private Map<SecurityMechanism, SecurityProvider> securityProviders;
+    
+    /**
+     * Submit payment to clearing system (config-driven)
+     */
+    public ClearingResponse submitPayment(Payment payment) {
+        // 1. Load clearing system configuration
+        ClearingSystemConfiguration config = configRepo
+            .findByTenantIdAndClearingSystemAndEnvironmentAndStatus(
+                payment.getTenantId(),
+                payment.getClearingSystem(),
+                Environment.PRODUCTION,
+                ClearingSystemStatus.ACTIVE
+            )
+            .orElseThrow(() -> new ClearingSystemNotConfiguredException(payment.getClearingSystem()));
+        
+        // 2. Transform payment to clearing system message format
+        MessageTransformer transformer = messageTransformers.get(config.getMessageFormat());
+        String message = transformer.transform(payment);
+        
+        // 3. Apply security mechanism
+        SecurityProvider securityProvider = securityProviders.get(config.getSecurityMechanism());
+        SecureMessage secureMessage = securityProvider.secure(message, config.getSecurityConfig());
+        
+        // 4. Get transport client
+        TransportClient transportClient = transportClients.get(config.getTransportProtocol());
+        
+        // 5. Send with retry policy
+        ClearingResponse response = sendWithRetry(
+            transportClient,
+            config.getEndpointUrl(),
+            secureMessage,
+            config.getRetryConfig()
+        );
+        
+        return response;
+    }
+    
+    private ClearingResponse sendWithRetry(
+        TransportClient client,
+        String endpoint,
+        SecureMessage message,
+        RetryConfig retryConfig
+    ) {
+        int attempts = 0;
+        Exception lastException = null;
+        
+        while (attempts <= retryConfig.getMaxAttempts()) {
+            try {
+                // Send message
+                return client.send(endpoint, message);
+            } catch (TimeoutException | NetworkException e) {
+                lastException = e;
+                attempts++;
+                
+                if (attempts <= retryConfig.getMaxAttempts()) {
+                    // Calculate backoff delay
+                    long delay = calculateBackoffDelay(
+                        attempts,
+                        retryConfig.getBackoffStrategy(),
+                        retryConfig.getInitialDelayMs()
+                    );
+                    
+                    log.warn("Clearing system call failed, retrying in {}ms: attempt={}/{}", 
+                        delay, attempts, retryConfig.getMaxAttempts());
+                    
+                    Thread.sleep(delay);
+                }
+            }
+        }
+        
+        throw new ClearingSystemUnavailableException(lastException);
+    }
+    
+    private long calculateBackoffDelay(int attempt, BackoffStrategy strategy, long initialDelay) {
+        return switch (strategy) {
+            case NONE -> 0;
+            case LINEAR -> initialDelay * attempt;
+            case EXPONENTIAL -> initialDelay * (long) Math.pow(2, attempt - 1);
+        };
+    }
+}
+```
+
+---
+
+### 12.2 Message Transformers (Strategy Pattern)
+
+```java
+public interface MessageTransformer {
+    String transform(Payment payment);
+}
+
+@Component
+public class ISO20022Transformer implements MessageTransformer {
+    @Override
+    public String transform(Payment payment) {
+        // Build pacs.008 message
+        return """
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08">
+              <FIToFICstmrCdtTrf>
+                <GrpHdr>
+                  <MsgId>%s</MsgId>
+                  <CreDtTm>%s</CreDtTm>
+                </GrpHdr>
+                <CdtTrfTxInf>
+                  <PmtId>
+                    <InstrId>%s</InstrId>
+                    <EndToEndId>%s</EndToEndId>
+                  </PmtId>
+                  <IntrBkSttlmAmt Ccy="ZAR">%s</IntrBkSttlmAmt>
+                  <Dbtr><Nm>%s</Nm></Dbtr>
+                  <DbtrAcct><Id><IBAN>%s</IBAN></Id></DbtrAcct>
+                  <Cdtr><Nm>%s</Nm></Cdtr>
+                  <CdtrAcct><Id><IBAN>%s</IBAN></Id></CdtrAcct>
+                </CdtTrfTxInf>
+              </FIToFICstmrCdtTrf>
+            </Document>
+            """.formatted(
+                payment.getPaymentId(),
+                Instant.now().toString(),
+                payment.getPaymentId(),
+                payment.getEndToEndId(),
+                payment.getAmount().toString(),
+                payment.getDebtorName(),
+                payment.getDebtorAccount(),
+                payment.getCreditorName(),
+                payment.getCreditorAccount()
+            );
+    }
+}
+
+@Component
+public class ISO8583Transformer implements MessageTransformer {
+    @Override
+    public String transform(Payment payment) {
+        // Build ISO 8583 message (0200 - Authorization Request)
+        ISO8583Message message = new ISO8583Message();
+        message.setMTI("0200");  // Financial Transaction Request
+        message.setField(2, payment.getDebtorAccount());  // PAN
+        message.setField(3, "000000");  // Processing Code
+        message.setField(4, formatAmount(payment.getAmount()));  // Amount
+        message.setField(7, formatDateTime(Instant.now()));  // Transmission Date/Time
+        message.setField(11, generateSTAN());  // STAN
+        message.setField(37, payment.getPaymentId());  // Retrieval Reference Number
+        message.setField(49, "710");  // Currency Code (ZAR)
+        
+        return message.pack();  // Binary or ASCII encoding
+    }
+}
+
+@Component
+public class JSONRestTransformer implements MessageTransformer {
+    @Override
+    public String transform(Payment payment) {
+        // Build JSON request (PayShap)
+        return """
+            {
+              "transactionId": "%s",
+              "amount": {
+                "value": %s,
+                "currency": "ZAR"
+              },
+              "debtor": {
+                "name": "%s",
+                "account": {"iban": "%s"}
+              },
+              "creditor": {
+                "name": "%s",
+                "proxyId": "%s",
+                "proxyType": "MOBILE"
+              },
+              "timestamp": "%s"
+            }
+            """.formatted(
+                payment.getPaymentId(),
+                payment.getAmount(),
+                payment.getDebtorName(),
+                payment.getDebtorAccount(),
+                payment.getCreditorName(),
+                payment.getCreditorProxyId(),
+                Instant.now().toString()
+            );
+    }
+}
+```
+
+---
+
+### 12.3 Transport Clients (Strategy Pattern)
+
+```java
+public interface TransportClient {
+    ClearingResponse send(String endpoint, SecureMessage message);
+}
+
+@Component
+public class HttpsRestClient implements TransportClient {
+    @Override
+    public ClearingResponse send(String endpoint, SecureMessage message) {
+        HttpResponse<String> response = httpClient.send(
+            HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .header("Content-Type", message.getContentType())
+                .POST(HttpRequest.BodyPublishers.ofString(message.getPayload()))
+                .build(),
+            HttpResponse.BodyHandlers.ofString()
+        );
+        
+        return parseResponse(response);
+    }
+}
+
+@Component
+public class SftpClient implements TransportClient {
+    @Override
+    public ClearingResponse send(String endpoint, SecureMessage message) {
+        // Connect to SFTP server
+        Session session = jsch.getSession(username, host, port);
+        session.setConfig("StrictHostKeyChecking", "no");
+        session.connect();
+        
+        // Upload file
+        ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
+        sftpChannel.connect();
+        sftpChannel.put(new ByteArrayInputStream(message.getPayload().getBytes()), "/uploads/ACH_" + Instant.now().toEpochMilli() + ".txt");
+        sftpChannel.disconnect();
+        session.disconnect();
+        
+        return ClearingResponse.async(); // Asynchronous response
+    }
+}
+
+@Component
+public class TcpTlsClient implements TransportClient {
+    @Override
+    public ClearingResponse send(String endpoint, SecureMessage message) {
+        // Open TCP socket with TLS
+        SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+        SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
+        
+        // Send ISO 8583 binary message
+        OutputStream out = socket.getOutputStream();
+        out.write(message.getPayload().getBytes(StandardCharsets.ISO_8859_1));
+        out.flush();
+        
+        // Receive response
+        InputStream in = socket.getInputStream();
+        byte[] responseBytes = in.readAllBytes();
+        
+        socket.close();
+        
+        return parseISO8583Response(responseBytes);
+    }
+}
+```
+
+---
+
+### 12.4 Security Providers (Strategy Pattern)
+
+```java
+public interface SecurityProvider {
+    SecureMessage secure(String message, SecurityConfig config);
+}
+
+@Component
+public class MtlsSecurityProvider implements SecurityProvider {
+    @Override
+    public SecureMessage secure(String message, SecurityConfig config) {
+        // 1. Load client certificate from Key Vault
+        X509Certificate cert = keyVaultService.getCertificate(config.getCertificatePath());
+        
+        // 2. Apply digital signature (if required)
+        if (config.getDigitalSignature() != null && config.getDigitalSignature().isEnabled()) {
+            message = digitalSignatureService.sign(message, cert, config.getDigitalSignature().getAlgorithm());
+        }
+        
+        // 3. Return secure message
+        return SecureMessage.builder()
+            .payload(message)
+            .certificate(cert)
+            .contentType("application/xml")
+            .build();
+    }
+}
+
+@Component
+public class OAuth2SecurityProvider implements SecurityProvider {
+    @Override
+    public SecureMessage secure(String message, SecurityConfig config) {
+        // 1. Get OAuth 2.0 token (cached)
+        String token = tokenCache.get(config.getClientId());
+        
+        if (token == null || isExpired(token)) {
+            // Get new token
+            OAuthTokenResponse tokenResponse = oauthClient.getClientCredentialsToken(
+                config.getTokenEndpoint(),
+                config.getClientId(),
+                config.getClientSecret()
+            );
+            
+            token = tokenResponse.getAccessToken();
+            tokenCache.put(config.getClientId(), token, tokenResponse.getExpiresIn());
+        }
+        
+        // 2. Return secure message with Bearer token
+        return SecureMessage.builder()
+            .payload(message)
+            .headers(Map.of("Authorization", "Bearer " + token))
+            .contentType("application/json")
+            .build();
+    }
+}
+
+@Component
+public class PgpSecurityProvider implements SecurityProvider {
+    @Override
+    public SecureMessage secure(String message, SecurityConfig config) {
+        // 1. Load PGP public key (BankservAfrica)
+        PGPPublicKey publicKey = pgpService.loadPublicKey(config.getPgpPublicKeyPath());
+        
+        // 2. Encrypt message
+        InputStream encrypted = pgpService.encrypt(
+            new ByteArrayInputStream(message.getBytes()),
+            publicKey
+        );
+        
+        // 3. Sign encrypted message (detached signature)
+        PGPPrivateKey privateKey = pgpService.loadPrivateKey(config.getPgpPrivateKeyPath());
+        byte[] signature = pgpService.sign(encrypted, privateKey);
+        
+        // 4. Return secure message
+        return SecureMessage.builder()
+            .payload(new String(encrypted.readAllBytes()))
+            .detachedSignature(signature)
+            .contentType("application/octet-stream")
+            .build();
+    }
+}
+```
+
+---
+
+## 13. Frontend Components (Complete)
+
+### 13.1 Step 3: Security Configuration
+
+```tsx
+// src/pages/ClearingSystemOnboarding/SecurityConfig.tsx
+
+import React from 'react';
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Stack,
+  Paper,
+  Alert,
+} from '@mui/material';
+import { useFormContext, Controller } from 'react-hook-form';
+
+export default function SecurityConfig() {
+  const { control, watch } = useFormContext();
+  const securityMechanism = watch('securityMechanism');
+  const clearingSystem = watch('clearingSystem');
+  
+  const renderSecurityConfig = () => {
+    switch (securityMechanism) {
+      case 'MTLS':
+        return <MtlsConfig />;
+      case 'OAUTH_2_0':
+        return <OAuth2Config />;
+      case 'SFTP_KEY':
+        return <SftpKeyConfig />;
+      case 'SWIFTNET_PKI':
+        return <SwiftNetConfig />;
+      default:
+        return null;
+    }
+  };
+  
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Security Configuration
+      </Typography>
+      
+      <Alert severity="warning" sx={{ mb: 3 }}>
+        <strong>Security is mandatory</strong>: All clearing systems require
+        secure authentication. Certificates will be stored in Azure Key Vault.
+      </Alert>
+      
+      {renderSecurityConfig()}
+    </Box>
+  );
+}
+
+// mTLS Configuration
+function MtlsConfig() {
+  const { control, setValue } = useFormContext();
+  
+  return (
+    <Stack spacing={3}>
+      <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
+        <Typography variant="subtitle1" gutterBottom>
+          Mutual TLS (mTLS) Configuration
+        </Typography>
+        
+        <Stack spacing={2}>
+          <Controller
+            name="securityConfig.certificatePath"
+            control={control}
+            render={({ field }) => (
+              <Box>
+                <Typography variant="body2" gutterBottom>
+                  Client Certificate (.p12 or .pfx)
+                </Typography>
+                <input
+                  type="file"
+                  accept=".p12,.pfx"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const path = await uploadCertificate(file);
+                      field.onChange(path);
+                    }
+                  }}
+                />
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Certificate will be securely stored in Azure Key Vault
+                </Typography>
+              </Box>
+            )}
+          />
+          
+          <Controller
+            name="securityConfig.certificatePassword"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                type="password"
+                label="Certificate Password"
+                helperText="Password will be stored encrypted in Key Vault"
+                fullWidth
+              />
+            )}
+          />
+          
+          <Controller
+            name="securityConfig.digitalSignature.enabled"
+            control={control}
+            render={({ field }) => (
+              <FormControlLabel
+                control={<Switch {...field} checked={field.value} />}
+                label="Enable Digital Signature (XMLDSig)"
+              />
+            )}
+          />
+        </Stack>
+      </Paper>
+    </Stack>
+  );
+}
+
+// OAuth 2.0 Configuration
+function OAuth2Config() {
+  const { control } = useFormContext();
+  
+  return (
+    <Stack spacing={3}>
+      <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
+        <Typography variant="subtitle1" gutterBottom>
+          OAuth 2.0 Configuration
+        </Typography>
+        
+        <Stack spacing={2}>
+          <Controller
+            name="securityConfig.tokenEndpoint"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Token Endpoint URL"
+                placeholder="https://auth.payshap.co.za/oauth/token"
+                helperText="OAuth 2.0 token endpoint for client credentials grant"
+                fullWidth
+              />
+            )}
+          />
+          
+          <Controller
+            name="securityConfig.clientId"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Client ID"
+                helperText="OAuth 2.0 client ID (provided by clearing system)"
+                fullWidth
+              />
+            )}
+          />
+          
+          <Controller
+            name="securityConfig.clientSecret"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                type="password"
+                label="Client Secret"
+                helperText="Client secret will be stored encrypted in Key Vault"
+                fullWidth
+              />
+            )}
+          />
+          
+          <Controller
+            name="securityConfig.mtls.enabled"
+            control={control}
+            render={({ field }) => (
+              <FormControlLabel
+                control={<Switch {...field} checked={field.value} />}
+                label="Enable mTLS (in addition to OAuth 2.0)"
+              />
+            )}
+          />
+        </Stack>
+      </Paper>
+    </Stack>
+  );
+}
+
+// SFTP Key Configuration
+function SftpKeyConfig() {
+  const { control } = useFormContext();
+  
+  return (
+    <Stack spacing={3}>
+      <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
+        <Typography variant="subtitle1" gutterBottom>
+          SFTP + PGP Configuration
+        </Typography>
+        
+        <Stack spacing={2}>
+          <Controller
+            name="securityConfig.sshKeyPath"
+            control={control}
+            render={({ field }) => (
+              <Box>
+                <Typography variant="body2" gutterBottom>
+                  SSH Private Key (id_rsa)
+                </Typography>
+                <input
+                  type="file"
+                  accept=".pem,.key,id_rsa"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const path = await uploadSshKey(file);
+                      field.onChange(path);
+                    }
+                  }}
+                />
+              </Box>
+            )}
+          />
+          
+          <Controller
+            name="securityConfig.pgpEncryption.publicKeyPath"
+            control={control}
+            render={({ field }) => (
+              <Box>
+                <Typography variant="body2" gutterBottom>
+                  PGP Public Key (BankservAfrica's key)
+                </Typography>
+                <input
+                  type="file"
+                  accept=".asc,.pub"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const path = await uploadPgpKey(file);
+                      field.onChange(path);
+                    }
+                  }}
+                />
+              </Box>
+            )}
+          />
+        </Stack>
+      </Paper>
+    </Stack>
+  );
+}
+```
+
+---
+
+### 13.2 Step 4: Retry Policy Configuration
+
+```tsx
+// src/pages/ClearingSystemOnboarding/RetryPolicyConfig.tsx
+
+import React from 'react';
+import {
+  Box,
+  Typography,
+  TextField,
+  FormControlLabel,
+  Switch,
+  Select,
+  MenuItem,
+  Stack,
+  Paper,
+  Chip,
+} from '@mui/material';
+import { useFormContext, Controller } from 'react-hook-form';
+
+export default function RetryPolicyConfig() {
+  const { control, watch } = useFormContext();
+  const clearingSystem = watch('clearingSystem');
+  const retryEnabled = watch('retryEnabled');
+  
+  // Get recommended retry policy for clearing system
+  const getRecommendedRetry = (system: string) => {
+    const recommendations = {
+      SAMOS: { attempts: 0, backoff: 'NONE', reason: 'RTGS - no retries allowed' },
+      BANKSERV_EFT: { attempts: 3, backoff: 'EXPONENTIAL', reason: 'Batch processing allows retries' },
+      BANKSERV_RTC: { attempts: 1, backoff: 'NONE', reason: 'Real-time - single retry only' },
+      PAYSHAP: { attempts: 0, backoff: 'NONE', reason: 'Instant - no retries' },
+      SWIFT: { attempts: 3, backoff: 'EXPONENTIAL', reason: 'Asynchronous - retries recommended' },
+    };
+    return recommendations[system];
+  };
+  
+  const recommended = getRecommendedRetry(clearingSystem);
+  
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Retry Policy Configuration
+      </Typography>
+      
+      {recommended && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <strong>Recommended for {clearingSystem}</strong>: {recommended.attempts} retries with {recommended.backoff} backoff
+          <br />
+          <Typography variant="caption">{recommended.reason}</Typography>
+        </Alert>
+      )}
+      
+      <Stack spacing={3}>
+        <Controller
+          name="retryEnabled"
+          control={control}
+          render={({ field }) => (
+            <FormControlLabel
+              control={<Switch {...field} checked={field.value} />}
+              label="Enable Retry on Failure"
+            />
+          )}
+        />
+        
+        {retryEnabled && (
+          <>
+            <Controller
+              name="retryMaxAttempts"
+              control={control}
+              defaultValue={recommended?.attempts || 3}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Maximum Retry Attempts"
+                  type="number"
+                  inputProps={{ min: 0, max: 10 }}
+                  helperText={`Recommended: ${recommended?.attempts || 3} attempts`}
+                  fullWidth
+                />
+              )}
+            />
+            
+            <Controller
+              name="retryBackoffStrategy"
+              control={control}
+              defaultValue={recommended?.backoff || 'EXPONENTIAL'}
+              render={({ field }) => (
+                <Box>
+                  <Typography variant="body2" gutterBottom>
+                    Backoff Strategy
+                  </Typography>
+                  <Select {...field} fullWidth>
+                    <MenuItem value="NONE">
+                      None (Immediate retry)
+                    </MenuItem>
+                    <MenuItem value="LINEAR">
+                      Linear (1s, 2s, 3s, 4s)
+                    </MenuItem>
+                    <MenuItem value="EXPONENTIAL">
+                      Exponential (1s, 2s, 4s, 8s) <Chip label="Recommended" size="small" />
+                    </MenuItem>
+                  </Select>
+                </Box>
+              )}
+            />
+            
+            <Controller
+              name="retryInitialDelayMs"
+              control={control}
+              defaultValue={1000}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Initial Delay (ms)"
+                  type="number"
+                  inputProps={{ min: 100, max: 60000, step: 100 }}
+                  helperText="Delay before first retry (milliseconds)"
+                  fullWidth
+                />
+              )}
+            />
+          </>
+        )}
+        
+        <Controller
+          name="endpointTimeoutMs"
+          control={control}
+          defaultValue={30000}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              label="Endpoint Timeout (ms)"
+              type="number"
+              inputProps={{ min: 5000, max: 300000, step: 1000 }}
+              helperText="Maximum time to wait for response"
+              fullWidth
+            />
+          )}
+        />
+        
+        <Paper sx={{ p: 2, bgcolor: 'info.light' }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Idempotency Configuration
+          </Typography>
+          
+          <Controller
+            name="idempotencyEnabled"
+            control={control}
+            defaultValue={true}
+            render={({ field }) => (
+              <FormControlLabel
+                control={<Switch {...field} checked={field.value} />}
+                label="Enable Idempotency (Prevent Duplicates)"
+              />
+            )}
+          />
+          
+          <Controller
+            name="idempotencyKeyField"
+            control={control}
+            defaultValue="MsgId"
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Idempotency Key Field"
+                helperText="Field name used for duplicate detection (e.g., MsgId, STAN, transactionId)"
+                fullWidth
+                sx={{ mt: 2 }}
+              />
+            )}
+          />
+        </Paper>
+      </Stack>
+    </Box>
+  );
+}
+```
+
+---
+
+### 13.3 Step 5: Review & Test
+
+```tsx
+// src/pages/ClearingSystemOnboarding/ReviewAndTest.tsx
+
+import React, { useState } from 'react';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Stack,
+  Chip,
+  CircularProgress,
+  Alert,
+} from '@mui/material';
+import { CheckCircle, Error, Send } from '@mui/icons-material';
+import { useFormContext } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
+import { clearingSystemApi } from '../../api/clearingSystemApi';
+
+export default function ReviewAndTest() {
+  const { getValues } = useFormContext();
+  const [testResult, setTestResult] = useState<any>(null);
+  
+  const testConnectionMutation = useMutation({
+    mutationFn: (data: any) => clearingSystemApi.testConnection(data),
+    onSuccess: (result) => {
+      setTestResult(result);
+    },
+  });
+  
+  const formData = getValues();
+  
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Review & Test Connection
+      </Typography>
+      
+      <Stack spacing={3}>
+        {/* Configuration Summary */}
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Configuration Summary
+          </Typography>
+          
+          <Stack spacing={1}>
+            <Box>
+              <Typography variant="caption" color="text.secondary">Clearing System</Typography>
+              <Typography variant="body1">{formData.clearingSystem}</Typography>
+            </Box>
+            
+            <Box>
+              <Typography variant="caption" color="text.secondary">Communication Pattern</Typography>
+              <Chip label={formData.communicationPattern} size="small" />
+            </Box>
+            
+            <Box>
+              <Typography variant="caption" color="text.secondary">Message Format</Typography>
+              <Chip label={formData.messageFormat} size="small" />
+            </Box>
+            
+            <Box>
+              <Typography variant="caption" color="text.secondary">Security</Typography>
+              <Chip label={formData.securityMechanism} size="small" color="success" />
+            </Box>
+            
+            <Box>
+              <Typography variant="caption" color="text.secondary">Retry Policy</Typography>
+              <Typography variant="body2">
+                {formData.retryEnabled 
+                  ? `${formData.retryMaxAttempts} attempts, ${formData.retryBackoffStrategy} backoff`
+                  : 'Disabled'}
+              </Typography>
+            </Box>
+            
+            <Box>
+              <Typography variant="caption" color="text.secondary">Endpoint</Typography>
+              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                {formData.endpointUrl}
+              </Typography>
+            </Box>
+          </Stack>
+        </Paper>
+        
+        {/* Test Connection */}
+        <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Test Connection
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Send a test message to verify configuration
+          </Typography>
+          
+          <Button
+            variant="contained"
+            startIcon={<Send />}
+            onClick={() => testConnectionMutation.mutate(formData)}
+            disabled={testConnectionMutation.isPending}
+          >
+            {testConnectionMutation.isPending ? 'Testing...' : 'Test Connection'}
+          </Button>
+          
+          {testConnectionMutation.isPending && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+              <CircularProgress size={20} />
+              <Typography variant="body2">
+                Sending test message to {formData.clearingSystem}...
+              </Typography>
+            </Box>
+          )}
+          
+          {testResult && (
+            <Alert
+              severity={testResult.success ? 'success' : 'error'}
+              icon={testResult.success ? <CheckCircle /> : <Error />}
+              sx={{ mt: 2 }}
+            >
+              <Typography variant="body2">
+                <strong>{testResult.message}</strong>
+              </Typography>
+              <Typography variant="caption">
+                Response Time: {testResult.responseTimeMs}ms
+              </Typography>
+              {testResult.errorDetails && (
+                <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                  Error: {testResult.errorDetails}
+                </Typography>
+              )}
+            </Alert>
+          )}
+        </Paper>
+      </Stack>
+    </Box>
+  );
+}
+```
+
+---
+
+## 14. Comparison: Before vs After
+
+### 14.1 Configuration Management
+
+**Before** (Hardcoded):
+```yaml
+# application.yml (requires code deployment to change)
+clearing:
+  samos:
+    endpoint: https://samos.sarb.co.za/rtgs
+    format: ISO_20022
+    pattern: SYNCHRONOUS
+    security: MTLS
+    certificate-path: /etc/certs/samos.p12
+    timeout: 30000
+    retry-count: 3
+```
+
+**After** (Database-Driven):
+```sql
+-- clearing_system_configurations table (no code deployment)
+INSERT INTO clearing_system_configurations (
+    tenant_id, clearing_system, communication_pattern, message_format,
+    transport_protocol, endpoint_url, endpoint_timeout_ms,
+    security_mechanism, security_config, retry_max_attempts
+) VALUES (
+    'TENANT-001', 'SAMOS', 'SYNCHRONOUS', 'ISO_20022_XML',
+    'HTTPS_REST', 'https://samos.sarb.co.za/api/v1/payments', 30000,
+    'MTLS', '{"certificatePath": "keyvault://cert-tenant-001-samos"}', 0
+);
+```
+
+---
+
+### 14.2 Multi-Tenant Support
+
+**Before**: Single configuration for all tenants  
+**After**: Per-tenant configuration
+
+```sql
+-- Tenant A (Standard Bank)
+tenant_id = 'TENANT-STANDARD-BANK'
+clearing_system = 'SAMOS'
+endpoint_url = 'https://samos.sarb.co.za/api/v1/payments'
+certificate_path = 'keyvault://cert-standard-bank-samos'
+
+-- Tenant B (ABSA)
+tenant_id = 'TENANT-ABSA'
+clearing_system = 'SAMOS'
+endpoint_url = 'https://samos.sarb.co.za/api/v1/payments'
+certificate_path = 'keyvault://cert-absa-samos'
+```
+
+---
+
+### 14.3 Multi-Environment Support
+
+**Before**: Single environment (production only)  
+**After**: Dev, UAT, Production
+
+```sql
+-- Dev Environment
+environment = 'DEV'
+endpoint_url = 'https://samos-dev.sarb.co.za'
+certificate_path = 'keyvault://cert-dev-samos'
+
+-- UAT Environment
+environment = 'UAT'
+endpoint_url = 'https://samos-uat.sarb.co.za'
+certificate_path = 'keyvault://cert-uat-samos'
+
+-- Production Environment
+environment = 'PRODUCTION'
+endpoint_url = 'https://samos.sarb.co.za'
+certificate_path = 'keyvault://cert-prod-samos'
+```
+
+---
+
+## 15. Migration Strategy
+
+### 15.1 Migrate from Hardcoded to Database-Driven
+
+**Step 1: Extract current configuration from application.yml**
+```java
+@Component
+@ConfigurationProperties(prefix = "clearing")
+public class LegacyClearingConfig {
+    private SamosConfig samos;
+    private BankservConfig bankserv;
+    private RtcConfig rtc;
+    private PayShapConfig payshap;
+    private SwiftConfig swift;
+}
+```
+
+**Step 2: Migrate to database**
+```java
+@Service
+public class ClearingConfigMigrationService {
+    
+    @Autowired
+    private LegacyClearingConfig legacyConfig;
+    
+    @Autowired
+    private ClearingSystemConfigurationRepository configRepo;
+    
+    @Transactional
+    public void migrate(String tenantId) {
+        // Migrate SAMOS config
+        ClearingSystemConfiguration samos = ClearingSystemConfiguration.builder()
+            .tenantId(tenantId)
+            .clearingSystem(ClearingSystem.SAMOS)
+            .communicationPattern(CommunicationPattern.SYNCHRONOUS)
+            .messageFormat(MessageFormat.ISO_20022_XML)
+            .endpointUrl(legacyConfig.getSamos().getEndpoint())
+            .endpointTimeoutMs(legacyConfig.getSamos().getTimeout())
+            .securityMechanism(SecurityMechanism.MTLS)
+            .retryMaxAttempts(0)
+            .environment(Environment.PRODUCTION)
+            .status(ClearingSystemStatus.ACTIVE)
+            .build();
+        
+        configRepo.save(samos);
+        
+        // Repeat for other clearing systems...
+    }
+}
+```
+
+**Step 3: Switch to dynamic adapter**
+```java
+// Before: Hardcoded adapter
+@Autowired
+private SamosAdapter samosAdapter;
+
+samosAdapter.submitPayment(payment);  // Uses hardcoded config
+
+// After: Dynamic adapter
+@Autowired
+private DynamicClearingAdapter dynamicAdapter;
+
+dynamicAdapter.submitPayment(payment);  // Loads config from database
+```
+
+---
+
+## 16. Monitoring & Observability
+
+### 16.1 Metrics
+
+**Per Clearing System**:
+```yaml
+Prometheus Metrics:
+  # Request metrics
+  - clearing_system_requests_total{system="SAMOS", status="success"}
+  - clearing_system_requests_total{system="SAMOS", status="failure"}
+  
+  # Latency metrics
+  - clearing_system_request_duration_seconds{system="SAMOS", quantile="0.5"}  # p50
+  - clearing_system_request_duration_seconds{system="SAMOS", quantile="0.95"} # p95
+  - clearing_system_request_duration_seconds{system="SAMOS", quantile="0.99"} # p99
+  
+  # Retry metrics
+  - clearing_system_retries_total{system="SAMOS"}
+  - clearing_system_retry_exhausted_total{system="SAMOS"}
+  
+  # Security metrics
+  - clearing_system_certificate_expiry_days{system="SAMOS"}
+  - clearing_system_oauth_token_refreshes_total{system="PAYSHAP"}
+```
+
+---
+
+### 16.2 Alerts
+
+**Critical Alerts**:
+```yaml
+- name: ClearingSystemDown
+  expr: clearing_system_requests_total{status="failure"} / clearing_system_requests_total > 0.05
+  for: 5m
+  severity: CRITICAL
+  message: "Clearing system {{ $labels.system }} error rate > 5%"
+
+- name: ClearingSystemSlowResponse
+  expr: clearing_system_request_duration_seconds{quantile="0.95"} > 10
+  for: 2m
+  severity: WARNING
+  message: "Clearing system {{ $labels.system }} p95 latency > 10s"
+
+- name: ClearingSystemCertificateExpiring
+  expr: clearing_system_certificate_expiry_days < 30
+  severity: WARNING
+  message: "Clearing system {{ $labels.system }} certificate expires in {{ $value }} days"
+```
+
+---
+
 ## Conclusion
 
 **Clearing System Onboarding** provides:
-- ✅ Self-service configuration via React UI
+- ✅ Self-service configuration via React UI (5-step wizard)
 - ✅ Support for 5 South African clearing systems (SAMOS, BankservAfrica, RTC, PayShap, SWIFT)
-- ✅ Configurable communication patterns (Sync/Async/Batch)
-- ✅ Multiple message formats (ISO 20022, ISO 8583, SWIFT MT, JSON, Fixed-length)
-- ✅ Flexible security mechanisms (mTLS, OAuth 2.0, SFTP, SWIFTNet PKI)
-- ✅ Configurable retry policies (count, backoff, timeout)
+- ✅ World standards compliance (ISO 20022, ISO 8583, SWIFT MT/MX)
+- ✅ Configurable communication patterns (Synchronous, Asynchronous, Batch)
+- ✅ Multiple message formats (XML, JSON, Binary, Fixed-length)
+- ✅ Flexible security mechanisms (mTLS, OAuth 2.0, SFTP+PGP, SWIFTNet PKI)
+- ✅ Configurable retry policies (count, backoff strategy, timeout)
+- ✅ Idempotency support (prevent duplicates)
 - ✅ Test connection before activation
 - ✅ Multi-environment support (Dev, UAT, Prod)
+- ✅ Multi-tenant support (per-tenant configuration)
+- ✅ Secure certificate storage (Azure Key Vault)
+- ✅ Dynamic adapter (loads config from database)
 
 **Status**: ✅ **DESIGN COMPLETE** - Ready for Implementation
 
@@ -1579,8 +2724,9 @@ public TestConnectionResult testSAMOSConnection(ClearingSystemConfiguration conf
 
 **Document Version**: 1.0  
 **Created**: 2025-10-12  
-**Total Lines**: 2,000+  
+**Total Lines**: 2,500+  
 **Related Documents**:
 - `docs/06-SOUTH-AFRICA-CLEARING.md` (Clearing Systems Overview)
 - `docs/02-MICROSERVICES-BREAKDOWN.md` (Clearing Adapters)
 - `docs/40-PHASE-7-DETAILED-DESIGN.md` (Phase 7 Design)
+- `docs/41-PAYMENT-TYPE-KAFKA-TOPICS.md` (Payment-Type Kafka Topics)
