@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides **detailed prompt templates** for each of the **40+ features**, ensuring each AI agent has sufficient context to complete:
+This document provides **detailed prompt templates** for each of the **52 features** (40 original + 12 Phase 7), ensuring each AI agent has sufficient context to complete:
 
 1. **HLD (High-Level Design)** - Architecture overview
 2. **LLD (Low-Level Design)** - Detailed design, class diagrams
@@ -10808,11 +10808,1526 @@ Overall Score:      200/200 ✅ (100%)
 
 ---
 
+## Phase 7: Operations & Channel Management (12 Features) 🆕
+
+### Feature 7.1: Operations Management Service
+
+```yaml
+Feature ID: 7.1
+Agent Name: Operations-Management-Agent
+Phase: 7
+Type: NEW Backend Service (#21)
+Priority: P0
+Dependencies: Tenant Management (3.1), All Phase 1-5 Services
+Estimated LOC: 1,200
+Estimated Days: 5-7
+Template: PROMPT-7.1-OPERATIONS-MANAGEMENT-SERVICE
+```
+
+**YOU ARE**: Operations Management Service Agent
+
+**ROLE**: Build the Operations Management Service - a centralized management layer for the operations team to monitor service health, manage circuit breakers, toggle feature flags, and control Kubernetes pods.
+
+**Context Provided**:
+
+1. Architecture Documents:
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Operations Management Service)
+   - Lines 1-300 (complete service specification)
+   - Service health monitoring (20 microservices)
+   - Circuit breaker management (Resilience4j integration)
+   - Feature flag management (Unleash SDK integration)
+   - K8s pod management (restart, scale, view logs)
+
+2. Related Documents:
+   📄 docs/02-MICROSERVICES-BREAKDOWN.md (All services overview)
+   📄 docs/17-FEATURE-FLAGS.md (Unleash architecture)
+   📄 docs/36-RESILIENCE-PATTERNS-DECISION.md (Circuit breaker patterns)
+
+3. API Specifications:
+   ```yaml
+   Endpoints (10):
+     GET  /api/ops/v1/services                   (List all 22 services)
+     GET  /api/ops/v1/services/{id}/health       (Service health details)
+     GET  /api/ops/v1/services/{id}/metrics      (Prometheus metrics)
+     GET  /api/ops/v1/circuit-breakers           (List all circuit breakers)
+     POST /api/ops/v1/circuit-breakers/{id}/open (Force open circuit)
+     POST /api/ops/v1/circuit-breakers/{id}/close (Force close circuit)
+     GET  /api/ops/v1/feature-flags              (List all feature flags)
+     POST /api/ops/v1/feature-flags/{id}/toggle  (Toggle feature flag)
+     GET  /api/ops/v1/pods                       (List K8s pods)
+     POST /api/ops/v1/pods/{id}/restart          (Restart pod)
+   ```
+
+4. Technology Stack:
+   ```yaml
+   Framework: Spring Boot 3.2+
+   Language: Java 17+
+   Client Libraries:
+     - Kubernetes Java Client (io.fabric8)
+     - Unleash Client SDK
+     - Resilience4j
+     - Prometheus Client
+   Database: PostgreSQL (operations_audit_log table)
+   Observability: OpenTelemetry, Micrometer
+   ```
+
+5. Spring Boot Guidance:
+   ```java
+   // Use K8s Java Client for pod management
+   import io.fabric8.kubernetes.client.KubernetesClient;
+   
+   @Service
+   public class PodManagementService {
+       @Autowired
+       private KubernetesClient kubernetesClient;
+       
+       public void restartPod(String podName) {
+           kubernetesClient.pods()
+               .inNamespace("payments-engine")
+               .withName(podName)
+               .delete();
+       }
+   }
+   
+   // Use Unleash SDK for feature flags
+   import io.getunleash.Unleash;
+   
+   @Service
+   public class FeatureFlagService {
+       @Autowired
+       private Unleash unleash;
+       
+       public boolean isFeatureEnabled(String featureName, String tenantId) {
+           return unleash.isEnabled(featureName, Map.of("tenantId", tenantId));
+       }
+   }
+   ```
+
+6. Database Schema:
+   ```sql
+   CREATE TABLE operations_audit_log (
+       id UUID PRIMARY KEY,
+       tenant_id VARCHAR(50) NOT NULL,
+       operation_type VARCHAR(50) NOT NULL,  -- CIRCUIT_BREAKER_TOGGLE, FEATURE_FLAG_TOGGLE, POD_RESTART
+       target_resource VARCHAR(100) NOT NULL,
+       performed_by VARCHAR(100) NOT NULL,
+       timestamp TIMESTAMP NOT NULL,
+       details JSONB
+   );
+   ```
+
+**Task**:
+  Build the Operations Management Service that provides REST APIs for:
+  1. Service health monitoring (aggregate from all 22 services)
+  2. Circuit breaker management (open/close circuit breakers)
+  3. Feature flag management (toggle features via Unleash)
+  4. Kubernetes pod management (restart, view logs, scale)
+  
+  This service is READ-HEAVY for monitoring and WRITE for management actions.
+
+**Implementation Requirements**:
+
+1. **Service Health Monitoring**:
+   - ✅ Aggregate health from all 22 microservices (`/actuator/health`)
+   - ✅ Cache health data (30-second TTL)
+   - ✅ Return status: UP, DOWN, DEGRADED, UNKNOWN
+
+2. **Circuit Breaker Management**:
+   - ✅ Integrate with Resilience4j circuit breakers
+   - ✅ Provide APIs to force open/close circuit breakers
+   - ✅ Audit all circuit breaker changes
+
+3. **Feature Flag Management**:
+   - ✅ Integrate with Unleash for feature flag queries
+   - ✅ Provide APIs to toggle feature flags
+   - ✅ Validate tenant-specific flags
+
+4. **Pod Management**:
+   - ✅ Use K8s Java Client to list/restart/scale pods
+   - ✅ Restrict to `payments-engine` namespace only
+   - ✅ Audit all pod operations
+
+5. **Security**:
+   - ✅ Require `OPS_ADMIN` role for all write operations
+   - ✅ Require `OPS_VIEWER` role for read operations
+   - ✅ Audit all management actions
+
+**Definition of Done**:
+- ✅ All 10 REST endpoints implemented and tested
+- ✅ Unit tests (80%+ coverage)
+- ✅ Integration tests (Testcontainers for K8s, Unleash)
+- ✅ Kubernetes RBAC configured for pod management
+- ✅ Audit logging for all operations
+- ✅ README with setup guide
+
+---
+
+### Feature 7.2: Metrics Aggregation Service
+
+```yaml
+Feature ID: 7.2
+Agent Name: Metrics-Aggregation-Agent
+Phase: 7
+Type: NEW Backend Service (#22)
+Priority: P0
+Dependencies: All Phase 1-5 Services (for metrics collection)
+Estimated LOC: 1,000
+Estimated Days: 4-6
+Template: PROMPT-7.2-METRICS-AGGREGATION-SERVICE
+```
+
+**YOU ARE**: Metrics Aggregation Service Agent
+
+**ROLE**: Build the Metrics Aggregation Service - aggregates Prometheus metrics from all 22 microservices, provides real-time dashboards, and manages alerts.
+
+**Context Provided**:
+
+1. Architecture Documents:
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Metrics Aggregation Service)
+   - Lines 301-600 (complete service specification)
+   - Real-time metrics aggregation
+   - Dashboard data APIs
+   - Alert management
+
+2. API Specifications:
+   ```yaml
+   Endpoints (10):
+     GET  /api/metrics/v1/summary                (Overall system metrics)
+     GET  /api/metrics/v1/services/{id}/metrics  (Per-service metrics)
+     GET  /api/metrics/v1/payments/volume        (Payment volume over time)
+     GET  /api/metrics/v1/payments/success-rate  (Success rate by type)
+     GET  /api/metrics/v1/latency/p95            (p95 latency by service)
+     GET  /api/metrics/v1/errors/top             (Top errors by count)
+     GET  /api/metrics/v1/alerts                 (Active alerts)
+     POST /api/metrics/v1/alerts/{id}/acknowledge (Acknowledge alert)
+     GET  /api/metrics/v1/dashboard/realtime     (Real-time dashboard data)
+     GET  /api/metrics/v1/dashboard/historical   (Historical trends)
+   ```
+
+3. Technology Stack:
+   ```yaml
+   Framework: Spring Boot 3.2+ with WebFlux (reactive)
+   Language: Java 17+
+   Client Libraries:
+     - Prometheus Java Client
+     - Spring WebFlux (reactive)
+     - Micrometer
+   Database: PostgreSQL (alert_history table)
+   Cache: Redis (for real-time metrics)
+   ```
+
+4. Spring Boot Guidance:
+   ```java
+   // Use WebFlux for reactive, non-blocking metrics aggregation
+   import org.springframework.web.reactive.function.client.WebClient;
+   import reactor.core.publisher.Flux;
+   
+   @Service
+   public class MetricsAggregationService {
+       private final WebClient webClient;
+       
+       public Flux<ServiceMetrics> aggregateMetrics() {
+           return Flux.fromIterable(getAllServiceUrls())
+               .flatMap(url -> webClient.get()
+                   .uri(url + "/actuator/prometheus")
+                   .retrieve()
+                   .bodyToMono(String.class)
+                   .map(this::parsePrometheusMetrics)
+               );
+       }
+   }
+   ```
+
+5. Metrics to Aggregate:
+   ```yaml
+   Payment Metrics:
+     - payments_total (by type, status, tenant)
+     - payments_amount_total (by currency)
+     - payments_duration_seconds (p50, p95, p99)
+   
+   System Metrics:
+     - http_requests_total (by endpoint, status)
+     - jvm_memory_used_bytes
+     - jvm_threads_live
+     - resilience4j_circuitbreaker_state
+   
+   Business Metrics:
+     - active_tenants_count
+     - daily_payment_volume
+     - fraud_detection_rate
+   ```
+
+**Task**:
+  Build the Metrics Aggregation Service that aggregates Prometheus metrics from all 22 microservices and provides real-time dashboards and alerts.
+
+**Implementation Requirements**:
+
+1. **Metrics Aggregation**:
+   - ✅ Scrape metrics from all 22 services (`/actuator/prometheus`)
+   - ✅ Parse Prometheus format (use Micrometer)
+   - ✅ Aggregate metrics by tenant, payment type, service
+   - ✅ Cache in Redis (60-second TTL)
+
+2. **Real-Time Dashboards**:
+   - ✅ Provide WebSocket or SSE for real-time updates
+   - ✅ Return JSON format for React frontend
+   - ✅ Support time-series data (last 24 hours)
+
+3. **Alert Management**:
+   - ✅ Define alert rules (error rate > 5%, latency > 10s)
+   - ✅ Trigger alerts when thresholds exceeded
+   - ✅ Store alert history in PostgreSQL
+
+4. **Performance**:
+   - ✅ Use WebFlux for non-blocking I/O
+   - ✅ Aggregate metrics in parallel (Flux.flatMap)
+   - ✅ Cache aggregated metrics (Redis)
+
+**Definition of Done**:
+- ✅ All 10 REST endpoints implemented
+- ✅ Unit tests (80%+ coverage)
+- ✅ Integration tests (Testcontainers)
+- ✅ WebSocket/SSE for real-time updates
+- ✅ README with setup guide
+
+---
+
+### Feature 7.3: Payment Repair APIs
+
+```yaml
+Feature ID: 7.3
+Agent Name: Payment-Repair-Agent
+Phase: 7
+Type: Enhanced Backend (Payment Initiation Service)
+Priority: P0
+Dependencies: Payment Initiation (1.1), Saga Orchestrator (1.6)
+Estimated LOC: 800
+Estimated Days: 3-4
+Template: PROMPT-7.3-PAYMENT-REPAIR-APIs
+```
+
+**YOU ARE**: Payment Repair APIs Agent
+
+**ROLE**: Enhance the Payment Initiation Service with payment repair APIs for the operations team to retry failed payments, compensate, and manage stuck payments.
+
+**Context Provided**:
+
+1. Architecture Documents:
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Payment Repair APIs)
+   - Lines 601-900 (complete API specification)
+   - Failed payment retrieval
+   - Retry mechanisms
+   - Compensation APIs
+
+2. API Specifications:
+   ```yaml
+   Endpoints (8):
+     GET  /api/v1/payments/failed                   (List failed payments)
+     GET  /api/v1/payments/{id}/failure-details     (Get failure details)
+     POST /api/v1/payments/{id}/retry               (Retry failed payment)
+     POST /api/v1/payments/{id}/compensate          (Compensate payment)
+     POST /api/v1/payments/{id}/cancel              (Cancel payment)
+     GET  /api/v1/payments/{id}/saga-state          (Get saga state)
+     POST /api/v1/payments/{id}/force-complete      (Force complete payment)
+     POST /api/v1/payments/{id}/reprocess           (Reprocess from scratch)
+   ```
+
+3. Failure Reasons (handle all):
+   ```yaml
+   ACCOUNT_DEBIT_FAILED:
+     - Insufficient funds
+     - Account locked
+     - Core banking system unavailable
+   
+   CLEARING_SYSTEM_FAILED:
+     - Timeout
+     - Network error
+     - Clearing system rejection
+   
+   SAGA_INCOMPLETE:
+     - Saga stuck in intermediate state
+     - Compensation partially failed
+   
+   FRAUD_DETECTED:
+     - High fraud score
+     - Manual review required
+   ```
+
+**Task**:
+  Enhance the Payment Initiation Service with payment repair APIs for failed/stuck payments. This is CRITICAL for operations team to resolve payment issues.
+
+**Implementation Requirements**:
+
+1. **Failed Payment Retrieval**:
+   - ✅ Query payments with status: FAILED, COMPENSATED, STUCK
+   - ✅ Return failure reason, timestamp, affected saga steps
+   - ✅ Support filtering by tenant, payment type, date range
+
+2. **Retry Logic**:
+   - ✅ Validate payment can be retried (idempotency check)
+   - ✅ Re-execute saga from failed step
+   - ✅ Update payment status to RETRYING
+   - ✅ Audit retry action
+
+3. **Compensation Logic**:
+   - ✅ Execute compensation saga (reverse all completed steps)
+   - ✅ Credit account if debited
+   - ✅ Update payment status to COMPENSATED
+
+4. **Security**:
+   - ✅ Require `OPS_PAYMENT_REPAIR` role
+   - ✅ Audit all repair actions
+   - ✅ Verify tenant context
+
+**Definition of Done**:
+- ✅ All 8 REST endpoints implemented
+- ✅ Unit tests (80%+ coverage)
+- ✅ Integration tests (test retry/compensate flows)
+- ✅ Audit logging for all repair actions
+- ✅ README with repair guide
+
+---
+
+### Feature 7.4: Saga Management APIs
+
+```yaml
+Feature ID: 7.4
+Agent Name: Saga-Management-Agent
+Phase: 7
+Type: Enhanced Backend (Saga Orchestrator Service)
+Priority: P0
+Dependencies: Saga Orchestrator (1.6)
+Estimated LOC: 600
+Estimated Days: 2-3
+Template: PROMPT-7.4-SAGA-MANAGEMENT-APIs
+```
+
+**YOU ARE**: Saga Management APIs Agent
+
+**ROLE**: Enhance the Saga Orchestrator Service with management APIs for the operations team to view saga state, manually advance/rollback sagas, and resolve stuck sagas.
+
+**Context Provided**:
+
+1. Architecture Documents:
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Saga Management APIs)
+   - Lines 901-1200 (complete API specification)
+   - Saga state visualization
+   - Manual saga control
+   - Stuck saga resolution
+
+2. API Specifications:
+   ```yaml
+   Endpoints (6):
+     GET  /api/saga/v1/sagas                      (List all sagas)
+     GET  /api/saga/v1/sagas/{id}/state           (Get saga state diagram)
+     POST /api/saga/v1/sagas/{id}/advance         (Manually advance saga)
+     POST /api/saga/v1/sagas/{id}/rollback        (Manually rollback saga)
+     POST /api/saga/v1/sagas/{id}/reset           (Reset saga to initial state)
+     GET  /api/saga/v1/sagas/stuck                (List stuck sagas)
+   ```
+
+3. Saga States (handle all):
+   ```yaml
+   INITIATED:       Saga started
+   STEP_1_COMPLETE: Validation complete
+   STEP_2_COMPLETE: Account debited
+   STEP_3_COMPLETE: Routing complete
+   STEP_4_COMPLETE: Clearing submitted
+   COMPLETED:       All steps complete
+   COMPENSATING:    Rollback in progress
+   COMPENSATED:     All steps rolled back
+   FAILED:          Saga permanently failed
+   STUCK:           Saga stuck for >5 minutes
+   ```
+
+**Task**:
+  Enhance the Saga Orchestrator Service with management APIs for manual saga control. This is CRITICAL for resolving stuck sagas.
+
+**Implementation Requirements**:
+
+1. **Saga State Retrieval**:
+   - ✅ Query saga state from database
+   - ✅ Return state diagram (JSON format for visualization)
+   - ✅ Include timestamp, current step, completion percentage
+
+2. **Manual Saga Control**:
+   - ✅ Advance saga: move to next step (if validation passes)
+   - ✅ Rollback saga: execute compensation for all completed steps
+   - ✅ Reset saga: set to initial state (for retry)
+
+3. **Stuck Saga Detection**:
+   - ✅ Query sagas stuck for >5 minutes
+   - ✅ Provide resolution options (advance, rollback, reset)
+
+4. **Security**:
+   - ✅ Require `OPS_SAGA_ADMIN` role
+   - ✅ Audit all saga management actions
+
+**Definition of Done**:
+- ✅ All 6 REST endpoints implemented
+- ✅ Unit tests (80%+ coverage)
+- ✅ Integration tests (test manual saga control)
+- ✅ Audit logging
+- ✅ README with saga management guide
+
+---
+
+### Feature 7.5: Transaction Search APIs
+
+```yaml
+Feature ID: 7.5
+Agent Name: Transaction-Search-Agent
+Phase: 7
+Type: Enhanced Backend (Reporting Service)
+Priority: P0
+Dependencies: Reporting Service (3.5)
+Estimated LOC: 700
+Estimated Days: 3-4
+Template: PROMPT-7.5-TRANSACTION-SEARCH-APIs
+```
+
+**YOU ARE**: Transaction Search APIs Agent
+
+**ROLE**: Enhance the Reporting Service with advanced transaction search APIs for the operations team to query payments by multiple criteria, view transaction details, and export results.
+
+**Context Provided**:
+
+1. Architecture Documents:
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Transaction Search APIs)
+   - Lines 1201-1500 (complete API specification)
+   - Advanced search filters
+   - Transaction detail view
+   - Export functionality
+
+2. API Specifications:
+   ```yaml
+   Endpoints (5):
+     POST /api/reporting/v1/transactions/search     (Advanced search)
+     GET  /api/reporting/v1/transactions/{id}       (Transaction detail)
+     GET  /api/reporting/v1/transactions/{id}/audit (Audit trail)
+     POST /api/reporting/v1/transactions/export     (Export to CSV/Excel)
+     GET  /api/reporting/v1/transactions/stats      (Search statistics)
+   ```
+
+3. Search Filters (support all):
+   ```yaml
+   Filters:
+     - tenantId (required for multi-tenancy)
+     - paymentId, transactionId
+     - paymentType (EFT, RTC, RTGS, SWIFT, PAYSHAP)
+     - status (INITIATED, PROCESSING, COMPLETED, FAILED)
+     - dateRange (from, to)
+     - amountRange (min, max)
+     - debtorAccount, creditorAccount
+     - clearingSystem (SAMOS, BANKSERV, RTC, PAYSHAP, SWIFT)
+     - reference (partial match)
+   ```
+
+4. Technology Stack:
+   ```yaml
+   Framework: Spring Boot 3.2+
+   Search: Spring Data JPA with Specifications
+   Export: Apache POI (Excel), OpenCSV (CSV)
+   ```
+
+5. Spring Boot Guidance:
+   ```java
+   // Use Spring Data JPA Specifications for dynamic search
+   import org.springframework.data.jpa.domain.Specification;
+   
+   @Service
+   public class TransactionSearchService {
+       
+       public Page<Payment> search(TransactionSearchRequest request, Pageable pageable) {
+           Specification<Payment> spec = Specification.where(null);
+           
+           if (request.getPaymentType() != null) {
+               spec = spec.and((root, query, cb) -> 
+                   cb.equal(root.get("paymentType"), request.getPaymentType()));
+           }
+           
+           if (request.getDateRange() != null) {
+               spec = spec.and((root, query, cb) -> 
+                   cb.between(root.get("createdAt"), 
+                       request.getDateRange().getFrom(), 
+                       request.getDateRange().getTo()));
+           }
+           
+           // ... add more filters
+           
+           return paymentRepository.findAll(spec, pageable);
+       }
+   }
+   ```
+
+**Task**:
+  Enhance the Reporting Service with advanced transaction search APIs. This is CRITICAL for operations team to investigate payment issues.
+
+**Implementation Requirements**:
+
+1. **Advanced Search**:
+   - ✅ Support all 10+ search filters
+   - ✅ Use Spring Data JPA Specifications for dynamic queries
+   - ✅ Paginate results (default 50 per page)
+   - ✅ Sort by any field
+
+2. **Transaction Detail View**:
+   - ✅ Return complete payment details
+   - ✅ Include saga state, clearing response, audit trail
+   - ✅ Mask sensitive data (account numbers)
+
+3. **Export Functionality**:
+   - ✅ Export to CSV or Excel (Apache POI)
+   - ✅ Include all search results (up to 10,000 rows)
+   - ✅ Async export for large datasets (>1,000 rows)
+
+4. **Performance**:
+   - ✅ Add database indexes on searchable fields
+   - ✅ Use read replicas for search queries
+   - ✅ Cache frequently searched results (Redis, 5-minute TTL)
+
+**Definition of Done**:
+- ✅ All 5 REST endpoints implemented
+- ✅ Unit tests (80%+ coverage)
+- ✅ Integration tests (Testcontainers)
+- ✅ Database indexes created
+- ✅ README with search guide
+
+---
+
+### Feature 7.6: Reconciliation Management APIs
+
+```yaml
+Feature ID: 7.6
+Agent Name: Reconciliation-Management-Agent
+Phase: 7
+Type: Enhanced Backend (Reconciliation Service)
+Priority: P1
+Dependencies: Reconciliation Service (4.3)
+Estimated LOC: 500
+Estimated Days: 2-3
+Template: PROMPT-7.6-RECONCILIATION-MANAGEMENT-APIs
+```
+
+**YOU ARE**: Reconciliation Management APIs Agent
+
+**ROLE**: Enhance the Reconciliation Service with management APIs for the operations team to view unmatched payments, manually match payments, and resolve reconciliation issues.
+
+**Context Provided**:
+
+1. Architecture Documents:
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Reconciliation Management APIs)
+   - Lines 1501-1783 (complete API specification)
+   - Unmatched payment queries
+   - Manual matching
+   - Reconciliation reports
+
+2. API Specifications:
+   ```yaml
+   Endpoints (6):
+     GET  /api/reconciliation/v1/unmatched          (List unmatched payments)
+     POST /api/reconciliation/v1/match              (Manually match payment)
+     POST /api/reconciliation/v1/unmatch            (Unmatch payment)
+     GET  /api/reconciliation/v1/reports/daily      (Daily reconciliation report)
+     GET  /api/reconciliation/v1/reports/exceptions (Exception report)
+     POST /api/reconciliation/v1/rerun              (Rerun reconciliation)
+   ```
+
+3. Reconciliation States:
+   ```yaml
+   MATCHED:       Payment matched with clearing response
+   UNMATCHED:     Payment not matched (>24 hours old)
+   PARTIAL_MATCH: Amount mismatch (internal vs clearing)
+   DUPLICATE:     Multiple clearing responses for same payment
+   ORPHAN:        Clearing response with no internal payment
+   ```
+
+**Task**:
+  Enhance the Reconciliation Service with management APIs for manual reconciliation. This is IMPORTANT for operations team to resolve exceptions.
+
+**Implementation Requirements**:
+
+1. **Unmatched Payment Queries**:
+   - ✅ Query payments with status: UNMATCHED, PARTIAL_MATCH, DUPLICATE
+   - ✅ Filter by tenant, clearing system, date range
+   - ✅ Return matching suggestions (fuzzy match on amount, reference)
+
+2. **Manual Matching**:
+   - ✅ Allow ops team to manually link payment to clearing response
+   - ✅ Validate match (amount within tolerance)
+   - ✅ Update reconciliation status
+   - ✅ Audit manual match action
+
+3. **Reconciliation Reports**:
+   - ✅ Daily report: matched count, unmatched count, total amount
+   - ✅ Exception report: list all unmatched payments
+   - ✅ Export to CSV/Excel
+
+4. **Security**:
+   - ✅ Require `OPS_RECONCILIATION_ADMIN` role
+   - ✅ Audit all manual actions
+
+**Definition of Done**:
+- ✅ All 6 REST endpoints implemented
+- ✅ Unit tests (80%+ coverage)
+- ✅ Integration tests
+- ✅ Audit logging
+- ✅ README with reconciliation guide
+
+---
+
+### Feature 7.7: React Ops Portal - Service Management UI
+
+```yaml
+Feature ID: 7.7
+Agent Name: React-Service-Management-Agent
+Phase: 7
+Type: React Frontend
+Priority: P0
+Dependencies: Operations Management Service (7.1)
+Estimated LOC: 1,500
+Estimated Days: 4-5
+Template: PROMPT-7.7-REACT-SERVICE-MANAGEMENT-UI
+```
+
+**YOU ARE**: React Service Management UI Agent
+
+**ROLE**: Build the Service Management UI in the React Operations Portal for monitoring all 22 microservices, managing circuit breakers, toggling feature flags, and controlling Kubernetes pods.
+
+**Context Provided**:
+
+1. Architecture Documents:
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Frontend UIs - Service Management)
+   - Lines 1784-2100 (complete UI specification)
+   - Service health dashboard
+   - Circuit breaker management
+   - Feature flag toggles
+   - Pod management
+
+2. UI Components (Material-UI):
+   ```tsx
+   Components:
+     - ServiceHealthDashboard (grid of 22 service cards)
+     - ServiceDetailDialog (health, metrics, logs)
+     - CircuitBreakerList (list of all circuit breakers)
+     - CircuitBreakerToggle (open/close circuit)
+     - FeatureFlagList (list of all feature flags)
+     - FeatureFlagToggle (enable/disable flag)
+     - PodList (list of all K8s pods)
+     - PodManagement (restart, scale, view logs)
+   ```
+
+3. Backend APIs (Operations Management Service):
+   ```
+   GET  /api/ops/v1/services
+   GET  /api/ops/v1/services/{id}/health
+   GET  /api/ops/v1/circuit-breakers
+   POST /api/ops/v1/circuit-breakers/{id}/open
+   GET  /api/ops/v1/feature-flags
+   POST /api/ops/v1/feature-flags/{id}/toggle
+   GET  /api/ops/v1/pods
+   POST /api/ops/v1/pods/{id}/restart
+   ```
+
+4. Technology Stack:
+   ```yaml
+   Framework: React 18+ with TypeScript
+   UI Library: Material-UI (MUI) 5+
+   State Management: React Query (TanStack Query)
+   Routing: React Router 6+
+   Real-Time: WebSocket or SSE
+   ```
+
+5. React Guidance:
+   ```tsx
+   // Use React Query for data fetching
+   import { useQuery } from '@tanstack/react-query';
+   
+   function ServiceHealthDashboard() {
+     const { data: services } = useQuery({
+       queryKey: ['services'],
+       queryFn: () => fetch('/api/ops/v1/services').then(res => res.json()),
+       refetchInterval: 30000, // Refresh every 30 seconds
+     });
+     
+     return (
+       <Grid container spacing={2}>
+         {services?.map(service => (
+           <Grid item xs={12} sm={6} md={4} key={service.id}>
+             <ServiceCard service={service} />
+           </Grid>
+         ))}
+       </Grid>
+     );
+   }
+   ```
+
+**Task**:
+  Build the Service Management UI for the React Operations Portal. This is the PRIMARY dashboard for operations team.
+
+**Implementation Requirements**:
+
+1. **Service Health Dashboard**:
+   - ✅ Display all 22 services in a grid
+   - ✅ Color-coded status (green=UP, red=DOWN, yellow=DEGRADED)
+   - ✅ Auto-refresh every 30 seconds
+   - ✅ Click to view service details
+
+2. **Circuit Breaker Management**:
+   - ✅ List all circuit breakers with state (CLOSED, OPEN, HALF_OPEN)
+   - ✅ Toggle buttons to force open/close
+   - ✅ Show metrics (failure rate, slow call rate)
+
+3. **Feature Flag Management**:
+   - ✅ List all feature flags with current state (enabled/disabled)
+   - ✅ Toggle switches to enable/disable
+   - ✅ Show tenant-specific overrides
+
+4. **Pod Management**:
+   - ✅ List all K8s pods with status (Running, Pending, Failed)
+   - ✅ Restart button for each pod
+   - ✅ View logs button (opens dialog with logs)
+
+**Definition of Done**:
+- ✅ All UI components implemented
+- ✅ Unit tests (React Testing Library)
+- ✅ E2E tests (Cypress)
+- ✅ Responsive design (mobile-friendly)
+- ✅ README with UI guide
+
+---
+
+### Feature 7.8: React Ops Portal - Payment Repair UI
+
+```yaml
+Feature ID: 7.8
+Agent Name: React-Payment-Repair-Agent
+Phase: 7
+Type: React Frontend
+Priority: P0
+Dependencies: Payment Repair APIs (7.3), Saga Management APIs (7.4)
+Estimated LOC: 1,800
+Estimated Days: 5-6
+Template: PROMPT-7.8-REACT-PAYMENT-REPAIR-UI
+```
+
+**YOU ARE**: React Payment Repair UI Agent
+
+**ROLE**: Build the Payment Repair UI in the React Operations Portal for viewing failed payments, retrying payments, compensating payments, and managing saga state.
+
+**Context Provided**:
+
+1. Architecture Documents:
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Frontend UIs - Payment Repair)
+   - Lines 2101-2400 (complete UI specification)
+   - Failed payment list
+   - Payment detail view
+   - Retry/compensate actions
+   - Saga state visualization
+
+2. UI Components:
+   ```tsx
+   Components:
+     - FailedPaymentList (table with filters)
+     - PaymentDetailDialog (full payment details)
+     - SagaStateVisualization (step-by-step diagram)
+     - PaymentActionButtons (retry, compensate, cancel)
+     - BulkPaymentRepair (bulk retry/compensate)
+   ```
+
+3. Backend APIs:
+   ```
+   GET  /api/v1/payments/failed
+   GET  /api/v1/payments/{id}/failure-details
+   POST /api/v1/payments/{id}/retry
+   POST /api/v1/payments/{id}/compensate
+   GET  /api/saga/v1/sagas/{id}/state
+   POST /api/saga/v1/sagas/{id}/advance
+   ```
+
+4. React Guidance:
+   ```tsx
+   // Use React Query for mutations
+   import { useMutation } from '@tanstack/react-query';
+   
+   function PaymentRepairActions({ paymentId }) {
+     const retryMutation = useMutation({
+       mutationFn: (id: string) => 
+         fetch(`/api/v1/payments/${id}/retry`, { method: 'POST' }),
+       onSuccess: () => {
+         queryClient.invalidateQueries(['payments']);
+         toast.success('Payment retry initiated');
+       },
+     });
+     
+     return (
+       <Button onClick={() => retryMutation.mutate(paymentId)}>
+         Retry Payment
+       </Button>
+     );
+   }
+   ```
+
+**Task**:
+  Build the Payment Repair UI for failed/stuck payments. This is CRITICAL for operations team to resolve payment issues.
+
+**Implementation Requirements**:
+
+1. **Failed Payment List**:
+   - ✅ Table with columns: Payment ID, Type, Amount, Status, Failure Reason, Date
+   - ✅ Filters: Tenant, Payment Type, Date Range, Failure Reason
+   - ✅ Pagination (50 per page)
+   - ✅ Click to view payment details
+
+2. **Payment Detail View**:
+   - ✅ Display full payment details (debtor, creditor, amount, reference)
+   - ✅ Display failure reason, timestamp, affected saga steps
+   - ✅ Show saga state visualization (step-by-step diagram)
+
+3. **Retry/Compensate Actions**:
+   - ✅ Retry button (re-execute saga from failed step)
+   - ✅ Compensate button (reverse all completed steps)
+   - ✅ Cancel button (mark payment as cancelled)
+   - ✅ Confirmation dialogs for all actions
+
+4. **Bulk Repair**:
+   - ✅ Select multiple failed payments
+   - ✅ Bulk retry or bulk compensate
+   - ✅ Show progress bar for bulk actions
+
+**Definition of Done**:
+- ✅ All UI components implemented
+- ✅ Unit tests (React Testing Library)
+- ✅ E2E tests (Cypress)
+- ✅ README with repair guide
+
+---
+
+### Feature 7.9: React Ops Portal - Transaction Enquiries UI
+
+```yaml
+Feature ID: 7.9
+Agent Name: React-Transaction-Enquiries-Agent
+Phase: 7
+Type: React Frontend
+Priority: P0
+Dependencies: Transaction Search APIs (7.5)
+Estimated LOC: 1,500
+Estimated Days: 4-5
+Template: PROMPT-7.9-REACT-TRANSACTION-ENQUIRIES-UI
+```
+
+**YOU ARE**: React Transaction Enquiries UI Agent
+
+**ROLE**: Build the Transaction Enquiries UI in the React Operations Portal for advanced transaction search, viewing transaction details, and exporting results.
+
+**Context Provided**:
+
+1. Architecture Documents:
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Frontend UIs - Transaction Enquiries)
+   - Lines 2401-2700 (complete UI specification)
+   - Advanced search form
+   - Transaction results table
+   - Transaction detail view
+   - Export functionality
+
+2. UI Components:
+   ```tsx
+   Components:
+     - AdvancedSearchForm (10+ filter fields)
+     - TransactionResultsTable (paginated results)
+     - TransactionDetailDialog (full transaction details)
+     - ExportDialog (CSV/Excel export)
+     - SavedSearches (save/load search criteria)
+   ```
+
+3. Backend APIs:
+   ```
+   POST /api/reporting/v1/transactions/search
+   GET  /api/reporting/v1/transactions/{id}
+   GET  /api/reporting/v1/transactions/{id}/audit
+   POST /api/reporting/v1/transactions/export
+   ```
+
+4. Search Filters:
+   ```tsx
+   interface TransactionSearchRequest {
+     tenantId: string;
+     paymentId?: string;
+     paymentType?: 'EFT' | 'RTC' | 'RTGS' | 'SWIFT' | 'PAYSHAP';
+     status?: 'INITIATED' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+     dateRange?: { from: Date; to: Date };
+     amountRange?: { min: number; max: number };
+     debtorAccount?: string;
+     creditorAccount?: string;
+     reference?: string;
+   }
+   ```
+
+**Task**:
+  Build the Transaction Enquiries UI for advanced payment search. This is CRITICAL for operations team to investigate payment issues.
+
+**Implementation Requirements**:
+
+1. **Advanced Search Form**:
+   - ✅ Support all 10+ search filters
+   - ✅ Date range picker (react-datepicker)
+   - ✅ Amount range inputs (min, max)
+   - ✅ Auto-complete for account numbers
+
+2. **Transaction Results Table**:
+   - ✅ Display search results in a table
+   - ✅ Columns: Payment ID, Type, Amount, Status, Date
+   - ✅ Pagination (50 per page)
+   - ✅ Sort by any column
+   - ✅ Click to view transaction details
+
+3. **Transaction Detail View**:
+   - ✅ Display full transaction details
+   - ✅ Show saga state, clearing response, audit trail
+   - ✅ Mask account numbers (ACC-****7890)
+
+4. **Export Functionality**:
+   - ✅ Export button (CSV or Excel)
+   - ✅ Show progress bar for large exports
+   - ✅ Download file when ready
+
+**Definition of Done**:
+- ✅ All UI components implemented
+- ✅ Unit tests (React Testing Library)
+- ✅ E2E tests (Cypress)
+- ✅ README with search guide
+
+---
+
+### Feature 7.10: React Ops Portal - Reconciliation & Monitoring UI
+
+```yaml
+Feature ID: 7.10
+Agent Name: React-Reconciliation-Monitoring-Agent
+Phase: 7
+Type: React Frontend
+Priority: P1
+Dependencies: Reconciliation Management APIs (7.6), Metrics Aggregation Service (7.2)
+Estimated LOC: 1,200
+Estimated Days: 4-5
+Template: PROMPT-7.10-REACT-RECONCILIATION-MONITORING-UI
+```
+
+**YOU ARE**: React Reconciliation & Monitoring UI Agent
+
+**ROLE**: Build the Reconciliation & Monitoring UI in the React Operations Portal for viewing unmatched payments, manually matching payments, and real-time system monitoring.
+
+**Context Provided**:
+
+1. Architecture Documents:
+   📄 docs/40-PHASE-7-DETAILED-DESIGN.md (Section: Frontend UIs - Reconciliation & Monitoring)
+   - Lines 2701-3000 (complete UI specification)
+   - Unmatched payment list
+   - Manual matching interface
+   - Real-time dashboard
+   - Alert management
+
+2. UI Components:
+   ```tsx
+   Components:
+     - UnmatchedPaymentList (table with matching suggestions)
+     - ManualMatchDialog (match payment to clearing response)
+     - ReconciliationReportChart (daily matched vs unmatched)
+     - RealtimeDashboard (payment volume, success rate, latency)
+     - AlertList (active alerts with acknowledge button)
+   ```
+
+3. Backend APIs:
+   ```
+   GET  /api/reconciliation/v1/unmatched
+   POST /api/reconciliation/v1/match
+   GET  /api/reconciliation/v1/reports/daily
+   GET  /api/metrics/v1/dashboard/realtime
+   GET  /api/metrics/v1/alerts
+   POST /api/metrics/v1/alerts/{id}/acknowledge
+   ```
+
+**Task**:
+  Build the Reconciliation & Monitoring UI for manual reconciliation and real-time system monitoring.
+
+**Implementation Requirements**:
+
+1. **Unmatched Payment List**:
+   - ✅ Display unmatched payments in a table
+   - ✅ Show matching suggestions (fuzzy match)
+   - ✅ Manual match button (opens dialog)
+
+2. **Manual Matching**:
+   - ✅ Dialog to select clearing response
+   - ✅ Validate match (amount within tolerance)
+   - ✅ Confirmation dialog
+   - ✅ Update reconciliation status
+
+3. **Real-Time Dashboard**:
+   - ✅ Display real-time metrics (payment volume, success rate, latency)
+   - ✅ Use WebSocket or SSE for auto-updates
+   - ✅ Charts (Recharts or Chart.js)
+
+4. **Alert Management**:
+   - ✅ Display active alerts
+   - ✅ Acknowledge button (marks alert as seen)
+   - ✅ Show alert history
+
+**Definition of Done**:
+- ✅ All UI components implemented
+- ✅ Unit tests (React Testing Library)
+- ✅ E2E tests (Cypress)
+- ✅ README with reconciliation guide
+
+---
+
+### Feature 7.11: Channel Onboarding UI
+
+```yaml
+Feature ID: 7.11
+Agent Name: React-Channel-Onboarding-Agent
+Phase: 7
+Type: React Frontend
+Priority: P1
+Dependencies: Tenant Management (3.1), Notification Service (3.4)
+Estimated LOC: 1,300
+Estimated Days: 3-4
+Template: PROMPT-7.11-CHANNEL-ONBOARDING-UI
+```
+
+**YOU ARE**: React Channel Onboarding UI Agent
+
+**ROLE**: Build the Channel Onboarding UI in the React Operations Portal for self-service channel setup, allowing channels to configure their response pattern (Webhook, Kafka, WebSocket, Polling, Push) and payment-type-specific Kafka topics.
+
+**Context Provided**:
+
+1. Architecture Documents:
+   📄 docs/39-CHANNEL-INTEGRATION-MECHANISMS.md (Section 11: Channel Onboarding)
+   - Lines 1986-3650 (complete onboarding specification)
+   - 4-step wizard: Basic Info, Response Pattern, Pattern Config, Review
+   - Support for 5 response patterns: Webhook, Kafka, WebSocket, Polling, Push
+   - Payment-type-specific Kafka topics (EFT, RTC, SWIFT, etc.)
+
+2. UI Components:
+   ```tsx
+   Components:
+     - ChannelOnboardingWizard (4-step stepper)
+     - BasicInfoStep (channel name, type, contact)
+     - ResponsePatternStep (select pattern: Webhook, Kafka, WebSocket, Polling, Push)
+     - WebhookConfiguration (webhook URL, security, retry)
+     - KafkaConfiguration (topic, consumer group, partitions, payment-type topics)
+     - WebSocketConfiguration (connection URL, auth)
+     - ReviewStep (review all config, test connection)
+     - ChannelListPage (list all channels, edit, delete)
+   ```
+
+3. Backend APIs:
+   ```
+   POST /api/v1/channel-configurations
+   GET  /api/v1/channel-configurations
+   PUT  /api/v1/channel-configurations/{id}
+   POST /api/v1/channel-configurations/{id}/test
+   DELETE /api/v1/channel-configurations/{id}
+   
+   POST /api/v1/channel-kafka-topics (for payment-type topics)
+   GET  /api/v1/channel-kafka-topics/{channelId}
+   ```
+
+4. Response Patterns:
+   ```yaml
+   WEBHOOK:
+     - URL, security (HMAC, OAuth, mTLS), retry policy
+   
+   KAFKA:
+     - Default topic (all payment types) OR
+     - Per-payment-type topics (EFT, RTC, SWIFT, etc.)
+     - Consumer group, partition count
+   
+   WEBSOCKET:
+     - Connection URL, auth token
+   
+   POLLING:
+     - Poll interval (seconds)
+   
+   PUSH:
+     - Push notification service (FCM, APNS)
+   ```
+
+5. React Guidance:
+   ```tsx
+   // Use React Hook Form for wizard
+   import { useForm, FormProvider } from 'react-hook-form';
+   
+   function ChannelOnboardingWizard() {
+     const [activeStep, setActiveStep] = useState(0);
+     const methods = useForm<ChannelConfiguration>();
+     
+     return (
+       <FormProvider {...methods}>
+         <Stepper activeStep={activeStep}>
+           {steps.map((label) => (
+             <Step key={label}><StepLabel>{label}</StepLabel></Step>
+           ))}
+         </Stepper>
+         {renderStepContent(activeStep)}
+       </FormProvider>
+     );
+   }
+   ```
+
+6. Kafka Payment-Type Topics UI:
+   ```tsx
+   // Toggle for payment-type-specific topics
+   <FormControlLabel
+     control={<Switch checked={usePaymentTypeTopics} />}
+     label="Use separate Kafka topics per payment type"
+   />
+   
+   {usePaymentTypeTopics && (
+     <Stack spacing={2}>
+       {paymentTypes.map(type => (
+         <Accordion key={type.value}>
+           <AccordionSummary>{type.label}</AccordionSummary>
+           <AccordionDetails>
+             <TextField label="Topic Name" placeholder={`payments.responses.${type.value.toLowerCase()}.${tenantId}.${channelId}`} />
+             <TextField label="Consumer Group" />
+             <TextField label="Partition Count" type="number" />
+           </AccordionDetails>
+         </Accordion>
+       ))}
+     </Stack>
+   )}
+   ```
+
+**Task**:
+  Build the Channel Onboarding UI for self-service channel configuration. This allows channels to configure their response pattern without backend team involvement.
+
+**Implementation Requirements**:
+
+1. **4-Step Wizard**:
+   - ✅ Step 1: Basic Info (channel name, type, contact)
+   - ✅ Step 2: Response Pattern (select from 5 patterns)
+   - ✅ Step 3: Pattern Configuration (dynamic form based on selected pattern)
+   - ✅ Step 4: Review & Test (display config, test connection button)
+
+2. **Kafka Configuration**:
+   - ✅ Default topic for all payment types OR
+   - ✅ Toggle to enable per-payment-type topics
+   - ✅ If enabled, show accordions for each payment type (EFT, RTC, SWIFT, etc.)
+   - ✅ Allow customization of topic name, consumer group, partition count
+
+3. **Channel Management**:
+   - ✅ List all channels in a table
+   - ✅ Edit button (opens wizard in edit mode)
+   - ✅ Delete button (with confirmation)
+   - ✅ Test button (test channel connection)
+
+4. **Validation**:
+   - ✅ Validate all required fields
+   - ✅ Test connection before saving
+   - ✅ Show success/error messages
+
+**Definition of Done**:
+- ✅ All UI components implemented
+- ✅ Unit tests (React Testing Library)
+- ✅ E2E tests (Cypress)
+- ✅ README with onboarding guide
+
+---
+
+### Feature 7.12: Clearing System Onboarding UI 🆕
+
+```yaml
+Feature ID: 7.12
+Agent Name: React-Clearing-Onboarding-Agent
+Phase: 7
+Type: React Frontend
+Priority: P0
+Dependencies: Tenant Management (3.1), Clearing Adapters (Phase 2)
+Estimated LOC: 1,500
+Estimated Days: 5-7
+Template: PROMPT-7.12-CLEARING-SYSTEM-ONBOARDING-UI
+```
+
+**YOU ARE**: React Clearing System Onboarding UI Agent
+
+**ROLE**: Build the Clearing System Onboarding UI in the React Operations Portal for self-service clearing system configuration, allowing tenants to configure integration with SAMOS, BankservAfrica, RTC, PayShap, and SWIFT with configurable communication patterns, security mechanisms, and retry policies.
+
+**Context Provided**:
+
+1. Architecture Documents:
+   📄 docs/42-CLEARING-SYSTEM-ONBOARDING.md (Complete specification)
+   - Lines 1-2732 (complete onboarding specification)
+   - 5-step wizard: System Selection, Communication Pattern, Security Config, Retry Policy, Review & Test
+   - Support for 5 clearing systems: SAMOS, BankservAfrica (EFT), RTC, PayShap, SWIFT
+   - 3 communication patterns: Synchronous, Asynchronous, Batch
+   - 6 security mechanisms: mTLS, OAuth 2.0, SFTP, Certificate-based, SWIFTNet PKI, API Key
+
+2. Clearing Systems Supported:
+   ```yaml
+   SAMOS (RTGS):
+     - Pattern: SYNCHRONOUS
+     - Format: ISO_20022_XML (pacs.008)
+     - Security: MTLS + DIGITAL_SIGNATURE
+     - Timeout: 30 seconds
+     - Retry: 0 (no retries)
+   
+   BankservAfrica (EFT/ACH):
+     - Pattern: BATCH (file-based)
+     - Format: ACH_FIXED_LENGTH
+     - Security: SFTP_KEY + PGP_ENCRYPTION
+     - Batch Window: 08:00-16:00 SAST
+     - Retry: 3 attempts
+   
+   RTC (Real-Time Clearing):
+     - Pattern: SYNCHRONOUS
+     - Format: ISO_8583_BINARY or ISO_20022_XML
+     - Security: MTLS + MAC
+     - Timeout: 10 seconds
+     - Retry: 1 retry
+   
+   PayShap (Instant P2P):
+     - Pattern: SYNCHRONOUS
+     - Format: JSON_REST
+     - Security: OAUTH_2_0 + MTLS
+     - Timeout: 5 seconds
+     - Retry: 0 (instant payments)
+   
+   SWIFT (International):
+     - Pattern: ASYNCHRONOUS
+     - Format: SWIFT_MT103 or ISO_20022_XML
+     - Security: SWIFTNET_PKI + RMA
+     - Retry: 3 attempts (exponential backoff)
+     - Sanctions Screening: MANDATORY
+   ```
+
+3. UI Components:
+   ```tsx
+   Components:
+     - ClearingSystemOnboardingWizard (5-step stepper)
+     - ClearingSystemSelector (select from 5 systems)
+     - CommunicationPatternConfig (select sync/async/batch)
+     - SecurityConfig (dynamic form based on selected mechanism)
+     - RetryPolicyConfig (retry count, backoff strategy, timeout)
+     - ReviewAndTest (review config, test connection button)
+     - ClearingSystemListPage (list all clearing configs, edit, delete)
+   ```
+
+4. Backend APIs:
+   ```
+   POST /api/v1/clearing-systems
+   GET  /api/v1/clearing-systems
+   GET  /api/v1/clearing-systems/{id}
+   PUT  /api/v1/clearing-systems/{id}
+   POST /api/v1/clearing-systems/{id}/test
+   POST /api/v1/clearing-systems/{id}/activate
+   POST /api/v1/clearing-systems/{id}/deactivate
+   ```
+
+5. React Guidance:
+   ```tsx
+   // Use React Hook Form for wizard
+   import { useForm, FormProvider } from 'react-hook-form';
+   
+   function ClearingSystemOnboardingWizard() {
+     const [activeStep, setActiveStep] = useState(0);
+     const methods = useForm<ClearingSystemConfiguration>();
+     
+     const steps = [
+       'Select Clearing System',
+       'Communication Pattern',
+       'Security Configuration',
+       'Retry Policy',
+       'Review & Test',
+     ];
+     
+     return (
+       <FormProvider {...methods}>
+         <Stepper activeStep={activeStep}>
+           {steps.map((label) => (
+             <Step key={label}><StepLabel>{label}</StepLabel></Step>
+           ))}
+         </Stepper>
+         {renderStepContent(activeStep)}
+       </FormProvider>
+     );
+   }
+   ```
+
+6. Step 1: Clearing System Selector:
+   ```tsx
+   // Display 5 clearing systems as cards
+   const clearingSystems = [
+     {
+       value: 'SAMOS',
+       label: 'SAMOS (RTGS)',
+       description: 'Real-Time Gross Settlement by SARB',
+       icon: <BankIcon />,
+       pattern: 'SYNCHRONOUS',
+       format: 'ISO_20022_XML',
+       security: 'MTLS',
+       recommended: true,
+     },
+     // ... other systems
+   ];
+   
+   return (
+     <Grid container spacing={2}>
+       {clearingSystems.map(system => (
+         <Grid item xs={12} sm={6} md={4} key={system.value}>
+           <Card onClick={() => handleSelect(system)}>
+             {system.icon}
+             <Typography variant="h6">{system.label}</Typography>
+             {system.recommended && <Chip label="Recommended" />}
+           </Card>
+         </Grid>
+       ))}
+     </Grid>
+   );
+   ```
+
+7. Step 3: Security Configuration (Dynamic):
+   ```tsx
+   // mTLS Configuration
+   function MtlsConfig() {
+     return (
+       <Stack spacing={2}>
+         <Typography>Upload Client Certificate (.p12 or .pfx)</Typography>
+         <input type="file" accept=".p12,.pfx" onChange={handleCertUpload} />
+         <TextField type="password" label="Certificate Password" />
+         <FormControlLabel
+           control={<Switch />}
+           label="Enable Digital Signature (XMLDSig)"
+         />
+       </Stack>
+     );
+   }
+   
+   // OAuth 2.0 Configuration
+   function OAuth2Config() {
+     return (
+       <Stack spacing={2}>
+         <TextField label="Token Endpoint URL" placeholder="https://auth.payshap.co.za/oauth/token" />
+         <TextField label="Client ID" />
+         <TextField type="password" label="Client Secret" />
+         <FormControlLabel
+           control={<Switch />}
+           label="Enable mTLS (in addition to OAuth 2.0)"
+         />
+       </Stack>
+     );
+   }
+   
+   // SFTP + PGP Configuration
+   function SftpKeyConfig() {
+     return (
+       <Stack spacing={2}>
+         <Typography>Upload SSH Private Key (id_rsa)</Typography>
+         <input type="file" accept=".pem,.key,id_rsa" />
+         <Typography>Upload PGP Public Key (BankservAfrica's key)</Typography>
+         <input type="file" accept=".asc,.pub" />
+       </Stack>
+     );
+   }
+   ```
+
+8. Step 4: Retry Policy Configuration:
+   ```tsx
+   function RetryPolicyConfig() {
+     const clearingSystem = watch('clearingSystem');
+     
+     const getRecommendedRetry = (system: string) => {
+       const recommendations = {
+         SAMOS: { attempts: 0, backoff: 'NONE', reason: 'RTGS - no retries allowed' },
+         BANKSERV_EFT: { attempts: 3, backoff: 'EXPONENTIAL', reason: 'Batch processing allows retries' },
+         BANKSERV_RTC: { attempts: 1, backoff: 'NONE', reason: 'Real-time - single retry only' },
+         PAYSHAP: { attempts: 0, backoff: 'NONE', reason: 'Instant - no retries' },
+         SWIFT: { attempts: 3, backoff: 'EXPONENTIAL', reason: 'Asynchronous - retries recommended' },
+       };
+       return recommendations[system];
+     };
+     
+     const recommended = getRecommendedRetry(clearingSystem);
+     
+     return (
+       <Stack spacing={2}>
+         <Alert severity="info">
+           <strong>Recommended for {clearingSystem}</strong>: {recommended.attempts} retries with {recommended.backoff} backoff
+           <br />
+           <Typography variant="caption">{recommended.reason}</Typography>
+         </Alert>
+         
+         <FormControlLabel
+           control={<Switch />}
+           label="Enable Retry on Failure"
+         />
+         
+         <TextField
+           label="Maximum Retry Attempts"
+           type="number"
+           defaultValue={recommended.attempts}
+         />
+         
+         <Select label="Backoff Strategy" defaultValue={recommended.backoff}>
+           <MenuItem value="NONE">None (Immediate retry)</MenuItem>
+           <MenuItem value="LINEAR">Linear (1s, 2s, 3s, 4s)</MenuItem>
+           <MenuItem value="EXPONENTIAL">Exponential (1s, 2s, 4s, 8s)</MenuItem>
+         </Select>
+       </Stack>
+     );
+   }
+   ```
+
+**Task**:
+  Build the Clearing System Onboarding UI for self-service clearing system configuration. This allows tenants to configure integration with South African clearing systems (SAMOS, BankservAfrica, RTC, PayShap, SWIFT) without backend team involvement.
+
+**Implementation Requirements**:
+
+1. **5-Step Wizard**:
+   - ✅ Step 1: Select Clearing System (5 options: SAMOS, BankservAfrica, RTC, PayShap, SWIFT)
+   - ✅ Step 2: Communication Pattern (Sync, Async, Batch)
+   - ✅ Step 3: Security Configuration (dynamic form based on selected mechanism)
+   - ✅ Step 4: Retry Policy (count, backoff strategy, timeout)
+   - ✅ Step 5: Review & Test (display config, test connection button)
+
+2. **Dynamic Security Forms**:
+   - ✅ mTLS: Upload certificate (.p12), password, digital signature toggle
+   - ✅ OAuth 2.0: Token endpoint, client ID, client secret, mTLS toggle
+   - ✅ SFTP: SSH key upload, PGP public key upload
+   - ✅ SWIFTNet PKI: SWIFT certificate upload
+
+3. **Recommended Defaults**:
+   - ✅ Pre-populate recommended values based on selected clearing system
+   - ✅ Show info alerts with recommended retry policies
+   - ✅ Validate configuration before saving
+
+4. **Test Connection**:
+   - ✅ Test button (sends test message to clearing system)
+   - ✅ Display success/failure result
+   - ✅ Show response time
+
+5. **Clearing System Management**:
+   - ✅ List all clearing system configurations in a table
+   - ✅ Edit button (opens wizard in edit mode)
+   - ✅ Activate/Deactivate button
+   - ✅ Delete button (with confirmation)
+
+**Definition of Done**:
+- ✅ All UI components implemented
+- ✅ Unit tests (React Testing Library)
+- ✅ E2E tests (Cypress)
+- ✅ Certificate upload functionality
+- ✅ Test connection functionality
+- ✅ README with onboarding guide
+
+---
+
 ## Conclusion
 
 ### ✅ Context Sufficiency: COMPLETE
 
-**All 40+ features have SUFFICIENT context** for AI agents to independently build:
+**All 52 features (40 original + 12 Phase 7) have SUFFICIENT context** for AI agents to independently build:
 1. ✅ **HLD** (High-Level Design)
 2. ✅ **LLD** (Low-Level Design)
 3. ✅ **Implementation** (Complete code)
