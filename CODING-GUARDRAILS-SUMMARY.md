@@ -99,17 +99,29 @@ These guardrails apply to **ALL 40 features** and **ALL AI agents**.
     - Validate `X-Tenant-ID`, propagate context, use RLS
     - ❌ Never allow cross-tenant access
 
-### 🚨 Resilience Guardrails (1 Rule)
+### 🚨 Resilience Guardrails (3 Rules)
 
-21. **Resilience Patterns**
-    - Circuit breakers, retry with backoff, timeouts, fallbacks, bulkhead
+21. **⚠️ ARCHITECTURAL DECISION: Istio vs Resilience4j** (NEW - CRITICAL)
+    - ✅ **Use Istio** for INTERNAL calls (EAST-WEST traffic): Service → Service within Kubernetes
+    - ✅ **Use Resilience4j** for EXTERNAL calls (NORTH-SOUTH traffic): Service → External API outside Kubernetes
+    - **Rule**: "If the call goes OUTSIDE Kubernetes, use Resilience4j. Otherwise, use Istio."
+    - 📖 See: `docs/36-RESILIENCE-PATTERNS-DECISION.md` for complete guidance
+    - **Examples**:
+      - ✅ Resilience4j: Account Adapter → Core Banking (external on-premise)
+      - ✅ Resilience4j: SWIFT Adapter → SWIFT API (external)
+      - ✅ Resilience4j: SAMOS Adapter → SAMOS RTGS (external)
+      - ❌ NO Resilience4j: Payment Service → Validation Service (internal - Istio handles)
+      - ❌ NO Resilience4j: Routing Service → SAMOS Adapter (internal - Istio handles)
+
+22. **Circuit Breakers & Retry**
+    - Circuit breakers, retry with backoff, timeouts, fallbacks, bulkhead (for EXTERNAL calls only)
 
 ### 📊 Observability Guardrails (2 Rules)
 
-22. **Monitoring & Tracing**
+23. **Monitoring & Tracing**
     - Actuator endpoints, custom metrics (Micrometer), OpenTelemetry, correlation ID
 
-23. **Health Checks**
+24. **Health Checks**
     - Liveness probe, readiness probe, dependency checks
 
 ---
