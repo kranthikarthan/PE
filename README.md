@@ -39,7 +39,8 @@ This repository contains the complete architecture design for a **highly modular
 | **[35-AI-AGENT-PROMPT-TEMPLATES.md](docs/35-AI-AGENT-PROMPT-TEMPLATES.md)** 🆕 | **Complete Prompt Templates for All 36 Features (10,400+ lines with guardrails)** | ✅ Complete |
 | **[36-RESILIENCE-PATTERNS-DECISION.md](docs/36-RESILIENCE-PATTERNS-DECISION.md)** 🆕 | **⚠️ CRITICAL: Istio vs Resilience4j Decision (EAST-WEST vs NORTH-SOUTH)** | ✅ Complete |
 | **[37-DSA-GUIDANCE-ALL-FEATURES.md](docs/37-DSA-GUIDANCE-ALL-FEATURES.md)** 🆕 | **📊 DSA Guidance (26 Java features) + Configuration Best Practices (14 infra/test features)** | ✅ Complete |
-| **[CODING-GUARDRAILS-SUMMARY.md](CODING-GUARDRAILS-SUMMARY.md)** 🆕 | **⚠️ Coding Guardrails: 160+ Rules (24 Generic + 127 Specific)** | ✅ Complete |
+| **[38-REACT-FRONTEND-OPS-ANALYSIS.md](docs/38-REACT-FRONTEND-OPS-ANALYSIS.md)** 🆕 | **⚠️ CRITICAL: Ops Team Frontend Gap Analysis - 60% Backend APIs Missing** | ⚠️ ACTION REQUIRED |
+| **[CODING-GUARDRAILS-SUMMARY.md](CODING-GUARDRAILS-SUMMARY.md)** 🆕 | **⚠️ Coding Guardrails: 170+ Rules (26 Generic + 127 Specific)** | ✅ Complete |
 | **[07-AZURE-INFRASTRUCTURE.md](docs/07-AZURE-INFRASTRUCTURE.md)** | Azure infrastructure (AKS, networking, security) | ✅ Complete |
 | **[08-CORE-BANKING-INTEGRATION.md](docs/08-CORE-BANKING-INTEGRATION.md)** | **Integration with external core banking systems** | ✅ Complete |
 | **[09-LIMIT-MANAGEMENT.md](docs/09-LIMIT-MANAGEMENT.md)** | **Customer transaction limit management system** | ✅ Complete |
