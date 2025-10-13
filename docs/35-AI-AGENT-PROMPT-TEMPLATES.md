@@ -6998,24 +6998,23 @@ Notes:
 
 ---
 
-### Feature 4.5: BFF Layer (3 Backend-for-Frontend Services)
+### Feature 4.5: Web BFF (GraphQL for React)
 
 ```yaml
 Feature ID: 4.5
-Feature Name: BFF Layer (Backend-for-Frontend)
-Agent Name: BFF Agent
+Feature Name: Web BFF (GraphQL for React Web App)
+Agent Name: Web BFF Agent
 Phase: 4 (Advanced Features)
-Estimated Time: 5 days (3 BFFs: Web, Mobile, Partner)
+Estimated Time: 2 days
 
 Role & Expertise:
-  You are a Full-Stack Engineer with expertise in GraphQL (Web BFF), REST API
-  optimization (Mobile BFF), API aggregation, and client-specific API design.
+  You are a Full-Stack Engineer with expertise in GraphQL, Spring Boot GraphQL,
+  API aggregation, and client-specific API design for React web apps.
 
 Task:
-  Build 3 Backend-for-Frontend (BFF) services:
-  1. Web BFF (GraphQL) - optimized for React web app
-  2. Mobile BFF (REST lightweight) - optimized for mobile apps
-  3. Partner BFF (REST comprehensive) - optimized for partner integrations
+  Build the Web Backend-for-Frontend (BFF) service using GraphQL to aggregate
+  data from multiple microservices and optimize for React web app clients.
+  NOTE: This is 1 of 3 BFFs (Web, Mobile, Partner) being built separately.
 
 Context Provided:
 
@@ -7487,14 +7486,353 @@ Dependencies:
 
 ---
 
-### Feature 5.2: Monitoring Stack (Prometheus, Grafana, Jaeger)
+### Feature 4.6: Mobile BFF (REST Lightweight)
+
+```yaml
+Feature ID: 4.6
+Feature Name: Mobile BFF (REST Lightweight for Mobile Apps)
+Agent Name: Mobile BFF Agent
+Phase: 4 (Advanced Features)
+Estimated Time: 1.5 days
+
+Role & Expertise:
+  You are a Full-Stack Engineer with expertise in REST APIs, mobile optimization,
+  lightweight payload design, and Spring Boot REST controllers.
+
+Task:
+  Build the Mobile Backend-for-Frontend (BFF) service using REST API to aggregate
+  data from multiple microservices with lightweight payloads optimized for mobile apps (3G networks).
+  NOTE: This is 1 of 3 BFFs (Web, Mobile, Partner) being built separately.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (BFF Layer section)
+     📄 docs/17-BFF-BACKEND-FOR-FRONTEND.md (COMPLETE FILE - Mobile BFF section)
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 4.6)
+  
+  2. Mobile BFF Characteristics:
+     - LIGHTWEIGHT responses (< 5 KB per request)
+     - NO nested objects (flat structure)
+     - Minimal fields only (id, amount, status, timestamp)
+     - Optimized for 3G networks
+     - Fast response times (< 200ms p95)
+  
+  3. Sample REST API:
+     ```json
+     GET /api/v1/mobile/payments/{id}
+     Response:
+     {
+       "id": "PAY-001",
+       "amount": 1000.00,
+       "currency": "ZAR",
+       "status": "COMPLETED",
+       "createdAt": "2025-10-12T10:00:00Z"
+     }
+     (No nested objects, minimal data)
+     
+     GET /api/v1/mobile/payments?page=0&size=10
+     Response:
+     {
+       "payments": [ ... ],
+       "totalElements": 100,
+       "totalPages": 10
+     }
+     ```
+  
+  4. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - Spring WebFlux (Reactive)
+     - Redis (caching, 60s TTL)
+     - JWT (authentication)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Mobile BFF Architecture Diagram
+     📊 API Aggregation Flow
+  
+  2. LLD (Low-Level Design):
+     📋 REST API Contract (OpenAPI 3.0)
+     📋 Data transformation logic
+  
+  3. Implementation:
+     📁 /services/mobile-bff/
+        ├─ src/main/java/com/payments/bff/mobile/
+        │   ├─ MobileBffApplication.java
+        │   ├─ controller/
+        │   │   ├─ MobilePaymentController.java
+        │   │   └─ MobileAccountController.java
+        │   ├─ service/
+        │   │   ├─ LightweightPaymentService.java
+        │   │   └─ LightweightAccountService.java
+        │   ├─ client/
+        │   │   ├─ PaymentServiceClient.java
+        │   │   └─ AccountServiceClient.java
+        │   ├─ dto/
+        │   │   ├─ MobilePaymentResponse.java (LIGHTWEIGHT)
+        │   │   └─ MobileAccountResponse.java
+        │   ├─ config/
+        │   │   ├─ WebClientConfig.java
+        │   │   └─ RedisConfig.java
+        │   └─ security/
+        │       └─ JwtAuthenticationFilter.java
+        ├─ src/main/resources/
+        │   └─ application.yml
+        └─ src/test/java/
+            └─ ...
+  
+  4. Unit Tests:
+     ✅ Test lightweight payload generation (response size < 5 KB)
+     ✅ Test API aggregation from multiple services
+     ✅ Test Redis caching (60s TTL)
+     ✅ Test JWT authentication
+     ✅ Test error handling (fallback to cached data)
+     ✅ Target: > 80% code coverage
+  
+  5. Integration Tests:
+     ✅ Test Mobile BFF → Payment Service (WireMock)
+     ✅ Test Mobile BFF → Account Service (WireMock)
+     ✅ Test Redis caching (Testcontainers)
+  
+  6. Dockerization:
+     📦 Dockerfile (multi-stage build)
+     📦 docker-compose.yml (mobile-bff + redis)
+  
+  7. Kubernetes Deployment:
+     ☸ deployment.yaml (HPA: 2-10 replicas)
+     ☸ service.yaml (ClusterIP)
+     ☸ configmap.yaml
+     ☸ secret.yaml
+
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+
+  1. Payload Size: ALL responses MUST be < 5 KB (fail build if larger)
+  2. No Nested Objects: Flat structure only (e.g., `status` not `payment.status`)
+  3. Performance: API response time < 200ms (p95)
+  4. 3G Optimization: Test on simulated 3G network (slow connection)
+  5. Security: JWT validation MANDATORY (reject unauthenticated requests)
+  6. Caching: Redis cache hit rate > 70% (production)
+  7. Error Handling: Return cached data if upstream fails (stale-while-revalidate)
+  8. Logging: Log response size per request (for monitoring)
+
+Definition of Done:
+
+  ✅ All 10+ REST endpoints functional
+  ✅ Payload size < 5 KB per response (validated)
+  ✅ API response time < 200ms (p95) (load tested)
+  ✅ Redis caching working (hit rate > 70%)
+  ✅ JWT authentication working
+  ✅ Unit test coverage > 80%
+  ✅ Integration tests pass
+  ✅ Swagger UI accessible
+  ✅ Service deploys to AKS
+  ✅ HPA scaling tested (2-10 replicas)
+  ✅ 3G network tested (simulated)
+
+Success Criteria:
+
+  📊 API latency < 200ms (p95)
+  📊 Payload size < 5 KB (all responses)
+  📊 Cache hit rate > 70%
+  📊 Uptime > 99.9% (production)
+
+Dependencies:
+  ✅ Phase 0 complete (Infrastructure, Domain Models, Event Schemas)
+  ✅ Payment Initiation Service deployed
+  ✅ Account Adapter Service deployed
+  ✅ Redis cache available
+```
+
+---
+
+### Feature 4.7: Partner BFF (REST Comprehensive)
+
+```yaml
+Feature ID: 4.7
+Feature Name: Partner BFF (REST Comprehensive for Partner Integrations)
+Agent Name: Partner BFF Agent
+Phase: 4 (Advanced Features)
+Estimated Time: 1.5 days
+
+Role & Expertise:
+  You are a Full-Stack Engineer with expertise in REST APIs, partner integrations,
+  comprehensive API design, rate limiting, and Spring Boot REST controllers.
+
+Task:
+  Build the Partner Backend-for-Frontend (BFF) service using REST API to aggregate
+  data from multiple microservices with comprehensive payloads for partner integrations.
+  NOTE: This is 1 of 3 BFFs (Web, Mobile, Partner) being built separately.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/02-MICROSERVICES-BREAKDOWN.md (BFF Layer section)
+     📄 docs/17-BFF-BACKEND-FOR-FRONTEND.md (COMPLETE FILE - Partner BFF section)
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 4.7)
+  
+  2. Partner BFF Characteristics:
+     - COMPREHENSIVE responses (all fields, nested objects, audit trail)
+     - Rate limiting (100 requests/minute per partner)
+     - Throttling (1000 requests/hour per partner)
+     - Partner-specific configurations
+     - Full audit trail included
+  
+  3. Sample REST API:
+     ```json
+     GET /api/v1/partner/payments/{id}
+     Response:
+     {
+       "id": "PAY-001",
+       "amount": 1000.00,
+       "currency": "ZAR",
+       "status": "COMPLETED",
+       "debtorAccount": {
+         "id": "ACC-123",
+         "accountNumber": "1234567890",
+         "accountName": "John Doe",
+         "balance": 50000.00
+       },
+       "creditorAccount": {
+         "id": "ACC-456",
+         "accountNumber": "9876543210",
+         "accountName": "Jane Smith",
+         "balance": 30000.00
+       },
+       "auditTrail": [
+         {"timestamp": "2025-10-12T10:00:00Z", "action": "INITIATED", ...},
+         {"timestamp": "2025-10-12T10:00:05Z", "action": "VALIDATED", ...}
+       ],
+       "fees": {"amount": 10.00, "currency": "ZAR"},
+       "clearingDetails": {"clearingSystem": "SAMOS", "transactionId": "TXN-001"},
+       "createdAt": "2025-10-12T10:00:00Z",
+       "updatedAt": "2025-10-12T10:00:10Z"
+     }
+     (Comprehensive data, all nested objects, full audit trail)
+     ```
+  
+  4. Technology Stack:
+     - Java 17, Spring Boot 3.2
+     - Spring WebFlux (Reactive)
+     - Resilience4j (rate limiting, throttling)
+     - Redis (caching, rate limiting)
+     - JWT (authentication)
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Partner BFF Architecture Diagram
+     📊 API Aggregation Flow
+     📊 Rate Limiting Strategy
+  
+  2. LLD (Low-Level Design):
+     📋 REST API Contract (OpenAPI 3.0)
+     📋 Rate limiting configuration
+     📋 Data transformation logic
+  
+  3. Implementation:
+     📁 /services/partner-bff/
+        ├─ src/main/java/com/payments/bff/partner/
+        │   ├─ PartnerBffApplication.java
+        │   ├─ controller/
+        │   │   ├─ PartnerPaymentController.java (with @RateLimiter)
+        │   │   └─ PartnerAccountController.java
+        │   ├─ service/
+        │   │   ├─ ComprehensivePaymentService.java
+        │   │   └─ ComprehensiveAccountService.java
+        │   ├─ client/
+        │   │   ├─ PaymentServiceClient.java
+        │   │   ├─ AccountServiceClient.java
+        │   │   └─ AuditServiceClient.java
+        │   ├─ dto/
+        │   │   ├─ ComprehensivePaymentResponse.java (ALL FIELDS)
+        │   │   └─ ComprehensiveAccountResponse.java
+        │   ├─ config/
+        │   │   ├─ WebClientConfig.java
+        │   │   ├─ RateLimiterConfig.java (Resilience4j)
+        │   │   └─ RedisConfig.java
+        │   └─ security/
+        │       └─ JwtAuthenticationFilter.java
+        ├─ src/main/resources/
+        │   └─ application.yml (rate limiting rules)
+        └─ src/test/java/
+            └─ ...
+  
+  4. Unit Tests:
+     ✅ Test comprehensive payload generation (all fields, nested objects)
+     ✅ Test rate limiting (100 req/min per partner)
+     ✅ Test throttling (1000 req/hour per partner)
+     ✅ Test Redis caching
+     ✅ Test JWT authentication
+     ✅ Target: > 80% code coverage
+  
+  5. Integration Tests:
+     ✅ Test Partner BFF → Payment Service (WireMock)
+     ✅ Test Partner BFF → Account Service (WireMock)
+     ✅ Test rate limiting (simulate 101 requests in 1 minute → 429 error)
+  
+  6. Dockerization:
+     📦 Dockerfile (multi-stage build)
+     📦 docker-compose.yml (partner-bff + redis)
+  
+  7. Kubernetes Deployment:
+     ☸ deployment.yaml (HPA: 2-10 replicas)
+     ☸ service.yaml (ClusterIP)
+     ☸ configmap.yaml (rate limits per partner)
+     ☸ secret.yaml
+
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+
+  1. Rate Limiting: ENFORCE 100 requests/minute per partner (use Resilience4j)
+  2. Throttling: ENFORCE 1000 requests/hour per partner
+  3. Comprehensive Data: Include ALL fields, nested objects, audit trail
+  4. Performance: API response time < 500ms (p95) (despite large payloads)
+  5. Security: JWT validation MANDATORY + partner-specific scopes
+  6. Error Handling: Return 429 (Too Many Requests) when rate limit exceeded
+  7. Logging: Log partner ID, rate limit usage per request
+  8. Partner Configuration: Support partner-specific rate limits (Redis config)
+
+Definition of Done:
+
+  ✅ All 10+ REST endpoints functional
+  ✅ Rate limiting working (100 req/min per partner tested)
+  ✅ Throttling working (1000 req/hour per partner tested)
+  ✅ Comprehensive responses (all fields included)
+  ✅ API response time < 500ms (p95) (load tested)
+  ✅ Redis caching working
+  ✅ JWT authentication working
+  ✅ Unit test coverage > 80%
+  ✅ Integration tests pass
+  ✅ Swagger UI accessible
+  ✅ Service deploys to AKS
+  ✅ HPA scaling tested (2-10 replicas)
+
+Success Criteria:
+
+  📊 API latency < 500ms (p95)
+  📊 Rate limiting effective (0% violations)
+  📊 Throttling effective (0% violations)
+  📊 Uptime > 99.9% (production)
+
+Dependencies:
+  ✅ Phase 0 complete (Infrastructure, Domain Models, Event Schemas)
+  ✅ Payment Initiation Service deployed
+  ✅ Account Adapter Service deployed
+  ✅ Audit Service deployed
+  ✅ Redis cache available
+```
+
+---
+
+### Feature 5.2: Prometheus Setup (Metrics Collection)
 
 ```yaml
 Feature ID: 5.2
-Feature Name: Monitoring Stack (Prometheus, Grafana, Jaeger)
-Agent Name: Monitoring Agent
+Feature Name: Prometheus Setup (Metrics Collection & Alerting)
+Agent Name: Prometheus Agent
 Phase: 5 (Infrastructure)
-Estimated Time: 4 days
+Estimated Time: 1.5 days
+Note: This is 1 of 3 monitoring tools (Prometheus, Grafana, Jaeger) being deployed separately
 
 Role & Expertise:
   You are a Platform Engineer with expertise in Prometheus, Grafana, Jaeger,
@@ -7744,10 +8082,257 @@ Dependencies:
 
 ---
 
-### Feature 5.3: GitOps (ArgoCD)
+### Feature 5.3: Grafana Dashboards (Visualization)
 
 ```yaml
 Feature ID: 5.3
+Feature Name: Grafana Dashboards (Metrics Visualization)
+Agent Name: Grafana Agent
+Phase: 5 (Infrastructure)
+Estimated Time: 1.5 days
+Note: This is 1 of 3 monitoring tools (Prometheus, Grafana, Jaeger) being deployed separately
+
+Role & Expertise:
+  You are a Platform Engineer with expertise in Grafana, dashboard design,
+  metrics visualization, and Kubernetes monitoring.
+
+Task:
+  Deploy Grafana and create comprehensive dashboards to visualize metrics from
+  Prometheus for all 20 microservices.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/08-DEPLOYMENT-ARCHITECTURE.md (Monitoring section)
+     📄 docs/11-SRE-ARCHITECTURE.md (Monitoring Golden Signals section)
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 5.3)
+  
+  2. Grafana Deployment:
+     - Helm chart for Grafana
+     - Persistent storage (10 GB)
+     - LoadBalancer service (port 3000)
+     - OAuth 2.0 integration (Azure AD)
+  
+  3. Dashboard Requirements:
+     - 20+ dashboards (1 per microservice + 5 system dashboards)
+     - Golden Signals (Latency, Traffic, Errors, Saturation)
+     - RED metrics (Rate, Errors, Duration)
+     - Resource utilization (CPU, Memory, Network)
+     - Business metrics (TPS, payment success rate, etc.)
+  
+  4. Technology Stack:
+     - Grafana 10.x
+     - Helm chart
+     - Prometheus datasource
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Grafana Architecture Diagram
+     📊 Dashboard Organization Strategy
+  
+  2. LLD (Low-Level Design):
+     📋 Dashboard specifications (20+ dashboards)
+     📋 Alert panel configurations
+     📋 Variable definitions
+  
+  3. Implementation:
+     📁 /infrastructure/grafana/
+        ├─ helm-values.yaml (Grafana configuration)
+        ├─ dashboards/
+        │   ├─ payment-initiation-dashboard.json
+        │   ├─ validation-dashboard.json
+        │   ├─ account-adapter-dashboard.json
+        │   ├─ ... (20+ dashboards)
+        │   ├─ system-overview-dashboard.json
+        │   ├─ golden-signals-dashboard.json
+        │   └─ slo-dashboard.json
+        ├─ datasources/
+        │   └─ prometheus-datasource.yaml
+        └─ README.md (dashboard guide)
+  
+  4. Dashboard Testing:
+     ✅ Test all 20+ dashboards load < 3 seconds
+     ✅ Test Prometheus datasource connection
+     ✅ Test panel queries (no errors)
+     ✅ Test variables (tenant filter, service filter)
+     ✅ Test auto-refresh (5 seconds)
+  
+  5. Kubernetes Deployment:
+     ☸ Helm install (Grafana chart)
+     ☸ PVC for dashboard persistence
+     ☸ ConfigMap for dashboard JSONs
+     ☸ Secret for OAuth 2.0
+
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+
+  1. Dashboard Count: MINIMUM 20+ dashboards (1 per microservice + 5 system)
+  2. Load Time: All dashboards MUST load < 3 seconds
+  3. Data Refresh: Auto-refresh every 5 seconds (real-time monitoring)
+  4. Queries: NO slow queries (< 1 second per panel)
+  5. Variables: Support tenant filter, service filter, time range
+  6. Security: OAuth 2.0 authentication MANDATORY
+  7. Persistence: Dashboard JSON persisted in Git (version control)
+  8. SLO Tracking: Include SLO dashboard (p95 latency, uptime, error rate)
+
+Definition of Done:
+
+  ✅ Grafana deployed to AKS
+  ✅ Prometheus datasource configured
+  ✅ 20+ dashboards created
+  ✅ All dashboards load < 3 seconds
+  ✅ Auto-refresh working (5 seconds)
+  ✅ OAuth 2.0 authentication working
+  ✅ Dashboard JSONs persisted in Git
+  ✅ SLO dashboard functional
+  ✅ Golden Signals dashboard functional
+  ✅ Alert panels functional
+
+Success Criteria:
+
+  📊 Dashboard load time < 3 seconds
+  📊 Data refresh interval: 5 seconds (real-time)
+  📊 Uptime > 99.9% (production)
+  📊 User satisfaction > 90% (dashboard usability)
+
+Dependencies:
+  ✅ Prometheus deployed (Feature 5.2)
+  ✅ All 20 microservices deployed
+  ✅ AKS cluster available
+```
+
+---
+
+### Feature 5.4: Jaeger Distributed Tracing (OpenTelemetry)
+
+```yaml
+Feature ID: 5.4
+Feature Name: Jaeger Distributed Tracing (OpenTelemetry)
+Agent Name: Jaeger Agent
+Phase: 5 (Infrastructure)
+Estimated Time: 1.5 days
+Note: This is 1 of 3 monitoring tools (Prometheus, Grafana, Jaeger) being deployed separately
+
+Role & Expertise:
+  You are a Platform Engineer with expertise in Jaeger, OpenTelemetry,
+  distributed tracing, and Kubernetes observability.
+
+Task:
+  Deploy Jaeger and configure OpenTelemetry instrumentation for distributed tracing
+  across all 20 microservices.
+
+Context Provided:
+
+  1. Architecture Documents:
+     📄 docs/16-DISTRIBUTED-TRACING.md (COMPLETE FILE - OpenTelemetry, Jaeger)
+     📄 docs/08-DEPLOYMENT-ARCHITECTURE.md (Monitoring section)
+     📄 docs/04-AI-AGENT-TASK-BREAKDOWN.md (Task 5.4)
+  
+  2. Jaeger Deployment:
+     - Helm chart for Jaeger
+     - Elasticsearch backend (trace storage)
+     - Jaeger Query UI (port 16686)
+     - Jaeger Collector (gRPC port 14250)
+  
+  3. OpenTelemetry Configuration:
+     - Auto-instrumentation (Spring Boot Actuator)
+     - Manual instrumentation (@WithSpan annotations)
+     - Trace sampling (10% default, 100% for errors)
+     - Context propagation (W3C Trace Context)
+  
+  4. Technology Stack:
+     - Jaeger 1.x
+     - OpenTelemetry Java SDK
+     - Elasticsearch (trace storage, 7 days retention)
+     - Helm chart
+
+Expected Deliverables:
+
+  1. HLD (High-Level Design):
+     📊 Jaeger Architecture Diagram
+     📊 Trace Flow Diagram
+  
+  2. LLD (Low-Level Design):
+     📋 OpenTelemetry SDK configuration
+     📋 Trace sampling strategy
+     📋 Context propagation headers
+  
+  3. Implementation:
+     📁 /infrastructure/jaeger/
+        ├─ helm-values.yaml (Jaeger configuration)
+        ├─ elasticsearch-config.yaml
+        ├─ sampling-config.yaml (10% default, 100% errors)
+        └─ README.md
+     
+     📁 /shared-libraries/tracing/
+        ├─ OpenTelemetryConfig.java
+        ├─ TracingInterceptor.java
+        └─ SpanAttributes.java
+  
+  4. OpenTelemetry Integration:
+     ✅ Update all 20 microservices with OpenTelemetry SDK
+     ✅ Configure Jaeger exporter (gRPC endpoint)
+     ✅ Add @WithSpan annotations (critical methods)
+     ✅ Test trace propagation (cross-service calls)
+  
+  5. Testing:
+     ✅ Test end-to-end tracing (payment initiation → clearing)
+     ✅ Test trace sampling (10% sampled)
+     ✅ Test error tracing (100% sampled)
+     ✅ Test Jaeger UI (search, visualization)
+     ✅ Test trace query latency (< 1 second)
+  
+  6. Kubernetes Deployment:
+     ☸ Helm install (Jaeger chart)
+     ☸ Elasticsearch StatefulSet (7 days retention)
+     ☸ Jaeger Collector deployment
+     ☸ Jaeger Query UI service (LoadBalancer)
+
+⚠️ SPECIFIC GUARDRAILS FOR THIS FEATURE:
+
+  1. Trace Sampling: 10% default, 100% for errors (MANDATORY)
+  2. Trace Retention: 7 days in Elasticsearch
+  3. Trace Query Latency: < 1 second (Jaeger UI)
+  4. Context Propagation: W3C Trace Context standard (MANDATORY)
+  5. Performance: OpenTelemetry SDK overhead < 5ms per request
+  6. Storage: Elasticsearch storage < 100 GB (7 days)
+  7. Security: Jaeger UI behind OAuth 2.0 (Azure AD)
+  8. Testing: End-to-end tracing validated (all 20 services)
+
+Definition of Done:
+
+  ✅ Jaeger deployed to AKS
+  ✅ Elasticsearch backend configured (7 days retention)
+  ✅ OpenTelemetry SDK integrated (all 20 microservices)
+  ✅ Trace sampling working (10% default, 100% errors)
+  ✅ Context propagation working (W3C Trace Context)
+  ✅ Jaeger UI accessible (OAuth 2.0)
+  ✅ End-to-end tracing validated
+  ✅ Trace query latency < 1 second
+  ✅ Elasticsearch storage < 100 GB
+  ✅ No performance impact (< 5ms overhead)
+
+Success Criteria:
+
+  📊 Trace query latency < 1 second
+  📊 Trace sampling rate: 10% (configurable)
+  📊 OpenTelemetry overhead < 5ms per request
+  📊 Uptime > 99.9% (production)
+  📊 Storage < 100 GB (7 days retention)
+
+Dependencies:
+  ✅ Phase 0 complete (OpenTelemetry shared library)
+  ✅ All 20 microservices deployed
+  ✅ Elasticsearch deployed (or Azure Cosmos DB)
+  ✅ AKS cluster available
+```
+
+---
+
+### Feature 5.5: GitOps (ArgoCD)
+
+```yaml
+Feature ID: 5.5
 Feature Name: GitOps (ArgoCD)
 Agent Name: GitOps Agent
 Phase: 5 (Infrastructure)
@@ -7980,10 +8565,10 @@ Dependencies:
 
 ---
 
-### Feature 5.4: Feature Flags (Unleash)
+### Feature 5.6: Feature Flags (Unleash)
 
 ```yaml
-Feature ID: 5.4
+Feature ID: 5.6
 Feature Name: Feature Flags (Unleash)
 Agent Name: Feature Flags Agent
 Phase: 5 (Infrastructure)
@@ -8219,10 +8804,10 @@ Dependencies:
 
 ---
 
-### Feature 5.5: Kubernetes Operators (14 Operators)
+### Feature 5.7: Kubernetes Operators (14 Operators)
 
 ```yaml
-Feature ID: 5.5
+Feature ID: 5.7
 Feature Name: Kubernetes Operators (14 Operators for Day 2 Operations)
 Agent Name: Operators Agent
 Phase: 5 (Infrastructure)
