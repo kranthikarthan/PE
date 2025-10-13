@@ -1852,6 +1852,511 @@ public class TracingConfig {
 
 ---
 
+## Phase 7: Operations & Channel Management (Parallel)
+
+**🆕 NEW PHASE**: Addresses operations team requirements and self-service configuration.
+
+**Parallelization Strategy**: All features can be built in **parallel** after Phase 6.
+
+**Estimated Duration**: 6-9 days (with 12 agents in parallel)
+
+**Total Features**: 12 (6 backend, 6 frontend)
+
+---
+
+### 7.1: Operations Management Service (NEW Service #21)
+
+**Agent**: Operations-Service-Agent  
+**Template**: `35-AI-AGENT-PROMPT-TEMPLATES.md` → Feature 7.1  
+**Estimation**: 5-7 days, 1,200 lines of code  
+**Priority**: P0  
+
+#### Purpose
+Monitor all 22 microservices, manage circuit breakers, toggle feature flags, and control Kubernetes pods.
+
+#### Inputs
+- `docs/40-PHASE-7-DETAILED-DESIGN.md` (Section 2.1: Lines 132-214)
+- Kubernetes Java Client library
+- Unleash SDK (feature flags)
+- Resilience4j (circuit breakers)
+- Prometheus Java Client
+
+#### Outputs
+- `/api/ops/v1/services` - List all services with health
+- `/api/ops/v1/circuit-breakers` - Manage circuit breakers
+- `/api/ops/v1/feature-flags` - Toggle feature flags
+- `/api/ops/v1/pods` - Kubernetes pod management
+- Database: `operations_audit_log` table
+
+#### Dependencies
+- All 22 microservices (for health monitoring)
+- Kubernetes API
+- Unleash Feature Flag Service
+- Prometheus
+
+#### Technology
+- Java 17, Spring Boot 3.x
+- Kubernetes Java Client (io.fabric8:kubernetes-client)
+- Unleash Client SDK
+- Resilience4j
+- PostgreSQL
+
+#### Spring Boot Guidance
+```java
+@RestController
+@RequestMapping("/api/ops/v1")
+public class OperationsController {
+    @Autowired
+    private KubernetesClient k8sClient;
+    
+    @Autowired
+    private UnleashClient unleashClient;
+    
+    @GetMapping("/services")
+    public List<ServiceHealth> getAllServices() {
+        // Aggregate /actuator/health from all 22 services
+    }
+    
+    @PostMapping("/circuit-breakers/{id}/open")
+    public void openCircuitBreaker(@PathVariable String id) {
+        // Force open circuit breaker using Resilience4j
+    }
+    
+    @PostMapping("/feature-flags/{id}/toggle")
+    public void toggleFeatureFlag(@PathVariable String id, @RequestBody ToggleRequest req) {
+        unleashClient.updateFeature(id, req.isEnabled());
+    }
+    
+    @PostMapping("/pods/{name}/restart")
+    public void restartPod(@PathVariable String name) {
+        k8sClient.pods().inNamespace("payments-engine")
+            .withName(name).delete();
+    }
+}
+```
+
+#### Mocks
+- Mock Kubernetes API responses
+- Mock Unleash API responses
+- Mock Prometheus metrics endpoints
+
+#### KPIs
+- Service health check latency: < 500ms (for 22 services)
+- Circuit breaker toggle time: < 100ms
+- Feature flag toggle time: < 200ms
+- Pod restart time: < 5 seconds
+
+#### Definition of Done
+- [ ] All 10 REST endpoints implemented
+- [ ] Kubernetes client integration working
+- [ ] Unleash SDK integrated
+- [ ] Operations audit log created
+- [ ] 80% unit test coverage
+- [ ] Integration test with Kubernetes (kind cluster)
+
+#### Fallback Plan
+- If K8s integration fails, provide manual pod restart commands
+- If Unleash fails, fall back to database-backed feature flags
+
+---
+
+### 7.2: Metrics Aggregation Service (NEW Service #22)
+
+**Agent**: Metrics-Service-Agent  
+**Template**: `35-AI-AGENT-PROMPT-TEMPLATES.md` → Feature 7.2  
+**Estimation**: 4-6 days, 1,000 lines of code  
+**Priority**: P0  
+
+#### Purpose
+Aggregate Prometheus metrics, provide real-time dashboards, manage alerts, and stream updates via WebSocket.
+
+#### Inputs
+- `docs/40-PHASE-7-DETAILED-DESIGN.md` (Section 2.2: Lines 215-284)
+- Prometheus Java Client
+- Spring WebFlux (reactive)
+- Micrometer
+
+#### Outputs
+- `/api/metrics/v1/summary` - Overall system metrics
+- `/api/metrics/v1/payments/volume` - Payment volume
+- `/api/metrics/v1/latency/p95` - p95 latency
+- `/api/metrics/v1/alerts` - Active alerts
+- `/api/metrics/v1/dashboard/realtime` - WebSocket stream
+- Database: `alert_history` table
+
+#### Dependencies
+- All 22 microservices (for metrics scraping)
+- Prometheus
+- Redis (caching)
+
+#### Technology
+- Java 17, Spring Boot 3.x with WebFlux
+- Prometheus Java Client
+- Spring WebFlux (non-blocking)
+- Redis (60-second TTL cache)
+- PostgreSQL
+
+#### Spring Boot Guidance
+```java
+@RestController
+@RequestMapping("/api/metrics/v1")
+public class MetricsController {
+    @Autowired
+    private PrometheusClient prometheusClient;
+    
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+    
+    @GetMapping("/summary")
+    @Cacheable(value = "metrics-summary", ttl = 60)
+    public Mono<MetricsSummary> getSummary() {
+        return prometheusClient.query("payments_total")
+            .map(this::aggregateMetrics);
+    }
+    
+    @GetMapping(value = "/dashboard/realtime", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<DashboardData> streamRealtime() {
+        return Flux.interval(Duration.ofSeconds(5))
+            .flatMap(tick -> fetchDashboardData());
+    }
+}
+```
+
+#### Mocks
+- Mock Prometheus query API
+- Mock Redis cache
+- WireMock for service metrics endpoints
+
+#### KPIs
+- Metrics aggregation latency: < 200ms
+- WebSocket connection count: > 100 concurrent
+- Alert detection time: < 30 seconds
+- Cache hit rate: > 80%
+
+#### Definition of Done
+- [ ] All 10 REST endpoints implemented
+- [ ] Prometheus client integration working
+- [ ] WebSocket/SSE streaming working
+- [ ] Alert history table created
+- [ ] 80% unit test coverage
+- [ ] Load test with 100 concurrent WebSocket connections
+
+---
+
+### 7.3-7.6: Enhanced Backend Services
+
+*These features enhance existing services (Payment Initiation #1, Saga Orchestrator #6, Reporting #15, Reconciliation #12).*
+
+**Features**:
+- **7.3**: Payment Repair APIs (800 LOC, 3-4 days, P0)
+  - Retry failed payments
+  - Compensate transactions
+  - Manual intervention endpoints
+  
+- **7.4**: Saga Management APIs (600 LOC, 2-3 days, P0)
+  - Query saga state
+  - Force saga transitions
+  - Compensate saga steps
+  
+- **7.5**: Transaction Search APIs (700 LOC, 3-4 days, P0)
+  - Advanced search (Elasticsearch)
+  - Transaction detail retrieval
+  - Audit trail export
+  
+- **7.6**: Reconciliation Management APIs (500 LOC, 2-3 days, P1)
+  - Manual matching UI endpoints
+  - Unmatched payment queries
+  - Reconciliation reports
+
+*Full details in `docs/40-PHASE-7-DETAILED-DESIGN.md` (Sections 2.3-2.6).*
+
+---
+
+### 7.7: React Ops Portal - Service Management UI
+
+**Agent**: React-ServiceManagement-Agent  
+**Template**: `35-AI-AGENT-PROMPT-TEMPLATES.md` → Feature 7.7  
+**Estimation**: 4-5 days, 1,500 lines of code  
+**Priority**: P0  
+
+#### Purpose
+React UI for monitoring 22 services, managing circuit breakers, toggling feature flags, and controlling K8s pods.
+
+#### Inputs
+- `docs/40-PHASE-7-DETAILED-DESIGN.md` (Section 3.1: Lines 566-650)
+- Operations Management Service APIs (Feature 7.1)
+- Material-UI (MUI)
+- React Query
+
+#### Outputs
+- `ServiceListPage.tsx` - Dashboard with 22 services
+- `CircuitBreakerCard.tsx` - CB management
+- `FeatureFlagCard.tsx` - FF toggles
+- `PodManagementCard.tsx` - K8s pod controls
+
+#### Technology
+- React 18, TypeScript
+- Material-UI (MUI)
+- React Query (data fetching)
+- Recharts (visualizations)
+
+#### React Guidance
+```tsx
+// src/pages/ServiceManagement/ServiceListPage.tsx
+export default function ServiceListPage() {
+  const { data: services } = useQuery({
+    queryKey: ['services'],
+    queryFn: () => opsApi.getAllServices(),
+    refetchInterval: 10000, // Poll every 10 seconds
+  });
+  
+  return (
+    <Grid container spacing={2}>
+      {services?.map(service => (
+        <Grid item xs={12} md={6} lg={4} key={service.id}>
+          <ServiceCard service={service} />
+        </Grid>
+      ))}
+    </Grid>
+  );
+}
+```
+
+#### Mocks
+- Mock REST API responses from Operations Service
+- MSW (Mock Service Worker) for API mocking
+
+#### KPIs
+- Page load time: < 2 seconds
+- Service status update latency: < 10 seconds
+- Circuit breaker toggle response time: < 500ms
+
+#### Definition of Done
+- [ ] 5 pages implemented (dashboard, CB, FF, pods, logs)
+- [ ] Real-time polling (10-second interval)
+- [ ] Toast notifications for actions
+- [ ] 80% component test coverage (Vitest)
+- [ ] E2E test with Playwright
+
+---
+
+### 7.8-7.10: Additional React Ops Portal UIs
+
+**Features**:
+- **7.8**: Payment Repair UI (1,800 LOC, 5-6 days, P0)
+  - Failed payment list
+  - Retry/compensate actions
+  - Saga state visualization
+  
+- **7.9**: Transaction Enquiries UI (1,500 LOC, 4-5 days, P0)
+  - Advanced search form
+  - Transaction detail view
+  - Audit trail timeline
+  - Export functionality
+  
+- **7.10**: Reconciliation & Monitoring UI (1,200 LOC, 4-5 days, P1)
+  - Unmatched payments dashboard
+  - Manual matching form
+  - Real-time alerts widget
+  - Metrics charts (payment volume, success rate)
+
+*Full details in `docs/40-PHASE-7-DETAILED-DESIGN.md` (Sections 3.2-3.4).*
+
+---
+
+### 7.11: Channel Onboarding UI
+
+**Agent**: React-ChannelOnboarding-Agent  
+**Template**: `35-AI-AGENT-PROMPT-TEMPLATES.md` → Feature 7.11  
+**Estimation**: 3-4 days, 1,300 lines of code  
+**Priority**: P1  
+
+#### Purpose
+Self-service channel onboarding wizard for configuring response patterns (Webhook, Kafka, WebSocket, Polling, Push) and payment-type-specific Kafka topics.
+
+#### Inputs
+- `docs/39-CHANNEL-INTEGRATION-MECHANISMS.md` (Section 11: Lines 1986-3650)
+- `docs/40-PHASE-7-DETAILED-DESIGN.md` (Section 3.5: Lines 966-1072)
+- `docs/41-PAYMENT-TYPE-KAFKA-TOPICS.md` (Complete file)
+- Tenant Management Service APIs
+
+#### Outputs
+- `ChannelOnboardingPage.tsx` - 4-step wizard
+- `ChannelTypeSelector.tsx` - Select channel type
+- `ResponsePatternSelector.tsx` - Select response pattern
+- `KafkaConfiguration.tsx` - Kafka config (with payment-type topics)
+- `WebhookConfiguration.tsx` - Webhook config
+- `ChannelListPage.tsx` - Manage channels
+
+#### Technology
+- React 18, TypeScript
+- Material-UI (MUI)
+- React Hook Form (form validation)
+- React Query
+
+#### React Guidance
+```tsx
+// src/pages/ChannelOnboarding/KafkaConfiguration.tsx
+export default function KafkaConfiguration() {
+  const { control, watch } = useFormContext();
+  const usePaymentTypeTopics = watch('kafkaUsePaymentTypeTopics');
+  
+  return (
+    <>
+      <FormControlLabel
+        control={<Switch {...register('kafkaUsePaymentTypeTopics')} />}
+        label="Configure separate Kafka topics per payment type"
+      />
+      
+      {usePaymentTypeTopics && (
+        <Box sx={{ mt: 2 }}>
+          {PAYMENT_TYPES.map(type => (
+            <Accordion key={type}>
+              <AccordionSummary>{type} Configuration</AccordionSummary>
+              <AccordionDetails>
+                <TextField label="Kafka Topic" {...register(`kafkaTopics.${type}.topic`)} />
+                <TextField label="Consumer Group" {...register(`kafkaTopics.${type}.consumerGroup`)} />
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </Box>
+      )}
+    </>
+  );
+}
+```
+
+#### Mocks
+- Mock Tenant Management API
+- Mock channel configuration APIs
+
+#### KPIs
+- Wizard completion rate: > 90%
+- Channel creation time: < 2 minutes
+- Form validation error rate: < 5%
+
+#### Definition of Done
+- [ ] 4-step wizard implemented
+- [ ] All 5 response patterns supported
+- [ ] Payment-type Kafka topic configuration working
+- [ ] Test connection functionality
+- [ ] Channel list page with edit/delete
+- [ ] 80% component test coverage
+
+---
+
+### 7.12: Clearing System Onboarding UI
+
+**Agent**: React-ClearingOnboarding-Agent  
+**Template**: `35-AI-AGENT-PROMPT-TEMPLATES.md` → Feature 7.12  
+**Estimation**: 5-7 days, 1,500 lines of code  
+**Priority**: P0  
+
+#### Purpose
+Self-service clearing system configuration wizard for SAMOS, BankservAfrica, RTC, PayShap, and SWIFT with security patterns and retry policies.
+
+#### Inputs
+- `docs/42-CLEARING-SYSTEM-ONBOARDING.md` (Complete file - 2,732 lines)
+- `docs/40-PHASE-7-DETAILED-DESIGN.md` (Section 3.6: Lines 1073-1241)
+- Tenant Management Service APIs
+
+#### Outputs
+- `ClearingSystemOnboardingPage.tsx` - 5-step wizard
+- `ClearingSystemSelector.tsx` - Select clearing system
+- `CommunicationPatternConfig.tsx` - Sync/Async/Batch
+- `SecurityConfig.tsx` - mTLS, OAuth, SFTP, SWIFTNet PKI
+  - `MtlsConfig.tsx` - Certificate upload
+  - `OAuth2Config.tsx` - OAuth configuration
+  - `SftpKeyConfig.tsx` - SSH/PGP keys
+  - `SwiftNetConfig.tsx` - SWIFT certificates
+- `RetryPolicyConfig.tsx` - Retry config per clearing system
+- `ReviewAndTest.tsx` - Test connection
+- `ClearingSystemListPage.tsx` - Manage clearing configs
+
+#### Technology
+- React 18, TypeScript
+- Material-UI (MUI)
+- React Hook Form (with Zod validation)
+- React Query
+- File upload: react-dropzone
+
+#### React Guidance
+```tsx
+// src/pages/ClearingSystemOnboarding/SecurityConfig.tsx
+export default function SecurityConfig() {
+  const { watch } = useFormContext();
+  const clearingSystem = watch('clearingSystem');
+  const securityMechanism = watch('securityMechanism');
+  
+  // Dynamically show security config based on clearing system
+  const getSecurityOptions = (system: string) => {
+    switch(system) {
+      case 'SAMOS': return ['mTLS', 'XMLDSig'];
+      case 'PayShap': return ['OAuth2', 'mTLS'];
+      case 'BankservAfrica': return ['SFTP+SSH', 'PGP'];
+      case 'SWIFT': return ['SWIFTNet PKI'];
+      case 'RTC': return ['mTLS'];
+    }
+  };
+  
+  return (
+    <>
+      <FormControl fullWidth>
+        <InputLabel>Security Mechanism</InputLabel>
+        <Select {...register('securityMechanism')}>
+          {getSecurityOptions(clearingSystem).map(option => (
+            <MenuItem key={option} value={option}>{option}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      
+      {securityMechanism === 'mTLS' && <MtlsConfig />}
+      {securityMechanism === 'OAuth2' && <OAuth2Config />}
+      {securityMechanism === 'SFTP+SSH' && <SftpKeyConfig />}
+      {securityMechanism === 'SWIFTNet PKI' && <SwiftNetConfig />}
+    </>
+  );
+}
+```
+
+#### Mocks
+- Mock Clearing System API
+- Mock certificate upload (Azure Key Vault)
+- Mock test connection API
+
+#### KPIs
+- Wizard completion rate: > 85%
+- Clearing system onboarding time: < 5 minutes
+- Certificate upload success rate: > 95%
+- Test connection success rate: > 90%
+
+#### Definition of Done
+- [ ] 5-step wizard implemented
+- [ ] All 5 clearing systems supported (SAMOS, BankservAfrica, RTC, PayShap, SWIFT)
+- [ ] All 4 security mechanisms implemented (mTLS, OAuth, SFTP, SWIFTNet)
+- [ ] Certificate/key file upload working
+- [ ] Retry policy configuration per clearing system
+- [ ] Test connection functionality
+- [ ] Clearing system list page with edit/delete
+- [ ] 80% component test coverage
+- [ ] E2E test with file upload
+
+#### Fallback Plan
+- If certificate upload fails, provide manual Azure Key Vault instructions
+- If test connection fails, save configuration as "draft" for manual testing
+
+---
+
+**Phase 7 Summary**:
+- **12 features** (6 backend + 6 frontend)
+- **2 new microservices** (#21, #22)
+- **4 enhanced services** (#1, #6, #15, #12)
+- **Total time**: 6-9 days (with 12 agents in parallel)
+- **Total LOC**: ~13,600 lines
+- **Agents**: 12 agents working simultaneously
+
+---
+
 ## AI Agent Assignment Strategy
 
 ### Agent Specialization
