@@ -31,10 +31,11 @@ This document provides a **feature-level breakdown** of the Payments Engine, org
 8. [Phase 4: Advanced Features (Parallel)](#phase-4-advanced-features-parallel)
 9. [Phase 5: Infrastructure (Parallel)](#phase-5-infrastructure-parallel)
 10. [Phase 6: Integration & Testing (Sequential)](#phase-6-integration--testing-sequential)
-11. [AI Agent Assignment Strategy](#ai-agent-assignment-strategy)
-12. [Fallback Plans Per Phase](#fallback-plans-per-phase)
-13. [Orchestration Integration](#orchestration-integration)
-14. [YAML Export](#yaml-export)
+11. [Phase 7: Operations & Channel Management (Parallel)](#phase-7-operations--channel-management-parallel) 🆕
+12. [AI Agent Assignment Strategy](#ai-agent-assignment-strategy)
+13. [Fallback Plans Per Phase](#fallback-plans-per-phase)
+14. [Orchestration Integration](#orchestration-integration)
+15. [YAML Export](#yaml-export)
 
 ---
 
@@ -92,11 +93,27 @@ PHASE 6: INTEGRATION & TESTING (Sequential - After all above)
 ├─ 6.3: Security Testing (3-4 days)
 ├─ 6.4: Compliance Testing (3-4 days)
 └─ 6.5: Production Readiness (2-3 days)
+
+PHASE 7: OPERATIONS & CHANNEL MANAGEMENT (Parallel - After Phase 6) 🆕
+├─ Backend Services (New + Enhanced)
+│  ├─ 7.1: Operations Management Service (5-7 days) - NEW Service #21
+│  ├─ 7.2: Metrics Aggregation Service (4-6 days) - NEW Service #22
+│  ├─ 7.3: Payment Repair APIs (3-4 days) - Enhance Payment Initiation
+│  ├─ 7.4: Saga Management APIs (2-3 days) - Enhance Saga Orchestrator
+│  ├─ 7.5: Transaction Search APIs (3-4 days) - Enhance Reporting Service
+│  └─ 7.6: Reconciliation Management APIs (2-3 days) - Enhance Reconciliation
+│
+└─ Frontend (React Operations Portal + Channel Management)
+   ├─ 7.7: React Ops Portal - Service Management UI (4-5 days)
+   ├─ 7.8: React Ops Portal - Payment Repair UI (5-6 days)
+   ├─ 7.9: React Ops Portal - Transaction Enquiries UI (4-5 days)
+   ├─ 7.10: React Ops Portal - Reconciliation & Monitoring UI (4-5 days)
+   └─ 7.11: Channel Onboarding UI (3-4 days) - Self-service channel setup
 ```
 
-**Total Phases**: 7 (0-6)  
-**Total Features**: 40 features  
-**Parallel Phases**: 5 (Phases 1-5)  
+**Total Phases**: 8 (0-7) 🆕  
+**Total Features**: 51 features 🆕 (40 + 11 new)  
+**Parallel Phases**: 6 (Phases 1-5, Phase 7) 🆕  
 **Sequential Phases**: 2 (Phase 0, Phase 6)  
 **Estimated Duration**: 25-35 days (with parallelization)
 
@@ -1899,8 +1916,8 @@ public class TracingConfig {
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 
-Total Agents: 40 agents
-Parallel Agents: Up to 7 agents at once (Phases 4-5)
+Total Agents: 51 agents 🆕 (40 + 11 new in Phase 7)
+Parallel Agents: Up to 11 agents at once (Phase 7) 🆕
 Sequential Phases: Phase 0 (foundation), Phase 6 (testing)
 ```
 
@@ -1908,7 +1925,7 @@ Sequential Phases: Phase 0 (foundation), Phase 6 (testing)
 
 **Role**: Build Coordinator  
 **Responsibilities**:
-- Monitor all 40 agent tasks in real-time
+- Monitor all 51 agent tasks in real-time 🆕
 - Detect failures and trigger fallback plans automatically
 - Aggregate build status and report progress (e.g., "Phase 1: 5/6 complete, 83%")
 - Manage dependency resolution (don't start Phase 1 until Phase 0 complete)
@@ -2099,7 +2116,7 @@ for phase in tree['phases']:
 
 1. **Validate Enhanced Tree**: Prototype Phase 0 and Phase 1 with actual AI agents (GPT-4, Claude, Cursor AI)
 2. **Refine Estimations**: Update ranges based on actual agent performance
-3. **Extend YAML**: Complete all 40 features in YAML export
+3. **Extend YAML**: Complete all 51 features 🆕 in YAML export (including Phase 7)
 4. **Integrate with CrewAI**: Test multi-agent orchestration
 5. **Feedback Loop**: Phase 6 agents provide feedback on prompt quality, update templates
 
