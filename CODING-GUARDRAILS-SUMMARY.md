@@ -5,13 +5,13 @@
 This document summarizes the **comprehensive coding guardrails** for the Payments Engine, ensuring all AI agents follow best practices for **security**, **code quality**, **performance**, **testing**, and **compliance**.
 
 **Status**: ✅ COMPLETE  
-**Coverage**: 24 generic guardrails + 13 features with specific guardrails  
-**Document**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md`  
-**Total Guardrails**: 160+ rules (includes Istio vs Resilience4j decision)
+**Coverage**: 26 generic guardrails + 13 features with specific guardrails  
+**Document**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md` + `docs/37-DSA-GUIDANCE-ALL-FEATURES.md`  
+**Total Guardrails**: 170+ rules (includes Istio vs Resilience4j + DSA guidance)
 
 ---
 
-## ⚠️ Generic Coding Guardrails (24 Rules)
+## ⚠️ Generic Coding Guardrails (26 Rules)
 
 These guardrails apply to **ALL 40 features** and **ALL AI agents**.
 
@@ -40,20 +40,26 @@ These guardrails apply to **ALL 40 features** and **ALL AI agents**.
    - ❌ Never log passwords, tokens, card numbers
    - ✅ Use HTTPS/TLS 1.2+
 
-### 🏗️ Code Quality Guardrails (4 Rules)
+### 🏗️ Code Quality Guardrails (5 Rules)
 
 6. **SOLID Principles**
    - Single Responsibility, Open/Closed, Liskov, Interface Segregation, Dependency Inversion
 
-7. **Clean Code**
+7. **Data Structures & Algorithms** (NEW)
+   - ✅ Choose appropriate data structures for optimal performance (O(1) lookup → HashMap, sorted → TreeMap, priority → PriorityQueue)
+   - ✅ Consider time/space complexity trade-offs
+   - ✅ Use concurrent collections for multi-threaded scenarios (ConcurrentHashMap, CopyOnWriteArrayList)
+   - 📖 See: `docs/37-DSA-GUIDANCE-ALL-FEATURES.md` for feature-specific recommendations
+
+8. **Clean Code**
    - Descriptive names, short methods (< 20 lines), max 3 nesting levels
 
-8. **Error Handling**
+9. **Error Handling**
    - Specific exceptions, log with context, `@ControllerAdvice`, correlation ID
 
-9. **Logging**
-   - SLF4J + Logback, proper log levels, MDC for correlation/tenant ID
-   - ❌ Never log PII
+10. **Logging**
+    - SLF4J + Logback, proper log levels, MDC for correlation/tenant ID
+    - ❌ Never log PII
 
 ### ⚡ Performance Guardrails (3 Rules)
 
@@ -68,29 +74,29 @@ These guardrails apply to **ALL 40 features** and **ALL AI agents**.
 
 ### 🧪 Testing Guardrails (2 Rules)
 
-13. **Test Coverage**
+14. **Test Coverage**
     - Minimum 80% coverage, test happy path + edge cases + failures
 
-14. **Test Best Practices**
+15. **Test Best Practices**
     - Test builders, isolated tests, mock external dependencies, multi-tenant tests
 
 ### 📚 Documentation Guardrails (3 Rules)
 
-15. **Code Documentation**
+16. **Code Documentation**
     - JavaDoc for all public classes/methods, `@param/@return/@throws`
 
-16. **API Documentation**
+17. **API Documentation**
     - OpenAPI 3.0, Swagger UI, error examples
 
-17. **README.md**
+18. **README.md**
     - Overview, tech stack, setup, testing, troubleshooting
 
 ### 🔧 Configuration Guardrails (2 Rules)
 
-18. **Configuration Management**
+19. **Configuration Management**
     - `application.yml`, separate per environment, Spring profiles
 
-19. **Dependency Management**
+20. **Dependency Management**
     - Spring Boot BOM, check CVEs, minimize dependencies
 
 ### 🎯 Multi-Tenancy Guardrails (1 Rule)
@@ -101,7 +107,7 @@ These guardrails apply to **ALL 40 features** and **ALL AI agents**.
 
 ### 🚨 Resilience Guardrails (3 Rules)
 
-21. **⚠️ ARCHITECTURAL DECISION: Istio vs Resilience4j** (NEW - CRITICAL)
+22. **⚠️ ARCHITECTURAL DECISION: Istio vs Resilience4j** (CRITICAL)
     - ✅ **Use Istio** for INTERNAL calls (EAST-WEST traffic): Service → Service within Kubernetes
     - ✅ **Use Resilience4j** for EXTERNAL calls (NORTH-SOUTH traffic): Service → External API outside Kubernetes
     - **Rule**: "If the call goes OUTSIDE Kubernetes, use Resilience4j. Otherwise, use Istio."
@@ -113,15 +119,18 @@ These guardrails apply to **ALL 40 features** and **ALL AI agents**.
       - ❌ NO Resilience4j: Payment Service → Validation Service (internal - Istio handles)
       - ❌ NO Resilience4j: Routing Service → SAMOS Adapter (internal - Istio handles)
 
-22. **Circuit Breakers & Retry**
+23. **Circuit Breakers & Retry**
     - Circuit breakers, retry with backoff, timeouts, fallbacks, bulkhead (for EXTERNAL calls only)
+
+24. **Retry Logic**
+    - Exponential backoff, idempotency keys, don't retry client errors (for EXTERNAL calls only)
 
 ### 📊 Observability Guardrails (2 Rules)
 
-23. **Monitoring & Tracing**
+25. **Monitoring & Tracing**
     - Actuator endpoints, custom metrics (Micrometer), OpenTelemetry, correlation ID
 
-24. **Health Checks**
+26. **Health Checks**
     - Liveness probe, readiness probe, dependency checks
 
 ---
