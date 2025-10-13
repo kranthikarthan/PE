@@ -2618,13 +2618,215 @@ for phase in tree['phases']:
 
 ---
 
+## Build Timeline
+
+### Critical Path
+
+```
+Timeline (Working Days):
+
+Week 1:
+├─ Phase 0: Foundation (5 days)
+│   └─ 5 agents working sequentially/parallel
+└─ Status: Infrastructure + schemas ready
+
+Week 2:
+├─ Phase 1: Core Services (5 days)
+│   └─ 6 agents working in parallel
+├─ Phase 3: Platform Services (5 days) - START IN PARALLEL
+│   └─ 5 agents working in parallel
+└─ Phase 5: Infrastructure (7 days) - START IN PARALLEL
+    └─ 5 agents working in parallel
+
+Week 3:
+├─ Phase 2: Clearing Adapters (5 days)
+│   └─ 5 agents working in parallel
+├─ Phase 4: Advanced Features (5 days) - START IN PARALLEL
+│   └─ 7 agents working in parallel
+├─ Phase 3: Platform Services (continues)
+└─ Phase 5: Infrastructure (continues)
+
+Week 4-5:
+├─ Phase 6: Integration & Testing (10 days)
+│   └─ 5 agents working mostly sequential
+└─ Status: Production ready
+
+Week 5-6:
+├─ Phase 7: Operations & Channel Management (6-9 days) 🆕
+│   └─ 12 agents working in parallel
+└─ Status: Ops portal + onboarding ready
+
+Total Duration: 25-40 working days (5-8 weeks) 🆕
+```
+
+### Parallelization Strategy
+
+```
+Maximum Parallelization:
+
+Week 2-3 (Peak):
+├─ Phase 1: 6 agents (Core Services)
+├─ Phase 3: 5 agents (Platform Services)
+├─ Phase 4: 7 agents (Advanced Features)
+└─ Phase 5: 5 agents (Infrastructure)
+    └─ Total: 23 agents working simultaneously ✅
+
+Week 5-6 (Phase 7):
+├─ Backend: 6 agents (2 new + 4 enhancements)
+└─ Frontend: 6 agents (React UIs)
+    └─ Total: 12 agents working simultaneously ✅
+
+This is optimal for:
+- CI/CD pipeline capacity
+- Code review bandwidth
+- Kubernetes cluster resources
+- Developer team coordination (if human-assisted)
+```
+
+---
+
+## Context Management per Agent
+
+### Minimal Context Strategy
+
+Each agent receives ONLY:
+
+1. **Input Document(s)**: 1-2 specific documents
+2. **Schemas**: Only relevant schemas
+3. **Dependencies**: Only interfaces of dependencies
+4. **Examples**: 1-2 code examples
+
+**Example Context for Payment Initiation Agent**:
+
+```
+Context Bundle (sent to agent):
+├─ docs/02-MICROSERVICES-BREAKDOWN.md (Service #1 only, lines 100-250)
+├─ docs/35-AI-AGENT-PROMPT-TEMPLATES.md (Feature 1.1 prompt)
+├─ shared-domain/Payment.java (domain model)
+├─ events/PaymentInitiatedEvent.json (event schema)
+├─ database/V001__create_payment_tables.sql (DB schema)
+├─ example-service/ (sample service for reference)
+└─ checklist.md (success criteria)
+
+Total Context: ~2,000 lines
+```
+
+**NOT SENT**:
+- ❌ Full architecture documents
+- ❌ Other services
+- ❌ Unrelated schemas
+- ❌ Infrastructure details
+
+**Result**: Agent focuses ONLY on Payment Initiation Service ✅
+
+---
+
+## Feature Dependencies Matrix
+
+### ASCII Visual Dependency Graph
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                      FEATURE DEPENDENCIES                            │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  PHASE 0 (Foundation)                                               │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ F0.1: Database Schemas                                       │   │
+│  │ F0.2: Event Schemas                                          │   │
+│  │ F0.3: Domain Models ────depends on───▶ F0.1                 │   │
+│  │ F0.4: Shared Libraries ─depends on───▶ F0.2, F0.3          │   │
+│  │ F0.5: Infrastructure Setup (independent)                     │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                            │                                         │
+│                            │ ALL must complete                       │
+│                            ▼                                         │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ PHASE 1 (Core Services) - ALL PARALLEL                       │  │
+│  │ ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │  │
+│  │ │ Payment  │  │Validation│  │ Account  │  │ Routing  │     │  │
+│  │ │Initiation│  │ Service  │  │ Adapter  │  │ Service  │     │  │
+│  │ └──────────┘  └──────────┘  └──────────┘  └──────────┘     │  │
+│  │ ┌──────────┐  ┌──────────┐                                  │  │
+│  │ │Transaction│  │   Saga   │                                  │  │
+│  │ │Processing│  │Orchestr. │                                  │  │
+│  │ └──────────┘  └──────────┘                                  │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                            │                                         │
+│                            ▼                                         │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ PHASE 2 (Clearing Adapters) - ALL PARALLEL                   │  │
+│  │ ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐           │  │
+│  │ │SAMOS │  │Bankserv│ │ RTC  │  │PayShap│ │SWIFT │           │  │
+│  │ └──────┘  └──────┘  └──────┘  └──────┘  └──────┘           │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                            │                                         │
+│                            ▼                                         │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ PHASE 3 (Platform) - INDEPENDENT (parallel with Phase 1-2)   │  │
+│  │ ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐           │  │
+│  │ │Tenant│  │ IAM  │  │Audit │  │Notif.│  │Report│           │  │
+│  │ └──────┘  └──────┘  └──────┘  └──────┘  └──────┘           │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                            │                                         │
+│                            ▼                                         │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ PHASE 4 (Advanced) - DEPENDS ON PHASE 1                      │  │
+│  │ ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │  │
+│  │ │  Batch   │  │Settlement│  │Reconcil. │  │ BFF x3   │     │  │
+│  │ └──────────┘  └──────────┘  └──────────┘  └──────────┘     │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                                                                      │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ PHASE 5 (Infrastructure) - INDEPENDENT (parallel all)        │  │
+│  │ ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐           │  │
+│  │ │Istio │  │Monitor│ │GitOps│  │Flags │  │Operators│         │  │
+│  │ └──────┘  └──────┘  └──────┘  └──────┘  └──────┘           │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                            │                                         │
+│                            │ ALL must complete                       │
+│                            ▼                                         │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ PHASE 6 (Testing) - SEQUENTIAL                                │  │
+│  │ E2E → Load → Security → Compliance → Prod Readiness          │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                            │                                         │
+│                            ▼                                         │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ PHASE 7 (Ops & Channel) - PARALLEL 🆕                        │  │
+│  │ ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │  │
+│  │ │ Ops Svc  │  │Metrics   │  │ 4 Enhance│  │ 6 React  │     │  │
+│  │ │  (#21)   │  │Svc (#22) │  │ Services │  │   UIs    │     │  │
+│  │ └──────────┘  └──────────┘  └──────────┘  └──────────┘     │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## Next Steps
 
 1. **Validate Enhanced Tree**: Prototype Phase 0 and Phase 1 with actual AI agents (GPT-4, Claude, Cursor AI)
 2. **Refine Estimations**: Update ranges based on actual agent performance
-3. **Extend YAML**: Complete all 51 features 🆕 in YAML export (including Phase 7)
+3. **Extend YAML**: Complete all 52 features in YAML export (including Phase 7)
 4. **Integrate with CrewAI**: Test multi-agent orchestration
 5. **Feedback Loop**: Phase 6 agents provide feedback on prompt quality, update templates
+6. **Archive Regular File**: Enhanced version is now the single source of truth
 
-**Status**: ✅ ENHANCED - Ready for AI-Driven Development with Comprehensive Guardrails and Orchestration Support
+**Status**: ✅ MERGED & ENHANCED - Ready for AI-Driven Development with Comprehensive Guardrails and Orchestration Support
+
+**Merge Notes**:
+- ✅ All valuable content from regular file integrated
+- ✅ Build Timeline added (week-by-week critical path)
+- ✅ Context Management strategy added (minimal context per agent)
+- ✅ ASCII Dependencies Matrix added (complements Mermaid diagram)
+- ✅ Document version upgraded to 3.0 (MERGED & ENHANCED)
+
+**Document Version**: 3.0 (MERGED & ENHANCED) 🆕  
+**Last Updated**: 2025-10-13  
+**Total Features**: 52 (40 original + 12 Phase 7)  
+**Total Agents**: 52  
+**Estimated Duration**: 25-40 days (with maximum parallelization)  
+**Merge Status**: ✅ Complete - All unique content from both files consolidated
 
