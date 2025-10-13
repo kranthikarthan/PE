@@ -307,9 +307,11 @@ gantt
     Production Readiness     :p6_5, after p6_4, 3d
 ```
 
-**Critical Path**: Phase 0 → Phase 1 (Saga) → Phase 4 (Reconciliation) → Phase 6 (All Testing) = **35 days**
+**Critical Path**: Phase 0 → Phase 1 (Saga) → Phase 4 (Reconciliation) → Phase 6 (All Testing) → Phase 7 (Ops Portal) = **40-45 days**
 
-**Optimized Path (with max parallelization)**: **25-30 days**
+**Optimized Path (with max parallelization + Phase 7)**: **30-40 days**
+
+**Note**: Phase 7 (Operations & Channel Management) is parallel and can be built concurrently with other work after Phase 6 completes.
 
 ---
 
@@ -2363,7 +2365,7 @@ export default function SecurityConfig() {
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    AI AGENT ASSIGNMENTS (40 Agents)                  │
+│                    AI AGENT ASSIGNMENTS (52 Agents)                  │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
 │  Phase 0: Foundation (5 agents, sequential)                         │
@@ -2422,9 +2424,11 @@ export default function SecurityConfig() {
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 
-Total Agents: 51 agents 🆕 (40 + 11 new in Phase 7)
-Parallel Agents: Up to 11 agents at once (Phase 7) 🆕
+Total Agents: 52 agents 🆕 (40 original + 12 new in Phase 7)
+Total Phases: 8 (Phase 0 to Phase 7) 🆕
+Parallel Agents: Up to 12 agents at once (Phase 7) 🆕
 Sequential Phases: Phase 0 (foundation), Phase 6 (testing)
+Parallel Phases: Phase 1-5, Phase 7
 ```
 
 ### Coordinator Agent
