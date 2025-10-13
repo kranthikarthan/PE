@@ -348,7 +348,7 @@ Features with Specific Guardrails: 13/36 (36%)
    • Security Testing (10 guardrails)
    • Compliance Testing (10 guardrails)
 
-⚠️ Note: All other features (23) still follow Generic Guardrails (23 rules)
+⚠️ Note: All other features (27) still follow Generic Guardrails (23 rules)
 ```
 
 ---
