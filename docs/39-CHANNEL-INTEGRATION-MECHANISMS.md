@@ -1983,6 +1983,1612 @@ Partner BFF:
 
 ---
 
+## 11. Channel Onboarding & Response Pattern Selection 🆕
+
+### 11.1 Overview
+
+**Requirement**: Channels select their preferred response pattern during onboarding via React frontend.
+
+**Supported Response Patterns**:
+1. **Webhook** (HTTP POST callback)
+2. **Kafka Topic** (high-volume, exactly-once)
+3. **WebSocket** (real-time for web/mobile)
+4. **Polling** (REST API status checks)
+5. **Push Notification** (mobile apps only)
+
+**Architecture**:
+```
+React Frontend (Channel Onboarding)
+    ↓ (Channel selects response pattern + config)
+Tenant Management API
+    ↓ (Store channel preferences in database)
+Notification Service
+    ↓ (Route responses based on channel preferences)
+Channel (Webhook, Kafka, WebSocket, Polling, Push)
+```
+
+---
+
+### 11.2 Channel Onboarding Data Model
+
+**Database Schema** (PostgreSQL):
+
+```sql
+CREATE TABLE channel_configurations (
+    channel_id VARCHAR(50) PRIMARY KEY,
+    tenant_id VARCHAR(50) NOT NULL,
+    channel_name VARCHAR(100) NOT NULL,
+    channel_type VARCHAR(50) NOT NULL,  -- WEB, MOBILE, PARTNER, CORPORATE, BRANCH, ATM, USSD
+    
+    -- Response Pattern Selection
+    response_pattern VARCHAR(50) NOT NULL,  -- WEBHOOK, KAFKA, WEBSOCKET, POLLING, PUSH
+    
+    -- Webhook Configuration (if response_pattern = WEBHOOK)
+    webhook_url VARCHAR(500),
+    webhook_method VARCHAR(10),  -- POST, PUT
+    webhook_headers JSONB,  -- {"Authorization": "Bearer token", "X-API-Key": "key"}
+    webhook_retry_count INTEGER DEFAULT 3,
+    webhook_timeout_ms INTEGER DEFAULT 30000,
+    
+    -- Kafka Configuration (if response_pattern = KAFKA)
+    kafka_topic VARCHAR(255),
+    kafka_consumer_group VARCHAR(255),
+    kafka_partition_count INTEGER DEFAULT 5,
+    
+    -- WebSocket Configuration (if response_pattern = WEBSOCKET)
+    websocket_enabled BOOLEAN DEFAULT FALSE,
+    websocket_namespace VARCHAR(100),  -- /channel/{channelId}/payments
+    
+    -- Polling Configuration (if response_pattern = POLLING)
+    polling_enabled BOOLEAN DEFAULT TRUE,
+    polling_rate_limit INTEGER DEFAULT 100,  -- requests per minute
+    
+    -- Push Notification Configuration (if response_pattern = PUSH)
+    push_enabled BOOLEAN DEFAULT FALSE,
+    push_platform VARCHAR(20),  -- FIREBASE, APNS
+    push_server_key VARCHAR(500),  -- Firebase Server Key or APNs Key
+    
+    -- Status and Metadata
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',  -- ACTIVE, SUSPENDED, INACTIVE
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100) NOT NULL,
+    
+    -- Constraints
+    CONSTRAINT fk_channel_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(tenant_id),
+    CONSTRAINT chk_response_pattern CHECK (response_pattern IN ('WEBHOOK', 'KAFKA', 'WEBSOCKET', 'POLLING', 'PUSH')),
+    CONSTRAINT chk_channel_type CHECK (channel_type IN ('WEB', 'MOBILE', 'PARTNER', 'CORPORATE', 'BRANCH', 'ATM', 'USSD'))
+);
+
+CREATE INDEX idx_channel_tenant ON channel_configurations(tenant_id);
+CREATE INDEX idx_channel_type ON channel_configurations(channel_type);
+CREATE INDEX idx_channel_status ON channel_configurations(status);
+```
+
+**Entity Model** (Java):
+
+```java
+@Entity
+@Table(name = "channel_configurations")
+public class ChannelConfiguration {
+    
+    @Id
+    @Column(name = "channel_id")
+    private String channelId;
+    
+    @Column(name = "tenant_id", nullable = false)
+    private String tenantId;
+    
+    @Column(name = "channel_name", nullable = false)
+    private String channelName;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "channel_type", nullable = false)
+    private ChannelType channelType;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "response_pattern", nullable = false)
+    private ResponsePattern responsePattern;
+    
+    // Webhook Configuration
+    @Column(name = "webhook_url")
+    private String webhookUrl;
+    
+    @Column(name = "webhook_method")
+    private String webhookMethod;
+    
+    @Type(JsonBinaryType.class)
+    @Column(name = "webhook_headers", columnDefinition = "jsonb")
+    private Map<String, String> webhookHeaders;
+    
+    @Column(name = "webhook_retry_count")
+    private Integer webhookRetryCount = 3;
+    
+    @Column(name = "webhook_timeout_ms")
+    private Integer webhookTimeoutMs = 30000;
+    
+    // Kafka Configuration
+    @Column(name = "kafka_topic")
+    private String kafkaTopic;
+    
+    @Column(name = "kafka_consumer_group")
+    private String kafkaConsumerGroup;
+    
+    @Column(name = "kafka_partition_count")
+    private Integer kafkaPartitionCount = 5;
+    
+    // WebSocket Configuration
+    @Column(name = "websocket_enabled")
+    private Boolean websocketEnabled = false;
+    
+    @Column(name = "websocket_namespace")
+    private String websocketNamespace;
+    
+    // Polling Configuration
+    @Column(name = "polling_enabled")
+    private Boolean pollingEnabled = true;
+    
+    @Column(name = "polling_rate_limit")
+    private Integer pollingRateLimit = 100;
+    
+    // Push Notification Configuration
+    @Column(name = "push_enabled")
+    private Boolean pushEnabled = false;
+    
+    @Column(name = "push_platform")
+    private String pushPlatform;
+    
+    @Column(name = "push_server_key")
+    private String pushServerKey;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ChannelStatus status = ChannelStatus.ACTIVE;
+    
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+    
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+    
+    @Column(name = "created_by", nullable = false)
+    private String createdBy;
+}
+
+public enum ResponsePattern {
+    WEBHOOK,
+    KAFKA,
+    WEBSOCKET,
+    POLLING,
+    PUSH
+}
+
+public enum ChannelType {
+    WEB,
+    MOBILE,
+    PARTNER,
+    CORPORATE,
+    BRANCH,
+    ATM,
+    USSD
+}
+
+public enum ChannelStatus {
+    ACTIVE,
+    SUSPENDED,
+    INACTIVE
+}
+```
+
+---
+
+### 11.3 Backend API (Tenant Management Service)
+
+**REST API Endpoints**:
+
+```java
+@RestController
+@RequestMapping("/api/v1/channels")
+public class ChannelConfigurationController {
+    
+    @Autowired
+    private ChannelConfigurationService channelService;
+    
+    /**
+     * Create/Onboard new channel
+     * POST /api/v1/channels
+     */
+    @PostMapping
+    public ResponseEntity<ChannelConfigurationResponse> createChannel(
+        @RequestBody @Valid CreateChannelRequest request,
+        @RequestHeader("X-Tenant-ID") String tenantId,
+        @RequestHeader("X-User-ID") String userId
+    ) {
+        ChannelConfiguration channel = channelService.createChannel(request, tenantId, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(channel));
+    }
+    
+    /**
+     * Get channel configuration
+     * GET /api/v1/channels/{channelId}
+     */
+    @GetMapping("/{channelId}")
+    public ResponseEntity<ChannelConfigurationResponse> getChannel(
+        @PathVariable String channelId,
+        @RequestHeader("X-Tenant-ID") String tenantId
+    ) {
+        ChannelConfiguration channel = channelService.getChannel(channelId, tenantId);
+        return ResponseEntity.ok(toResponse(channel));
+    }
+    
+    /**
+     * List all channels for tenant
+     * GET /api/v1/channels
+     */
+    @GetMapping
+    public ResponseEntity<List<ChannelConfigurationResponse>> listChannels(
+        @RequestHeader("X-Tenant-ID") String tenantId,
+        @RequestParam(required = false) ChannelType channelType,
+        @RequestParam(required = false) ResponsePattern responsePattern,
+        @RequestParam(required = false) ChannelStatus status
+    ) {
+        List<ChannelConfiguration> channels = channelService.listChannels(tenantId, channelType, responsePattern, status);
+        return ResponseEntity.ok(channels.stream().map(this::toResponse).toList());
+    }
+    
+    /**
+     * Update channel configuration
+     * PUT /api/v1/channels/{channelId}
+     */
+    @PutMapping("/{channelId}")
+    public ResponseEntity<ChannelConfigurationResponse> updateChannel(
+        @PathVariable String channelId,
+        @RequestBody @Valid UpdateChannelRequest request,
+        @RequestHeader("X-Tenant-ID") String tenantId,
+        @RequestHeader("X-User-ID") String userId
+    ) {
+        ChannelConfiguration channel = channelService.updateChannel(channelId, request, tenantId, userId);
+        return ResponseEntity.ok(toResponse(channel));
+    }
+    
+    /**
+     * Delete/Deactivate channel
+     * DELETE /api/v1/channels/{channelId}
+     */
+    @DeleteMapping("/{channelId}")
+    public ResponseEntity<Void> deleteChannel(
+        @PathVariable String channelId,
+        @RequestHeader("X-Tenant-ID") String tenantId,
+        @RequestHeader("X-User-ID") String userId
+    ) {
+        channelService.deactivateChannel(channelId, tenantId, userId);
+        return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * Test channel configuration (send test message)
+     * POST /api/v1/channels/{channelId}/test
+     */
+    @PostMapping("/{channelId}/test")
+    public ResponseEntity<ChannelTestResult> testChannel(
+        @PathVariable String channelId,
+        @RequestHeader("X-Tenant-ID") String tenantId
+    ) {
+        ChannelTestResult result = channelService.testChannel(channelId, tenantId);
+        return ResponseEntity.ok(result);
+    }
+}
+```
+
+**Request/Response DTOs**:
+
+```java
+@Data
+public class CreateChannelRequest {
+    @NotBlank
+    private String channelName;
+    
+    @NotNull
+    private ChannelType channelType;
+    
+    @NotNull
+    private ResponsePattern responsePattern;
+    
+    // Webhook Configuration (required if responsePattern = WEBHOOK)
+    private String webhookUrl;
+    private String webhookMethod = "POST";
+    private Map<String, String> webhookHeaders;
+    private Integer webhookRetryCount = 3;
+    private Integer webhookTimeoutMs = 30000;
+    
+    // Kafka Configuration (required if responsePattern = KAFKA)
+    private String kafkaConsumerGroup;
+    private Integer kafkaPartitionCount = 5;
+    
+    // WebSocket Configuration (required if responsePattern = WEBSOCKET)
+    private Boolean websocketEnabled = false;
+    
+    // Polling Configuration (required if responsePattern = POLLING)
+    private Boolean pollingEnabled = true;
+    private Integer pollingRateLimit = 100;
+    
+    // Push Notification Configuration (required if responsePattern = PUSH)
+    private Boolean pushEnabled = false;
+    private String pushPlatform;
+    private String pushServerKey;
+}
+
+@Data
+public class ChannelConfigurationResponse {
+    private String channelId;
+    private String tenantId;
+    private String channelName;
+    private ChannelType channelType;
+    private ResponsePattern responsePattern;
+    
+    // Webhook Configuration (masked)
+    private String webhookUrl;
+    private String webhookMethod;
+    private Integer webhookRetryCount;
+    private Integer webhookTimeoutMs;
+    
+    // Kafka Configuration
+    private String kafkaTopic;  // Auto-generated: payments.responses.{type}.{tenantId}
+    private String kafkaConsumerGroup;
+    private Integer kafkaPartitionCount;
+    
+    // WebSocket Configuration
+    private Boolean websocketEnabled;
+    private String websocketNamespace;
+    
+    // Polling Configuration
+    private Boolean pollingEnabled;
+    private Integer pollingRateLimit;
+    
+    // Push Notification Configuration
+    private Boolean pushEnabled;
+    private String pushPlatform;
+    
+    private ChannelStatus status;
+    private Instant createdAt;
+    private Instant updatedAt;
+}
+
+@Data
+public class ChannelTestResult {
+    private Boolean success;
+    private String message;
+    private Long responseTimeMs;
+    private String testPaymentId;
+    private Instant testedAt;
+}
+```
+
+---
+
+### 11.4 React Frontend - Channel Onboarding UI
+
+**Technology Stack**:
+- React 18 + TypeScript
+- Material-UI v5
+- React Hook Form (form validation)
+- React Query (API calls)
+
+**Component Structure**:
+```
+src/pages/ChannelOnboarding/
+├── ChannelOnboardingPage.tsx       // Main page
+├── ChannelTypeSelector.tsx         // Step 1: Select channel type
+├── ResponsePatternSelector.tsx     // Step 2: Select response pattern
+├── WebhookConfiguration.tsx        // Webhook config form
+├── KafkaConfiguration.tsx          // Kafka config form
+├── WebSocketConfiguration.tsx      // WebSocket config form
+├── PollingConfiguration.tsx        // Polling config form
+├── PushConfiguration.tsx           // Push config form
+├── ChannelSummary.tsx             // Review step
+└── TestConnection.tsx             // Test configuration
+```
+
+---
+
+#### 11.4.1 Main Onboarding Page
+
+```tsx
+// src/pages/ChannelOnboarding/ChannelOnboardingPage.tsx
+
+import React, { useState } from 'react';
+import {
+  Stepper,
+  Step,
+  StepLabel,
+  Box,
+  Button,
+  Typography,
+  Paper,
+  Alert,
+} from '@mui/material';
+import { useForm, FormProvider } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
+import ChannelTypeSelector from './ChannelTypeSelector';
+import ResponsePatternSelector from './ResponsePatternSelector';
+import WebhookConfiguration from './WebhookConfiguration';
+import KafkaConfiguration from './KafkaConfiguration';
+import WebSocketConfiguration from './WebSocketConfiguration';
+import PollingConfiguration from './PollingConfiguration';
+import PushConfiguration from './PushConfiguration';
+import ChannelSummary from './ChannelSummary';
+import TestConnection from './TestConnection';
+import { channelApi } from '../../api/channelApi';
+
+interface ChannelOnboardingFormData {
+  channelName: string;
+  channelType: 'WEB' | 'MOBILE' | 'PARTNER' | 'CORPORATE' | 'BRANCH' | 'ATM' | 'USSD';
+  responsePattern: 'WEBHOOK' | 'KAFKA' | 'WEBSOCKET' | 'POLLING' | 'PUSH';
+  
+  // Webhook
+  webhookUrl?: string;
+  webhookMethod?: 'POST' | 'PUT';
+  webhookHeaders?: Record<string, string>;
+  webhookRetryCount?: number;
+  webhookTimeoutMs?: number;
+  
+  // Kafka
+  kafkaConsumerGroup?: string;
+  kafkaPartitionCount?: number;
+  
+  // WebSocket
+  websocketEnabled?: boolean;
+  
+  // Polling
+  pollingEnabled?: boolean;
+  pollingRateLimit?: number;
+  
+  // Push
+  pushEnabled?: boolean;
+  pushPlatform?: 'FIREBASE' | 'APNS';
+  pushServerKey?: string;
+}
+
+const steps = [
+  'Channel Type',
+  'Response Pattern',
+  'Configuration',
+  'Review & Test',
+];
+
+export default function ChannelOnboardingPage() {
+  const [activeStep, setActiveStep] = useState(0);
+  const [testResult, setTestResult] = useState<any>(null);
+  
+  const methods = useForm<ChannelOnboardingFormData>({
+    defaultValues: {
+      channelName: '',
+      channelType: 'PARTNER',
+      responsePattern: 'WEBHOOK',
+      webhookMethod: 'POST',
+      webhookRetryCount: 3,
+      webhookTimeoutMs: 30000,
+      kafkaPartitionCount: 5,
+      pollingEnabled: true,
+      pollingRateLimit: 100,
+    },
+  });
+  
+  const { watch } = methods;
+  const responsePattern = watch('responsePattern');
+  
+  const createChannelMutation = useMutation({
+    mutationFn: (data: ChannelOnboardingFormData) => channelApi.createChannel(data),
+    onSuccess: (data) => {
+      console.log('Channel created successfully:', data);
+      setActiveStep(4); // Move to test step
+    },
+    onError: (error) => {
+      console.error('Failed to create channel:', error);
+    },
+  });
+  
+  const handleNext = () => {
+    if (activeStep === steps.length - 1) {
+      // Final step: Create channel
+      methods.handleSubmit((data) => {
+        createChannelMutation.mutate(data);
+      })();
+    } else {
+      setActiveStep((prev) => prev + 1);
+    }
+  };
+  
+  const handleBack = () => {
+    setActiveStep((prev) => prev - 1);
+  };
+  
+  const renderStepContent = (step: number) => {
+    switch (step) {
+      case 0:
+        return <ChannelTypeSelector />;
+      case 1:
+        return <ResponsePatternSelector />;
+      case 2:
+        // Render configuration form based on selected response pattern
+        switch (responsePattern) {
+          case 'WEBHOOK':
+            return <WebhookConfiguration />;
+          case 'KAFKA':
+            return <KafkaConfiguration />;
+          case 'WEBSOCKET':
+            return <WebSocketConfiguration />;
+          case 'POLLING':
+            return <PollingConfiguration />;
+          case 'PUSH':
+            return <PushConfiguration />;
+          default:
+            return <Typography>Unknown response pattern</Typography>;
+        }
+      case 3:
+        return <ChannelSummary />;
+      default:
+        return <Typography>Unknown step</Typography>;
+    }
+  };
+  
+  return (
+    <FormProvider {...methods}>
+      <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', p: 3 }}>
+        <Typography variant="h4" gutterBottom>
+          Channel Onboarding
+        </Typography>
+        
+        <Paper sx={{ p: 3, mt: 3 }}>
+          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+          
+          {createChannelMutation.isError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              Failed to create channel: {createChannelMutation.error?.message}
+            </Alert>
+          )}
+          
+          {renderStepContent(activeStep)}
+          
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+            <Button
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              variant="outlined"
+            >
+              Back
+            </Button>
+            
+            <Button
+              variant="contained"
+              onClick={handleNext}
+              disabled={createChannelMutation.isPending}
+            >
+              {activeStep === steps.length - 1 ? 'Create Channel' : 'Next'}
+            </Button>
+          </Box>
+        </Paper>
+        
+        {createChannelMutation.isSuccess && (
+          <Paper sx={{ p: 3, mt: 3 }}>
+            <TestConnection
+              channelId={createChannelMutation.data.channelId}
+              onTestComplete={(result) => setTestResult(result)}
+            />
+          </Paper>
+        )}
+      </Box>
+    </FormProvider>
+  );
+}
+```
+
+---
+
+#### 11.4.2 Response Pattern Selector
+
+```tsx
+// src/pages/ChannelOnboarding/ResponsePatternSelector.tsx
+
+import React from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  CardActionArea,
+  Typography,
+  Grid,
+  Chip,
+  Stack,
+} from '@mui/material';
+import { useFormContext } from 'react-hook-form';
+import {
+  Webhook as WebhookIcon,
+  CloudQueue as KafkaIcon,
+  Cable as WebSocketIcon,
+  Refresh as PollingIcon,
+  Notifications as PushIcon,
+} from '@mui/icons-material';
+
+interface ResponsePattern {
+  value: 'WEBHOOK' | 'KAFKA' | 'WEBSOCKET' | 'POLLING' | 'PUSH';
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  throughput: string;
+  latency: string;
+  complexity: 'Low' | 'Medium' | 'High';
+  recommended: boolean;
+  features: string[];
+}
+
+const responsePatterns: ResponsePattern[] = [
+  {
+    value: 'WEBHOOK',
+    label: 'Webhook',
+    description: 'HTTP POST callback to your endpoint',
+    icon: <WebhookIcon fontSize="large" />,
+    throughput: '10K req/sec',
+    latency: '100-500ms',
+    complexity: 'Low',
+    recommended: true,
+    features: [
+      'Simple HTTP integration',
+      'Automatic retries (3x)',
+      'Custom headers support',
+      'Best for low-volume',
+    ],
+  },
+  {
+    value: 'KAFKA',
+    label: 'Kafka Topic',
+    description: 'Consume from dedicated Kafka topic',
+    icon: <KafkaIcon fontSize="large" />,
+    throughput: '100K+ msg/sec',
+    latency: '10-50ms',
+    complexity: 'High',
+    recommended: true,
+    features: [
+      'High throughput',
+      'Exactly-once semantics',
+      'Message replay',
+      'Best for high-volume',
+    ],
+  },
+  {
+    value: 'WEBSOCKET',
+    label: 'WebSocket',
+    description: 'Real-time bidirectional connection',
+    icon: <WebSocketIcon fontSize="large" />,
+    throughput: '50K msg/sec',
+    latency: '10-100ms',
+    complexity: 'Medium',
+    recommended: false,
+    features: [
+      'Real-time updates',
+      'Bidirectional',
+      'Best for web/mobile',
+      'Connection-based',
+    ],
+  },
+  {
+    value: 'POLLING',
+    label: 'Polling',
+    description: 'Poll status API at intervals',
+    icon: <PollingIcon fontSize="large" />,
+    throughput: '1K req/sec',
+    latency: '1-5s',
+    complexity: 'Low',
+    recommended: false,
+    features: [
+      'Simple REST API',
+      'No setup required',
+      'Higher latency',
+      'Inefficient',
+    ],
+  },
+  {
+    value: 'PUSH',
+    label: 'Push Notification',
+    description: 'Firebase/APNs push to mobile devices',
+    icon: <PushIcon fontSize="large" />,
+    throughput: '10K msg/sec',
+    latency: '100-500ms',
+    complexity: 'Medium',
+    recommended: false,
+    features: [
+      'Mobile apps only',
+      'Background delivery',
+      'Firebase/APNs',
+      'Requires token',
+    ],
+  },
+];
+
+export default function ResponsePatternSelector() {
+  const { watch, setValue } = useFormContext();
+  const selectedPattern = watch('responsePattern');
+  
+  const handleSelect = (pattern: string) => {
+    setValue('responsePattern', pattern);
+  };
+  
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Select Response Pattern
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        Choose how you want to receive payment status updates
+      </Typography>
+      
+      <Grid container spacing={2}>
+        {responsePatterns.map((pattern) => (
+          <Grid item xs={12} sm={6} md={4} key={pattern.value}>
+            <Card
+              sx={{
+                height: '100%',
+                border: selectedPattern === pattern.value ? 2 : 1,
+                borderColor: selectedPattern === pattern.value ? 'primary.main' : 'divider',
+              }}
+            >
+              <CardActionArea
+                onClick={() => handleSelect(pattern.value)}
+                sx={{ height: '100%', p: 2 }}
+              >
+                <CardContent>
+                  <Stack spacing={2}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {pattern.icon}
+                      <Typography variant="h6">{pattern.label}</Typography>
+                      {pattern.recommended && (
+                        <Chip label="Recommended" color="success" size="small" />
+                      )}
+                    </Box>
+                    
+                    <Typography variant="body2" color="text.secondary">
+                      {pattern.description}
+                    </Typography>
+                    
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Throughput: <strong>{pattern.throughput}</strong>
+                      </Typography>
+                      <br />
+                      <Typography variant="caption" color="text.secondary">
+                        Latency: <strong>{pattern.latency}</strong>
+                      </Typography>
+                      <br />
+                      <Typography variant="caption" color="text.secondary">
+                        Complexity: <strong>{pattern.complexity}</strong>
+                      </Typography>
+                    </Box>
+                    
+                    <Box>
+                      {pattern.features.map((feature) => (
+                        <Chip
+                          key={feature}
+                          label={feature}
+                          size="small"
+                          variant="outlined"
+                          sx={{ mr: 0.5, mb: 0.5 }}
+                        />
+                      ))}
+                    </Box>
+                  </Stack>
+                </CardContent>
+              </CardActionArea>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
+  );
+}
+```
+
+---
+
+#### 11.4.3 Webhook Configuration Form
+
+```tsx
+// src/pages/ChannelOnboarding/WebhookConfiguration.tsx
+
+import React, { useState } from 'react';
+import {
+  Box,
+  TextField,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+  IconButton,
+  Stack,
+  Paper,
+  Alert,
+} from '@mui/material';
+import { useFormContext, Controller } from 'react-hook-form';
+import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
+
+export default function WebhookConfiguration() {
+  const { control, watch, setValue } = useFormContext();
+  const [headers, setHeaders] = useState<Array<{ key: string; value: string }>>([
+    { key: '', value: '' },
+  ]);
+  
+  const webhookHeaders = watch('webhookHeaders') || {};
+  
+  const addHeader = () => {
+    setHeaders([...headers, { key: '', value: '' }]);
+  };
+  
+  const removeHeader = (index: number) => {
+    const newHeaders = headers.filter((_, i) => i !== index);
+    setHeaders(newHeaders);
+  };
+  
+  const updateHeader = (index: number, field: 'key' | 'value', value: string) => {
+    const newHeaders = [...headers];
+    newHeaders[index][field] = value;
+    setHeaders(newHeaders);
+    
+    // Update form state
+    const headersObj = newHeaders.reduce((acc, h) => {
+      if (h.key) acc[h.key] = h.value;
+      return acc;
+    }, {} as Record<string, string>);
+    setValue('webhookHeaders', headersObj);
+  };
+  
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Webhook Configuration
+      </Typography>
+      
+      <Alert severity="info" sx={{ mb: 3 }}>
+        We'll send HTTP POST requests to your endpoint when payment status changes
+      </Alert>
+      
+      <Stack spacing={3}>
+        <Controller
+          name="webhookUrl"
+          control={control}
+          rules={{
+            required: 'Webhook URL is required',
+            pattern: {
+              value: /^https?:\/\/.+/,
+              message: 'Must be a valid HTTP/HTTPS URL',
+            },
+          }}
+          render={({ field, fieldState }) => (
+            <TextField
+              {...field}
+              label="Webhook URL"
+              placeholder="https://your-api.com/webhooks/payments"
+              fullWidth
+              required
+              error={!!fieldState.error}
+              helperText={fieldState.error?.message || 'Your endpoint to receive payment updates'}
+            />
+          )}
+        />
+        
+        <Controller
+          name="webhookMethod"
+          control={control}
+          render={({ field }) => (
+            <FormControl fullWidth>
+              <InputLabel>HTTP Method</InputLabel>
+              <Select {...field} label="HTTP Method">
+                <MenuItem value="POST">POST</MenuItem>
+                <MenuItem value="PUT">PUT</MenuItem>
+              </Select>
+            </FormControl>
+          )}
+        />
+        
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="subtitle1">Custom Headers</Typography>
+            <Button startIcon={<AddIcon />} onClick={addHeader} size="small">
+              Add Header
+            </Button>
+          </Box>
+          
+          {headers.map((header, index) => (
+            <Box key={index} sx={{ display: 'flex', gap: 1, mb: 1 }}>
+              <TextField
+                label="Header Name"
+                placeholder="Authorization"
+                value={header.key}
+                onChange={(e) => updateHeader(index, 'key', e.target.value)}
+                size="small"
+                fullWidth
+              />
+              <TextField
+                label="Header Value"
+                placeholder="Bearer token123"
+                value={header.value}
+                onChange={(e) => updateHeader(index, 'value', e.target.value)}
+                size="small"
+                fullWidth
+                type="password"
+              />
+              <IconButton onClick={() => removeHeader(index)} size="small" color="error">
+                <DeleteIcon />
+              </IconButton>
+            </Box>
+          ))}
+        </Paper>
+        
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Controller
+            name="webhookRetryCount"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Retry Count"
+                type="number"
+                inputProps={{ min: 0, max: 10 }}
+                helperText="Number of retries if webhook fails"
+                fullWidth
+              />
+            )}
+          />
+          
+          <Controller
+            name="webhookTimeoutMs"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Timeout (ms)"
+                type="number"
+                inputProps={{ min: 1000, max: 60000, step: 1000 }}
+                helperText="Request timeout in milliseconds"
+                fullWidth
+              />
+            )}
+          />
+        </Box>
+      </Stack>
+    </Box>
+  );
+}
+```
+
+---
+
+#### 11.4.4 Kafka Configuration Form
+
+```tsx
+// src/pages/ChannelOnboarding/KafkaConfiguration.tsx
+
+import React from 'react';
+import {
+  Box,
+  TextField,
+  Typography,
+  Alert,
+  Stack,
+  Paper,
+  Chip,
+} from '@mui/material';
+import { useFormContext, Controller } from 'react-hook-form';
+
+export default function KafkaConfiguration() {
+  const { control, watch } = useFormContext();
+  const tenantId = 'TENANT-001'; // From context
+  const channelType = watch('channelType');
+  
+  const autoGeneratedTopic = `payments.responses.${channelType.toLowerCase()}.${tenantId}`;
+  
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Kafka Configuration
+      </Typography>
+      
+      <Alert severity="info" sx={{ mb: 3 }}>
+        High-throughput integration using Apache Kafka. You'll consume messages from a dedicated topic.
+      </Alert>
+      
+      <Stack spacing={3}>
+        <Paper variant="outlined" sx={{ p: 2, bgcolor: 'grey.50' }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Auto-Generated Kafka Topic
+          </Typography>
+          <Chip label={autoGeneratedTopic} color="primary" />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+            This topic will be automatically created for you
+          </Typography>
+        </Paper>
+        
+        <Controller
+          name="kafkaConsumerGroup"
+          control={control}
+          rules={{
+            required: 'Consumer group is required',
+            pattern: {
+              value: /^[a-z0-9-]+$/,
+              message: 'Only lowercase letters, numbers, and hyphens allowed',
+            },
+          }}
+          render={({ field, fieldState }) => (
+            <TextField
+              {...field}
+              label="Consumer Group ID"
+              placeholder="your-company-payment-consumer"
+              fullWidth
+              required
+              error={!!fieldState.error}
+              helperText={
+                fieldState.error?.message ||
+                'Unique identifier for your Kafka consumer group'
+              }
+            />
+          )}
+        />
+        
+        <Controller
+          name="kafkaPartitionCount"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              label="Partition Count"
+              type="number"
+              inputProps={{ min: 1, max: 20 }}
+              helperText="Higher partitions = more parallelism (recommended: 5)"
+              fullWidth
+            />
+          )}
+        />
+        
+        <Alert severity="warning">
+          <Typography variant="subtitle2" gutterBottom>
+            Requirements
+          </Typography>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            <li>Kafka client library (Java, Python, Node.js, etc.)</li>
+            <li>Credentials will be provided after channel creation</li>
+            <li>Sample consumer code available in documentation</li>
+            <li>Schema Registry access for Avro deserialization</li>
+          </ul>
+        </Alert>
+        
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Expected Throughput
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            With 5 partitions, you can achieve:
+          </Typography>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            <li>50K messages/sec (10K per partition)</li>
+            <li>10-50ms latency (p99)</li>
+            <li>Exactly-once delivery semantics</li>
+            <li>Message replay from any offset</li>
+          </ul>
+        </Paper>
+      </Stack>
+    </Box>
+  );
+}
+```
+
+---
+
+#### 11.4.5 Channel Summary & Test
+
+```tsx
+// src/pages/ChannelOnboarding/ChannelSummary.tsx
+
+import React from 'react';
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  Divider,
+  Chip,
+} from '@mui/material';
+import { useFormContext } from 'react-hook-form';
+
+export default function ChannelSummary() {
+  const { watch } = useFormContext();
+  const formData = watch();
+  
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Review Configuration
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        Please review your channel configuration before creating
+      </Typography>
+      
+      <Paper variant="outlined" sx={{ p: 3 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="caption" color="text.secondary">
+              Channel Name
+            </Typography>
+            <Typography variant="body1">{formData.channelName || 'N/A'}</Typography>
+          </Grid>
+          
+          <Grid item xs={12} sm={6}>
+            <Typography variant="caption" color="text.secondary">
+              Channel Type
+            </Typography>
+            <Typography variant="body1">
+              <Chip label={formData.channelType} size="small" />
+            </Typography>
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Divider />
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Typography variant="subtitle2" gutterBottom>
+              Response Pattern
+            </Typography>
+            <Chip label={formData.responsePattern} color="primary" />
+          </Grid>
+          
+          {formData.responsePattern === 'WEBHOOK' && (
+            <>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="caption" color="text.secondary">
+                  Webhook URL
+                </Typography>
+                <Typography variant="body2">{formData.webhookUrl}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="caption" color="text.secondary">
+                  HTTP Method
+                </Typography>
+                <Typography variant="body2">{formData.webhookMethod}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="caption" color="text.secondary">
+                  Retry Count
+                </Typography>
+                <Typography variant="body2">{formData.webhookRetryCount}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="caption" color="text.secondary">
+                  Timeout
+                </Typography>
+                <Typography variant="body2">{formData.webhookTimeoutMs}ms</Typography>
+              </Grid>
+            </>
+          )}
+          
+          {formData.responsePattern === 'KAFKA' && (
+            <>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="caption" color="text.secondary">
+                  Consumer Group
+                </Typography>
+                <Typography variant="body2">{formData.kafkaConsumerGroup}</Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="caption" color="text.secondary">
+                  Partition Count
+                </Typography>
+                <Typography variant="body2">{formData.kafkaPartitionCount}</Typography>
+              </Grid>
+            </>
+          )}
+        </Grid>
+      </Paper>
+    </Box>
+  );
+}
+```
+
+```tsx
+// src/pages/ChannelOnboarding/TestConnection.tsx
+
+import React, { useState } from 'react';
+import {
+  Box,
+  Button,
+  Typography,
+  Alert,
+  CircularProgress,
+  Stack,
+  Chip,
+} from '@mui/material';
+import { CheckCircle, Error, PlayArrow } from '@mui/icons-material';
+import { useMutation } from '@tanstack/react-query';
+import { channelApi } from '../../api/channelApi';
+
+interface TestConnectionProps {
+  channelId: string;
+  onTestComplete: (result: any) => void;
+}
+
+export default function TestConnection({ channelId, onTestComplete }: TestConnectionProps) {
+  const [testResult, setTestResult] = useState<any>(null);
+  
+  const testMutation = useMutation({
+    mutationFn: () => channelApi.testChannel(channelId),
+    onSuccess: (data) => {
+      setTestResult(data);
+      onTestComplete(data);
+    },
+  });
+  
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Test Configuration
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        Send a test payment response to verify your configuration
+      </Typography>
+      
+      {!testResult && (
+        <Button
+          variant="contained"
+          startIcon={testMutation.isPending ? <CircularProgress size={20} /> : <PlayArrow />}
+          onClick={() => testMutation.mutate()}
+          disabled={testMutation.isPending}
+        >
+          Run Test
+        </Button>
+      )}
+      
+      {testResult && (
+        <Stack spacing={2}>
+          <Alert
+            severity={testResult.success ? 'success' : 'error'}
+            icon={testResult.success ? <CheckCircle /> : <Error />}
+          >
+            <Typography variant="subtitle2">
+              {testResult.success ? 'Test Successful!' : 'Test Failed'}
+            </Typography>
+            <Typography variant="body2">{testResult.message}</Typography>
+          </Alert>
+          
+          {testResult.success && (
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                Test Payment ID: <Chip label={testResult.testPaymentId} size="small" />
+              </Typography>
+              <br />
+              <Typography variant="caption" color="text.secondary">
+                Response Time: <strong>{testResult.responseTimeMs}ms</strong>
+              </Typography>
+            </Box>
+          )}
+          
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setTestResult(null);
+              testMutation.reset();
+            }}
+          >
+            Run Again
+          </Button>
+        </Stack>
+      )}
+    </Box>
+  );
+}
+```
+
+---
+
+### 11.5 Notification Service - Dynamic Routing
+
+**Update Notification Service** to route responses based on channel configuration:
+
+```java
+@Service
+public class DynamicNotificationRouter {
+    
+    @Autowired
+    private ChannelConfigurationRepository channelRepo;
+    
+    @Autowired
+    private WebhookNotificationSender webhookSender;
+    
+    @Autowired
+    private KafkaPaymentResponseProducer kafkaProducer;
+    
+    @Autowired
+    private WebSocketNotificationSender websocketSender;
+    
+    @Autowired
+    private PushNotificationSender pushSender;
+    
+    /**
+     * Route payment response to channel based on configured response pattern
+     */
+    public void routePaymentResponse(Payment payment, PaymentEventType eventType) {
+        // 1. Get channel configuration
+        ChannelConfiguration channel = channelRepo.findByChannelIdAndTenantId(
+            payment.getChannelId(),
+            payment.getTenantId()
+        ).orElseThrow(() -> new ChannelNotFoundException(payment.getChannelId()));
+        
+        // 2. Check if channel is active
+        if (channel.getStatus() != ChannelStatus.ACTIVE) {
+            log.warn("Channel is not active: channelId={}, status={}", 
+                channel.getChannelId(), channel.getStatus());
+            return;
+        }
+        
+        // 3. Route based on response pattern
+        switch (channel.getResponsePattern()) {
+            case WEBHOOK:
+                routeToWebhook(payment, eventType, channel);
+                break;
+            case KAFKA:
+                routeToKafka(payment, eventType, channel);
+                break;
+            case WEBSOCKET:
+                routeToWebSocket(payment, eventType, channel);
+                break;
+            case PUSH:
+                routeToPush(payment, eventType, channel);
+                break;
+            case POLLING:
+                // No action needed - channel will poll status API
+                log.debug("Channel uses polling, no notification sent: channelId={}", channel.getChannelId());
+                break;
+            default:
+                log.error("Unknown response pattern: pattern={}", channel.getResponsePattern());
+        }
+    }
+    
+    private void routeToWebhook(Payment payment, PaymentEventType eventType, ChannelConfiguration channel) {
+        WebhookRequest request = WebhookRequest.builder()
+            .url(channel.getWebhookUrl())
+            .method(channel.getWebhookMethod())
+            .headers(channel.getWebhookHeaders())
+            .retryCount(channel.getWebhookRetryCount())
+            .timeoutMs(channel.getWebhookTimeoutMs())
+            .payload(buildPaymentResponse(payment, eventType))
+            .build();
+        
+        webhookSender.send(request);
+    }
+    
+    private void routeToKafka(Payment payment, PaymentEventType eventType, ChannelConfiguration channel) {
+        kafkaProducer.publishPaymentResponse(payment, eventType, channel.getKafkaTopic());
+    }
+    
+    private void routeToWebSocket(Payment payment, PaymentEventType eventType, ChannelConfiguration channel) {
+        if (channel.getWebsocketEnabled()) {
+            websocketSender.send(channel.getWebsocketNamespace(), buildPaymentResponse(payment, eventType));
+        }
+    }
+    
+    private void routeToPush(Payment payment, PaymentEventType eventType, ChannelConfiguration channel) {
+        if (channel.getPushEnabled()) {
+            pushSender.send(
+                channel.getPushPlatform(),
+                channel.getPushServerKey(),
+                payment.getCustomerId(),
+                buildPushNotification(payment, eventType)
+            );
+        }
+    }
+    
+    private PaymentResponse buildPaymentResponse(Payment payment, PaymentEventType eventType) {
+        return PaymentResponse.builder()
+            .eventId(UUID.randomUUID().toString())
+            .eventType(eventType)
+            .paymentId(payment.getPaymentId())
+            .status(payment.getStatus())
+            .amount(payment.getAmount())
+            .timestamp(Instant.now())
+            .build();
+    }
+}
+```
+
+---
+
+### 11.6 Channel List & Management UI
+
+```tsx
+// src/pages/Channels/ChannelListPage.tsx
+
+import React from 'react';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  IconButton,
+  Menu,
+  MenuItem,
+} from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { Add, MoreVert, Edit, Delete, PlayArrow } from '@mui/icons-material';
+import { channelApi } from '../../api/channelApi';
+
+export default function ChannelListPage() {
+  const navigate = useNavigate();
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [selectedChannel, setSelectedChannel] = React.useState<string | null>(null);
+  
+  const { data: channels, isLoading } = useQuery({
+    queryKey: ['channels'],
+    queryFn: () => channelApi.listChannels(),
+  });
+  
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, channelId: string) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedChannel(channelId);
+  };
+  
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedChannel(null);
+  };
+  
+  const getResponsePatternColor = (pattern: string) => {
+    switch (pattern) {
+      case 'WEBHOOK':
+        return 'primary';
+      case 'KAFKA':
+        return 'success';
+      case 'WEBSOCKET':
+        return 'info';
+      case 'POLLING':
+        return 'default';
+      case 'PUSH':
+        return 'warning';
+      default:
+        return 'default';
+    }
+  };
+  
+  return (
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4">Channels</Typography>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => navigate('/channels/onboard')}
+        >
+          Add Channel
+        </Button>
+      </Box>
+      
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Channel Name</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Response Pattern</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Created</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {channels?.map((channel: any) => (
+              <TableRow key={channel.channelId}>
+                <TableCell>{channel.channelName}</TableCell>
+                <TableCell>
+                  <Chip label={channel.channelType} size="small" />
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={channel.responsePattern}
+                    color={getResponsePatternColor(channel.responsePattern)}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={channel.status}
+                    color={channel.status === 'ACTIVE' ? 'success' : 'default'}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  {new Date(channel.createdAt).toLocaleDateString()}
+                </TableCell>
+                <TableCell align="right">
+                  <IconButton
+                    size="small"
+                    onClick={(e) => handleMenuOpen(e, channel.channelId)}
+                  >
+                    <MoreVert />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={() => {/* Edit */}}>
+          <Edit fontSize="small" sx={{ mr: 1 }} /> Edit
+        </MenuItem>
+        <MenuItem onClick={() => {/* Test */}}>
+          <PlayArrow fontSize="small" sx={{ mr: 1 }} /> Test
+        </MenuItem>
+        <MenuItem onClick={() => {/* Delete */}}>
+          <Delete fontSize="small" sx={{ mr: 1 }} /> Delete
+        </MenuItem>
+      </Menu>
+    </Box>
+  );
+}
+```
+
+---
+
+### 11.7 Implementation Summary
+
+**What Was Added**:
+1. ✅ **Database schema** for channel configurations
+2. ✅ **REST API** for channel CRUD operations
+3. ✅ **React UI** for channel onboarding (5 steps)
+4. ✅ **Response pattern selector** (Webhook, Kafka, WebSocket, Polling, Push)
+5. ✅ **Configuration forms** for each pattern
+6. ✅ **Test connection** functionality
+7. ✅ **Channel list** management UI
+8. ✅ **Dynamic routing** in Notification Service
+
+**Benefits**:
+- ✅ **Flexibility**: Channels choose their preferred integration method
+- ✅ **Self-service**: No manual configuration by ops team
+- ✅ **Validation**: Test connection before activation
+- ✅ **Scalability**: Support multiple patterns per tenant
+- ✅ **Auditability**: Track who configured what when
+
+**User Journey**:
+```
+1. Channel admin logs into React portal
+2. Clicks "Add Channel"
+3. Selects channel type (Partner, Corporate, Branch, etc.)
+4. Selects response pattern (Webhook, Kafka, WebSocket, etc.)
+5. Configures pattern-specific settings (URL, consumer group, etc.)
+6. Reviews configuration
+7. Tests connection (sends test payment response)
+8. Activates channel
+9. Payments Engine automatically routes responses based on configuration
+```
+
+---
+
 ## Summary
 
 ### Key Takeaways
