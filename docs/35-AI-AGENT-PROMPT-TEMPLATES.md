@@ -226,6 +226,10 @@ Task:
   These are IN ADDITION to the Generic Coding Guardrails above.
   ALL guardrails (generic + specific) MUST be followed.
 
+📊 DATA STRUCTURES & ALGORITHMS GUIDANCE:
+  See: docs/37-DSA-GUIDANCE-ALL-FEATURES.md for recommended data structures,
+  algorithms, time/space complexity considerations for this feature.
+
 Context Provided:
   1. Architecture Documents:
      - [List of docs with specific sections/line numbers]
