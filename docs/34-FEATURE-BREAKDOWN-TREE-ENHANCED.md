@@ -305,6 +305,20 @@ gantt
     Security Testing         :p6_3, after p6_2, 4d
     Compliance Testing       :p6_4, after p6_3, 4d
     Production Readiness     :p6_5, after p6_4, 3d
+    
+    section Phase 7 (Parallel - After Phase 6)
+    Operations Mgmt Service  :p7_1, after p6_5, 6d
+    Metrics Aggregation      :p7_2, after p6_5, 5d
+    Payment Repair APIs      :p7_3, after p6_5, 4d
+    Saga Management APIs     :p7_4, after p6_5, 3d
+    Transaction Search APIs  :p7_5, after p6_5, 4d
+    Reconciliation Mgmt APIs :p7_6, after p6_5, 3d
+    React Ops - Service Mgmt :p7_7, after p7_1 p7_2, 5d
+    React Ops - Payment Repair :p7_8, after p7_3, 6d
+    React Ops - Transaction UI :p7_9, after p7_5, 5d
+    React Ops - Recon & Mon  :p7_10, after p7_6, 5d
+    Channel Onboarding UI    :p7_11, after p6_5, 4d
+    Clearing Onboarding UI   :p7_12, after p6_5, 6d
 ```
 
 **Critical Path**: Phase 0 → Phase 1 (Saga) → Phase 4 (Reconciliation) → Phase 6 (All Testing) → Phase 7 (Ops Portal) = **40-45 days**
