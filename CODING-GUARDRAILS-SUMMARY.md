@@ -5,15 +5,15 @@
 This document summarizes the **comprehensive coding guardrails** for the Payments Engine, ensuring all AI agents follow best practices for **security**, **code quality**, **performance**, **testing**, and **compliance**.
 
 **Status**: ✅ COMPLETE  
-**Coverage**: 23 generic guardrails + 13 features with specific guardrails  
+**Coverage**: 24 generic guardrails + 13 features with specific guardrails  
 **Document**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md`  
-**Total Guardrails**: 150+ rules
+**Total Guardrails**: 160+ rules (includes Istio vs Resilience4j decision)
 
 ---
 
 ## ⚠️ Generic Coding Guardrails (23 Rules)
 
-These guardrails apply to **ALL 36 features** and **ALL AI agents**.
+These guardrails apply to **ALL 40 features** and **ALL AI agents**.
 
 ### 🔒 Security Guardrails (5 Rules)
 
