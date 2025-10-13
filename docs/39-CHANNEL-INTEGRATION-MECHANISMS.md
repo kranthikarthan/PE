@@ -248,6 +248,7 @@ Channels can receive **asynchronous status updates** via:
 3. **WebSocket Subscriptions** (real-time for web/mobile)
 4. **Push Notifications** (mobile only)
 5. **SMS/Email** (customer notifications)
+6. **Kafka Topics** (recommended for high-volume channels) 🆕
 
 ---
 
@@ -465,6 +466,824 @@ Time: 2025-10-12 10:05 AM
 ```
 
 **Use Case**: Customer confirmations (not channel integrations)
+
+---
+
+### 4.7 Kafka Topics (High-Volume Channels) 🆕
+
+**Pattern**: Channels consume payment responses from dedicated Kafka topics
+
+**Why Kafka for Channel Responses?**
+- ✅ **High throughput**: 100K+ messages/sec (vs 10K webhooks/sec)
+- ✅ **Guaranteed delivery**: At-least-once or exactly-once semantics
+- ✅ **Message replay**: Channels can replay missed events
+- ✅ **Decoupling**: Payments Engine doesn't call channel endpoints
+- ✅ **Backpressure handling**: Channels consume at their own pace
+- ✅ **Multi-channel fanout**: Single event, multiple consumers
+- ✅ **Schema evolution**: Avro/Protobuf with Schema Registry
+
+**Use Case**: Corporate portals, partner systems, branch systems (high-volume integrations)
+
+---
+
+#### 4.7.1 Kafka Topic Design
+
+**Topic Naming Convention**: `payments.responses.<channel-type>.<tenant-id>`
+
+**Topic Structure**:
+```yaml
+# Web Banking Responses (per tenant)
+Topic: payments.responses.web.TENANT-001
+Partitions: 10
+Replication Factor: 3
+Retention: 7 days
+Cleanup Policy: delete
+
+# Mobile Banking Responses (per tenant)
+Topic: payments.responses.mobile.TENANT-001
+Partitions: 10
+Replication Factor: 3
+Retention: 7 days
+Cleanup Policy: delete
+
+# Partner API Responses (per partner)
+Topic: payments.responses.partner.PARTNER-ABC
+Partitions: 5
+Replication Factor: 3
+Retention: 7 days
+Cleanup Policy: delete
+
+# Corporate Portal Responses (per corporate client)
+Topic: payments.responses.corporate.CORP-XYZ
+Partitions: 3
+Replication Factor: 3
+Retention: 7 days
+Cleanup Policy: delete
+
+# Branch System Responses (all branches)
+Topic: payments.responses.branch.TENANT-001
+Partitions: 5
+Replication Factor: 3
+Retention: 7 days
+Cleanup Policy: delete
+```
+
+**Partitioning Strategy**:
+- **Key**: `paymentId` (ensures ordering per payment)
+- **Partitions**: Based on throughput (1 partition = ~10K msg/sec)
+- **Replication Factor**: 3 (high availability)
+
+---
+
+#### 4.7.2 Message Format (Avro Schema)
+
+**Avro Schema** (with Confluent Schema Registry):
+
+```json
+{
+  "type": "record",
+  "name": "PaymentResponse",
+  "namespace": "com.payments.events",
+  "doc": "Payment response event for channel consumption",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "doc": "Unique event ID (UUID)"
+    },
+    {
+      "name": "eventType",
+      "type": {
+        "type": "enum",
+        "name": "PaymentEventType",
+        "symbols": [
+          "PAYMENT_INITIATED",
+          "PAYMENT_VALIDATED",
+          "PAYMENT_DEBITED",
+          "PAYMENT_SUBMITTED_TO_CLEARING",
+          "PAYMENT_COMPLETED",
+          "PAYMENT_FAILED",
+          "PAYMENT_CANCELLED"
+        ]
+      },
+      "doc": "Type of payment event"
+    },
+    {
+      "name": "paymentId",
+      "type": "string",
+      "doc": "Payment ID (PAY-2025-XXXXXX)"
+    },
+    {
+      "name": "tenantId",
+      "type": "string",
+      "doc": "Tenant ID"
+    },
+    {
+      "name": "customerId",
+      "type": "string",
+      "doc": "Customer ID"
+    },
+    {
+      "name": "status",
+      "type": {
+        "type": "enum",
+        "name": "PaymentStatus",
+        "symbols": [
+          "INITIATED",
+          "VALIDATED",
+          "DEBITED",
+          "SUBMITTED_TO_CLEARING",
+          "COMPLETED",
+          "FAILED",
+          "CANCELLED"
+        ]
+      },
+      "doc": "Payment status"
+    },
+    {
+      "name": "amount",
+      "type": "double",
+      "doc": "Payment amount"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "doc": "Currency code (ISO 4217)"
+    },
+    {
+      "name": "debtorAccount",
+      "type": "string",
+      "doc": "Debtor account number"
+    },
+    {
+      "name": "creditorAccount",
+      "type": "string",
+      "doc": "Creditor account number"
+    },
+    {
+      "name": "clearingSystem",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Clearing system (SAMOS, RTC, PayShap, SWIFT)"
+    },
+    {
+      "name": "clearingReference",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Clearing system reference"
+    },
+    {
+      "name": "failureReason",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Failure reason (if status = FAILED)"
+    },
+    {
+      "name": "failureCode",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Failure code (INSUFFICIENT_FUNDS, LIMIT_EXCEEDED, etc.)"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Event timestamp (milliseconds since epoch)"
+    },
+    {
+      "name": "correlationId",
+      "type": "string",
+      "doc": "Correlation ID for tracing"
+    },
+    {
+      "name": "idempotencyKey",
+      "type": "string",
+      "doc": "Idempotency key from original request"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional metadata (extensible)"
+    }
+  ]
+}
+```
+
+**Message Example** (JSON representation):
+```json
+{
+  "eventId": "EVENT-UUID-1234",
+  "eventType": "PAYMENT_COMPLETED",
+  "paymentId": "PAY-2025-XXXXXX",
+  "tenantId": "TENANT-001",
+  "customerId": "CUST-123",
+  "status": "COMPLETED",
+  "amount": 1000.00,
+  "currency": "ZAR",
+  "debtorAccount": "1234567890",
+  "creditorAccount": "0987654321",
+  "clearingSystem": "RTC",
+  "clearingReference": "RTC-REF-789",
+  "failureReason": null,
+  "failureCode": null,
+  "timestamp": 1696780800000,
+  "correlationId": "corr-uuid-abcd",
+  "idempotencyKey": "uuid-1234-5678",
+  "metadata": {
+    "clearingTime": "5.2s",
+    "fraudScore": "0.12"
+  }
+}
+```
+
+---
+
+#### 4.7.3 Producer Configuration (Payments Engine)
+
+**Notification Service** publishes to Kafka topics:
+
+```java
+@Service
+public class KafkaPaymentResponseProducer {
+    
+    @Autowired
+    private KafkaTemplate<String, PaymentResponse> kafkaTemplate;
+    
+    @Autowired
+    private SchemaRegistryClient schemaRegistry;
+    
+    /**
+     * Publish payment response to channel-specific Kafka topic
+     * 
+     * @param payment Payment entity
+     * @param eventType Event type (COMPLETED, FAILED, etc.)
+     */
+    public void publishPaymentResponse(Payment payment, PaymentEventType eventType) {
+        
+        // 1. Build Avro message
+        PaymentResponse response = PaymentResponse.newBuilder()
+            .setEventId(UUID.randomUUID().toString())
+            .setEventType(eventType)
+            .setPaymentId(payment.getPaymentId())
+            .setTenantId(payment.getTenantId())
+            .setCustomerId(payment.getCustomerId())
+            .setStatus(payment.getStatus())
+            .setAmount(payment.getAmount().doubleValue())
+            .setCurrency(payment.getCurrency())
+            .setDebtorAccount(payment.getDebtorAccount())
+            .setCreditorAccount(payment.getCreditorAccount())
+            .setClearingSystem(payment.getClearingSystem())
+            .setClearingReference(payment.getClearingReference())
+            .setFailureReason(payment.getFailureReason())
+            .setFailureCode(payment.getFailureCode())
+            .setTimestamp(Instant.now().toEpochMilli())
+            .setCorrelationId(MDC.get("correlationId"))
+            .setIdempotencyKey(payment.getIdempotencyKey())
+            .setMetadata(buildMetadata(payment))
+            .build();
+        
+        // 2. Determine topic based on channel type
+        String topic = determineTopicForChannel(payment.getChannelType(), payment.getTenantId());
+        
+        // 3. Send to Kafka (paymentId as key for ordering)
+        ProducerRecord<String, PaymentResponse> record = new ProducerRecord<>(
+            topic,
+            payment.getPaymentId(),  // Key: ensures ordering per payment
+            response
+        );
+        
+        // 4. Add headers
+        record.headers().add("eventType", eventType.name().getBytes());
+        record.headers().add("tenantId", payment.getTenantId().getBytes());
+        record.headers().add("correlationId", MDC.get("correlationId").getBytes());
+        
+        // 5. Send with callback
+        kafkaTemplate.send(record).addCallback(
+            result -> log.info("Published payment response to Kafka: paymentId={}, topic={}, partition={}, offset={}",
+                payment.getPaymentId(), topic, result.getRecordMetadata().partition(), result.getRecordMetadata().offset()),
+            error -> log.error("Failed to publish payment response to Kafka: paymentId={}, error={}",
+                payment.getPaymentId(), error.getMessage())
+        );
+    }
+    
+    private String determineTopicForChannel(ChannelType channelType, String tenantId) {
+        return switch (channelType) {
+            case WEB -> "payments.responses.web." + tenantId;
+            case MOBILE -> "payments.responses.mobile." + tenantId;
+            case PARTNER -> "payments.responses.partner." + tenantId;
+            case CORPORATE -> "payments.responses.corporate." + tenantId;
+            case BRANCH -> "payments.responses.branch." + tenantId;
+            case ATM -> "payments.responses.atm." + tenantId;
+            case USSD -> "payments.responses.ussd." + tenantId;
+        };
+    }
+    
+    private Map<String, String> buildMetadata(Payment payment) {
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("clearingTime", payment.getClearingTime() + "s");
+        metadata.put("fraudScore", payment.getFraudScore() != null ? payment.getFraudScore().toString() : "N/A");
+        return metadata;
+    }
+}
+```
+
+**Producer Configuration**:
+```yaml
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      # Exactly-once semantics
+      acks: all  # All replicas must acknowledge
+      retries: 3
+      enable-idempotence: true
+      transaction-id-prefix: payment-response-producer-
+      
+      # Compression (reduces bandwidth)
+      compression-type: snappy
+      
+      # Batching (increases throughput)
+      batch-size: 16384  # 16 KB
+      linger-ms: 10  # Wait 10ms to batch messages
+      
+      # Serialization (Avro with Schema Registry)
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      
+      properties:
+        # Schema Registry
+        schema.registry.url: ${SCHEMA_REGISTRY_URL}
+        auto.register.schemas: true
+        
+        # Partitioner (sticky partitioning for better performance)
+        partitioner.class: org.apache.kafka.clients.producer.RoundRobinPartitioner
+        
+        # Security (mTLS + SASL)
+        security.protocol: SASL_SSL
+        sasl.mechanism: PLAIN
+        sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_USERNAME}" password="${KAFKA_PASSWORD}";
+        ssl.truststore.location: /etc/kafka/truststore.jks
+        ssl.truststore.password: ${TRUSTSTORE_PASSWORD}
+```
+
+---
+
+#### 4.7.4 Consumer Configuration (Channel Side)
+
+**Channel consumes from Kafka topic**:
+
+##### Option 1: Java Spring Boot Consumer (Partner System)
+
+```java
+@Service
+public class PartnerPaymentResponseConsumer {
+    
+    @Autowired
+    private PartnerCallbackService callbackService;
+    
+    @KafkaListener(
+        topics = "payments.responses.partner.PARTNER-ABC",
+        groupId = "partner-abc-consumer-group",
+        containerFactory = "kafkaListenerContainerFactory"
+    )
+    public void consumePaymentResponse(
+        @Payload PaymentResponse response,
+        @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String paymentId,
+        @Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition,
+        @Header(KafkaHeaders.OFFSET) long offset,
+        Acknowledgment acknowledgment
+    ) {
+        try {
+            log.info("Received payment response: paymentId={}, status={}, partition={}, offset={}",
+                response.getPaymentId(), response.getStatus(), partition, offset);
+            
+            // 1. Process payment response (update internal database, trigger workflows)
+            callbackService.handlePaymentResponse(response);
+            
+            // 2. Manual acknowledgment (exactly-once semantics)
+            acknowledgment.acknowledge();
+            
+            log.info("Processed payment response successfully: paymentId={}", response.getPaymentId());
+            
+        } catch (Exception e) {
+            log.error("Failed to process payment response: paymentId={}, error={}",
+                response.getPaymentId(), e.getMessage());
+            
+            // Don't acknowledge (message will be reprocessed)
+            throw new RuntimeException("Payment processing failed", e);
+        }
+    }
+}
+```
+
+**Consumer Configuration**:
+```yaml
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      # Consumer group (multiple instances for high availability)
+      group-id: partner-abc-consumer-group
+      
+      # Manual offset commit (exactly-once semantics)
+      enable-auto-commit: false
+      auto-offset-reset: earliest  # Start from beginning if no offset
+      
+      # Deserialization (Avro with Schema Registry)
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      
+      # Fetch settings (tune for throughput vs latency)
+      fetch-min-size: 1024  # 1 KB
+      fetch-max-wait-ms: 500  # Max wait time
+      max-poll-records: 500  # Max records per poll
+      
+      properties:
+        # Schema Registry
+        schema.registry.url: ${SCHEMA_REGISTRY_URL}
+        specific.avro.reader: true
+        
+        # Isolation level (read_committed for exactly-once)
+        isolation.level: read_committed
+        
+        # Security (mTLS + SASL)
+        security.protocol: SASL_SSL
+        sasl.mechanism: PLAIN
+        sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_USERNAME}" password="${KAFKA_PASSWORD}";
+        ssl.truststore.location: /etc/kafka/truststore.jks
+        ssl.truststore.password: ${TRUSTSTORE_PASSWORD}
+    
+    listener:
+      # Manual acknowledgment mode
+      ack-mode: manual
+      
+      # Concurrency (multiple threads per consumer)
+      concurrency: 5
+      
+      # Error handling
+      type: batch  # Batch processing for higher throughput
+```
+
+---
+
+##### Option 2: Kafka Connect (No-Code Integration)
+
+**For channels without Kafka client libraries** (legacy systems, non-JVM languages):
+
+**Kafka Connect Sink Configuration** (pushes to channel's REST endpoint):
+
+```json
+{
+  "name": "payment-response-to-partner-webhook",
+  "config": {
+    "connector.class": "io.confluent.connect.http.HttpSinkConnector",
+    "tasks.max": "3",
+    
+    "topics": "payments.responses.partner.PARTNER-ABC",
+    
+    "http.api.url": "https://partner-abc.com/api/payment-webhook",
+    "http.method": "POST",
+    
+    "request.body.format": "json",
+    "headers": "Content-Type:application/json|Authorization:Bearer ${partner.api.key}",
+    
+    "retry.on.status.codes": "500-599",
+    "max.retries": 3,
+    "retry.backoff.ms": 1000,
+    
+    "batch.max.size": 100,
+    "batch.prefix": "[",
+    "batch.suffix": "]",
+    "batch.separator": ",",
+    
+    "reporter.bootstrap.servers": "${KAFKA_BOOTSTRAP_SERVERS}",
+    "reporter.error.topic.name": "payments.responses.partner.PARTNER-ABC.errors",
+    "reporter.error.topic.replication.factor": 3,
+    
+    "transforms": "convertToJson",
+    "transforms.convertToJson.type": "org.apache.kafka.connect.transforms.ValueToString"
+  }
+}
+```
+
+**Deploy Kafka Connect**:
+```bash
+curl -X POST http://kafka-connect:8083/connectors \
+  -H "Content-Type: application/json" \
+  -d @payment-response-connector.json
+```
+
+---
+
+##### Option 3: Kafka REST Proxy (HTTP Polling)
+
+**For channels that prefer HTTP over native Kafka clients**:
+
+```bash
+# Channel polls Kafka REST Proxy
+GET https://kafka-rest-proxy.payments.io/consumers/partner-abc-group/instances/partner-abc-instance/records
+Authorization: Bearer <API key>
+
+Response:
+[
+  {
+    "topic": "payments.responses.partner.PARTNER-ABC",
+    "partition": 0,
+    "offset": 12345,
+    "key": "PAY-2025-XXXXXX",
+    "value": {
+      "eventId": "EVENT-UUID-1234",
+      "eventType": "PAYMENT_COMPLETED",
+      "paymentId": "PAY-2025-XXXXXX",
+      "status": "COMPLETED",
+      ...
+    }
+  }
+]
+
+# Channel commits offset
+POST https://kafka-rest-proxy.payments.io/consumers/partner-abc-group/instances/partner-abc-instance/offsets
+{
+  "offsets": [
+    {
+      "topic": "payments.responses.partner.PARTNER-ABC",
+      "partition": 0,
+      "offset": 12346
+    }
+  ]
+}
+```
+
+---
+
+#### 4.7.5 Consumer Groups & Scalability
+
+**Consumer Group Strategy**:
+
+```yaml
+# Single consumer group per channel/partner
+Consumer Group ID: partner-abc-consumer-group
+
+# Multiple instances for high availability & load balancing
+Instance 1: partner-abc-instance-1 (consumes partitions 0, 1, 2)
+Instance 2: partner-abc-instance-2 (consumes partitions 3, 4, 5)
+Instance 3: partner-abc-instance-3 (consumes partitions 6, 7, 8, 9)
+
+# Rebalancing on instance failure
+If Instance 1 fails:
+  → Instance 2 and 3 automatically take over partitions 0, 1, 2
+```
+
+**Scalability**:
+- ✅ **Horizontal scaling**: Add more consumer instances (max = partition count)
+- ✅ **Partition scaling**: Add more partitions (online operation, no downtime)
+- ✅ **Topic per tenant**: Isolate tenants (security + performance)
+
+---
+
+#### 4.7.6 Exactly-Once Semantics
+
+**Configuration for Exactly-Once**:
+
+**Producer**:
+```yaml
+enable-idempotence: true  # Producer deduplication
+acks: all  # All replicas acknowledge
+transactional-id: payment-response-producer-${instance-id}  # Transactions
+```
+
+**Consumer**:
+```yaml
+enable-auto-commit: false  # Manual offset commit
+isolation-level: read_committed  # Only read committed messages
+```
+
+**Transactional Processing**:
+```java
+@Transactional
+public void processPaymentWithKafka(Payment payment) {
+    // 1. Update payment in database
+    paymentRepository.save(payment);
+    
+    // 2. Publish to Kafka (within same transaction)
+    kafkaTemplate.executeInTransaction(operations -> {
+        operations.send("payments.responses.partner.PARTNER-ABC", payment.getPaymentId(), buildResponse(payment));
+        return true;
+    });
+    
+    // If either fails, both rollback (exactly-once)
+}
+```
+
+---
+
+#### 4.7.7 Error Handling & Dead Letter Queue
+
+**Dead Letter Topic** for failed messages:
+
+```yaml
+# Main topic
+Topic: payments.responses.partner.PARTNER-ABC
+
+# Dead letter topic (for messages that fail processing 3 times)
+Topic: payments.responses.partner.PARTNER-ABC.DLT
+Partitions: 10
+Retention: 30 days  # Longer retention for investigation
+```
+
+**Error Handling Configuration**:
+```java
+@Bean
+public ConcurrentKafkaListenerContainerFactory<String, PaymentResponse> kafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, PaymentResponse> factory = 
+        new ConcurrentKafkaListenerContainerFactory<>();
+    
+    // Error handler with retry + DLT
+    DefaultErrorHandler errorHandler = new DefaultErrorHandler(
+        new DeadLetterPublishingRecoverer(kafkaTemplate,
+            (record, exception) -> {
+                // Send to DLT after 3 retries
+                return new TopicPartition(record.topic() + ".DLT", record.partition());
+            }),
+        new FixedBackOff(1000L, 3L)  // Retry 3 times with 1s delay
+    );
+    
+    factory.setCommonErrorHandler(errorHandler);
+    return factory;
+}
+```
+
+---
+
+#### 4.7.8 Monitoring & Observability
+
+**Kafka Metrics to Monitor**:
+
+```yaml
+Producer Metrics:
+  - record-send-rate: Messages sent per second
+  - record-error-rate: Failed sends per second
+  - compression-rate: Compression ratio
+  - batch-size-avg: Average batch size
+  
+Consumer Metrics:
+  - records-consumed-rate: Messages consumed per second
+  - records-lag-max: Max lag (messages behind)
+  - commit-latency-avg: Average offset commit time
+  - fetch-latency-avg: Average fetch time
+
+Topic Metrics:
+  - messages-in-per-sec: Messages produced to topic
+  - bytes-in-per-sec: Bytes produced to topic
+  - messages-out-per-sec: Messages consumed from topic
+  - under-replicated-partitions: Partitions with missing replicas
+```
+
+**Grafana Dashboard** (using Prometheus):
+```yaml
+Panels:
+  - Payment Response Throughput (messages/sec)
+  - Consumer Lag by Channel (messages behind)
+  - Error Rate (failures/sec)
+  - End-to-End Latency (payment completion → channel consumption)
+  - Schema Registry Health (schema versions, compatibility)
+```
+
+---
+
+#### 4.7.9 Security Best Practices
+
+**Security Configuration**:
+
+```yaml
+# mTLS (mutual TLS)
+security.protocol: SSL
+ssl.truststore.location: /etc/kafka/truststore.jks
+ssl.truststore.password: ${TRUSTSTORE_PASSWORD}
+ssl.keystore.location: /etc/kafka/keystore.jks
+ssl.keystore.password: ${KEYSTORE_PASSWORD}
+ssl.key.password: ${KEY_PASSWORD}
+
+# SASL (username/password)
+security.protocol: SASL_SSL
+sasl.mechanism: PLAIN
+sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_USERNAME}" password="${KAFKA_PASSWORD}";
+
+# ACLs (Access Control Lists)
+kafka-acls --authorizer-properties zookeeper.connect=localhost:2181 \
+  --add --allow-principal User:partner-abc \
+  --operation Read \
+  --topic payments.responses.partner.PARTNER-ABC \
+  --group partner-abc-consumer-group
+```
+
+**Schema Registry Security**:
+```yaml
+schema.registry.url: https://schema-registry.payments.io
+basic.auth.credentials.source: USER_INFO
+basic.auth.user.info: ${SCHEMA_REGISTRY_USERNAME}:${SCHEMA_REGISTRY_PASSWORD}
+```
+
+---
+
+#### 4.7.10 Schema Evolution
+
+**Avro Schema Compatibility**:
+
+```yaml
+# Schema Registry compatibility mode
+Compatibility: BACKWARD  # Consumers can read old schemas with new code
+
+# Version 1 (initial schema)
+{
+  "fields": [
+    {"name": "paymentId", "type": "string"},
+    {"name": "status", "type": "string"}
+  ]
+}
+
+# Version 2 (add optional field)
+{
+  "fields": [
+    {"name": "paymentId", "type": "string"},
+    {"name": "status", "type": "string"},
+    {"name": "clearingReference", "type": ["null", "string"], "default": null}  # Optional
+  ]
+}
+
+# Version 3 (add another optional field)
+{
+  "fields": [
+    {"name": "paymentId", "type": "string"},
+    {"name": "status", "type": "string"},
+    {"name": "clearingReference", "type": ["null", "string"], "default": null},
+    {"name": "fraudScore", "type": ["null", "double"], "default": null}  # Optional
+  ]
+}
+```
+
+**Schema Evolution Rules**:
+- ✅ **Add optional fields** (with default values)
+- ✅ **Delete optional fields**
+- ❌ **Cannot delete required fields**
+- ❌ **Cannot change field types**
+
+---
+
+#### 4.7.11 Comparison: Kafka vs Webhooks
+
+| Feature | Kafka Topics | Webhooks |
+|---------|-------------|----------|
+| **Throughput** | 100K+ msg/sec | 10K req/sec |
+| **Delivery Guarantee** | Exactly-once | At-most-once (retry) |
+| **Message Replay** | ✅ Yes (replay from offset) | ❌ No (lost if failed) |
+| **Backpressure** | ✅ Consumer controls rate | ❌ Sender controls rate |
+| **Ordering** | ✅ Guaranteed per partition | ❌ Not guaranteed |
+| **Latency** | 10-50ms | 100-500ms |
+| **Decoupling** | ✅ Full decoupling | ⚠️ Sender calls receiver |
+| **Schema Evolution** | ✅ Avro/Protobuf | ⚠️ Manual versioning |
+| **Multi-Tenant** | ✅ Topic per tenant | ⚠️ Webhook per tenant |
+| **Monitoring** | ✅ Rich metrics (lag, etc.) | ⚠️ Limited (HTTP status) |
+| **Complexity** | ⚠️ Higher (Kafka cluster) | ✅ Lower (HTTP) |
+| **Cost** | ⚠️ Higher (Kafka infra) | ✅ Lower (no infra) |
+
+**Recommendation**:
+- ✅ **Use Kafka** for: High-volume partners (>10K payments/day), corporate clients, branch systems
+- ✅ **Use Webhooks** for: Low-volume partners (<10K payments/day), simple integrations
+
+---
+
+#### 4.7.12 Implementation Roadmap
+
+**Phase 1: Setup (Week 1-2)**
+1. Deploy Kafka cluster (3 brokers, 3 ZooKeeper nodes)
+2. Deploy Schema Registry (3 instances)
+3. Configure topics (per channel type)
+4. Configure ACLs (per channel/partner)
+
+**Phase 2: Producer Integration (Week 3-4)**
+5. Implement Kafka producer in Notification Service
+6. Register Avro schema in Schema Registry
+7. Test message publishing (unit + integration tests)
+8. Monitor producer metrics (Prometheus + Grafana)
+
+**Phase 3: Consumer Integration (Week 5-6)**
+9. Document consumer integration guide (for partners)
+10. Provide sample consumer code (Java, Python, Node.js)
+11. Onboard pilot partner (test consumer)
+12. Monitor consumer metrics (lag, throughput)
+
+**Phase 4: Production Rollout (Week 7-8)**
+13. Onboard all high-volume partners
+14. Cutover from webhooks to Kafka (gradual)
+15. Monitor end-to-end latency
+16. Document lessons learned
+
+**Total Duration**: 8 weeks (2 months)
 
 ---
 
@@ -1171,7 +1990,7 @@ Partner BFF:
 1. **HYBRID Pattern**:
    - ✅ **SYNCHRONOUS** for payment initiation (request/response in 500ms-2s)
    - ✅ **ASYNCHRONOUS** for internal processing (event-driven, 5-60s)
-   - ✅ **ASYNCHRONOUS** for status updates (webhooks, WebSocket, push)
+   - ✅ **ASYNCHRONOUS** for status updates (webhooks, WebSocket, push, **Kafka** 🆕)
 
 2. **Integration Layers**:
    - Layer 1: Azure Application Gateway (WAF, SSL, DDoS)
@@ -1180,20 +1999,38 @@ Partner BFF:
    - Layer 4: Internal microservices (event-driven)
 
 3. **Channel Support**:
-   - ✅ Web Banking (GraphQL)
-   - ✅ Mobile Banking (REST lightweight)
-   - ✅ Branch Systems (REST)
-   - ✅ Corporate Portals (REST bulk)
-   - ✅ Partner APIs (REST comprehensive + webhooks)
+   - ✅ Web Banking (GraphQL + WebSocket)
+   - ✅ Mobile Banking (REST lightweight + Push)
+   - ✅ Branch Systems (REST + **Kafka** 🆕)
+   - ✅ Corporate Portals (REST bulk + **Kafka** 🆕)
+   - ✅ Partner APIs (REST comprehensive + webhooks + **Kafka** 🆕)
 
 4. **Performance**:
    - Sync response: 500ms-2s
    - Full completion: 5-60s (depends on clearing system)
    - Throughput: 1750 TPS (36M payments/day)
+   - **Kafka throughput**: 100K+ msg/sec (10-50ms latency) 🆕
 
-5. **Error Handling**:
+5. **Asynchronous Notification Options** (6 mechanisms):
+   - Polling (simple, inefficient)
+   - Webhooks (recommended for low-volume)
+   - WebSocket (real-time for web/mobile)
+   - Push Notifications (mobile only)
+   - SMS/Email (customer confirmations)
+   - **Kafka Topics (recommended for high-volume, exactly-once semantics)** 🆕
+
+6. **Kafka Benefits for Channels**:
+   - ✅ High throughput (100K+ msg/sec)
+   - ✅ Guaranteed delivery (exactly-once semantics)
+   - ✅ Message replay (replay missed events)
+   - ✅ Schema evolution (Avro with Schema Registry)
+   - ✅ Decoupling (no direct calls to channel endpoints)
+   - ✅ Backpressure handling (consumer controls rate)
+
+7. **Error Handling**:
    - Synchronous errors: HTTP status codes + error response
-   - Asynchronous errors: WebSocket/webhook with failure reason
+   - Asynchronous errors: WebSocket/webhook/Kafka with failure reason
+   - Dead Letter Queue (DLT) for failed Kafka messages 🆕
 
 ---
 
