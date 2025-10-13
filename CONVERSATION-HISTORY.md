@@ -1430,3 +1430,105 @@ Checked all key documents:
 **Last Updated**: 2025-10-13  
 **Version**: 1.1 (with 2025-10-13 session)  
 **Status**: ✅ Current and Complete
+
+#### 45. Clearing System Interaction Flows Documentation
+
+**User Request**: "Document your understanding of each clearing system interactions flow per payment rail"
+
+**Agent Understanding**: User wants comprehensive end-to-end documentation of how the Payments Engine interacts with each of the 5 clearing systems (SAMOS, BankservAfrica, RTC, PayShap, SWIFT), including message formats, timing, error handling, and reconciliation.
+
+**Agent Actions**:
+1. Created comprehensive document `docs/43-CLEARING-SYSTEM-INTERACTION-FLOWS.md` (2,808 lines)
+2. Documented all 5 clearing systems in detail:
+
+**SAMOS (RTGS)** - 750 lines:
+- Real-time gross settlement architecture
+- 7-step interaction flow (initiation → settlement → reconciliation)
+- Complete ISO 20022 pacs.008 XML message format
+- XMLDSig digital signature implementation (Java)
+- mTLS authentication
+- Response processing (pacs.002 Payment Status Report)
+- 9 error codes with descriptions (NOAS, AM05, AC03, etc.)
+- camt.053 statement reconciliation
+- Timing: < 10 seconds total
+
+**BankservAfrica (EFT/ACH)** - 730 lines:
+- Batch processing architecture (4 daily cut-offs: 08:00, 11:00, 14:00, 17:00)
+- Spring Batch job configuration (ItemReader, ItemProcessor, ItemWriter)
+- ACH file format (proprietary fixed-width: Header, Detail, Trailer records)
+- PGP encryption + digital signatures (Java implementation)
+- SFTP upload/download with SSH keys
+- Response file processing
+- 8 rejection codes (2001-2008)
+- Inter-bank netting calculation
+- Timing: 2 hours (cut-off to settlement), T+0/T+1
+
+**RTC (Real-Time Clearing)** - 142 lines:
+- Real-time switching architecture
+- ISO 20022 pain.001 (Payment Initiation) message format
+- Synchronous REST API with mTLS
+- Beneficiary bank validation flow
+- Java RestTemplate implementation
+- pain.002 (Payment Status Report) response
+- 8 error codes (AC03, AC04, AC06, AG01, DUPL, etc.)
+- Single retry strategy on timeout
+- Timing: < 30 seconds, 24/7/365
+
+**PayShap** - 453 lines:
+- Instant P2P payment architecture
+- Proxy registration flow (mobile/email → account number + bank)
+- OAuth 2.0 token management (5-minute expiry, Java implementation)
+- Proxy resolution API
+- ISO 20022 pacs.008 with proxy-specific extensions
+- Built-in SMS notifications (automatic from PayShap)
+- Error handling (PROXY_NOT_FOUND)
+- Timing: < 10 seconds, 24/7/365, R 3,000 limit
+
+**SWIFT** - 493 lines:
+- International wire transfer architecture
+- FX rate conversion (ZAR → GBP/USD/EUR)
+- **MANDATORY sanctions screening** (OFAC, UN, EU, SARB) with Java implementation
+- Correspondent banking multi-hop routing
+- MT103 message format (legacy SWIFT text)
+- pacs.008 message format (modern MX/ISO 20022 XML)
+- SWIFTNet authentication (RMA + LAU)
+- MT910 confirmation processing
+- MT940 statement reconciliation
+- Fee calculation (sender + correspondent + beneficiary banks)
+- Timing: T+1 to T+3 (depends on correspondent banks)
+
+3. Added comprehensive comparison sections:
+   - **Overview Comparison**: Settlement timing, limits, hours, costs
+   - **Technical Comparison**: API types, message formats, authentication, response types
+   - **Use Case Recommendations**: 7 scenarios (when to use which rail)
+
+4. Added error handling patterns:
+   - Insufficient funds (per rail)
+   - Invalid account (per rail)
+   - Timeout handling (per rail)
+   - Sanctions match (SWIFT only)
+   - Retry strategy matrix
+
+5. Added reconciliation patterns:
+   - Daily workflow (18:00, all 5 systems)
+   - Three-way reconciliation (database + clearing + core banking)
+   - Reconciliation KPIs (> 99.9% match rate)
+
+**Files Created**: 1 new file (2,808 lines)  
+**Files Modified**: 1 file (README.md)  
+**Commit**: "Add comprehensive clearing system interaction flows documentation"  
+**Result**: ✅ Complete understanding of all 5 payment rails documented with message formats, code examples, timing, error handling, and reconciliation
+
+**Key Content**:
+- 15+ Java Spring Boot code examples
+- 25+ message format examples (ISO 20022, MT, ACH)
+- 50+ error codes documented
+- 5 comprehensive timing tables
+- 3 comparison matrices
+- 4 error handling patterns
+- Complete reconciliation workflows
+
+**Purpose**: Enable AI agents building clearing adapters (Features 2.1-2.5) to have complete context for all clearing system behaviors, message formats, and integration requirements.
+
+---
+
