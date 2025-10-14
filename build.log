@@ -1,0 +1,265 @@
+﻿[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] payments-engine                                                    [pom]
+[INFO] domain-models                                                      [pom]
+[INFO] shared                                                             [jar]
+[INFO] tenant-management                                                  [jar]
+[INFO] account-adapter                                                    [jar]
+[INFO] saga-orchestrator                                                  [jar]
+[INFO] validation                                                         [jar]
+[INFO] payment-initiation                                                 [jar]
+[INFO] transaction-processing                                             [jar]
+[INFO] clearing-adapter                                                   [jar]
+[INFO] 
+[INFO] --------------------< com.payments:payments-engine >--------------------
+[INFO] Building payments-engine 0.1.0-SNAPSHOT                           [1/10]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ payments-engine ---
+[INFO] Installing C:\git\clone\PE\pom.xml to C:\Users\Kranthi Karthan\.m2\repository\com\payments\payments-engine\0.1.0-SNAPSHOT\payments-engine-0.1.0-SNAPSHOT.pom
+[INFO] 
+[INFO] ---------------------< com.payments:domain-models >---------------------
+[INFO] Building domain-models 0.1.0-SNAPSHOT                             [2/10]
+[INFO]   from domain-models\pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ domain-models ---
+[INFO] Installing C:\git\clone\PE\domain-models\pom.xml to C:\Users\Kranthi Karthan\.m2\repository\com\payments\domain-models\0.1.0-SNAPSHOT\domain-models-0.1.0-SNAPSHOT.pom
+[INFO] 
+[INFO] ------------------------< com.payments:shared >-------------------------
+[INFO] Building shared 0.1.0-SNAPSHOT                                    [3/10]
+[INFO]   from domain-models\shared\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ shared ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\shared\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ shared ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ shared ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\shared\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ shared ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ shared ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ shared ---
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ shared ---
+[INFO] Installing C:\git\clone\PE\domain-models\shared\pom.xml to C:\Users\Kranthi Karthan\.m2\repository\com\payments\shared\0.1.0-SNAPSHOT\shared-0.1.0-SNAPSHOT.pom
+[INFO] Installing C:\git\clone\PE\domain-models\shared\target\shared-0.1.0-SNAPSHOT.jar to C:\Users\Kranthi Karthan\.m2\repository\com\payments\shared\0.1.0-SNAPSHOT\shared-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] -------------------< com.payments:tenant-management >-------------------
+[INFO] Building tenant-management 0.1.0-SNAPSHOT                         [4/10]
+[INFO]   from domain-models\tenant-management\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ tenant-management ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\tenant-management\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ tenant-management ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ tenant-management ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\tenant-management\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ tenant-management ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ tenant-management ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ tenant-management ---
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ tenant-management ---
+[INFO] Installing C:\git\clone\PE\domain-models\tenant-management\pom.xml to C:\Users\Kranthi Karthan\.m2\repository\com\payments\tenant-management\0.1.0-SNAPSHOT\tenant-management-0.1.0-SNAPSHOT.pom
+[INFO] Installing C:\git\clone\PE\domain-models\tenant-management\target\tenant-management-0.1.0-SNAPSHOT.jar to C:\Users\Kranthi Karthan\.m2\repository\com\payments\tenant-management\0.1.0-SNAPSHOT\tenant-management-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --------------------< com.payments:account-adapter >--------------------
+[INFO] Building account-adapter 0.1.0-SNAPSHOT                           [5/10]
+[INFO]   from domain-models\account-adapter\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ account-adapter ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\account-adapter\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ account-adapter ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ account-adapter ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\account-adapter\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ account-adapter ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ account-adapter ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ account-adapter ---
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ account-adapter ---
+[INFO] Installing C:\git\clone\PE\domain-models\account-adapter\pom.xml to C:\Users\Kranthi Karthan\.m2\repository\com\payments\account-adapter\0.1.0-SNAPSHOT\account-adapter-0.1.0-SNAPSHOT.pom
+[INFO] Installing C:\git\clone\PE\domain-models\account-adapter\target\account-adapter-0.1.0-SNAPSHOT.jar to C:\Users\Kranthi Karthan\.m2\repository\com\payments\account-adapter\0.1.0-SNAPSHOT\account-adapter-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] -------------------< com.payments:saga-orchestrator >-------------------
+[INFO] Building saga-orchestrator 0.1.0-SNAPSHOT                         [6/10]
+[INFO]   from domain-models\saga-orchestrator\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ saga-orchestrator ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\saga-orchestrator\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ saga-orchestrator ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ saga-orchestrator ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\saga-orchestrator\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ saga-orchestrator ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ saga-orchestrator ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ saga-orchestrator ---
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ saga-orchestrator ---
+[INFO] Installing C:\git\clone\PE\domain-models\saga-orchestrator\pom.xml to C:\Users\Kranthi Karthan\.m2\repository\com\payments\saga-orchestrator\0.1.0-SNAPSHOT\saga-orchestrator-0.1.0-SNAPSHOT.pom
+[INFO] Installing C:\git\clone\PE\domain-models\saga-orchestrator\target\saga-orchestrator-0.1.0-SNAPSHOT.jar to C:\Users\Kranthi Karthan\.m2\repository\com\payments\saga-orchestrator\0.1.0-SNAPSHOT\saga-orchestrator-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] ----------------------< com.payments:validation >-----------------------
+[INFO] Building validation 0.1.0-SNAPSHOT                                [7/10]
+[INFO]   from domain-models\validation\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ validation ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\validation\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ validation ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 8 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ validation ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\validation\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ validation ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ validation ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ validation ---
+[INFO] Building jar: C:\git\clone\PE\domain-models\validation\target\validation-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ validation ---
+[INFO] Installing C:\git\clone\PE\domain-models\validation\pom.xml to C:\Users\Kranthi Karthan\.m2\repository\com\payments\validation\0.1.0-SNAPSHOT\validation-0.1.0-SNAPSHOT.pom
+[INFO] Installing C:\git\clone\PE\domain-models\validation\target\validation-0.1.0-SNAPSHOT.jar to C:\Users\Kranthi Karthan\.m2\repository\com\payments\validation\0.1.0-SNAPSHOT\validation-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] ------------------< com.payments:payment-initiation >-------------------
+[INFO] Building payment-initiation 0.1.0-SNAPSHOT                        [8/10]
+[INFO]   from domain-models\payment-initiation\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ payment-initiation ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\payment-initiation\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ payment-initiation ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 10 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ payment-initiation ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\payment-initiation\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ payment-initiation ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ payment-initiation ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ payment-initiation ---
+[INFO] Building jar: C:\git\clone\PE\domain-models\payment-initiation\target\payment-initiation-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ payment-initiation ---
+[INFO] Installing C:\git\clone\PE\domain-models\payment-initiation\pom.xml to C:\Users\Kranthi Karthan\.m2\repository\com\payments\payment-initiation\0.1.0-SNAPSHOT\payment-initiation-0.1.0-SNAPSHOT.pom
+[INFO] Installing C:\git\clone\PE\domain-models\payment-initiation\target\payment-initiation-0.1.0-SNAPSHOT.jar to C:\Users\Kranthi Karthan\.m2\repository\com\payments\payment-initiation\0.1.0-SNAPSHOT\payment-initiation-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] ----------------< com.payments:transaction-processing >-----------------
+[INFO] Building transaction-processing 0.1.0-SNAPSHOT                    [9/10]
+[INFO]   from domain-models\transaction-processing\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ transaction-processing ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\transaction-processing\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ transaction-processing ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 8 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ transaction-processing ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\transaction-processing\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ transaction-processing ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ transaction-processing ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ transaction-processing ---
+[INFO] Building jar: C:\git\clone\PE\domain-models\transaction-processing\target\transaction-processing-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ transaction-processing ---
+[INFO] Installing C:\git\clone\PE\domain-models\transaction-processing\pom.xml to C:\Users\Kranthi Karthan\.m2\repository\com\payments\transaction-processing\0.1.0-SNAPSHOT\transaction-processing-0.1.0-SNAPSHOT.pom
+[INFO] Installing C:\git\clone\PE\domain-models\transaction-processing\target\transaction-processing-0.1.0-SNAPSHOT.jar to C:\Users\Kranthi Karthan\.m2\repository\com\payments\transaction-processing\0.1.0-SNAPSHOT\transaction-processing-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] -------------------< com.payments:clearing-adapter >--------------------
+[INFO] Building clearing-adapter 0.1.0-SNAPSHOT                         [10/10]
+[INFO]   from domain-models\clearing-adapter\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ clearing-adapter ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\clearing-adapter\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ clearing-adapter ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 5 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ clearing-adapter ---
+[INFO] skip non existing resourceDirectory C:\git\clone\PE\domain-models\clearing-adapter\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ clearing-adapter ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ clearing-adapter ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ clearing-adapter ---
+[INFO] Building jar: C:\git\clone\PE\domain-models\clearing-adapter\target\clearing-adapter-0.1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.2:install (default-install) @ clearing-adapter ---
+[INFO] Installing C:\git\clone\PE\domain-models\clearing-adapter\pom.xml to C:\Users\Kranthi Karthan\.m2\repository\com\payments\clearing-adapter\0.1.0-SNAPSHOT\clearing-adapter-0.1.0-SNAPSHOT.pom
+[INFO] Installing C:\git\clone\PE\domain-models\clearing-adapter\target\clearing-adapter-0.1.0-SNAPSHOT.jar to C:\Users\Kranthi Karthan\.m2\repository\com\payments\clearing-adapter\0.1.0-SNAPSHOT\clearing-adapter-0.1.0-SNAPSHOT.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for payments-engine 0.1.0-SNAPSHOT:
+[INFO] 
+[INFO] payments-engine .................................... SUCCESS [  0.178 s]
+[INFO] domain-models ...................................... SUCCESS [  0.006 s]
+[INFO] shared ............................................. SUCCESS [  0.746 s]
+[INFO] tenant-management .................................. SUCCESS [  0.047 s]
+[INFO] account-adapter .................................... SUCCESS [  0.036 s]
+[INFO] saga-orchestrator .................................. SUCCESS [  0.040 s]
+[INFO] validation ......................................... SUCCESS [  1.268 s]
+[INFO] payment-initiation ................................. SUCCESS [  0.659 s]
+[INFO] transaction-processing ............................. SUCCESS [  0.628 s]
+[INFO] clearing-adapter ................................... SUCCESS [  0.563 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  4.329 s
+[INFO] Finished at: 2025-10-14T16:20:06+05:30
+[INFO] ------------------------------------------------------------------------

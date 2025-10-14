@@ -1,0 +1,25 @@
+package com.payments.domain.account;
+
+import com.payments.domain.shared.*;
+import lombok.*;
+import java.time.Instant;
+
+/**
+ * Domain Event: Adapter Activated
+ */
+@Value
+@AllArgsConstructor
+public class AdapterActivatedEvent implements DomainEvent {
+    AccountAdapterId adapterId;
+    String activatedBy;
+    
+    @Override
+    public String getEventType() {
+        return "AdapterActivated";
+    }
+    
+    @Override
+    public Instant getOccurredAt() {
+        return Instant.now();
+    }
+}
