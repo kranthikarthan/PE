@@ -6,6 +6,7 @@ This changelog follows a simplified Keep a Changelog style.
 ## [Unreleased]
 
 - Docs: minor formatting/tweak placeholder to enable PR.
+- Meta: PR test change on feature branch.
 
 ## [0.1.0] - 2025-10-15
 
