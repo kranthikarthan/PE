@@ -1,0 +1,171 @@
+spring:
+  application:
+    name: account-adapter-service
+  
+  profiles:
+    active: dev
+    
+  security:
+    oauth2:
+      client:
+        registration:
+          account-service:
+            client-id: account-adapter-service
+            client-secret: account-adapter-secret
+            authorization-grant-type: client_credentials
+            scope: accounts:read,accounts:write
+        provider:
+          account-service:
+            token-uri: ${account.service.oauth.token-uri:http://localhost:8080/oauth/token}
+            authorization-uri: ${account.service.oauth.authorization-uri:http://localhost:8080/oauth/authorize}
+            
+  redis:
+    host: ${redis.host:localhost}
+    port: ${redis.port:6379}
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+# Account Service Configuration
+account:
+  service:
+    url: ${ACCOUNT_SERVICE_URL:http://localhost:8080}
+    oauth:
+      token-uri: ${ACCOUNT_SERVICE_OAUTH_TOKEN_URI:http://localhost:8080/oauth/token}
+      authorization-uri: ${ACCOUNT_SERVICE_OAUTH_AUTH_URI:http://localhost:8080/oauth/authorize}
+    timeout:
+      connect: 10000
+      read: 30000
+    retry:
+      max-attempts: 3
+      delay: 1000
+    cache:
+      ttl: 300000  # 5 minutes
+      max-size: 1000
+
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      account-service:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-type: COUNT_BASED
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 2s
+        event-consumer-buffer-size: 10
+        record-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - java.util.concurrent.CompletionException
+          - feign.FeignException
+          - com.payments.accountadapter.dto.AccountServiceException
+        ignore-exceptions:
+          - com.payments.accountadapter.dto.AccountServiceException
+      rest-template:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-type: COUNT_BASED
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+        event-consumer-buffer-size: 10
+        record-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.ResourceAccessException
+        ignore-exceptions:
+          - com.payments.accountadapter.dto.AccountServiceException
+          
+  retry:
+    instances:
+      account-service:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+        max-wait-duration: 10s
+        retry-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - feign.FeignException
+        ignore-exceptions:
+          - com.payments.accountadapter.dto.AccountServiceException
+      rest-template:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+        max-wait-duration: 10s
+        retry-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.ResourceAccessException
+        ignore-exceptions:
+          - com.payments.accountadapter.dto.AccountServiceException
+          
+  timelimiter:
+    instances:
+      account-service:
+        timeout-duration: 30s
+        cancel-running-future: true
+      rest-template:
+        timeout-duration: 30s
+        cancel-running-future: true
+
+# Feign Configuration
+feign:
+  client:
+    config:
+      account-service:
+        connect-timeout: 10000
+        read-timeout: 30000
+        logger-level: BASIC
+        retryer: com.payments.accountadapter.client.AccountServiceRetryer
+  compression:
+    request:
+      enabled: true
+      mime-types: application/json,application/xml,text/xml
+      min-request-size: 2048
+    response:
+      enabled: true
+      mime-types: application/json,application/xml,text/xml
+
+# OpenTelemetry Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,opentelemetry
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+# Logging Configuration
+logging:
+  level:
+    com.payments.accountadapter: DEBUG
+    feign: DEBUG
+    org.springframework.cloud.openfeign: DEBUG
+    io.github.resilience4j: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"
+
+# Server Configuration
+server:
+  port: 8083
+  servlet:
+    context-path: /account-adapter-service
