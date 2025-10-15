@@ -2,6 +2,7 @@ package com.payments.domain.validation;
 
 import com.payments.domain.shared.*;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,7 +40,7 @@ public class ValidationResult {
   private ValidationStatus status;
 
   @Column(name = "fraud_score")
-  private Double fraudScore;
+  private BigDecimal fraudScore;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "risk_level")
@@ -91,7 +92,7 @@ public class ValidationResult {
   }
 
   /** Set fraud assessment results */
-  public void setFraudAssessment(Double fraudScore, RiskLevel riskLevel) {
+  public void setFraudAssessment(BigDecimal fraudScore, RiskLevel riskLevel) {
     this.fraudScore = fraudScore;
     this.riskLevel = riskLevel;
   }
@@ -145,7 +146,7 @@ public class ValidationResult {
     return status;
   }
 
-  public Double getFraudScore() {
+  public BigDecimal getFraudScore() {
     return fraudScore;
   }
 
