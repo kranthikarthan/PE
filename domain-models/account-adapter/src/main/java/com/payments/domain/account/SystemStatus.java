@@ -1,11 +1,9 @@
 package com.payments.domain.account;
 
-/**
- * System Status enumeration
- */
+/** System Status enumeration */
 public enum SystemStatus {
-    ACTIVE,
-    INACTIVE,
-    MAINTENANCE,
-    ERROR
+  ACTIVE,
+  INACTIVE,
+  MAINTENANCE,
+  ERROR
 }

@@ -21,7 +21,7 @@ CREATE TABLE tenants (
     city VARCHAR(100),
     province VARCHAR(100),
     postal_code VARCHAR(10),
-    country VARCHAR(3) DEFAULT 'ZAR',
+    country VARCHAR(3) DEFAULT 'ZAF',
     timezone VARCHAR(50) DEFAULT 'Africa/Johannesburg',
     currency VARCHAR(3) DEFAULT 'ZAR',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

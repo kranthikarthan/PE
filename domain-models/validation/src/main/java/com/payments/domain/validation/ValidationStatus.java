@@ -1,5 +1,7 @@
 package com.payments.domain.validation;
 
-enum ValidationStatus { PENDING, VALID, INVALID }
-
-
+enum ValidationStatus {
+  PENDING,
+  VALID,
+  INVALID
+}

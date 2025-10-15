@@ -1,9 +1,7 @@
 package com.payments.domain.clearing;
 
 public enum RouteStatus {
-    ACTIVE,
-    INACTIVE,
-    SUSPENDED
+  ACTIVE,
+  INACTIVE,
+  SUSPENDED
 }
-
-

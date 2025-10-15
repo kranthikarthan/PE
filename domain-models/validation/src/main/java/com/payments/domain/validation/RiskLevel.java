@@ -1,5 +1,8 @@
 package com.payments.domain.validation;
 
-enum RiskLevel { LOW, MEDIUM, HIGH, CRITICAL }
-
-
+enum RiskLevel {
+  LOW,
+  MEDIUM,
+  HIGH,
+  CRITICAL
+}

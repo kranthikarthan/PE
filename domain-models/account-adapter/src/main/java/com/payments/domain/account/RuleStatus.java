@@ -1,10 +1,8 @@
 package com.payments.domain.account;
 
-/**
- * Rule Status enumeration
- */
+/** Rule Status enumeration */
 public enum RuleStatus {
-    ACTIVE,
-    INACTIVE,
-    SUSPENDED
+  ACTIVE,
+  INACTIVE,
+  SUSPENDED
 }
