@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This changelog follows a simplified Keep a Changelog style.
 
+## [Unreleased]
+
+- Docs: minor formatting/tweak placeholder to enable PR.
+
 ## [0.1.0] - 2025-10-15
 
 - Added
@@ -23,4 +27,3 @@ This changelog follows a simplified Keep a Changelog style.
   - Reduced newline normalization issues by centralizing policy in `.gitattributes`.
 
 Commit reference: 6468045
-
