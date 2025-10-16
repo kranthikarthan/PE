@@ -10,7 +10,7 @@ import lombok.Value;
 public class PaymentId {
   String value;
 
-  private PaymentId(String value) {
+  public PaymentId(String value) {
     if (value == null || value.isBlank()) {
       throw new IllegalArgumentException("PaymentId cannot be null or blank");
     }

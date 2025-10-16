@@ -6,7 +6,7 @@ import lombok.Value;
 
 @Embeddable
 @Value
-class LedgerEntryId {
+public class LedgerEntryId {
   String value;
 
   private LedgerEntryId(String value) {

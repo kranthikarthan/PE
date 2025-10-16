@@ -1,6 +1,6 @@
 package com.payments.paymentinitiation.service;
 
-import com.payments.domain.payment.PaymentId;
+import com.payments.domain.shared.PaymentId;
 import com.payments.paymentinitiation.port.IdempotencyRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

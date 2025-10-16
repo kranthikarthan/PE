@@ -6,7 +6,7 @@ import lombok.Value;
 
 @Embeddable
 @Value
-class TransactionEventId {
+public class TransactionEventId {
   String value;
 
   private TransactionEventId(String value) {

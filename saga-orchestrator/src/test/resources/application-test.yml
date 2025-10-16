@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: saga-orchestrator-test
+  
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+    
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        
+  h2:
+    console:
+      enabled: true
+      
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: saga-orchestrator-test
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      
+  flyway:
+    enabled: false
+    
+logging:
+  level:
+    com.payments.saga: DEBUG
+    org.springframework.kafka: WARN
+    org.testcontainers: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+
+saga:
+  orchestrator:
+    execution:
+      timeout: 30000
+      retry-attempts: 3
+      retry-delay: 1000
+    compensation:
+      timeout: 30000
+      retry-attempts: 3
+      retry-delay: 1000
+    events:
+      publish-timeout: 5000
+      retry-attempts: 3
+
+
+
+
+
+

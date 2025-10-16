@@ -1,7 +1,8 @@
 package com.payments.paymentinitiation.mapper;
 
 import com.payments.domain.payment.Payment;
-import com.payments.domain.payment.PaymentId;
+import com.payments.domain.payment.PaymentReference;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.payment.PaymentStatus;
 import com.payments.domain.payment.PaymentType;
 import com.payments.domain.payment.Priority;
@@ -37,7 +38,7 @@ public class PaymentMapper {
                 .sourceAccount(payment.getSourceAccount())
                 .destinationAccount(payment.getDestinationAccount())
                 .amount(payment.getAmount())
-                .reference(payment.getReference())
+                .reference(payment.getReference().getValue())
                 .paymentType(payment.getPaymentType())
                 .priority(payment.getPriority())
                 .tenantContext(payment.getTenantContext())
@@ -69,7 +70,7 @@ public class PaymentMapper {
                 .sourceAccount(entity.getSourceAccount())
                 .destinationAccount(entity.getDestinationAccount())
                 .amount(entity.getAmount())
-                .reference(entity.getReference())
+                .reference(PaymentReference.of(entity.getReference()))
                 .paymentType(entity.getPaymentType())
                 .priority(entity.getPriority())
                 .tenantContext(entity.getTenantContext())

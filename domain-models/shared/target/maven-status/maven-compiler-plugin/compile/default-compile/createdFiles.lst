@@ -3,6 +3,7 @@ com\payments\domain\shared\TenantContext.class
 com\payments\domain\shared\ClearingAdapterId.class
 com\payments\domain\shared\UserId.class
 com\payments\domain\shared\TenantAware.class
+com\payments\domain\shared\TenantContext$TenantContextBuilder.class
 com\payments\domain\shared\TenantUserId.class
 com\payments\domain\shared\SagaStepId.class
 com\payments\domain\shared\ClearingMessageId.class
@@ -19,6 +20,7 @@ com\payments\domain\shared\CacheId.class
 com\payments\domain\shared\AccountNumber.class
 com\payments\domain\shared\ConfigurationId.class
 com\payments\domain\shared\LogId.class
+com\payments\domain\shared\TenantContext$Builder.class
 com\payments\domain\shared\DomainEvent.class
 com\payments\domain\shared\SagaId.class
 com\payments\domain\shared\BusinessUnitId.class

@@ -122,6 +122,14 @@ public class ValidationResult {
     return this.status == ValidationStatus.INVALID;
   }
 
+  public boolean isPassed() {
+    return this.status == ValidationStatus.PASSED;
+  }
+
+  public boolean isFailed() {
+    return this.status == ValidationStatus.FAILED;
+  }
+
   public boolean hasFailedRules() {
     return !this.failedRules.isEmpty();
   }
@@ -170,80 +178,106 @@ public class ValidationResult {
     this.domainEvents.clear();
   }
 
+  // Additional getters for validation service compatibility
+  public String getValidationId() {
+    return id != null ? id.getValue() : null;
+  }
+
+  public BigDecimal getRiskScore() {
+    return fraudScore;
+  }
+
+  public List<ValidationRule> getAppliedRules() {
+    return Collections.unmodifiableList(appliedRules);
+  }
+
+  public String getValidationMetadata() {
+    return "Validation metadata"; // Placeholder
+  }
+
+  public Instant getValidatedAt() {
+    return validatedAt;
+  }
+
+  public String getCorrelationId() {
+    return "correlation-" + id.getValue(); // Placeholder
+  }
+
+  public String getCreatedBy() {
+    return "validation-service"; // Placeholder
+  }
+
+  // Builder method for validation service compatibility
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static class Builder {
+    private ValidationResult result = new ValidationResult();
+
+    public Builder validationId(String validationId) {
+      result.id = new ValidationId(validationId);
+      return this;
+    }
+
+    public Builder paymentId(PaymentId paymentId) {
+      result.paymentId = paymentId;
+      return this;
+    }
+
+    public Builder tenantContext(TenantContext tenantContext) {
+      result.tenantContext = tenantContext;
+      return this;
+    }
+
+    public Builder status(ValidationStatus status) {
+      result.status = status;
+      return this;
+    }
+
+    public Builder fraudScore(BigDecimal fraudScore) {
+      result.fraudScore = fraudScore;
+      return this;
+    }
+
+    public Builder riskScore(BigDecimal riskScore) {
+      result.fraudScore = riskScore; // Using fraudScore field for riskScore
+      return this;
+    }
+
+    public Builder riskLevel(RiskLevel riskLevel) {
+      result.riskLevel = riskLevel;
+      return this;
+    }
+
+    public Builder validatedAt(Instant validatedAt) {
+      result.validatedAt = validatedAt;
+      return this;
+    }
+
+    public Builder validatorService(String validatorService) {
+      result.validatorService = validatorService;
+      return this;
+    }
+
+    public Builder appliedRules(List<String> appliedRules) {
+      // Convert String list to ValidationRule list
+      result.appliedRules = appliedRules.stream()
+          .map(ruleName -> new ValidationRule(ruleName, "BUSINESS", "Applied rule"))
+          .collect(java.util.stream.Collectors.toList());
+      return this;
+    }
+
+    public ValidationResult build() {
+      return result;
+    }
+  }
+
   // ─────────────────────────────────────────────────────────
   // PRIVATE HELPERS
   // ─────────────────────────────────────────────────────────
 
   private void registerEvent(DomainEvent event) {
     this.domainEvents.add(event);
-  }
-}
-
-/** Validation Rule (domain-only helper, not persisted by this aggregate) */
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Data
-class ValidationRule {
-
-  @EmbeddedId private ValidationRuleId id;
-
-  private String ruleName;
-
-  @Enumerated(EnumType.STRING)
-  private RuleType ruleType;
-
-  private String ruleDescription;
-
-  private String ruleCondition;
-
-  private Integer priority;
-
-  private Boolean active;
-
-  private Instant createdAt;
-
-  public ValidationRule(
-      ValidationRuleId id,
-      String ruleName,
-      RuleType ruleType,
-      String ruleDescription,
-      String ruleCondition,
-      Integer priority,
-      Boolean active) {
-    this.id = id;
-    this.ruleName = ruleName;
-    this.ruleType = ruleType;
-    this.ruleDescription = ruleDescription;
-    this.ruleCondition = ruleCondition;
-    this.priority = priority;
-    this.active = active;
-    this.createdAt = Instant.now();
-  }
-}
-
-/** Failed Rule (domain-only helper, not persisted by this aggregate) */
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Data
-class FailedRule {
-
-  @EmbeddedId private FailedRuleId id;
-
-  private String ruleName;
-
-  private String ruleType;
-
-  private String reason;
-
-  private String field;
-
-  private Instant failedAt;
-
-  public FailedRule(
-      FailedRuleId id, String ruleName, String ruleType, String reason, String field) {
-    this.id = id;
-    this.ruleName = ruleName;
-    this.ruleType = ruleType;
-    this.reason = reason;
-    this.field = field;
-    this.failedAt = Instant.now();
   }
 }

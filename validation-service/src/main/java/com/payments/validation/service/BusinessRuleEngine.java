@@ -60,7 +60,7 @@ public class BusinessRuleEngine {
             long executionTime = System.currentTimeMillis() - startTime;
             
             return RuleExecutionResult.builder()
-                    .ruleType(RuleType.BUSINESS)
+                    .ruleType(RuleType.BUSINESS.toString())
                     .success(failedRules.isEmpty())
                     .appliedRules(appliedRules)
                     .failedRules(failedRules)
@@ -75,7 +75,7 @@ public class BusinessRuleEngine {
             
             long executionTime = System.currentTimeMillis() - startTime;
             return RuleExecutionResult.builder()
-                    .ruleType(RuleType.BUSINESS)
+                    .ruleType(RuleType.BUSINESS.toString())
                     .success(false)
                     .appliedRules(appliedRules)
                     .failedRules(failedRules)
@@ -100,7 +100,7 @@ public class BusinessRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("BUSINESS_RULE_001")
                     .ruleName("Amount Limit Check")
-                    .ruleType(RuleType.BUSINESS)
+                    .ruleType(RuleType.BUSINESS.toString())
                     .failureReason(String.format("Payment amount %.2f exceeds maximum limit %.2f", amount, maxAmount))
                     .failedAt(Instant.now())
                     .build());
@@ -118,7 +118,7 @@ public class BusinessRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("BUSINESS_RULE_002")
                     .ruleName("Account Validation")
-                    .ruleType(RuleType.BUSINESS)
+                    .ruleType(RuleType.BUSINESS.toString())
                     .failureReason("Source and destination accounts cannot be the same")
                     .failedAt(Instant.now())
                     .build());
@@ -142,12 +142,12 @@ public class BusinessRuleEngine {
     private void executeCurrencyValidationRule(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
         appliedRules.add("BUSINESS_RULE_004");
         
-        String currency = event.getAmount().getCurrency();
+        String currency = event.getAmount().getCurrency().getCurrencyCode();
         if (currency == null || currency.trim().isEmpty()) {
             failedRules.add(FailedRule.builder()
                     .ruleId("BUSINESS_RULE_004")
                     .ruleName("Currency Validation")
-                    .ruleType(RuleType.BUSINESS)
+                    .ruleType(RuleType.BUSINESS.toString())
                     .failureReason("Payment currency is required")
                     .failedAt(Instant.now())
                     .build());

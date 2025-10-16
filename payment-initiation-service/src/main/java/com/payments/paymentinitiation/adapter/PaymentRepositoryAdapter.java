@@ -1,7 +1,7 @@
 package com.payments.paymentinitiation.adapter;
 
 import com.payments.domain.payment.Payment;
-import com.payments.domain.payment.PaymentId;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.payment.PaymentStatus;
 import com.payments.paymentinitiation.entity.PaymentEntity;
 import com.payments.paymentinitiation.mapper.PaymentMapper;

@@ -4,7 +4,10 @@ import com.payments.contracts.payment.PaymentInitiationRequest;
 import com.payments.contracts.payment.PaymentInitiationResponse;
 import com.payments.contracts.payment.PaymentStatus;
 import com.payments.domain.payment.Payment;
-import com.payments.domain.payment.PaymentId;
+import com.payments.domain.payment.PaymentReference;
+import com.payments.domain.payment.PaymentType;
+import com.payments.domain.payment.Priority;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.AccountNumber;
 import com.payments.domain.shared.Money;
 import com.payments.domain.shared.TenantContext;
@@ -68,8 +71,8 @@ public class PaymentInitiationService {
                 .build();
         
         // Create domain objects
-        AccountNumber sourceAccount = new AccountNumber(request.getSourceAccount());
-        AccountNumber destinationAccount = new AccountNumber(request.getDestinationAccount());
+        AccountNumber sourceAccount = AccountNumber.of(request.getSourceAccount());
+        AccountNumber destinationAccount = AccountNumber.of(request.getDestinationAccount());
         Money amount = request.getAmount();
         
         // Business validation
@@ -78,15 +81,15 @@ public class PaymentInitiationService {
         // Create payment aggregate
         Payment payment = Payment.initiate(
                 request.getPaymentId(),
-                request.getIdempotencyKey(),
+                tenantContext,
+                amount,
                 sourceAccount,
                 destinationAccount,
-                amount,
-                request.getReference(),
-                request.getPaymentType(),
-                request.getPriority(),
-                tenantContext,
-                request.getInitiatedBy()
+                PaymentReference.of(request.getReference()),
+                PaymentType.valueOf(request.getPaymentType().name()),
+                Priority.valueOf(request.getPriority().name()),
+                request.getInitiatedBy(),
+                request.getIdempotencyKey()
         );
         
         // Validate business rules
@@ -130,7 +133,7 @@ public class PaymentInitiationService {
         
         log.info("Retrieving payment status for: {}", paymentId);
         
-        PaymentId domainPaymentId = new PaymentId(paymentId);
+        PaymentId domainPaymentId = PaymentId.of(paymentId);
         Payment payment = paymentRepository.findById(domainPaymentId)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
         
@@ -191,7 +194,7 @@ public class PaymentInitiationService {
         
         log.info("Validating payment: {}", paymentId);
         
-        PaymentId domainPaymentId = new PaymentId(paymentId);
+        PaymentId domainPaymentId = PaymentId.of(paymentId);
         Payment payment = paymentRepository.findByIdAndTenantId(domainPaymentId, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
         
@@ -235,7 +238,7 @@ public class PaymentInitiationService {
         
         log.info("Failing payment: {} with reason: {}", paymentId, reason);
         
-        PaymentId domainPaymentId = new PaymentId(paymentId);
+        PaymentId domainPaymentId = PaymentId.of(paymentId);
         Payment payment = paymentRepository.findByIdAndTenantId(domainPaymentId, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
         
@@ -275,7 +278,7 @@ public class PaymentInitiationService {
         
         log.info("Completing payment: {}", paymentId);
         
-        PaymentId domainPaymentId = new PaymentId(paymentId);
+        PaymentId domainPaymentId = PaymentId.of(paymentId);
         Payment payment = paymentRepository.findByIdAndTenantId(domainPaymentId, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
         
@@ -336,6 +339,7 @@ public class PaymentInitiationService {
             case INITIATED -> PaymentStatus.INITIATED;
             case VALIDATED -> PaymentStatus.VALIDATED;
             case SUBMITTED_TO_CLEARING -> PaymentStatus.SUBMITTED_TO_CLEARING;
+            case CLEARING -> PaymentStatus.CLEARING;
             case CLEARED -> PaymentStatus.CLEARED;
             case COMPLETED -> PaymentStatus.COMPLETED;
             case FAILED -> PaymentStatus.FAILED;

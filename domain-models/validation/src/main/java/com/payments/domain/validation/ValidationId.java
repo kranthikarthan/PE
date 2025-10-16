@@ -9,7 +9,7 @@ import lombok.Value;
 public class ValidationId {
   String value;
 
-  private ValidationId(String value) {
+  public ValidationId(String value) {
     if (value == null || value.isBlank()) {
       throw new IllegalArgumentException("ValidationId cannot be null or blank");
     }

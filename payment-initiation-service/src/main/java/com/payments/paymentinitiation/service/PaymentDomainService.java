@@ -1,7 +1,7 @@
 package com.payments.paymentinitiation.service;
 
 import com.payments.domain.payment.Payment;
-import com.payments.domain.payment.PaymentId;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.payment.PaymentStatus;
 import com.payments.domain.shared.AccountNumber;
 import com.payments.domain.shared.Money;
@@ -189,8 +189,10 @@ public class PaymentDomainService {
                              newStatus == PaymentStatus.FAILED;
             case VALIDATED -> newStatus == PaymentStatus.SUBMITTED_TO_CLEARING || 
                              newStatus == PaymentStatus.FAILED;
-            case SUBMITTED_TO_CLEARING -> newStatus == PaymentStatus.CLEARED || 
+            case SUBMITTED_TO_CLEARING -> newStatus == PaymentStatus.CLEARING || 
                                          newStatus == PaymentStatus.FAILED;
+            case CLEARING -> newStatus == PaymentStatus.CLEARED || 
+                           newStatus == PaymentStatus.FAILED;
             case CLEARED -> newStatus == PaymentStatus.COMPLETED || 
                            newStatus == PaymentStatus.FAILED;
             case COMPLETED, FAILED -> false; // Terminal states

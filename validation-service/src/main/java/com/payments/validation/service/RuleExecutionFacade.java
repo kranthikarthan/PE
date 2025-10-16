@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -220,8 +221,8 @@ public class RuleExecutionFacade {
                 .tenantContext(context.getTenantContext())
                 .status(status)
                 .riskLevel(riskLevel)
-                .fraudScore(Math.min(fraudScore, 100))
-                .riskScore(Math.min(riskScore, 100))
+                .fraudScore(BigDecimal.valueOf(Math.min(fraudScore, 100)))
+                .riskScore(BigDecimal.valueOf(Math.min(riskScore, 100)))
                 .appliedRules(appliedRules)
                 .failedRules(failedRules)
                 .validationMetadata(createValidationMetadata(context, event, results))
@@ -244,13 +245,13 @@ public class RuleExecutionFacade {
                 .tenantContext(context.getTenantContext())
                 .status(ValidationStatus.FAILED)
                 .riskLevel(RiskLevel.CRITICAL)
-                .fraudScore(100)
-                .riskScore(100)
+                .fraudScore(BigDecimal.valueOf(100))
+                .riskScore(BigDecimal.valueOf(100))
                 .appliedRules(List.of())
                 .failedRules(List.of(FailedRule.builder()
                         .ruleId("SYSTEM_ERROR")
                         .ruleName("System Error")
-                        .ruleType(RuleType.BUSINESS)
+                        .ruleType(RuleType.BUSINESS.toString())
                         .failureReason("Validation system error: " + error.getMessage())
                         .failedAt(Instant.now())
                         .build()))
@@ -270,11 +271,11 @@ public class RuleExecutionFacade {
         }
         
         long fraudRules = failedRules.stream()
-                .filter(rule -> rule.getRuleType() == RuleType.FRAUD)
+                .filter(rule -> RuleType.FRAUD.toString().equals(rule.getRuleType()))
                 .count();
         
         long riskRules = failedRules.stream()
-                .filter(rule -> rule.getRuleType() == RuleType.RISK)
+                .filter(rule -> RuleType.RISK.toString().equals(rule.getRuleType()))
                 .count();
         
         if (fraudRules > 0) {
@@ -316,7 +317,7 @@ public class RuleExecutionFacade {
     @lombok.NoArgsConstructor
     @lombok.AllArgsConstructor
     public static class ValidationContext {
-        private com.payments.domain.payment.PaymentId paymentId;
+        private com.payments.domain.shared.PaymentId paymentId;
         private com.payments.domain.shared.TenantContext tenantContext;
         private String correlationId;
         private String validationId;

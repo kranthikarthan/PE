@@ -10,13 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
-
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Validation Event Producer
@@ -148,18 +146,14 @@ public class ValidationEventProducer {
             String eventType) {
         
         try {
-            ListenableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, key, event);
+            CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, key, event);
             
-            future.addCallback(new ListenableFutureCallback<SendResult<String, Object>>() {
-                @Override
-                public void onSuccess(SendResult<String, Object> result) {
+            future.whenComplete((result, ex) -> {
+                if (ex == null) {
                     log.debug("Successfully sent {} to topic: {}, partition: {}, offset: {}", 
                             eventType, topic, result.getRecordMetadata().partition(), 
                             result.getRecordMetadata().offset());
-                }
-
-                @Override
-                public void onFailure(Throwable ex) {
+                } else {
                     log.error("Failed to send {} to topic: {}", eventType, topic, ex);
                     throw new RuntimeException("Failed to publish " + eventType, ex);
                 }

@@ -1,8 +1,10 @@
 package com.payments.domain.validation;
 
-enum RuleType {
+public enum RuleType {
   SCHEMA,
-  BUSINESS_RULE,
+  BUSINESS,
+  COMPLIANCE,
+  RISK,
   FRAUD,
   LIMIT,
   VELOCITY

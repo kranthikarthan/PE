@@ -7,6 +7,8 @@ com\payments\domain\payment\InvalidPaymentException.class
 com\payments\domain\payment\Priority.class
 com\payments\domain\payment\PaymentInitiatedEvent.class
 com\payments\domain\payment\PaymentValidatedEvent.class
+com\payments\domain\payment\Payment$PaymentBuilder.class
+com\payments\domain\payment\StatusChange$StatusChangeBuilder.class
 com\payments\domain\payment\PaymentStatus.class
 com\payments\domain\payment\ClearingSystemReference.class
 com\payments\domain\payment\PaymentCompletedEvent.class

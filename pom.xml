@@ -4,16 +4,20 @@
   <artifactId>payments-engine</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <modules>
-    <module>domain-models</module>
-    <module>contracts</module>
-    <module>payment-initiation-service</module>
-    <module>validation-service</module>
-    <module>account-adapter-service</module>
-    <module>routing-service</module>
-    <module>schema-verification</module>
-    <module>jpa-verification</module>
-  </modules>
+    <modules>
+        <module>domain-models</module>
+        <module>contracts</module>
+        <module>shared-telemetry</module>
+        <module>shared-config</module>
+        <module>payment-initiation-service</module>
+        <module>validation-service</module>
+        <module>account-adapter-service</module>
+        <module>routing-service</module>
+        <module>transaction-processing-service</module>
+        <module>saga-orchestrator</module>
+        <module>schema-verification</module>
+        <module>jpa-verification</module>
+    </modules>
 
   <properties>
     <maven.compiler.source>17</maven.compiler.source>
@@ -24,6 +28,12 @@
     <junit.jupiter.version>5.10.2</junit.jupiter.version>
     <testcontainers.version>1.20.1</testcontainers.version>
     <hibernate.version>6.5.2.Final</hibernate.version>
+    <spring-cloud.version>2023.0.0</spring-cloud.version>
+    <resilience4j.version>2.2.0</resilience4j.version>
+    <springdoc.version>2.3.0</springdoc.version>
+    <flyway.version>10.8.1</flyway.version>
+    <wiremock.version>3.3.1</wiremock.version>
+    <testcontainers.redis.version>1.20.1</testcontainers.redis.version>
   </properties>
 
   <dependencyManagement>
@@ -34,6 +44,40 @@
         <version>${spring-boot.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>${spring-cloud.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.github.resilience4j</groupId>
+        <artifactId>resilience4j-bom</artifactId>
+        <version>${resilience4j.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>${springdoc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-database-postgresql</artifactId>
+        <version>${flyway.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.tomakehurst</groupId>
+        <artifactId>wiremock-jre8</artifactId>
+        <version>${wiremock.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>redis</artifactId>
+        <version>${testcontainers.redis.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

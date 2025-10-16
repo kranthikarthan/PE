@@ -1,6 +1,6 @@
 package com.payments.validation.service;
 
-import com.payments.domain.payment.PaymentId;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
 import com.payments.domain.validation.ValidationResult;
 import com.payments.domain.validation.ValidationStatus;

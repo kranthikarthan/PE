@@ -24,7 +24,10 @@ import lombok.*;
           name = "uk_idempotency_tenant",
           columnNames = {"tenant_id", "idempotency_key"})
     })
+@Data
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // For JPA
+@AllArgsConstructor
 public class Payment {
 
   @EmbeddedId
@@ -75,6 +78,21 @@ public class Payment {
 
   @Column(name = "completed_at")
   private Instant completedAt;
+
+  @Column(name = "validated_at")
+  private Instant validatedAt;
+
+  @Column(name = "submitted_to_clearing_at")
+  private Instant submittedToClearingAt;
+
+  @Column(name = "cleared_at")
+  private Instant clearedAt;
+
+  @Column(name = "failed_at")
+  private Instant failedAt;
+
+  @Column(name = "failure_reason")
+  private String failureReason;
 
   @Column(name = "idempotency_key", nullable = false)
   private String idempotencyKey;
@@ -244,22 +262,6 @@ public class Payment {
     return this.status == PaymentStatus.VALIDATED;
   }
 
-  public PaymentId getId() {
-    return id;
-  }
-
-  public TenantContext getTenantContext() {
-    return tenantContext;
-  }
-
-  public Money getAmount() {
-    return amount; // Money is immutable, safe to return
-  }
-
-  public PaymentStatus getStatus() {
-    return status;
-  }
-
   public List<DomainEvent> getDomainEvents() {
     return Collections.unmodifiableList(domainEvents);
   }
@@ -268,12 +270,18 @@ public class Payment {
     this.domainEvents.clear();
   }
 
+  public void updateStatus(PaymentStatus newStatus, String reason) {
+    PaymentStatus oldStatus = this.status;
+    this.status = newStatus;
+    addStatusChange(oldStatus, newStatus, reason);
+  }
+
   // ─────────────────────────────────────────────────────────
   // PRIVATE HELPERS
   // ─────────────────────────────────────────────────────────
 
   private void addStatusChange(PaymentStatus from, PaymentStatus to, String reason) {
-    statusHistory.add(new StatusChange(from, to, reason, Instant.now()));
+    statusHistory.add(new StatusChange(from, to, reason, "system", Instant.now()));
   }
 
   private void registerEvent(DomainEvent event) {
@@ -281,19 +289,3 @@ public class Payment {
   }
 }
 
-/** Status Change (Entity within Payment Aggregate) */
-@Embeddable
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class StatusChange {
-  @Enumerated(EnumType.STRING)
-  private PaymentStatus fromStatus;
-
-  @Enumerated(EnumType.STRING)
-  private PaymentStatus toStatus;
-
-  private String reason;
-
-  private Instant changedAt;
-}

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,8 +69,8 @@ public class ValidationRuleEngine {
                     .tenantContext(context.getTenantContext())
                     .status(status)
                     .riskLevel(riskLevel)
-                    .fraudScore(fraudScore)
-                    .riskScore(riskScore)
+                    .fraudScore(BigDecimal.valueOf(fraudScore))
+                    .riskScore(BigDecimal.valueOf(riskScore))
                     .appliedRules(appliedRules)
                     .failedRules(failedRules)
                     .validationMetadata(createValidationMetadata(context, event))
@@ -105,7 +106,7 @@ public class ValidationRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("BUSINESS_RULE_001")
                     .ruleName("Amount Limit Check")
-                    .ruleType(RuleType.BUSINESS)
+                    .ruleType(RuleType.BUSINESS.toString())
                     .failureReason("Payment amount exceeds maximum limit")
                     .failedAt(Instant.now())
                     .build());
@@ -131,7 +132,7 @@ public class ValidationRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("COMPLIANCE_RULE_001")
                     .ruleName("Payment Reference Check")
-                    .ruleType(RuleType.COMPLIANCE)
+                    .ruleType(RuleType.COMPLIANCE.toString())
                     .failureReason("Payment reference is required for compliance")
                     .failedAt(Instant.now())
                     .build());
@@ -183,7 +184,7 @@ public class ValidationRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("RISK_RULE_001")
                     .ruleName("High Risk Transaction Check")
-                    .ruleType(RuleType.RISK)
+                    .ruleType(RuleType.RISK.toString())
                     .failureReason("Transaction identified as high risk")
                     .failedAt(Instant.now())
                     .build());
@@ -215,11 +216,11 @@ public class ValidationRuleEngine {
         }
         
         long fraudRules = failedRules.stream()
-                .filter(rule -> rule.getRuleType() == RuleType.FRAUD)
+                .filter(rule -> RuleType.FRAUD.toString().equals(rule.getRuleType()))
                 .count();
         
         long riskRules = failedRules.stream()
-                .filter(rule -> rule.getRuleType() == RuleType.RISK)
+                .filter(rule -> RuleType.RISK.toString().equals(rule.getRuleType()))
                 .count();
         
         if (fraudRules > 0) {
@@ -236,7 +237,7 @@ public class ValidationRuleEngine {
      */
     private int calculateFraudScore(List<FailedRule> failedRules) {
         return (int) failedRules.stream()
-                .filter(rule -> rule.getRuleType() == RuleType.FRAUD)
+                .filter(rule -> RuleType.FRAUD.toString().equals(rule.getRuleType()))
                 .count() * 25; // Each fraud rule adds 25 points
     }
 
@@ -245,7 +246,7 @@ public class ValidationRuleEngine {
      */
     private int calculateRiskScore(List<FailedRule> failedRules) {
         return (int) failedRules.stream()
-                .filter(rule -> rule.getRuleType() == RuleType.RISK)
+                .filter(rule -> RuleType.RISK.toString().equals(rule.getRuleType()))
                 .count() * 20; // Each risk rule adds 20 points
     }
 
@@ -268,7 +269,7 @@ public class ValidationRuleEngine {
     @lombok.NoArgsConstructor
     @lombok.AllArgsConstructor
     public static class ValidationContext {
-        private com.payments.domain.payment.PaymentId paymentId;
+        private com.payments.domain.shared.PaymentId paymentId;
         private com.payments.domain.shared.TenantContext tenantContext;
         private String correlationId;
         private String validationId;

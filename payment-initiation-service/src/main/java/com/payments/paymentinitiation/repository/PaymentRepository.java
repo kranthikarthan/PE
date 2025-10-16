@@ -1,7 +1,7 @@
 package com.payments.paymentinitiation.repository;
 
 import com.payments.domain.payment.Payment;
-import com.payments.domain.payment.PaymentId;
+import com.payments.domain.shared.PaymentId;
 import com.payments.paymentinitiation.port.PaymentRepositoryPort;
 import org.springframework.stereotype.Repository;
 

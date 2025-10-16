@@ -1,6 +1,6 @@
 package com.payments.validation.mapper;
 
-import com.payments.domain.payment.PaymentId;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
 import com.payments.domain.validation.ValidationResult;
 import com.payments.domain.validation.ValidationStatus;
@@ -14,6 +14,7 @@ import com.payments.validation.entity.RiskAssessmentResultEntity;
 import com.payments.validation.entity.ValidationAuditTrailEntity;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,8 +45,8 @@ public class ValidationResultMapper {
                 .businessUnitId(domain.getTenantContext().getBusinessUnitId())
                 .status(mapValidationStatus(domain.getStatus()))
                 .riskLevel(mapRiskLevel(domain.getRiskLevel()))
-                .fraudScore(domain.getFraudScore())
-                .riskScore(domain.getRiskScore())
+                .fraudScore(domain.getFraudScore() != null ? domain.getFraudScore().intValue() : 0)
+                .riskScore(domain.getRiskScore() != null ? domain.getRiskScore().intValue() : 0)
                 .appliedRules(domain.getAppliedRules())
                 .validationMetadata(domain.getValidationMetadata())
                 .validatedAt(domain.getValidatedAt())
@@ -71,8 +72,8 @@ public class ValidationResultMapper {
                         .build())
                 .status(mapValidationStatus(entity.getStatus()))
                 .riskLevel(mapRiskLevel(entity.getRiskLevel()))
-                .fraudScore(entity.getFraudScore())
-                .riskScore(entity.getRiskScore())
+                .fraudScore(BigDecimal.valueOf(entity.getFraudScore()))
+                .riskScore(BigDecimal.valueOf(entity.getRiskScore()))
                 .appliedRules(entity.getAppliedRules())
                 .validationMetadata(entity.getValidationMetadata())
                 .validatedAt(entity.getValidatedAt())
@@ -92,7 +93,7 @@ public class ValidationResultMapper {
         return ValidationFailedRuleEntity.builder()
                 .ruleId(domain.getRuleId())
                 .ruleName(domain.getRuleName())
-                .ruleType(mapRuleType(domain.getRuleType()))
+                .ruleType(mapRuleType(RuleType.valueOf(domain.getRuleType())))
                 .failureReason(domain.getFailureReason())
                 .ruleMetadata(domain.getRuleMetadata())
                 .failedAt(domain.getFailedAt())
@@ -110,7 +111,7 @@ public class ValidationResultMapper {
         return FailedRule.builder()
                 .ruleId(entity.getRuleId())
                 .ruleName(entity.getRuleName())
-                .ruleType(mapRuleType(entity.getRuleType()))
+                .ruleType(mapRuleType(entity.getRuleType()).toString())
                 .failureReason(entity.getFailureReason())
                 .ruleMetadata(entity.getRuleMetadata())
                 .failedAt(entity.getFailedAt())

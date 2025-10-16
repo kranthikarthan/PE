@@ -60,7 +60,7 @@ public class ComplianceRuleEngine {
             long executionTime = System.currentTimeMillis() - startTime;
             
             return RuleExecutionResult.builder()
-                    .ruleType(RuleType.COMPLIANCE)
+                    .ruleType(RuleType.COMPLIANCE.toString())
                     .success(failedRules.isEmpty())
                     .appliedRules(appliedRules)
                     .failedRules(failedRules)
@@ -75,7 +75,7 @@ public class ComplianceRuleEngine {
             
             long executionTime = System.currentTimeMillis() - startTime;
             return RuleExecutionResult.builder()
-                    .ruleType(RuleType.COMPLIANCE)
+                    .ruleType(RuleType.COMPLIANCE.toString())
                     .success(false)
                     .appliedRules(appliedRules)
                     .failedRules(failedRules)
@@ -97,7 +97,7 @@ public class ComplianceRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("COMPLIANCE_RULE_001")
                     .ruleName("Payment Reference Check")
-                    .ruleType(RuleType.COMPLIANCE)
+                    .ruleType(RuleType.COMPLIANCE.toString())
                     .failureReason("Payment reference is required for compliance reporting")
                     .failedAt(Instant.now())
                     .build());

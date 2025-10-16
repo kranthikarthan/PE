@@ -2,9 +2,7 @@ package com.payments.domain.transaction;
 
 import com.payments.domain.shared.*;
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +16,7 @@ import lombok.*;
 @Entity
 @Table(name = "transactions")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Data
 public class Transaction {
 
   @EmbeddedId
@@ -288,130 +287,5 @@ public class Transaction {
 
   private void registerEvent(DomainEvent event) {
     this.domainEvents.add(event);
-  }
-}
-
-/** Ledger Entry (Entity within Transaction Aggregate) */
-@Entity
-@Table(name = "ledger_entries")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Data
-class LedgerEntry {
-
-  @EmbeddedId
-  @AttributeOverride(name = "value", column = @Column(name = "entry_id"))
-  private LedgerEntryId id;
-
-  @Embedded
-  @AttributeOverride(name = "value", column = @Column(name = "transaction_id"))
-  private TransactionId transactionId;
-
-  @Embedded
-  @AttributeOverrides({
-    @AttributeOverride(name = "tenantId", column = @Column(name = "tenant_id")),
-    @AttributeOverride(name = "businessUnitId", column = @Column(name = "business_unit_id"))
-  })
-  private TenantContext tenantContext;
-
-  @Embedded
-  @AttributeOverride(name = "value", column = @Column(name = "account_number"))
-  private AccountNumber accountNumber;
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "entry_type")
-  private LedgerEntryType entryType;
-
-  @Column(name = "amount")
-  private BigDecimal amount;
-
-  @Column(name = "balance_before")
-  private BigDecimal balanceBefore;
-
-  @Column(name = "balance_after")
-  private BigDecimal balanceAfter;
-
-  @Column(name = "entry_date")
-  private LocalDate entryDate;
-
-  @Column(name = "created_at")
-  private Instant createdAt;
-
-  public LedgerEntry(
-      LedgerEntryId id,
-      TransactionId transactionId,
-      TenantContext tenantContext,
-      AccountNumber accountNumber,
-      LedgerEntryType entryType,
-      BigDecimal amount) {
-    this.id = id;
-    this.transactionId = transactionId;
-    this.tenantContext = tenantContext;
-    this.accountNumber = accountNumber;
-    this.entryType = entryType;
-    this.amount = amount;
-    this.entryDate = LocalDate.now();
-    this.createdAt = Instant.now();
-  }
-}
-
-/** Transaction Event (Entity within Transaction Aggregate) */
-@Entity
-@Table(name = "transaction_events")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Data
-class TransactionEvent {
-
-  @EmbeddedId
-  @AttributeOverride(name = "value", column = @Column(name = "event_id"))
-  private TransactionEventId id;
-
-  @Embedded
-  @AttributeOverride(name = "value", column = @Column(name = "transaction_id"))
-  private TransactionId transactionId;
-
-  @Embedded
-  @AttributeOverrides({
-    @AttributeOverride(name = "tenantId", column = @Column(name = "tenant_id")),
-    @AttributeOverride(name = "businessUnitId", column = @Column(name = "business_unit_id"))
-  })
-  private TenantContext tenantContext;
-
-  @Column(name = "event_type")
-  private String eventType;
-
-  @Column(name = "event_data", columnDefinition = "jsonb")
-  private String description;
-
-  @Column(name = "occurred_at")
-  private Instant occurredAt;
-
-  @Column(name = "event_sequence")
-  private Long eventSequence;
-
-  @Column(name = "correlation_id")
-  private String correlationId;
-
-  @Column(name = "causation_id")
-  private String causationId;
-
-  public TransactionEvent(
-      TransactionEventId id,
-      TransactionId transactionId,
-      TenantContext tenantContext,
-      Long eventSequence,
-      String eventType,
-      String description,
-      String correlationId,
-      String causationId,
-      Instant occurredAt) {
-    this.id = id;
-    this.transactionId = transactionId;
-    this.tenantContext = tenantContext;
-    this.eventSequence = eventSequence;
-    this.eventType = eventType;
-    this.description = description;
-    this.correlationId = correlationId;
-    this.causationId = causationId;
-    this.occurredAt = occurredAt;
   }
 }

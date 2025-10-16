@@ -1,20 +1,7 @@
 package com.payments.domain.transaction;
 
-enum TransactionStatus {
-  CREATED,
-  PROCESSING,
-  CLEARING,
-  COMPLETED,
-  FAILED
-}
-
-enum TransactionType {
-  DEBIT,
-  CREDIT,
-  REVERSAL
-}
-
-enum LedgerEntryType {
-  DEBIT,
-  CREDIT
-}
+// This file is kept for backward compatibility
+// Individual enums are now in separate files:
+// - TransactionStatus.java
+// - TransactionType.java
+// - LedgerEntryType.java

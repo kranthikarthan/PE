@@ -1,0 +1,146 @@
+spring:
+  application:
+    name: validation-service
+  
+  profiles:
+    active: dev
+    
+  datasource:
+    url: jdbc:postgresql://localhost:5432/payments_validation
+    username: validation_user
+    password: validation_pass
+    driver-class-name: org.postgresql.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+        
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: validation-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: "com.payments.contracts.events.PaymentInitiatedEvent"
+    producer:
+      acks: all
+      retries: 3
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      enable-idempotence: true
+      max-in-flight-requests-per-connection: 1
+      
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        
+  security:
+    oauth2:
+      client:
+        registration:
+          account-service:
+            client-id: validation-service
+            client-secret: validation-secret
+            authorization-grant-type: client_credentials
+            scope: payments:read,payments:write,accounts:read
+        provider:
+          account-service:
+            token-uri: http://localhost:8080/oauth/token
+
+# Validation Service Configuration
+validation:
+  topics:
+    inbound:
+      payment-initiated: payment-initiated
+      payment-updated: payment-updated
+      account-changed: account-changed
+    outbound:
+      payment-validated: payment-validated
+      validation-failed: validation-failed
+      fraud-detected: fraud-detected
+      risk-assessment: risk-assessment
+    partitions: 3
+    replication-factor: 1
+    retention-ms: 604800000  # 7 days
+    
+  rules:
+    engine:
+      type: drools
+      rules-path: classpath:rules/
+      cache-enabled: true
+      cache-size: 1000
+      
+  fraud:
+    detection:
+      enabled: true
+      threshold: 75
+      rules:
+        velocity-check: true
+        amount-anomaly: true
+        account-pattern: true
+        
+  risk:
+    assessment:
+      enabled: true
+      factors:
+        amount: 0.3
+        velocity: 0.2
+        account-history: 0.2
+        time-of-day: 0.1
+        location: 0.2
+
+# OpenTelemetry Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,opentelemetry
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+# Logging Configuration
+logging:
+  level:
+    com.payments.validation: DEBUG
+    org.springframework.kafka: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"
+
+# Server Configuration
+server:
+  port: 8082
+  servlet:
+    context-path: /validation-service

@@ -3,8 +3,10 @@ package com.payments.validation.service;
 import com.payments.contracts.events.PaymentInitiatedEvent;
 import com.payments.contracts.events.PaymentValidatedEvent;
 import com.payments.contracts.events.ValidationFailedEvent;
-import com.payments.domain.payment.PaymentId;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
+import com.payments.domain.validation.ValidationResult;
+import com.payments.validation.producer.ValidationEventProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,7 +51,7 @@ public class ValidationOrchestrator {
         
         try {
             // Create validation context
-            ValidationContext context = ValidationContext.builder()
+            RuleExecutionFacade.ValidationContext context = RuleExecutionFacade.ValidationContext.builder()
                     .paymentId(new PaymentId(event.getPaymentId().getValue()))
                     .tenantContext(TenantContext.builder()
                             .tenantId(tenantId)
@@ -93,7 +95,7 @@ public class ValidationOrchestrator {
             String businessUnitId) {
         
         PaymentValidatedEvent validatedEvent = PaymentValidatedEvent.builder()
-                .eventId(UUID.randomUUID().toString())
+                .eventId(UUID.randomUUID())
                 .eventType("PaymentValidated")
                 .timestamp(Instant.now())
                 .correlationId(correlationId)
@@ -103,7 +105,7 @@ public class ValidationOrchestrator {
                 .businessUnitId(businessUnitId)
                 .paymentId(event.getPaymentId())
                 .tenantContext(event.getTenantContext())
-                .validationResult(createValidationResultDto(result))
+                .validationResult(createValidationResponseDto(result))
                 .build();
         
         eventProducer.publishPaymentValidated(validatedEvent, correlationId, tenantId, businessUnitId);
@@ -120,7 +122,7 @@ public class ValidationOrchestrator {
             String businessUnitId) {
         
         ValidationFailedEvent failedEvent = ValidationFailedEvent.builder()
-                .eventId(UUID.randomUUID().toString())
+                .eventId(UUID.randomUUID())
                 .eventType("ValidationFailed")
                 .timestamp(Instant.now())
                 .correlationId(correlationId)
@@ -153,28 +155,35 @@ public class ValidationOrchestrator {
     }
 
     /**
-     * Create validation result DTO
+     * Create validation response DTO
      */
-    private com.payments.contracts.validation.ValidationResult createValidationResultDto(ValidationResult result) {
-        return com.payments.contracts.validation.ValidationResult.builder()
+    private com.payments.contracts.events.ValidationResponseDto createValidationResponseDto(ValidationResult result) {
+        return com.payments.contracts.events.ValidationResponseDto.builder()
                 .validationId(result.getValidationId())
-                .status(com.payments.contracts.validation.ValidationStatus.valueOf(result.getStatus().name()))
+                .status(result.getStatus().name())
+                .fraudScore(result.getFraudScore())
+                .riskScore(result.getRiskScore())
+                .riskLevel(result.getRiskLevel() != null ? result.getRiskLevel().name() : null)
+                .appliedRules(result.getAppliedRules().stream().map(rule -> rule.getRuleName()).toList())
+                .failedRules(createFailedRulesDto(result))
+                .reason(result.getReason())
                 .validatedAt(result.getValidatedAt())
-                .appliedRules(result.getAppliedRules())
-                .riskLevel(com.payments.contracts.validation.RiskLevel.valueOf(result.getRiskLevel().name()))
+                .validatorService(result.getCreatedBy())
                 .build();
     }
 
     /**
      * Create failed rules DTO
      */
-    private java.util.List<com.payments.contracts.validation.FailedRule> createFailedRulesDto(ValidationResult result) {
+    private java.util.List<com.payments.contracts.events.FailedRuleDto> createFailedRulesDto(ValidationResult result) {
         return result.getFailedRules().stream()
-                .map(failedRule -> com.payments.contracts.validation.FailedRule.builder()
+                .map(failedRule -> com.payments.contracts.events.FailedRuleDto.builder()
                         .ruleId(failedRule.getRuleId())
                         .ruleName(failedRule.getRuleName())
-                        .ruleType(com.payments.contracts.validation.RuleType.valueOf(failedRule.getRuleType().name()))
+                        .ruleType(failedRule.getRuleType())
                         .failureReason(failedRule.getFailureReason())
+                        .field(failedRule.getField())
+                        .failedAt(failedRule.getFailedAt())
                         .build())
                 .toList();
     }
@@ -187,7 +196,7 @@ public class ValidationOrchestrator {
     @lombok.NoArgsConstructor
     @lombok.AllArgsConstructor
     public static class ValidationContext {
-        private com.payments.domain.payment.PaymentId paymentId;
+        private com.payments.domain.shared.PaymentId paymentId;
         private com.payments.domain.shared.TenantContext tenantContext;
         private String correlationId;
         private String validationId;

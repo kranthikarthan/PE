@@ -1,6 +1,6 @@
 package com.payments.paymentinitiation.entity;
 
-import com.payments.domain.payment.PaymentId;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.payment.PaymentStatus;
 import com.payments.domain.payment.PaymentType;
 import com.payments.domain.payment.Priority;

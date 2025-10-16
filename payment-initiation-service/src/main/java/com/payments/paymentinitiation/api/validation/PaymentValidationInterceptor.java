@@ -79,7 +79,11 @@ public class PaymentValidationInterceptor implements HandlerInterceptor {
         } catch (Exception e) {
             log.error("Error in payment validation interceptor", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("{\"error\": \"Internal validation error\"}");
+            try {
+                response.getWriter().write("{\"error\": \"Internal validation error\"}");
+            } catch (java.io.IOException ioException) {
+                log.error("Failed to write error response", ioException);
+            }
             return false;
         }
     }

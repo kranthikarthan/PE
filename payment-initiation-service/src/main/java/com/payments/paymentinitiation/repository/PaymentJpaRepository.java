@@ -1,6 +1,6 @@
 package com.payments.paymentinitiation.repository;
 
-import com.payments.domain.payment.PaymentId;
+import com.payments.domain.shared.PaymentId;
 import com.payments.paymentinitiation.entity.PaymentEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

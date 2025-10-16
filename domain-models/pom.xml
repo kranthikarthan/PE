@@ -77,7 +77,6 @@
     <module>shared</module>
     <module>tenant-management</module>
     <module>account-adapter</module>
-    <module>saga-orchestrator</module>
     <module>payment-initiation</module>
     <module>transaction-processing</module>
     <module>validation</module>

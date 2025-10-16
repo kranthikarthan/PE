@@ -62,7 +62,7 @@ public class FraudDetectionRuleEngine {
             long executionTime = System.currentTimeMillis() - startTime;
             
             return RuleExecutionResult.builder()
-                    .ruleType(RuleType.FRAUD)
+                    .ruleType(RuleType.FRAUD.toString())
                     .success(failedRules.isEmpty())
                     .appliedRules(appliedRules)
                     .failedRules(failedRules)
@@ -77,7 +77,7 @@ public class FraudDetectionRuleEngine {
             
             long executionTime = System.currentTimeMillis() - startTime;
             return RuleExecutionResult.builder()
-                    .ruleType(RuleType.FRAUD)
+                    .ruleType(RuleType.FRAUD.toString())
                     .success(false)
                     .appliedRules(appliedRules)
                     .failedRules(failedRules)
@@ -105,7 +105,7 @@ public class FraudDetectionRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("FRAUD_RULE_001")
                     .ruleName("Velocity Check")
-                    .ruleType(RuleType.FRAUD)
+                    .ruleType(RuleType.FRAUD.toString())
                     .failureReason("High-value transaction detected - velocity check failed")
                     .failedAt(Instant.now())
                     .build());
@@ -131,7 +131,7 @@ public class FraudDetectionRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("FRAUD_RULE_002")
                     .ruleName("Amount Anomaly Detection")
-                    .ruleType(RuleType.FRAUD)
+                    .ruleType(RuleType.FRAUD.toString())
                     .failureReason("Unusual amount pattern detected")
                     .failedAt(Instant.now())
                     .build());
@@ -156,7 +156,7 @@ public class FraudDetectionRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("FRAUD_RULE_003")
                     .ruleName("Account Pattern Analysis")
-                    .ruleType(RuleType.FRAUD)
+                    .ruleType(RuleType.FRAUD.toString())
                     .failureReason("Suspicious account pattern detected")
                     .failedAt(Instant.now())
                     .build());
@@ -182,7 +182,7 @@ public class FraudDetectionRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("FRAUD_RULE_004")
                     .ruleName("Time-Based Analysis")
-                    .ruleType(RuleType.FRAUD)
+                    .ruleType(RuleType.FRAUD.toString())
                     .failureReason("Transaction outside normal business hours")
                     .failedAt(Instant.now())
                     .build());
@@ -208,7 +208,7 @@ public class FraudDetectionRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("FRAUD_RULE_005")
                     .ruleName("Behavioral Analysis")
-                    .ruleType(RuleType.FRAUD)
+                    .ruleType(RuleType.FRAUD.toString())
                     .failureReason("Unusual transaction behavior detected")
                     .failedAt(Instant.now())
                     .build());

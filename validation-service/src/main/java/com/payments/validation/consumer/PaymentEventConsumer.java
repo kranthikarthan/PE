@@ -58,9 +58,9 @@ public class PaymentEventConsumer {
         
         try {
             // Extract and validate correlation and tenant information from headers
-            String correlationId = extractAndValidateCorrelationId(headers, event.getEventId());
-            String tenantId = extractAndValidateTenantId(headers, event.getEventId());
-            String businessUnitId = extractAndValidateBusinessUnitId(headers, event.getEventId());
+            String correlationId = extractAndValidateCorrelationId(headers, event.getEventId().toString());
+            String tenantId = extractAndValidateTenantId(headers, event.getEventId().toString());
+            String businessUnitId = extractAndValidateBusinessUnitId(headers, event.getEventId().toString());
             
             // Set up correlation context
             correlationService.setCorrelationId(correlationId);

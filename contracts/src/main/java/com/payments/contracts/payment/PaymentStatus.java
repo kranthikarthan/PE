@@ -10,6 +10,7 @@ public enum PaymentStatus {
   INITIATED("INITIATED", "Payment initiated"),
   VALIDATED("VALIDATED", "Payment validated"),
   SUBMITTED_TO_CLEARING("SUBMITTED_TO_CLEARING", "Submitted to clearing"),
+  CLEARING("CLEARING", "Payment clearing"),
   CLEARED("CLEARED", "Payment cleared"),
   COMPLETED("COMPLETED", "Payment completed"),
   FAILED("FAILED", "Payment failed");

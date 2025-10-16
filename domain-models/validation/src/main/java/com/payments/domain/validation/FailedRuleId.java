@@ -6,10 +6,10 @@ import lombok.Value;
 
 @Embeddable
 @Value
-class FailedRuleId {
+public class FailedRuleId {
   String value;
 
-  private FailedRuleId(String value) {
+  public FailedRuleId(String value) {
     if (value == null || value.isBlank())
       throw new IllegalArgumentException("FailedRuleId cannot be null or blank");
     this.value = value;

@@ -62,7 +62,7 @@ public class RiskAssessmentRuleEngine {
             long executionTime = System.currentTimeMillis() - startTime;
             
             return RuleExecutionResult.builder()
-                    .ruleType(RuleType.RISK)
+                    .ruleType(RuleType.RISK.toString())
                     .success(failedRules.isEmpty())
                     .appliedRules(appliedRules)
                     .failedRules(failedRules)
@@ -77,7 +77,7 @@ public class RiskAssessmentRuleEngine {
             
             long executionTime = System.currentTimeMillis() - startTime;
             return RuleExecutionResult.builder()
-                    .ruleType(RuleType.RISK)
+                    .ruleType(RuleType.RISK.toString())
                     .success(false)
                     .appliedRules(appliedRules)
                     .failedRules(failedRules)
@@ -105,7 +105,7 @@ public class RiskAssessmentRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("RISK_RULE_001")
                     .ruleName("Credit Risk Assessment")
-                    .ruleType(RuleType.RISK)
+                    .ruleType(RuleType.RISK.toString())
                     .failureReason("High credit risk transaction detected")
                     .failedAt(Instant.now())
                     .build());
@@ -126,12 +126,12 @@ public class RiskAssessmentRuleEngine {
         log.debug("Market risk rule applied for payment: {}", event.getPaymentId().getValue());
         
         // Simulate market risk analysis
-        String currency = event.getAmount().getCurrency();
+        String currency = event.getAmount().getCurrency().getCurrencyCode();
         if (!"ZAR".equals(currency)) {
             failedRules.add(FailedRule.builder()
                     .ruleId("RISK_RULE_002")
                     .ruleName("Market Risk Analysis")
-                    .ruleType(RuleType.RISK)
+                    .ruleType(RuleType.RISK.toString())
                     .failureReason("Foreign currency transaction - market risk detected")
                     .failedAt(Instant.now())
                     .build());
@@ -157,7 +157,7 @@ public class RiskAssessmentRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("RISK_RULE_003")
                     .ruleName("Operational Risk Evaluation")
-                    .ruleType(RuleType.RISK)
+                    .ruleType(RuleType.RISK.toString())
                     .failureReason("High-value transaction - operational risk detected")
                     .failedAt(Instant.now())
                     .build());
@@ -183,7 +183,7 @@ public class RiskAssessmentRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("RISK_RULE_004")
                     .ruleName("Liquidity Risk Assessment")
-                    .ruleType(RuleType.RISK)
+                    .ruleType(RuleType.RISK.toString())
                     .failureReason("Large transaction - liquidity risk detected")
                     .failedAt(Instant.now())
                     .build());
@@ -208,7 +208,7 @@ public class RiskAssessmentRuleEngine {
             failedRules.add(FailedRule.builder()
                     .ruleId("RISK_RULE_005")
                     .ruleName("Counterparty Risk Analysis")
-                    .ruleType(RuleType.RISK)
+                    .ruleType(RuleType.RISK.toString())
                     .failureReason("High-risk counterparty detected")
                     .failedAt(Instant.now())
                     .build());

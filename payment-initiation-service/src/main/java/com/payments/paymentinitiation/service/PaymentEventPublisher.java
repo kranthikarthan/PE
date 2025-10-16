@@ -36,27 +36,26 @@ public class PaymentEventPublisher {
     public void publishPaymentInitiatedEvent(Payment payment, String correlationId) {
         log.info("Publishing payment initiated event for payment: {}", payment.getId());
         
-        PaymentInitiatedEvent event = PaymentInitiatedEvent.builder()
-                .eventId(UUID.randomUUID())
-                .eventType("payment.payment.initiated.v1")
-                .timestamp(Instant.now())
-                .correlationId(UUID.fromString(correlationId))
-                .source("PaymentInitiationService")
-                .version("1.0.0")
-                .tenantId(payment.getTenantContext().getTenantId())
-                .businessUnitId(payment.getTenantContext().getBusinessUnitId())
-                .paymentId(payment.getId())
-                .idempotencyKey(payment.getIdempotencyKey())
-                .sourceAccount(payment.getSourceAccount().getAccountNumber())
-                .destinationAccount(payment.getDestinationAccount().getAccountNumber())
-                .amount(payment.getAmount())
-                .reference(payment.getReference())
-                .paymentType(payment.getPaymentType())
-                .priority(payment.getPriority())
-                .tenantContext(payment.getTenantContext())
-                .initiatedBy(payment.getInitiatedBy())
-                .initiatedAt(payment.getInitiatedAt())
-                .build();
+        PaymentInitiatedEvent event = new PaymentInitiatedEvent();
+        event.setEventId(UUID.randomUUID());
+        event.setEventType("payment.payment.initiated.v1");
+        event.setTimestamp(Instant.now());
+        event.setCorrelationId(UUID.fromString(correlationId));
+        event.setSource("PaymentInitiationService");
+        event.setVersion("1.0.0");
+        event.setTenantId(payment.getTenantContext().getTenantId());
+        event.setBusinessUnitId(payment.getTenantContext().getBusinessUnitId());
+        event.setPaymentId(payment.getId());
+        event.setIdempotencyKey(payment.getIdempotencyKey());
+        event.setSourceAccount(payment.getSourceAccount().getValue());
+        event.setDestinationAccount(payment.getDestinationAccount().getValue());
+        event.setAmount(payment.getAmount());
+        event.setReference(payment.getReference().getValue());
+        event.setPaymentType(com.payments.contracts.payment.PaymentType.valueOf(payment.getPaymentType().name()));
+        event.setPriority(com.payments.contracts.payment.Priority.valueOf(payment.getPriority().name()));
+        event.setTenantContext(payment.getTenantContext());
+        event.setInitiatedBy(payment.getInitiatedBy());
+        event.setInitiatedAt(payment.getInitiatedAt());
         
         eventPublisher.publishEvent(event);
         log.debug("Payment initiated event published: {}", event.getEventId());
@@ -71,19 +70,20 @@ public class PaymentEventPublisher {
     public void publishPaymentValidatedEvent(Payment payment, String correlationId) {
         log.info("Publishing payment validated event for payment: {}", payment.getId());
         
-        PaymentValidatedEvent event = PaymentValidatedEvent.builder()
-                .eventId(UUID.randomUUID())
-                .eventType("payment.payment.validated.v1")
-                .timestamp(Instant.now())
-                .correlationId(UUID.fromString(correlationId))
-                .source("PaymentInitiationService")
-                .version("1.0.0")
-                .tenantId(payment.getTenantContext().getTenantId())
-                .businessUnitId(payment.getTenantContext().getBusinessUnitId())
-                .paymentId(payment.getId())
-                .tenantContext(payment.getTenantContext())
-                .validatedAt(payment.getValidatedAt())
-                .build();
+        PaymentValidatedEvent event = new PaymentValidatedEvent();
+        event.setEventId(UUID.randomUUID());
+        event.setEventType("payment.payment.validated.v1");
+        event.setTimestamp(Instant.now());
+        event.setCorrelationId(UUID.fromString(correlationId));
+        event.setSource("PaymentInitiationService");
+        event.setVersion("1.0.0");
+        event.setTenantId(payment.getTenantContext().getTenantId());
+        event.setBusinessUnitId(payment.getTenantContext().getBusinessUnitId());
+        event.setPaymentId(payment.getId());
+        event.setTenantContext(payment.getTenantContext());
+        event.setValidatedAt(payment.getValidatedAt());
+        event.setRiskLevel(com.payments.contracts.validation.RiskLevel.LOW); // Default risk level
+        event.setFraudScore(0); // Default fraud score
         
         eventPublisher.publishEvent(event);
         log.debug("Payment validated event published: {}", event.getEventId());
@@ -99,20 +99,19 @@ public class PaymentEventPublisher {
     public void publishPaymentFailedEvent(Payment payment, String reason, String correlationId) {
         log.info("Publishing payment failed event for payment: {}", payment.getId());
         
-        PaymentFailedEvent event = PaymentFailedEvent.builder()
-                .eventId(UUID.randomUUID())
-                .eventType("payment.payment.failed.v1")
-                .timestamp(Instant.now())
-                .correlationId(UUID.fromString(correlationId))
-                .source("PaymentInitiationService")
-                .version("1.0.0")
-                .tenantId(payment.getTenantContext().getTenantId())
-                .businessUnitId(payment.getTenantContext().getBusinessUnitId())
-                .paymentId(payment.getId())
-                .tenantContext(payment.getTenantContext())
-                .failedAt(payment.getFailedAt())
-                .failureReason(reason)
-                .build();
+        PaymentFailedEvent event = new PaymentFailedEvent();
+        event.setEventId(UUID.randomUUID());
+        event.setEventType("payment.payment.failed.v1");
+        event.setTimestamp(Instant.now());
+        event.setCorrelationId(UUID.fromString(correlationId));
+        event.setSource("PaymentInitiationService");
+        event.setVersion("1.0.0");
+        event.setTenantId(payment.getTenantContext().getTenantId());
+        event.setBusinessUnitId(payment.getTenantContext().getBusinessUnitId());
+        event.setPaymentId(payment.getId());
+        event.setTenantContext(payment.getTenantContext());
+        event.setFailedAt(payment.getFailedAt());
+        event.setFailureReason(reason);
         
         eventPublisher.publishEvent(event);
         log.debug("Payment failed event published: {}", event.getEventId());
@@ -127,19 +126,18 @@ public class PaymentEventPublisher {
     public void publishPaymentCompletedEvent(Payment payment, String correlationId) {
         log.info("Publishing payment completed event for payment: {}", payment.getId());
         
-        PaymentCompletedEvent event = PaymentCompletedEvent.builder()
-                .eventId(UUID.randomUUID())
-                .eventType("payment.payment.completed.v1")
-                .timestamp(Instant.now())
-                .correlationId(UUID.fromString(correlationId))
-                .source("PaymentInitiationService")
-                .version("1.0.0")
-                .tenantId(payment.getTenantContext().getTenantId())
-                .businessUnitId(payment.getTenantContext().getBusinessUnitId())
-                .paymentId(payment.getId())
-                .tenantContext(payment.getTenantContext())
-                .completedAt(payment.getCompletedAt())
-                .build();
+        PaymentCompletedEvent event = new PaymentCompletedEvent();
+        event.setEventId(UUID.randomUUID());
+        event.setEventType("payment.payment.completed.v1");
+        event.setTimestamp(Instant.now());
+        event.setCorrelationId(UUID.fromString(correlationId));
+        event.setSource("PaymentInitiationService");
+        event.setVersion("1.0.0");
+        event.setTenantId(payment.getTenantContext().getTenantId());
+        event.setBusinessUnitId(payment.getTenantContext().getBusinessUnitId());
+        event.setPaymentId(payment.getId());
+        event.setTenantContext(payment.getTenantContext());
+        event.setCompletedAt(payment.getCompletedAt());
         
         eventPublisher.publishEvent(event);
         log.debug("Payment completed event published: {}", event.getEventId());

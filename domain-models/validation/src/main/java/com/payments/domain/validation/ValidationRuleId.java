@@ -6,7 +6,7 @@ import lombok.Value;
 
 @Embeddable
 @Value
-class ValidationRuleId {
+public class ValidationRuleId {
   String value;
 
   private ValidationRuleId(String value) {
