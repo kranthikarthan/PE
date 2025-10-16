@@ -19,8 +19,8 @@ COPY shared-telemetry/ shared-telemetry/
 COPY shared-config/ shared-config/
 COPY routing-service/ routing-service/
 
-# Build the application
-RUN mvn clean package -pl routing-service -am -DskipTests
+# Build the application together with dependent modules
+RUN mvn -pl routing-service -am clean package -DskipTests -Dspotless.skip=true
 
 # Runtime stage
 FROM eclipse-temurin:17-jre

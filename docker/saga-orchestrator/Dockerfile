@@ -19,8 +19,8 @@ COPY shared-telemetry/ shared-telemetry/
 COPY shared-config/ shared-config/
 COPY saga-orchestrator/ saga-orchestrator/
 
-# Build the application
-RUN mvn clean package -pl saga-orchestrator -am -DskipTests
+# Build the application together with dependent modules
+RUN mvn -pl saga-orchestrator -am clean package -DskipTests -Dspotless.skip=true
 
 # Runtime stage
 FROM eclipse-temurin:17-jre

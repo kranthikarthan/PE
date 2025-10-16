@@ -19,8 +19,8 @@ COPY shared-telemetry/ shared-telemetry/
 COPY shared-config/ shared-config/
 COPY validation-service/ validation-service/
 
-# Build the application
-RUN mvn clean package -pl validation-service -am -DskipTests
+# Build the application alongside its required sibling modules
+RUN mvn -pl validation-service -am clean package -DskipTests -Dspotless.skip=true
 
 # Runtime stage
 FROM eclipse-temurin:17-jre

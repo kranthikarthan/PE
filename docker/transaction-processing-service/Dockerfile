@@ -19,8 +19,8 @@ COPY shared-telemetry/ shared-telemetry/
 COPY shared-config/ shared-config/
 COPY transaction-processing-service/ transaction-processing-service/
 
-# Build the application
-RUN mvn clean package -pl transaction-processing-service -am -DskipTests
+# Build the application together with dependent modules
+RUN mvn -pl transaction-processing-service -am clean package -DskipTests -Dspotless.skip=true
 
 # Runtime stage
 FROM eclipse-temurin:17-jre

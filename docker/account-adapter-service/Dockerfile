@@ -19,8 +19,8 @@ COPY shared-telemetry/ shared-telemetry/
 COPY shared-config/ shared-config/
 COPY account-adapter-service/ account-adapter-service/
 
-# Build the application
-RUN mvn clean package -pl account-adapter-service -am -DskipTests
+# Build the application together with dependent modules
+RUN mvn -pl account-adapter-service -am clean package -DskipTests -Dspotless.skip=true
 
 # Runtime stage
 FROM eclipse-temurin:17-jre

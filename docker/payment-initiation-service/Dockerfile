@@ -19,8 +19,8 @@ COPY shared-telemetry/ shared-telemetry/
 COPY shared-config/ shared-config/
 COPY payment-initiation-service/ payment-initiation-service/
 
-# Build the application
-RUN mvn clean package -pl payment-initiation-service -am -DskipTests
+# Pre-build service together with its module dependencies in one go
+RUN mvn -pl payment-initiation-service -am clean package -DskipTests -Dspotless.skip=true
 
 # Runtime stage
 FROM eclipse-temurin:17-jre
