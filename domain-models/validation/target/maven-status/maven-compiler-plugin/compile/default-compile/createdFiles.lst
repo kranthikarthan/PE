@@ -1,0 +1,13 @@
+com\payments\domain\validation\ValidationResult.class
+com\payments\domain\validation\FailedRule.class
+com\payments\domain\validation\FailedRuleId.class
+com\payments\domain\validation\RiskLevel.class
+com\payments\domain\validation\ValidationResult$ValidationResultBuilder.class
+com\payments\domain\validation\ValidationId.class
+com\payments\domain\validation\PaymentValidatedEvent.class
+com\payments\domain\validation\ValidationRuleId.class
+com\payments\domain\validation\ValidationRule.class
+com\payments\domain\validation\RuleType.class
+com\payments\domain\validation\ValidationFailedEvent.class
+com\payments\domain\validation\ValidationStatus.class
+com\payments\domain\validation\FailedRule$FailedRuleBuilder.class

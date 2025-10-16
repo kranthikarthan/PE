@@ -6,15 +6,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payments.contracts.payment.PaymentInitiationRequest;
 import com.payments.contracts.payment.PaymentInitiationResponse;
-import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.Money;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -55,6 +54,7 @@ class PaymentInitiationIntegrationTest {
   @Autowired private MockMvc mockMvc;
 
   @Autowired private ObjectMapper objectMapper;
+
   @org.springframework.boot.test.mock.mockito.MockBean
   private com.payments.paymentinitiation.service.PaymentDomainService paymentDomainService;
 

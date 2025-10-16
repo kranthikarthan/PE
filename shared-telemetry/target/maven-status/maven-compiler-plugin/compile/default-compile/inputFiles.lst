@@ -1,0 +1,12 @@
+C:\git\clone\PE\shared-telemetry\src\main\java\com\payments\telemetry\CacheOperation.java
+C:\git\clone\PE\shared-telemetry\src\main\java\com\payments\telemetry\DatabaseOperation.java
+C:\git\clone\PE\shared-telemetry\src\main\java\com\payments\telemetry\ExternalService.java
+C:\git\clone\PE\shared-telemetry\src\main\java\com\payments\telemetry\KafkaOperation.java
+C:\git\clone\PE\shared-telemetry\src\main\java\com\payments\telemetry\LoggingConfig.java
+C:\git\clone\PE\shared-telemetry\src\main\java\com\payments\telemetry\LoggingService.java
+C:\git\clone\PE\shared-telemetry\src\main\java\com\payments\telemetry\MetricsConfig.java
+C:\git\clone\PE\shared-telemetry\src\main\java\com\payments\telemetry\MetricsService.java
+C:\git\clone\PE\shared-telemetry\src\main\java\com\payments\telemetry\TelemetryAspect.java
+C:\git\clone\PE\shared-telemetry\src\main\java\com\payments\telemetry\Traced.java
+C:\git\clone\PE\shared-telemetry\src\main\java\com\payments\telemetry\TracingConfig.java
+C:\git\clone\PE\shared-telemetry\src\main\java\com\payments\telemetry\TracingService.java

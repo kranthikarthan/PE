@@ -10,18 +10,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payments.contracts.payment.PaymentInitiationRequest;
 import com.payments.contracts.payment.PaymentInitiationResponse;
 import com.payments.contracts.payment.PaymentStatus;
-import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.Money;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
-import com.payments.paymentinitiation.service.PaymentInitiationService;
-import com.payments.paymentinitiation.service.PaymentBusinessRulesService;
 import com.payments.paymentinitiation.port.IdempotencyRepositoryPort;
+import com.payments.paymentinitiation.service.PaymentBusinessRulesService;
+import com.payments.paymentinitiation.service.PaymentInitiationService;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -51,11 +50,16 @@ class PaymentInitiationControllerTest {
   @MockBean private PaymentInitiationService paymentInitiationService;
   @MockBean private PaymentBusinessRulesService paymentBusinessRulesService;
   @MockBean private com.payments.paymentinitiation.service.IdempotencyService idempotencyService;
+
   @MockBean(name = "idempotencyRepositoryAdapter")
   private IdempotencyRepositoryPort idempotencyRepositoryAdapter;
+
   @MockBean(name = "idempotencyRepositoryPort")
   private IdempotencyRepositoryPort idempotencyRepositoryPort;
-  @MockBean private com.payments.paymentinitiation.service.EnhancedIdempotencyService enhancedIdempotencyService;
+
+  @MockBean
+  private com.payments.paymentinitiation.service.EnhancedIdempotencyService
+      enhancedIdempotencyService;
 
   @Test
   void initiatePayment_ShouldReturn201_WhenValidRequest() throws Exception {

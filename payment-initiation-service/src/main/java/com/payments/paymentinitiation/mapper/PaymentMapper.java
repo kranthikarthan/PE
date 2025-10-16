@@ -90,7 +90,24 @@ public class PaymentMapper {
         .build();
   }
 
-  // Intentionally not mapping status history here to avoid tight coupling on domain internals
+  /** Convert Payment domain status history to PaymentStatusHistoryEntity list */
+  public List<PaymentStatusHistoryEntity> toStatusHistoryEntities(Payment payment) {
+    if (payment.getStatusHistory() == null || payment.getStatusHistory().isEmpty()) {
+      return List.of();
+    }
+
+    return payment.getStatusHistory().stream()
+        .map(
+            statusChange ->
+                PaymentStatusHistoryEntity.builder()
+                    .fromStatus(statusChange.getFromStatus())
+                    .toStatus(statusChange.getToStatus())
+                    .reason(statusChange.getReason())
+                    .changedBy(statusChange.getChangedBy())
+                    .changedAt(statusChange.getChangedAt())
+                    .build())
+        .collect(Collectors.toList());
+  }
 
   /** Enum mappers: domain -> contract */
   public PaymentType mapPaymentType(com.payments.domain.payment.PaymentType type) {
@@ -113,6 +130,4 @@ public class PaymentMapper {
   public PaymentStatus mapStatus(com.payments.domain.payment.PaymentStatus status) {
     return status == null ? null : PaymentStatus.valueOf(status.name());
   }
-
-
 }

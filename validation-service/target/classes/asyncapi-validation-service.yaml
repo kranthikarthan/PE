@@ -1,0 +1,473 @@
+asyncapi: 2.6.0
+info:
+  title: Validation Service API
+  version: 1.0.0
+  description: |
+    Payment validation service with business rules engine.
+    Processes payment events and emits validation results.
+  contact:
+    name: Payments Team
+    email: payments@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  kafka:
+    url: localhost:9092
+    protocol: kafka
+    description: Kafka broker for event streaming
+
+channels:
+  payment-initiated:
+    address: payment-initiated
+    messages:
+      payment-initiated:
+        $ref: '#/components/messages/PaymentInitiated'
+    description: Payment initiation events to validate
+
+  payment-validated:
+    address: payment-validated
+    messages:
+      payment-validated:
+        $ref: '#/components/messages/PaymentValidated'
+    description: Successful validation results
+
+  validation-failed:
+    address: validation-failed
+    messages:
+      validation-failed:
+        $ref: '#/components/messages/ValidationFailed'
+    description: Failed validation results
+
+  fraud-detected:
+    address: fraud-detected
+    messages:
+      fraud-detected:
+        $ref: '#/components/messages/FraudDetected'
+    description: Fraud detection alerts
+
+  risk-assessment:
+    address: risk-assessment
+    messages:
+      risk-assessment:
+        $ref: '#/components/messages/RiskAssessment'
+    description: Risk assessment results
+
+operations:
+  validatePayment:
+    action: receive
+    channel:
+      $ref: '#/channels/payment-initiated'
+    summary: Validate payment
+    description: Receives payment initiation events for validation
+    messages:
+      - $ref: '#/channels/payment-initiated/messages/payment-initiated'
+
+  emitValidationResult:
+    action: send
+    channel:
+      $ref: '#/channels/payment-validated'
+    summary: Emit validation result
+    description: Sends successful validation results
+    messages:
+      - $ref: '#/channels/payment-validated/messages/payment-validated'
+
+  emitValidationFailure:
+    action: send
+    channel:
+      $ref: '#/channels/validation-failed'
+    summary: Emit validation failure
+    description: Sends failed validation results
+    messages:
+      - $ref: '#/channels/validation-failed/messages/validation-failed'
+
+  emitFraudAlert:
+    action: send
+    channel:
+      $ref: '#/channels/fraud-detected'
+    summary: Emit fraud alert
+    description: Sends fraud detection alerts
+    messages:
+      - $ref: '#/channels/fraud-detected/messages/fraud-detected'
+
+  emitRiskAssessment:
+    action: send
+    channel:
+      $ref: '#/channels/risk-assessment'
+    summary: Emit risk assessment
+    description: Sends risk assessment results
+    messages:
+      - $ref: '#/channels/risk-assessment/messages/risk-assessment'
+
+components:
+  messages:
+    PaymentInitiated:
+      name: PaymentInitiated
+      title: Payment Initiated Event
+      summary: Payment initiation event for validation
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/PaymentInitiatedEvent'
+
+    PaymentValidated:
+      name: PaymentValidated
+      title: Payment Validated Event
+      summary: Successful payment validation result
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/PaymentValidatedEvent'
+
+    ValidationFailed:
+      name: ValidationFailed
+      title: Validation Failed Event
+      summary: Failed payment validation result
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ValidationFailedEvent'
+
+    FraudDetected:
+      name: FraudDetected
+      title: Fraud Detected Event
+      summary: Fraud detection alert
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/FraudDetectedEvent'
+
+    RiskAssessment:
+      name: RiskAssessment
+      title: Risk Assessment Event
+      summary: Risk assessment result
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/RiskAssessmentEvent'
+
+  schemas:
+    PaymentInitiatedEvent:
+      type: object
+      required:
+        - eventId
+        - eventType
+        - timestamp
+        - correlationId
+        - paymentId
+        - tenantContext
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Unique event identifier
+        eventType:
+          type: string
+          enum: [PaymentInitiated]
+          description: Type of event
+        timestamp:
+          type: string
+          format: date-time
+          description: Event occurrence timestamp
+        correlationId:
+          type: string
+          description: Correlation ID for tracing
+        source:
+          type: string
+          description: Event source service
+        version:
+          type: string
+          pattern: '^\d+\.\d+\.\d+$'
+          description: Event schema version
+        tenantId:
+          type: string
+          description: Tenant identifier
+        businessUnitId:
+          type: string
+          description: Business unit identifier
+        paymentId:
+          type: object
+          $ref: '#/components/schemas/PaymentId'
+        tenantContext:
+          type: object
+          $ref: '#/components/schemas/TenantContext'
+
+    PaymentValidatedEvent:
+      type: object
+      required:
+        - eventId
+        - eventType
+        - timestamp
+        - correlationId
+        - paymentId
+        - tenantContext
+        - validationResult
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Unique event identifier
+        eventType:
+          type: string
+          enum: [PaymentValidated]
+          description: Type of event
+        timestamp:
+          type: string
+          format: date-time
+          description: Event occurrence timestamp
+        correlationId:
+          type: string
+          description: Correlation ID for tracing
+        source:
+          type: string
+          description: Event source service
+        version:
+          type: string
+          pattern: '^\d+\.\d+\.\d+$'
+          description: Event schema version
+        tenantId:
+          type: string
+          description: Tenant identifier
+        businessUnitId:
+          type: string
+          description: Business unit identifier
+        paymentId:
+          type: object
+          $ref: '#/components/schemas/PaymentId'
+        tenantContext:
+          type: object
+          $ref: '#/components/schemas/TenantContext'
+        validationResult:
+          type: object
+          $ref: '#/components/schemas/ValidationResult'
+
+    ValidationFailedEvent:
+      type: object
+      required:
+        - eventId
+        - eventType
+        - timestamp
+        - correlationId
+        - paymentId
+        - tenantContext
+        - failedRules
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Unique event identifier
+        eventType:
+          type: string
+          enum: [ValidationFailed]
+          description: Type of event
+        timestamp:
+          type: string
+          format: date-time
+          description: Event occurrence timestamp
+        correlationId:
+          type: string
+          description: Correlation ID for tracing
+        source:
+          type: string
+          description: Event source service
+        version:
+          type: string
+          pattern: '^\d+\.\d+\.\d+$'
+          description: Event schema version
+        tenantId:
+          type: string
+          description: Tenant identifier
+        businessUnitId:
+          type: string
+          description: Business unit identifier
+        paymentId:
+          type: object
+          $ref: '#/components/schemas/PaymentId'
+        tenantContext:
+          type: object
+          $ref: '#/components/schemas/TenantContext'
+        failedRules:
+          type: array
+          items:
+            $ref: '#/components/schemas/FailedRule'
+
+    FraudDetectedEvent:
+      type: object
+      required:
+        - eventId
+        - eventType
+        - timestamp
+        - correlationId
+        - paymentId
+        - tenantContext
+        - fraudScore
+        - fraudReasons
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Unique event identifier
+        eventType:
+          type: string
+          enum: [FraudDetected]
+          description: Type of event
+        timestamp:
+          type: string
+          format: date-time
+          description: Event occurrence timestamp
+        correlationId:
+          type: string
+          description: Correlation ID for tracing
+        source:
+          type: string
+          description: Event source service
+        version:
+          type: string
+          pattern: '^\d+\.\d+\.\d+$'
+          description: Event schema version
+        tenantId:
+          type: string
+          description: Tenant identifier
+        businessUnitId:
+          type: string
+          description: Business unit identifier
+        paymentId:
+          type: object
+          $ref: '#/components/schemas/PaymentId'
+        tenantContext:
+          type: object
+          $ref: '#/components/schemas/TenantContext'
+        fraudScore:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Fraud risk score (0-100)
+        fraudReasons:
+          type: array
+          items:
+            type: string
+          description: Reasons for fraud detection
+
+    RiskAssessmentEvent:
+      type: object
+      required:
+        - eventId
+        - eventType
+        - timestamp
+        - correlationId
+        - paymentId
+        - tenantContext
+        - riskLevel
+        - riskScore
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Unique event identifier
+        eventType:
+          type: string
+          enum: [RiskAssessment]
+          description: Type of event
+        timestamp:
+          type: string
+          format: date-time
+          description: Event occurrence timestamp
+        correlationId:
+          type: string
+          description: Correlation ID for tracing
+        source:
+          type: string
+          description: Event source service
+        version:
+          type: string
+          pattern: '^\d+\.\d+\.\d+$'
+          description: Event schema version
+        tenantId:
+          type: string
+          description: Tenant identifier
+        businessUnitId:
+          type: string
+          description: Business unit identifier
+        paymentId:
+          type: object
+          $ref: '#/components/schemas/PaymentId'
+        tenantContext:
+          type: object
+          $ref: '#/components/schemas/TenantContext'
+        riskLevel:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+          description: Risk level assessment
+        riskScore:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Risk score (0-100)
+
+    PaymentId:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: string
+          description: Payment identifier
+
+    TenantContext:
+      type: object
+      required:
+        - tenantId
+        - businessUnitId
+      properties:
+        tenantId:
+          type: string
+          description: Tenant identifier
+        businessUnitId:
+          type: string
+          description: Business unit identifier
+
+    ValidationResult:
+      type: object
+      required:
+        - validationId
+        - status
+        - validatedAt
+      properties:
+        validationId:
+          type: string
+          description: Validation result identifier
+        status:
+          type: string
+          enum: [PASSED, FAILED]
+          description: Validation status
+        validatedAt:
+          type: string
+          format: date-time
+          description: Validation timestamp
+        appliedRules:
+          type: array
+          items:
+            type: string
+          description: Rules that were applied
+        riskLevel:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+          description: Risk level assessment
+
+    FailedRule:
+      type: object
+      required:
+        - ruleId
+        - ruleName
+        - ruleType
+        - failureReason
+      properties:
+        ruleId:
+          type: string
+          description: Rule identifier
+        ruleName:
+          type: string
+          description: Rule name
+        ruleType:
+          type: string
+          enum: [BUSINESS, COMPLIANCE, FRAUD, RISK]
+          description: Type of rule
+        failureReason:
+          type: string
+          description: Reason for rule failure

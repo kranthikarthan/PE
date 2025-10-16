@@ -106,9 +106,7 @@ public class Payment {
   @Transient
   private List<StatusChange> statusHistory = new ArrayList<>();
 
-  @Builder.Default
-  @Transient
-  private List<DomainEvent> domainEvents = new ArrayList<>();
+  @Builder.Default @Transient private List<DomainEvent> domainEvents = new ArrayList<>();
 
   // ─────────────────────────────────────────────────────────
   // FACTORY METHOD (Create new payment)

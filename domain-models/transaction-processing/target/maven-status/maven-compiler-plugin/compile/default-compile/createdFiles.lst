@@ -1,0 +1,16 @@
+com\payments\domain\transaction\LedgerEntryId.class
+com\payments\domain\transaction\TransactionFailedEvent.class
+com\payments\domain\transaction\TransactionType.class
+com\payments\domain\transaction\TransactionClearingEvent.class
+com\payments\domain\transaction\TransactionEventId.class
+com\payments\domain\transaction\LedgerEntry.class
+com\payments\domain\transaction\InvalidTransactionException.class
+com\payments\domain\transaction\TransactionId.class
+com\payments\domain\transaction\TransactionStatus.class
+com\payments\domain\transaction\TransactionCreatedEvent.class
+com\payments\domain\transaction\Transaction.class
+com\payments\domain\transaction\TransactionEvent.class
+com\payments\domain\transaction\LedgerEntryType.class
+com\payments\domain\transaction\TransactionCompletedEvent.class
+com\payments\domain\transaction\InvalidStateTransitionException.class
+com\payments\domain\transaction\TransactionProcessingEvent.class

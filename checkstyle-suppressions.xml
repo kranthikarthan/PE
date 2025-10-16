@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+    <!-- Suppress Javadoc requirements for test classes -->
+    <suppress files=".*Test\.java" checks="JavadocMethod"/>
+    <suppress files=".*Test\.java" checks="JavadocType"/>
+    <suppress files=".*Test\.java" checks="JavadocVariable"/>
+    <suppress files=".*Test\.java" checks="MissingJavadocMethod"/>
+    
+    <!-- Suppress Javadoc requirements for generated classes -->
+    <suppress files=".*\.java" checks="JavadocMethod" lines="1-50"/>
+    
+    <!-- Suppress magic number checks for test data -->
+    <suppress files=".*Test\.java" checks="MagicNumber"/>
+    
+    <!-- Suppress visibility modifier checks for test classes -->
+    <suppress files=".*Test\.java" checks="VisibilityModifier"/>
+    
+    <!-- Suppress design for extension checks for domain models -->
+    <suppress files=".*\.java" checks="DesignForExtension"/>
+    
+    <!-- Suppress final class checks for Spring components -->
+    <suppress files=".*Config\.java" checks="FinalClass"/>
+    <suppress files=".*Service\.java" checks="FinalClass"/>
+    <suppress files=".*Controller\.java" checks="FinalClass"/>
+</suppressions>

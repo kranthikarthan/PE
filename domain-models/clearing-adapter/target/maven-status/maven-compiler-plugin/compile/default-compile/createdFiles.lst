@@ -1,0 +1,13 @@
+com\payments\domain\clearing\InvalidClearingAdapterException.class
+com\payments\domain\clearing\ClearingMessageLoggedEvent.class
+com\payments\domain\clearing\ClearingRouteAddedEvent.class
+com\payments\domain\clearing\AdapterOperationalStatus.class
+com\payments\domain\clearing\ClearingAdapterActivatedEvent.class
+com\payments\domain\clearing\RouteStatus.class
+com\payments\domain\clearing\ClearingMessageLog.class
+com\payments\domain\clearing\ClearingAdapter.class
+com\payments\domain\clearing\ClearingAdapterConfigurationUpdatedEvent.class
+com\payments\domain\clearing\ClearingAdapterCreatedEvent.class
+com\payments\domain\clearing\ClearingNetwork.class
+com\payments\domain\clearing\ClearingRoute.class
+com\payments\domain\clearing\ClearingAdapterDeactivatedEvent.class

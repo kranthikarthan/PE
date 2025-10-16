@@ -1,9 +1,9 @@
 package com.payments.domain.shared;
 
 import jakarta.persistence.Embeddable;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import java.util.UUID;
 import lombok.Value;
 
 /** PaymentId - Value Object (Entity ID) */

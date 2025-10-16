@@ -1,12 +1,5 @@
 package com.payments.paymentinitiation.config;
 
-import com.payments.paymentinitiation.adapter.IdempotencyRepositoryAdapter;
-import com.payments.paymentinitiation.adapter.PaymentRepositoryAdapter;
-import com.payments.paymentinitiation.port.IdempotencyRepositoryPort;
-import com.payments.paymentinitiation.port.PaymentRepositoryPort;
-import com.payments.paymentinitiation.repository.IdempotencyRecordJpaRepository;
-import com.payments.paymentinitiation.repository.PaymentJpaRepository;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**

@@ -112,9 +112,7 @@ public class Resilience4jHealthIndicator implements HealthIndicator {
       health.put("name", retry.getName());
       health.put("maxAttempts", retry.getRetryConfig().getMaxAttempts());
       // Expose interval function as string due to API differences
-      health.put(
-          "intervalFunction",
-          String.valueOf(retry.getRetryConfig().getIntervalFunction()));
+      health.put("intervalFunction", String.valueOf(retry.getRetryConfig().getIntervalFunction()));
 
       // Retry is always healthy (it's a passive component)
       isHealthy = true;
@@ -140,8 +138,7 @@ public class Resilience4jHealthIndicator implements HealthIndicator {
       health.put("name", timeLimiter.getName());
       health.put("timeoutDuration", timeLimiter.getTimeLimiterConfig().getTimeoutDuration());
       health.put(
-          "cancelRunningFuture",
-          timeLimiter.getTimeLimiterConfig().shouldCancelRunningFuture());
+          "cancelRunningFuture", timeLimiter.getTimeLimiterConfig().shouldCancelRunningFuture());
 
       // Time limiter is always healthy (it's a passive component)
       isHealthy = true;

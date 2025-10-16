@@ -1,0 +1,55 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Payment Initiation Service
+  - job_name: 'payment-initiation-service'
+    static_configs:
+      - targets: ['payment-initiation-service:8080']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+
+  # Validation Service
+  - job_name: 'validation-service'
+    static_configs:
+      - targets: ['validation-service:8080']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+
+  # Account Adapter Service
+  - job_name: 'account-adapter-service'
+    static_configs:
+      - targets: ['account-adapter-service:8080']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+
+  # Routing Service
+  - job_name: 'routing-service'
+    static_configs:
+      - targets: ['routing-service:8080']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+
+  # Transaction Processing Service
+  - job_name: 'transaction-processing-service'
+    static_configs:
+      - targets: ['transaction-processing-service:8080']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+
+  # Saga Orchestrator Service
+  - job_name: 'saga-orchestrator'
+    static_configs:
+      - targets: ['saga-orchestrator:8080']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s

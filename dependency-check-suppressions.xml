@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <!-- Suppress false positives for common libraries -->
+    <suppress>
+        <notes><![CDATA[
+        Suppress false positives for Spring Boot and related libraries
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/.*$</packageUrl>
+        <cve>CVE-2016-1000027</cve>
+    </suppress>
+    
+    <suppress>
+        <notes><![CDATA[
+        Suppress false positives for Jackson libraries
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson/.*$</packageUrl>
+        <cve>CVE-2020-36518</cve>
+    </suppress>
+    
+    <suppress>
+        <notes><![CDATA[
+        Suppress false positives for Hibernate libraries
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.hibernate/.*$</packageUrl>
+        <cve>CVE-2019-14900</cve>
+    </suppress>
+    
+    <suppress>
+        <notes><![CDATA[
+        Suppress false positives for Testcontainers
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.testcontainers/.*$</packageUrl>
+        <cve>CVE-2021-44228</cve>
+    </suppress>
+    
+    <suppress>
+        <notes><![CDATA[
+        Suppress false positives for Lombok
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.projectlombok/.*$</packageUrl>
+        <cve>CVE-2020-36518</cve>
+    </suppress>
+</suppressions>

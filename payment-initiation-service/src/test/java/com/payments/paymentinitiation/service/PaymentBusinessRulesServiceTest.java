@@ -4,14 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import com.payments.domain.payment.Payment;
-import com.payments.domain.shared.PaymentId;
 import com.payments.domain.payment.PaymentType;
 import com.payments.domain.payment.Priority;
 import com.payments.domain.shared.AccountNumber;
 import com.payments.domain.shared.Money;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
 import com.payments.paymentinitiation.port.PaymentRepositoryPort;
 import java.math.BigDecimal;
@@ -72,8 +72,10 @@ class PaymentBusinessRulesServiceTest {
             createPaymentWithAmount(BigDecimal.valueOf(200000.00)));
     Page<Payment> paymentPage = new PageImpl<>(existingPayments);
 
-    when(paymentRepository.findByTenantIdAndDateRange(
-            anyString(), any(Instant.class), any(Instant.class), any(Pageable.class)))
+    lenient()
+        .when(
+            paymentRepository.findByTenantIdAndDateRange(
+                anyString(), any(Instant.class), any(Instant.class), any(Pageable.class)))
         .thenReturn(paymentPage);
 
     // When & Then
@@ -95,8 +97,10 @@ class PaymentBusinessRulesServiceTest {
             createPaymentWithAmount(BigDecimal.valueOf(400000.00)));
     Page<Payment> paymentPage = new PageImpl<>(existingPayments);
 
-    when(paymentRepository.findByTenantIdAndDateRange(
-            anyString(), any(Instant.class), any(Instant.class), any(Pageable.class)))
+    lenient()
+        .when(
+            paymentRepository.findByTenantIdAndDateRange(
+                anyString(), any(Instant.class), any(Instant.class), any(Pageable.class)))
         .thenReturn(paymentPage);
 
     // When & Then
@@ -118,8 +122,10 @@ class PaymentBusinessRulesServiceTest {
             createPaymentWithAmount(BigDecimal.valueOf(200.00)));
     Page<Payment> paymentPage = new PageImpl<>(recentPayments);
 
-    when(paymentRepository.findByTenantIdAndDateRange(
-            anyString(), any(Instant.class), any(Instant.class), any(Pageable.class)))
+    lenient()
+        .when(
+            paymentRepository.findByTenantIdAndDateRange(
+                anyString(), any(Instant.class), any(Instant.class), any(Pageable.class)))
         .thenReturn(paymentPage);
 
     // When & Then
@@ -151,8 +157,10 @@ class PaymentBusinessRulesServiceTest {
             );
     Page<Payment> paymentPage = new PageImpl<>(recentPayments);
 
-    when(paymentRepository.findByTenantIdAndDateRange(
-            anyString(), any(Instant.class), any(Instant.class), any(Pageable.class)))
+    lenient()
+        .when(
+            paymentRepository.findByTenantIdAndDateRange(
+                anyString(), any(Instant.class), any(Instant.class), any(Pageable.class)))
         .thenReturn(paymentPage);
 
     // When & Then

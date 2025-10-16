@@ -1,0 +1,17 @@
+com\payments\domain\tenant\TenantActivatedEvent.class
+com\payments\domain\tenant\TenantCreatedEvent.class
+com\payments\domain\tenant\BusinessUnitType.class
+com\payments\domain\tenant\Tenant.class
+com\payments\domain\tenant\TenantConfiguration.class
+com\payments\domain\tenant\UserAddedEvent.class
+com\payments\domain\tenant\UserStatus.class
+com\payments\domain\tenant\TenantStatus.class
+com\payments\domain\tenant\TenantSuspendedEvent.class
+com\payments\domain\tenant\BusinessUnitStatus.class
+com\payments\domain\tenant\InvalidTenantException.class
+com\payments\domain\tenant\TenantUser.class
+com\payments\domain\tenant\BusinessUnit.class
+com\payments\domain\tenant\BusinessUnitAddedEvent.class
+com\payments\domain\tenant\ConfigurationUpdatedEvent.class
+com\payments\domain\tenant\TenantType.class
+com\payments\domain\tenant\ConfigurationType.class

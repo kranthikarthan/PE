@@ -46,8 +46,7 @@ class PaymentMapperTest {
     assertThat(entity.getPaymentId()).isEqualTo(domainPayment.getId());
     assertThat(entity.getIdempotencyKey()).isEqualTo(domainPayment.getIdempotencyKey());
     assertThat(entity.getSourceAccount()).isEqualTo(domainPayment.getSourceAccount());
-    assertThat(entity.getDestinationAccount())
-        .isEqualTo(domainPayment.getDestinationAccount());
+    assertThat(entity.getDestinationAccount()).isEqualTo(domainPayment.getDestinationAccount());
     assertThat(entity.getAmount()).isEqualTo(domainPayment.getAmount());
     assertThat(entity.getReference()).isEqualTo(domainPayment.getReference().getValue());
     assertThat(entity.getPaymentType()).isEqualTo(domainPayment.getPaymentType());
@@ -217,7 +216,10 @@ class PaymentMapperTest {
         .paymentType(com.payments.domain.payment.PaymentType.EFT)
         .priority(com.payments.domain.payment.Priority.NORMAL)
         .tenantContext(
-            TenantContext.builder().tenantId("TEST-TENANT-001").businessUnitId("TEST-BU-001").build())
+            TenantContext.builder()
+                .tenantId("TEST-TENANT-001")
+                .businessUnitId("TEST-BU-001")
+                .build())
         .status(com.payments.domain.payment.PaymentStatus.INITIATED)
         .initiatedBy("test@example.com")
         .initiatedAt(Instant.now())

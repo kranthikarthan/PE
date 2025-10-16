@@ -10,11 +10,11 @@ import com.payments.contracts.payment.PaymentInitiationRequest;
 import com.payments.contracts.payment.PaymentInitiationResponse;
 import com.payments.contracts.payment.PaymentStatus;
 import com.payments.domain.payment.Payment;
-import com.payments.domain.shared.PaymentId;
-// use fully qualified enums to avoid contract/domain mismatch
 import com.payments.domain.payment.Priority;
 import com.payments.domain.shared.AccountNumber;
 import com.payments.domain.shared.Money;
+import com.payments.domain.shared.PaymentId;
+// use fully qualified enums to avoid contract/domain mismatch
 import com.payments.domain.shared.TenantContext;
 import com.payments.paymentinitiation.port.PaymentRepositoryPort;
 import java.math.BigDecimal;

@@ -7,19 +7,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payments.contracts.payment.PaymentInitiationRequest;
 import com.payments.contracts.payment.PaymentType;
 import com.payments.contracts.payment.Priority;
-import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.Money;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 /**
  * Contract tests for Payment Initiation API
@@ -43,15 +42,23 @@ class PaymentInitiationContractTest {
   @Autowired private MockMvc mockMvc;
 
   @Autowired private ObjectMapper objectMapper;
-  @MockBean private com.payments.paymentinitiation.service.PaymentDomainService paymentDomainService;
+
+  @MockBean
+  private com.payments.paymentinitiation.service.PaymentDomainService paymentDomainService;
+
   @MockBean private com.payments.paymentinitiation.service.IdempotencyService idempotencyService;
 
   // Avoid wiring real idempotency infra in this contract test
   @MockBean(name = "idempotencyRepositoryAdapter")
-  private com.payments.paymentinitiation.port.IdempotencyRepositoryPort idempotencyRepositoryAdapter;
+  private com.payments.paymentinitiation.port.IdempotencyRepositoryPort
+      idempotencyRepositoryAdapter;
+
   @MockBean(name = "idempotencyRepositoryPort")
   private com.payments.paymentinitiation.port.IdempotencyRepositoryPort idempotencyRepositoryPort;
-  @MockBean private com.payments.paymentinitiation.service.EnhancedIdempotencyService enhancedIdempotencyService;
+
+  @MockBean
+  private com.payments.paymentinitiation.service.EnhancedIdempotencyService
+      enhancedIdempotencyService;
 
   @Test
   void paymentInitiationRequest_ShouldMatchContract() throws Exception {

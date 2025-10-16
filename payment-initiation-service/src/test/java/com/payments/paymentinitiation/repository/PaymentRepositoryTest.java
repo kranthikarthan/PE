@@ -3,17 +3,16 @@ package com.payments.paymentinitiation.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.payments.domain.payment.Payment;
-import com.payments.domain.shared.PaymentId;
 import com.payments.domain.payment.PaymentStatus;
 import com.payments.domain.payment.PaymentType;
 import com.payments.domain.payment.Priority;
 import com.payments.domain.shared.AccountNumber;
 import com.payments.domain.shared.Money;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
-import com.payments.paymentinitiation.port.PaymentRepositoryPort;
 import com.payments.paymentinitiation.adapter.PaymentRepositoryAdapter;
 import com.payments.paymentinitiation.mapper.PaymentMapper;
-import org.springframework.context.annotation.Import;
+import com.payments.paymentinitiation.port.PaymentRepositoryPort;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Optional;
@@ -22,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
@@ -34,7 +34,8 @@ import org.springframework.test.context.ActiveProfiles;
 @DataJpaTest
 @ActiveProfiles("test")
 @org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase(
-    replace = org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.ANY)
+    replace =
+        org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.ANY)
 @org.springframework.test.context.TestPropertySource(properties = {"spring.flyway.enabled=false"})
 @Import({PaymentRepositoryAdapter.class, PaymentMapper.class})
 class PaymentRepositoryTest {

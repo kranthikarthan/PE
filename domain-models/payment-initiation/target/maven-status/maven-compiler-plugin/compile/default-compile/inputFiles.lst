@@ -1,0 +1,16 @@
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\ClearingConfirmation.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\ClearingSystemReference.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\InvalidPaymentException.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\InvalidStateTransitionException.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\Payment.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\PaymentClearedEvent.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\PaymentCompletedEvent.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\PaymentFailedEvent.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\PaymentInitiatedEvent.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\PaymentReference.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\PaymentStatus.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\PaymentSubmittedToClearingEvent.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\PaymentType.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\PaymentValidatedEvent.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\Priority.java
+C:\git\clone\PE\domain-models\payment-initiation\src\main\java\com\payments\domain\payment\StatusChange.java
