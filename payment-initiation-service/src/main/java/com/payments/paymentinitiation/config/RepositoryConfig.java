@@ -17,29 +17,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RepositoryConfig {
 
-  /**
-   * Payment Repository Port Bean
-   *
-   * @param jpaRepository JPA repository
-   * @param paymentMapper Payment mapper
-   * @return Payment repository port implementation
-   */
-  @Bean
-  public PaymentRepositoryPort paymentRepositoryPort(
-      PaymentJpaRepository jpaRepository,
-      com.payments.paymentinitiation.mapper.PaymentMapper paymentMapper) {
-    return new PaymentRepositoryAdapter(jpaRepository, paymentMapper);
-  }
-
-  /**
-   * Idempotency Repository Port Bean
-   *
-   * @param jpaRepository JPA repository
-   * @return Idempotency repository port implementation
-   */
-  @Bean
-  public IdempotencyRepositoryPort idempotencyRepositoryPort(
-      IdempotencyRecordJpaRepository jpaRepository) {
-    return new IdempotencyRepositoryAdapter(jpaRepository);
-  }
+  // Adapters are annotated with @Component and picked up via component scanning.
+  // Explicit @Bean definitions removed to avoid duplicate beans of the same port type.
 }

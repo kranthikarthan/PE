@@ -1,0 +1,1855 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest" time="7.658" tests="5" errors="0" skipped="0" failures="4">
+  <properties>
+    <property name="java.specification.version" value="17"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+    <property name="sun.jnu.encoding" value="Cp1252"/>
+    <property name="java.class.path" value="C:\git\clone\PE\payment-initiation-service\target\test-classes;C:\git\clone\PE\payment-initiation-service\target\classes;C:\git\clone\PE\contracts\target\classes;C:\git\clone\PE\domain-models\shared\target\classes;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.15.3\jackson-annotations-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-annotations\2.2.15\swagger-annotations-2.2.15.jar;C:\git\clone\PE\domain-models\payment-initiation\target\classes;C:\git\clone\PE\domain-models\validation\target\classes;C:\Users\Kranthi Karthan\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.2.0\spring-boot-starter-web-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter\3.2.0\spring-boot-starter-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot\3.2.0\spring-boot-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.2.0\spring-boot-autoconfigure-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.2.0\spring-boot-starter-logging-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\ch\qos\logback\logback-classic\1.4.11\logback-classic-1.4.11.jar;C:\Users\Kranthi Karthan\.m2\repository\ch\qos\logback\logback-core\1.4.11\logback-core-1.4.11.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\slf4j\jul-to-slf4j\2.0.9\jul-to-slf4j-2.0.9.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.2.0\spring-boot-starter-json-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.15.3\jackson-databind-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.3\jackson-datatype-jdk8-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.3\jackson-datatype-jsr310-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.3\jackson-module-parameter-names-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.2.0\spring-boot-starter-tomcat-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.16\tomcat-embed-core-10.1.16.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.16\tomcat-embed-websocket-10.1.16.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-web\6.1.1\spring-web-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-beans\6.1.1\spring-beans-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-webmvc\6.1.1\spring-webmvc-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-aop\6.1.1\spring-aop-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-context\6.1.1\spring-context-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-expression\6.1.1\spring-expression-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.2.0\spring-boot-starter-validation-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.16\tomcat-embed-el-10.1.16.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.1.Final\hibernate-validator-8.0.1.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\jboss\logging\jboss-logging\3.5.3.Final\jboss-logging-3.5.3.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\classmate\1.6.0\classmate-1.6.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.2.0\spring-boot-starter-data-jpa-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-aop\3.2.0\spring-boot-starter-aop-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\aspectj\aspectjweaver\1.9.20.1\aspectjweaver-1.9.20.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.2.0\spring-boot-starter-jdbc-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-jdbc\6.1.1\spring-jdbc-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hibernate\orm\hibernate-core\6.3.1.Final\hibernate-core-6.3.1.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hibernate\common\hibernate-commons-annotations\6.0.6.Final\hibernate-commons-annotations-6.0.6.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\io\smallrye\jandex\3.1.2\jandex-3.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\net\bytebuddy\byte-buddy\1.14.10\byte-buddy-1.14.10.jar;C:\Users\Kranthi Karthan\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.4\jaxb-runtime-4.0.4.jar;C:\Users\Kranthi Karthan\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.4\jaxb-core-4.0.4.jar;C:\Users\Kranthi Karthan\.m2\repository\org\eclipse\angus\angus-activation\2.0.1\angus-activation-2.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\glassfish\jaxb\txw2\4.0.4\txw2-4.0.4.jar;C:\Users\Kranthi Karthan\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\antlr\antlr4-runtime\4.10.1\antlr4-runtime-4.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\data\spring-data-jpa\3.2.0\spring-data-jpa-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\data\spring-data-commons\3.2.0\spring-data-commons-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-orm\6.1.1\spring-orm-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-tx\6.1.1\spring-tx-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\slf4j\slf4j-api\2.0.9\slf4j-api-2.0.9.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-aspects\6.1.1\spring-aspects-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-actuator\3.2.0\spring-boot-starter-actuator-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-actuator-autoconfigure\3.2.0\spring-boot-actuator-autoconfigure-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-actuator\3.2.0\spring-boot-actuator-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-observation\1.12.0\micrometer-observation-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-commons\1.12.0\micrometer-commons-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-jakarta9\1.12.0\micrometer-jakarta9-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-core\1.12.0\micrometer-core-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hdrhistogram\HdrHistogram\2.1.12\HdrHistogram-2.1.12.jar;C:\Users\Kranthi Karthan\.m2\repository\org\latencyutils\LatencyUtils\2.0.3\LatencyUtils-2.0.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-ui\2.2.0\springdoc-openapi-starter-webmvc-ui-2.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-api\2.2.0\springdoc-openapi-starter-webmvc-api-2.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springdoc\springdoc-openapi-starter-common\2.2.0\springdoc-openapi-starter-common-2.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-core-jakarta\2.2.15\swagger-core-jakarta-2.2.15.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\commons\commons-lang3\3.13.0\commons-lang3-3.13.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-annotations-jakarta\2.2.15\swagger-annotations-jakarta-2.2.15.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-models-jakarta\2.2.15\swagger-models-jakarta-2.2.15.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-yaml\2.15.3\jackson-dataformat-yaml-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\webjars\swagger-ui\5.2.0\swagger-ui-5.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\postgresql\postgresql\42.6.0\postgresql-42.6.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\checkerframework\checker-qual\3.31.0\checker-qual-3.31.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\flywaydb\flyway-core\9.22.3\flyway-core-9.22.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-toml\2.15.3\jackson-dataformat-toml-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.15.3\jackson-core-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\projectlombok\lombok\1.18.30\lombok-1.18.30.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.2.0\spring-boot-starter-test-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-test\3.2.0\spring-boot-test-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.2.0\spring-boot-test-autoconfigure-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\jayway\jsonpath\json-path\2.8.0\json-path-2.8.0.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.1\jakarta.xml.bind-api-4.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.2\jakarta.activation-api-2.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\net\minidev\json-smart\2.5.0\json-smart-2.5.0.jar;C:\Users\Kranthi Karthan\.m2\repository\net\minidev\accessors-smart\2.5.0\accessors-smart-2.5.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\ow2\asm\asm\9.3\asm-9.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\assertj\assertj-core\3.24.2\assertj-core-3.24.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\awaitility\awaitility\4.2.0\awaitility-4.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hamcrest\hamcrest\2.2\hamcrest-2.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.1\junit-jupiter-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.1\junit-jupiter-api-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\platform\junit-platform-commons\1.10.1\junit-platform-commons-1.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.1\junit-jupiter-params-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.1\junit-jupiter-engine-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\platform\junit-platform-engine\1.10.1\junit-platform-engine-1.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\mockito\mockito-core\5.7.0\mockito-core-5.7.0.jar;C:\Users\Kranthi Karthan\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.10\byte-buddy-agent-1.14.10.jar;C:\Users\Kranthi Karthan\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\mockito\mockito-junit-jupiter\5.7.0\mockito-junit-jupiter-5.7.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\skyscreamer\jsonassert\1.5.1\jsonassert-1.5.1.jar;C:\Users\Kranthi Karthan\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-core\6.1.1\spring-core-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-jcl\6.1.1\spring-jcl-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-test\6.1.1\spring-test-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\xmlunit\xmlunit-core\2.9.1\xmlunit-core-2.9.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\junit-jupiter\1.19.3\junit-jupiter-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\testcontainers\1.19.3\testcontainers-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\junit\junit\4.13.2\junit-4.13.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hamcrest\hamcrest-core\2.2\hamcrest-core-2.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\commons\commons-compress\1.24.0\commons-compress-1.24.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\rnorth\duct-tape\duct-tape\1.0.8\duct-tape-1.0.8.jar;C:\Users\Kranthi Karthan\.m2\repository\org\jetbrains\annotations\17.0.0\annotations-17.0.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\github\docker-java\docker-java-api\3.3.4\docker-java-api-3.3.4.jar;C:\Users\Kranthi Karthan\.m2\repository\com\github\docker-java\docker-java-transport-zerodep\3.3.4\docker-java-transport-zerodep-3.3.4.jar;C:\Users\Kranthi Karthan\.m2\repository\com\github\docker-java\docker-java-transport\3.3.4\docker-java-transport-3.3.4.jar;C:\Users\Kranthi Karthan\.m2\repository\net\java\dev\jna\jna\5.13.0\jna-5.13.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\postgresql\1.19.3\postgresql-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\jdbc\1.19.3\jdbc-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\database-commons\1.19.3\database-commons-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\h2database\h2\2.2.224\h2-2.2.224.jar;"/>
+    <property name="java.vm.vendor" value="Microsoft"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="user.variant" value=""/>
+    <property name="java.vendor.url" value="https://www.microsoft.com"/>
+    <property name="user.timezone" value="Asia/Calcutta"/>
+    <property name="org.jboss.logging.provider" value="slf4j"/>
+    <property name="os.name" value="Windows 11"/>
+    <property name="java.vm.specification.version" value="17"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="IN"/>
+    <property name="sun.boot.library.path" value="C:\Program Files\Microsoft\jdk-17.0.16.8-hotspot\bin"/>
+    <property name="sun.java.command" value="C:\Users\Kranthi Karthan\AppData\Local\Temp\surefire13873214991976226092\surefirebooter-20251016185159932_6.jar C:\Users\Kranthi Karthan\AppData\Local\Temp\surefire13873214991976226092 2025-10-16T18-51-48_091-jvmRun1 surefire-20251016185159932_4tmp surefire_1-20251016185159932_5tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="C:\git\clone\PE\payment-initiation-service\target\test-classes;C:\git\clone\PE\payment-initiation-service\target\classes;C:\git\clone\PE\contracts\target\classes;C:\git\clone\PE\domain-models\shared\target\classes;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.15.3\jackson-annotations-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-annotations\2.2.15\swagger-annotations-2.2.15.jar;C:\git\clone\PE\domain-models\payment-initiation\target\classes;C:\git\clone\PE\domain-models\validation\target\classes;C:\Users\Kranthi Karthan\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.2.0\spring-boot-starter-web-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter\3.2.0\spring-boot-starter-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot\3.2.0\spring-boot-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.2.0\spring-boot-autoconfigure-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.2.0\spring-boot-starter-logging-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\ch\qos\logback\logback-classic\1.4.11\logback-classic-1.4.11.jar;C:\Users\Kranthi Karthan\.m2\repository\ch\qos\logback\logback-core\1.4.11\logback-core-1.4.11.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\slf4j\jul-to-slf4j\2.0.9\jul-to-slf4j-2.0.9.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.2.0\spring-boot-starter-json-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.15.3\jackson-databind-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.3\jackson-datatype-jdk8-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.3\jackson-datatype-jsr310-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.3\jackson-module-parameter-names-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.2.0\spring-boot-starter-tomcat-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.16\tomcat-embed-core-10.1.16.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.16\tomcat-embed-websocket-10.1.16.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-web\6.1.1\spring-web-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-beans\6.1.1\spring-beans-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-webmvc\6.1.1\spring-webmvc-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-aop\6.1.1\spring-aop-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-context\6.1.1\spring-context-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-expression\6.1.1\spring-expression-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.2.0\spring-boot-starter-validation-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.16\tomcat-embed-el-10.1.16.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.1.Final\hibernate-validator-8.0.1.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\jboss\logging\jboss-logging\3.5.3.Final\jboss-logging-3.5.3.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\classmate\1.6.0\classmate-1.6.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.2.0\spring-boot-starter-data-jpa-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-aop\3.2.0\spring-boot-starter-aop-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\aspectj\aspectjweaver\1.9.20.1\aspectjweaver-1.9.20.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.2.0\spring-boot-starter-jdbc-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-jdbc\6.1.1\spring-jdbc-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hibernate\orm\hibernate-core\6.3.1.Final\hibernate-core-6.3.1.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hibernate\common\hibernate-commons-annotations\6.0.6.Final\hibernate-commons-annotations-6.0.6.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\io\smallrye\jandex\3.1.2\jandex-3.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\net\bytebuddy\byte-buddy\1.14.10\byte-buddy-1.14.10.jar;C:\Users\Kranthi Karthan\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.4\jaxb-runtime-4.0.4.jar;C:\Users\Kranthi Karthan\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.4\jaxb-core-4.0.4.jar;C:\Users\Kranthi Karthan\.m2\repository\org\eclipse\angus\angus-activation\2.0.1\angus-activation-2.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\glassfish\jaxb\txw2\4.0.4\txw2-4.0.4.jar;C:\Users\Kranthi Karthan\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\antlr\antlr4-runtime\4.10.1\antlr4-runtime-4.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\data\spring-data-jpa\3.2.0\spring-data-jpa-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\data\spring-data-commons\3.2.0\spring-data-commons-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-orm\6.1.1\spring-orm-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-tx\6.1.1\spring-tx-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\slf4j\slf4j-api\2.0.9\slf4j-api-2.0.9.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-aspects\6.1.1\spring-aspects-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-actuator\3.2.0\spring-boot-starter-actuator-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-actuator-autoconfigure\3.2.0\spring-boot-actuator-autoconfigure-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-actuator\3.2.0\spring-boot-actuator-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-observation\1.12.0\micrometer-observation-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-commons\1.12.0\micrometer-commons-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-jakarta9\1.12.0\micrometer-jakarta9-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-core\1.12.0\micrometer-core-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hdrhistogram\HdrHistogram\2.1.12\HdrHistogram-2.1.12.jar;C:\Users\Kranthi Karthan\.m2\repository\org\latencyutils\LatencyUtils\2.0.3\LatencyUtils-2.0.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-ui\2.2.0\springdoc-openapi-starter-webmvc-ui-2.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-api\2.2.0\springdoc-openapi-starter-webmvc-api-2.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springdoc\springdoc-openapi-starter-common\2.2.0\springdoc-openapi-starter-common-2.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-core-jakarta\2.2.15\swagger-core-jakarta-2.2.15.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\commons\commons-lang3\3.13.0\commons-lang3-3.13.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-annotations-jakarta\2.2.15\swagger-annotations-jakarta-2.2.15.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-models-jakarta\2.2.15\swagger-models-jakarta-2.2.15.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-yaml\2.15.3\jackson-dataformat-yaml-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\webjars\swagger-ui\5.2.0\swagger-ui-5.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\postgresql\postgresql\42.6.0\postgresql-42.6.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\checkerframework\checker-qual\3.31.0\checker-qual-3.31.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\flywaydb\flyway-core\9.22.3\flyway-core-9.22.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-toml\2.15.3\jackson-dataformat-toml-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.15.3\jackson-core-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\projectlombok\lombok\1.18.30\lombok-1.18.30.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.2.0\spring-boot-starter-test-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-test\3.2.0\spring-boot-test-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.2.0\spring-boot-test-autoconfigure-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\jayway\jsonpath\json-path\2.8.0\json-path-2.8.0.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.1\jakarta.xml.bind-api-4.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.2\jakarta.activation-api-2.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\net\minidev\json-smart\2.5.0\json-smart-2.5.0.jar;C:\Users\Kranthi Karthan\.m2\repository\net\minidev\accessors-smart\2.5.0\accessors-smart-2.5.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\ow2\asm\asm\9.3\asm-9.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\assertj\assertj-core\3.24.2\assertj-core-3.24.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\awaitility\awaitility\4.2.0\awaitility-4.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hamcrest\hamcrest\2.2\hamcrest-2.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.1\junit-jupiter-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.1\junit-jupiter-api-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\platform\junit-platform-commons\1.10.1\junit-platform-commons-1.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.1\junit-jupiter-params-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.1\junit-jupiter-engine-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\platform\junit-platform-engine\1.10.1\junit-platform-engine-1.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\mockito\mockito-core\5.7.0\mockito-core-5.7.0.jar;C:\Users\Kranthi Karthan\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.10\byte-buddy-agent-1.14.10.jar;C:\Users\Kranthi Karthan\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\mockito\mockito-junit-jupiter\5.7.0\mockito-junit-jupiter-5.7.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\skyscreamer\jsonassert\1.5.1\jsonassert-1.5.1.jar;C:\Users\Kranthi Karthan\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-core\6.1.1\spring-core-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-jcl\6.1.1\spring-jcl-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-test\6.1.1\spring-test-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\xmlunit\xmlunit-core\2.9.1\xmlunit-core-2.9.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\junit-jupiter\1.19.3\junit-jupiter-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\testcontainers\1.19.3\testcontainers-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\junit\junit\4.13.2\junit-4.13.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hamcrest\hamcrest-core\2.2\hamcrest-core-2.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\commons\commons-compress\1.24.0\commons-compress-1.24.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\rnorth\duct-tape\duct-tape\1.0.8\duct-tape-1.0.8.jar;C:\Users\Kranthi Karthan\.m2\repository\org\jetbrains\annotations\17.0.0\annotations-17.0.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\github\docker-java\docker-java-api\3.3.4\docker-java-api-3.3.4.jar;C:\Users\Kranthi Karthan\.m2\repository\com\github\docker-java\docker-java-transport-zerodep\3.3.4\docker-java-transport-zerodep-3.3.4.jar;C:\Users\Kranthi Karthan\.m2\repository\com\github\docker-java\docker-java-transport\3.3.4\docker-java-transport-3.3.4.jar;C:\Users\Kranthi Karthan\.m2\repository\net\java\dev\jna\jna\5.13.0\jna-5.13.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\postgresql\1.19.3\postgresql-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\jdbc\1.19.3\jdbc-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\database-commons\1.19.3\database-commons-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\h2database\h2\2.2.224\h2-2.2.224.jar;"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="C:\Users\Kranthi Karthan"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2025-07-15"/>
+    <property name="java.home" value="C:\Program Files\Microsoft\jdk-17.0.16.8-hotspot"/>
+    <property name="file.separator" value="\"/>
+    <property name="basedir" value="C:\git\clone\PE\payment-initiation-service"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="FILE_LOG_CHARSET" value="windows-1252"/>
+    <property name="java.awt.headless" value="true"/>
+    <property name="surefire.real.class.path" value="C:\Users\Kranthi Karthan\AppData\Local\Temp\surefire13873214991976226092\surefirebooter-20251016185159932_6.jar"/>
+    <property name="user.script" value=""/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="17.0.16+8-LTS"/>
+    <property name="user.name" value="Kranthi Karthan"/>
+    <property name="path.separator" value=";"/>
+    <property name="os.version" value="10.0"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="Cp1252"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="Microsoft-11926163"/>
+    <property name="localRepository" value="C:\Users\Kranthi Karthan\.m2\repository"/>
+    <property name="java.vendor.url.bug" value="https://github.com/microsoft/openjdk/issues"/>
+    <property name="java.io.tmpdir" value="C:\Users\KRANTH~1\AppData\Local\Temp\"/>
+    <property name="com.zaxxer.hikari.pool_number" value="3"/>
+    <property name="java.version" value="17.0.16"/>
+    <property name="user.dir" value="C:\git\clone\PE\payment-initiation-service"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="PID" value="22280"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="CONSOLE_LOG_CHARSET" value="windows-1252"/>
+    <property name="native.encoding" value="Cp1252"/>
+    <property name="java.library.path" value="C:\Program Files\Microsoft\jdk-17.0.16.8-hotspot\bin;C:\Windows\Sun\Java\bin;C:\Windows\system32;C:\Windows;C:\Users\KRANTH~1\AppData\Local\Temp\.tmptZNusI;C:\Program Files\Microsoft\jdk-17.0.16.8-hotspot\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\cursor\resources\app\bin;C:\Program Files\Git\cmd;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\apache-maven-3.9.11\bin;C:\Users\Kranthi Karthan\AppData\Local\Microsoft\WindowsApps;C:\Users\Kranthi Karthan\AppData\Local\Programs\Microsoft VS Code\bin;c:\Users\Kranthi Karthan\.cursor\extensions\openai.chatgpt-0.4.19-universal\bin\windows-x86_64;."/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.vendor" value="Microsoft"/>
+    <property name="java.vm.version" value="17.0.16+8-LTS"/>
+    <property name="java.specification.maintenance.version" value="1"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="61.0"/>
+    <property name="CONSOLE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"/>
+    <property name="LOGGED_APPLICATION_NAME" value="[payment-initiation-service] "/>
+  </properties>
+  <testcase name="paymentFailureFlow_ShouldWorkEndToEnd" classname="com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest" time="0.28">
+    <failure message="Status expected:&lt;201&gt; but was:&lt;500&gt;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Status expected:<201> but was:<500>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:59)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:122)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:637)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest.paymentFailureFlow_ShouldWorkEndToEnd(PaymentInitiationIntegrationTest.java:156)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+]]></failure>
+    <system-out><![CDATA[2025-10-16 18:52:21 [main] INFO  [] o.s.t.c.s.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest]: PaymentInitiationIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2025-10-16 18:52:21 [main] INFO  [] o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.payments.paymentinitiation.PaymentInitiationServiceApplication for test class com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest
+2025-10-16 18:52:21 [main] INFO  [] o.testcontainers.images.PullPolicy - Image pull policy will be performed by: DefaultPullPolicy()
+2025-10-16 18:52:21 [main] INFO  [] o.t.utility.ImageNameSubstitutor - Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+2025-10-16 18:52:22 [main] INFO  [] o.t.d.DockerClientProviderStrategy - Loaded org.testcontainers.dockerclient.NpipeSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+2025-10-16 18:52:22 [main] INFO  [] o.t.d.DockerClientProviderStrategy - Found Docker environment with local Npipe socket (npipe:////./pipe/docker_engine)
+2025-10-16 18:52:22 [main] INFO  [] o.testcontainers.DockerClientFactory - Docker host IP address is localhost
+2025-10-16 18:52:22 [main] INFO  [] o.testcontainers.DockerClientFactory - Connected to docker: 
+  Server Version: 28.4.0
+  API Version: 1.51
+  Operating System: Docker Desktop
+  Total Memory: 7708 MB
+2025-10-16 18:52:22 [main] INFO  [] tc.testcontainers/ryuk:0.5.1 - Creating container for image: testcontainers/ryuk:0.5.1
+2025-10-16 18:52:23 [main] INFO  [] o.t.utility.RegistryAuthLocator - Credential helper/store (docker-credential-desktop) does not have credentials for https://index.docker.io/v1/
+2025-10-16 18:52:23 [main] INFO  [] tc.testcontainers/ryuk:0.5.1 - Container testcontainers/ryuk:0.5.1 is starting: 40c74387b60c29a265b6bb2317fb8766d769a33c3f710bfd6affa64a08857992
+2025-10-16 18:52:23 [main] INFO  [] tc.testcontainers/ryuk:0.5.1 - Container testcontainers/ryuk:0.5.1 started in PT0.9710547S
+2025-10-16 18:52:23 [main] INFO  [] o.t.utility.RyukResourceReaper - Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+2025-10-16 18:52:23 [main] INFO  [] o.testcontainers.DockerClientFactory - Checking the system...
+2025-10-16 18:52:23 [main] INFO  [] o.testcontainers.DockerClientFactory - ?? Docker server version should be at least 1.6.0
+2025-10-16 18:52:23 [main] INFO  [] tc.postgres:15-alpine - Creating container for image: postgres:15-alpine
+2025-10-16 18:52:23 [main] INFO  [] tc.postgres:15-alpine - Container postgres:15-alpine is starting: 024d624158a20ba7a0a4edde4fd289967a3063717b2aaa7e5fd05cbcef79f00c
+2025-10-16 18:52:25 [main] INFO  [] tc.postgres:15-alpine - Container postgres:15-alpine started in PT2.0800953S
+2025-10-16 18:52:25 [main] INFO  [] tc.postgres:15-alpine - Container is started (JDBC URL: jdbc:postgresql://localhost:55413/payments_test?loggerLevel=OFF)
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.0)
+
+2025-10-16 18:52:25 [main] INFO  [] c.p.p.i.PaymentInitiationIntegrationTest - Starting PaymentInitiationIntegrationTest using Java 17.0.16 with PID 22280 (started by Kranthi Karthan in C:\git\clone\PE\payment-initiation-service)
+2025-10-16 18:52:25 [main] DEBUG [] c.p.p.i.PaymentInitiationIntegrationTest - Running with Spring Boot v3.2.0, Spring v6.1.1
+2025-10-16 18:52:25 [main] INFO  [] c.p.p.i.PaymentInitiationIntegrationTest - The following 1 profile is active: "test"
+2025-10-16 18:52:25 [main] DEBUG [] o.s.w.c.s.GenericWebApplicationContext - Refreshing org.springframework.web.context.support.GenericWebApplicationContext@7b09274
+2025-10-16 18:52:26 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-10-16 18:52:26 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 7 ms. Found 2 JPA repository interfaces.
+2025-10-16 18:52:26 [main] INFO  [] com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Starting...
+2025-10-16 18:52:26 [main] INFO  [] com.zaxxer.hikari.pool.HikariPool - HikariPool-3 - Added connection org.postgresql.jdbc.PgConnection@4ca761b8
+2025-10-16 18:52:26 [main] INFO  [] com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Start completed.
+2025-10-16 18:52:26 [main] INFO  [] o.f.c.i.license.VersionPrinter - Flyway Community Edition 9.22.3 by Redgate
+2025-10-16 18:52:26 [main] INFO  [] o.f.c.i.license.VersionPrinter - See release notes here: https://rd.gt/416ObMi
+2025-10-16 18:52:26 [main] INFO  [] o.f.c.i.license.VersionPrinter - 
+2025-10-16 18:52:26 [main] INFO  [] org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:55413/payments_test (PostgreSQL 15.14)
+2025-10-16 18:52:27 [main] INFO  [] o.f.c.i.s.JdbcTableSchemaHistory - Schema history table "public"."flyway_schema_history" does not exist yet
+2025-10-16 18:52:27 [main] INFO  [] o.f.core.internal.command.DbValidate - Successfully validated 1 migration (execution time 00:00.033s)
+2025-10-16 18:52:27 [main] INFO  [] o.f.c.i.s.JdbcTableSchemaHistory - Creating Schema History table "public"."flyway_schema_history" ...
+2025-10-16 18:52:27 [main] INFO  [] o.f.core.internal.command.DbMigrate - Current version of schema "public": << Empty Schema >>
+2025-10-16 18:52:27 [main] INFO  [] o.f.core.internal.command.DbMigrate - Migrating schema "public" to version "1 - Create payment initiation tables"
+2025-10-16 18:52:27 [main] INFO  [] o.f.core.internal.command.DbMigrate - Successfully applied 1 migration to schema "public", now at version v1 (execution time 00:00.030s)
+2025-10-16 18:52:27 [main] INFO  [] o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-10-16 18:52:27 [main] INFO  [] o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-10-16 18:52:27 [main] INFO  [] o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-10-16 18:52:27 [main] WARN  [] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-10-16 18:52:27 [main] INFO  [] o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    alter table if exists payment_status_history 
+       drop constraint if exists FKpo8yhsq5qm6p4cflhsfbl5kog
+2025-10-16 18:52:27 [main] WARN  [] o.h.e.jdbc.spi.SqlExceptionHelper - SQL Warning Code: 0, SQLState: 00000
+2025-10-16 18:52:27 [main] WARN  [] o.h.e.jdbc.spi.SqlExceptionHelper - relation "payment_status_history" does not exist, skipping
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    drop table if exists idempotency_records cascade
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    drop table if exists payment_status_history cascade
+2025-10-16 18:52:27 [main] WARN  [] o.h.e.jdbc.spi.SqlExceptionHelper - SQL Warning Code: 0, SQLState: 00000
+2025-10-16 18:52:27 [main] WARN  [] o.h.e.jdbc.spi.SqlExceptionHelper - table "payment_status_history" does not exist, skipping
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    drop table if exists payments cascade
+2025-10-16 18:52:27 [main] WARN  [] o.h.e.jdbc.spi.SqlExceptionHelper - SQL Warning Code: 0, SQLState: 00000
+2025-10-16 18:52:27 [main] WARN  [] o.h.e.jdbc.spi.SqlExceptionHelper - table "payments" does not exist, skipping
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    create table idempotency_records (
+        created_at timestamp(6) with time zone not null,
+        tenant_id varchar(20) not null,
+        id varchar(36) not null,
+        payment_id varchar(36) not null,
+        idempotency_key varchar(255) not null,
+        primary key (id)
+    )
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    create table payment_status_history (
+        changed_at timestamp(6) with time zone not null,
+        id bigserial not null,
+        reason varchar(500),
+        changed_by varchar(255),
+        from_status varchar(255) check (from_status in ('INITIATED','VALIDATED','SUBMITTED_TO_CLEARING','CLEARING','CLEARED','COMPLETED','FAILED')),
+        payment_id varchar(255) not null,
+        to_status varchar(255) not null check (to_status in ('INITIATED','VALIDATED','SUBMITTED_TO_CLEARING','CLEARING','CLEARED','COMPLETED','FAILED')),
+        primary key (id)
+    )
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    create table payments (
+        amount numeric(19,2) not null,
+        currency varchar(3) not null,
+        cleared_at timestamp(6) with time zone,
+        completed_at timestamp(6) with time zone,
+        failed_at timestamp(6) with time zone,
+        initiated_at timestamp(6) with time zone not null,
+        submitted_to_clearing_at timestamp(6) with time zone,
+        updated_at timestamp(6) with time zone not null,
+        validated_at timestamp(6) with time zone,
+        version bigint not null,
+        destination_account varchar(11) not null,
+        source_account varchar(11) not null,
+        tenant_id varchar(20) not null,
+        business_unit_id varchar(30) not null,
+        reference varchar(35) not null,
+        failure_reason varchar(500),
+        idempotency_key varchar(255) not null,
+        initiated_by varchar(255) not null,
+        payment_id varchar(255) not null,
+        payment_type varchar(255) not null check (payment_type in ('EFT','RTC','PAYSHAP','SWIFT','INTERNAL_TRANSFER')),
+        priority varchar(255) not null check (priority in ('NORMAL','HIGH')),
+        status varchar(255) not null check (status in ('INITIATED','VALIDATED','SUBMITTED_TO_CLEARING','CLEARING','CLEARED','COMPLETED','FAILED')),
+        primary key (payment_id)
+    )
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    create index idx_idempotency_key_tenant 
+       on idempotency_records (idempotency_key, tenant_id)
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    create index idx_idempotency_created_at 
+       on idempotency_records (created_at)
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    create index idx_payment_status_history_payment_id 
+       on payment_status_history (payment_id)
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    create index idx_payment_status_history_changed_at 
+       on payment_status_history (changed_at)
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    create index idx_payments_tenant_id 
+       on payments (tenant_id)
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    create index idx_payments_business_unit_id 
+       on payments (business_unit_id)
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    create index idx_payments_status 
+       on payments (status)
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    create index idx_payments_initiated_at 
+       on payments (initiated_at)
+2025-10-16 18:52:27 [main] DEBUG [] org.hibernate.SQL - 
+    alter table if exists payment_status_history 
+       add constraint FKpo8yhsq5qm6p4cflhsfbl5kog 
+       foreign key (payment_id) 
+       references payments
+2025-10-16 18:52:27 [main] INFO  [] o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-10-16 18:52:28 [main] INFO  [] o.s.b.a.e.web.EndpointLinksResolver - Exposing 3 endpoint(s) beneath base path '/actuator'
+2025-10-16 18:52:28 [main] WARN  [] o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.RequestMappingHandlerMapping - 12 mappings in 'requestMappingHandlerMapping'
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.h.SimpleUrlHandlerMapping - Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.RequestMappingHandlerAdapter - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - ControllerAdvice beans: 2 @ExceptionHandler, 1 ResponseBodyAdvice
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.f.ServerHttpObservationFilter - Filter 'webMvcObservationFilter' configured for use
+2025-10-16 18:52:28 [main] INFO  [] o.s.b.t.m.w.SpringBootMockServletContext - Initializing Spring TestDispatcherServlet ''
+2025-10-16 18:52:28 [main] INFO  [] o.s.t.w.s.TestDispatcherServlet - Initializing Servlet ''
+2025-10-16 18:52:28 [main] INFO  [] o.s.t.w.s.TestDispatcherServlet - Completed initialization in 0 ms
+2025-10-16 18:52:28 [main] INFO  [] c.p.p.i.PaymentInitiationIntegrationTest - Started PaymentInitiationIntegrationTest in 2.863 seconds (process running for 28.599)
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.payments.paymentinitiation.api.PaymentInitiationController#initiatePayment(PaymentInitiationRequest, String, String, String)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Payment validation interceptor processing request: /api/v1/payments/initiate
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Request validation passed for tenant: TENANT-001, business unit: BU-001
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [PaymentInitiationRequest(paymentId=PaymentId(value=PAY-0a349967), idempotencyKey=IDEMPOTENCY-47b16ae (truncated)...]
+2025-10-16 18:52:28 [main] INFO  [] c.p.p.a.PaymentInitiationController - Initiating payment for tenant: TENANT-001, business unit: BU-001, correlation: b2c3048b-d533-4e45-a42d-2c720e861bd5
+2025-10-16 18:52:28 [main] INFO  [] c.p.p.s.PaymentInitiationService - Processing payment initiation for payment: PaymentId(value=PAY-0a349967)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.IdempotencyRepositoryAdapter - Checking idempotency key existence: IDEMPOTENCY-47b16ae9, TENANT-001
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    select
+        count(ire1_0.id)>0 
+    from
+        idempotency_records ire1_0 
+    where
+        ire1_0.idempotency_key=? 
+        and ire1_0.tenant_id=?
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.s.PaymentInitiationService - Payment request validation passed for: PaymentId(value=PAY-0a349967)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Validating business rules for payment: PaymentId(value=PAY-0a349967)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.PaymentRepositoryAdapter - Finding payments by tenant and date range: TENANT-001, 2025-10-16T00:00:00Z to 2025-10-17T00:00:00Z
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    select
+        pe1_0.payment_id,
+        pe1_0.amount,
+        pe1_0.currency,
+        pe1_0.cleared_at,
+        pe1_0.completed_at,
+        pe1_0.destination_account,
+        pe1_0.failed_at,
+        pe1_0.failure_reason,
+        pe1_0.idempotency_key,
+        pe1_0.initiated_at,
+        pe1_0.initiated_by,
+        pe1_0.payment_type,
+        pe1_0.priority,
+        pe1_0.reference,
+        pe1_0.source_account,
+        pe1_0.status,
+        pe1_0.submitted_to_clearing_at,
+        pe1_0.business_unit_id,
+        pe1_0.tenant_id,
+        pe1_0.updated_at,
+        pe1_0.validated_at,
+        pe1_0.version 
+    from
+        payments pe1_0 
+    where
+        pe1_0.tenant_id=? 
+        and pe1_0.initiated_at between ? and ? 
+    order by
+        pe1_0.initiated_at desc
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Daily limit validation passed for payment: PaymentId(value=PAY-0a349967)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.PaymentRepositoryAdapter - Finding payments by tenant and date range: TENANT-001, 2025-10-16T12:22:28.799328900Z to 2025-10-16T13:22:28.799328900Z
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    select
+        pe1_0.payment_id,
+        pe1_0.amount,
+        pe1_0.currency,
+        pe1_0.cleared_at,
+        pe1_0.completed_at,
+        pe1_0.destination_account,
+        pe1_0.failed_at,
+        pe1_0.failure_reason,
+        pe1_0.idempotency_key,
+        pe1_0.initiated_at,
+        pe1_0.initiated_by,
+        pe1_0.payment_type,
+        pe1_0.priority,
+        pe1_0.reference,
+        pe1_0.source_account,
+        pe1_0.status,
+        pe1_0.submitted_to_clearing_at,
+        pe1_0.business_unit_id,
+        pe1_0.tenant_id,
+        pe1_0.updated_at,
+        pe1_0.validated_at,
+        pe1_0.version 
+    from
+        payments pe1_0 
+    where
+        pe1_0.tenant_id=? 
+        and pe1_0.initiated_at between ? and ? 
+    order by
+        pe1_0.initiated_at desc
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Velocity limit validation passed for payment: PaymentId(value=PAY-0a349967)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Account restrictions validation passed for payment: PaymentId(value=PAY-0a349967)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Compliance rules validation passed for payment: PaymentId(value=PAY-0a349967)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Business rules validation passed for payment: PaymentId(value=PAY-0a349967)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.PaymentRepositoryAdapter - Saving payment: PaymentId(value=PAY-0a349967)
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    insert 
+    into
+        payments
+        (amount, currency, cleared_at, completed_at, destination_account, failed_at, failure_reason, idempotency_key, initiated_at, initiated_by, payment_type, priority, reference, source_account, status, submitted_to_clearing_at, business_unit_id, tenant_id, updated_at, validated_at, version, payment_id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    insert 
+    into
+        payment_status_history
+        (changed_at, changed_by, from_status, payment_id, reason, to_status) 
+    values
+        (?, ?, ?, ?, ?, ?)
+2025-10-16 18:52:28 [main] WARN  [] o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 0, SQLState: 23502
+2025-10-16 18:52:28 [main] ERROR [] o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:28.894119+05:30, 1, Payment initiated, system, null, null, INITIATED).
+2025-10-16 18:52:28 [main] ERROR [] c.p.p.a.PaymentInitiationController - Failed to initiate payment
+org.springframework.dao.DataIntegrityViolationException: could not execute statement [ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:28.894119+05:30, 1, Payment initiated, system, null, null, INITIATED).] [insert into payment_status_history (changed_at,changed_by,from_status,payment_id,reason,to_status) values (?,?,?,?,?,?)]; SQL [insert into payment_status_history (changed_at,changed_by,from_status,payment_id,reason,to_status) values (?,?,?,?,?,?)]; constraint [payment_id" of relation "payment_status_history]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:290)
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)
+	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:550)
+	at org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61)
+	at org.springframework.dao.support.DataAccessUtils.translateIfNecessary(DataAccessUtils.java:335)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:152)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:164)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:249)
+	at jdk.proxy2/jdk.proxy2.$Proxy205.save(Unknown Source)
+	at com.payments.paymentinitiation.adapter.PaymentRepositoryAdapter.save(PaymentRepositoryAdapter.java:40)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:352)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:717)
+	at com.payments.paymentinitiation.adapter.PaymentRepositoryAdapter$$SpringCGLIB$$0.save(<generated>)
+	at com.payments.paymentinitiation.service.PaymentInitiationService.initiatePayment(PaymentInitiationService.java:93)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:352)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:717)
+	at com.payments.paymentinitiation.service.PaymentInitiationService$$SpringCGLIB$$0.initiatePayment(<generated>)
+	at com.payments.paymentinitiation.api.PaymentInitiationController.initiatePayment(PaymentInitiationController.java:92)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:254)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:182)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:917)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:829)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:165)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:109)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201)
+	at com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest.paymentFailureFlow_ShouldWorkEndToEnd(PaymentInitiationIntegrationTest.java:149)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:728)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:218)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:214)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:139)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+Caused by: org.hibernate.exception.ConstraintViolationException: could not execute statement [ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:28.894119+05:30, 1, Payment initiated, system, null, null, INITIATED).] [insert into payment_status_history (changed_at,changed_by,from_status,payment_id,reason,to_status) values (?,?,?,?,?,?)]
+	at org.hibernate.exception.internal.SQLStateConversionDelegate.convert(SQLStateConversionDelegate.java:97)
+	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58)
+	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108)
+	at org.hibernate.engine.jdbc.internal.ResultSetReturnImpl.executeUpdate(ResultSetReturnImpl.java:283)
+	at org.hibernate.id.insert.GetGeneratedKeysDelegate.performInsert(GetGeneratedKeysDelegate.java:107)
+	at org.hibernate.engine.jdbc.mutation.internal.MutationExecutorPostInsertSingleTable.execute(MutationExecutorPostInsertSingleTable.java:100)
+	at org.hibernate.persister.entity.mutation.InsertCoordinator.doStaticInserts(InsertCoordinator.java:171)
+	at org.hibernate.persister.entity.mutation.InsertCoordinator.coordinateInsert(InsertCoordinator.java:112)
+	at org.hibernate.persister.entity.AbstractEntityPersister.insert(AbstractEntityPersister.java:2860)
+	at org.hibernate.action.internal.EntityIdentityInsertAction.execute(EntityIdentityInsertAction.java:81)
+	at org.hibernate.engine.spi.ActionQueue.execute(ActionQueue.java:667)
+	at org.hibernate.engine.spi.ActionQueue.addResolvedEntityInsertAction(ActionQueue.java:290)
+	at org.hibernate.engine.spi.ActionQueue.addInsertAction(ActionQueue.java:271)
+	at org.hibernate.engine.spi.ActionQueue.addAction(ActionQueue.java:321)
+	at org.hibernate.event.internal.AbstractSaveEventListener.addInsertAction(AbstractSaveEventListener.java:386)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSaveOrReplicate(AbstractSaveEventListener.java:300)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSave(AbstractSaveEventListener.java:219)
+	at org.hibernate.event.internal.AbstractSaveEventListener.saveWithGeneratedId(AbstractSaveEventListener.java:134)
+	at org.hibernate.event.internal.DefaultPersistEventListener.entityIsTransient(DefaultPersistEventListener.java:175)
+	at org.hibernate.event.internal.DefaultPersistEventListener.persist(DefaultPersistEventListener.java:93)
+	at org.hibernate.event.internal.DefaultPersistEventListener.onPersist(DefaultPersistEventListener.java:77)
+	at org.hibernate.event.service.internal.EventListenerGroupImpl.fireEventOnEachListener(EventListenerGroupImpl.java:138)
+	at org.hibernate.internal.SessionImpl.firePersist(SessionImpl.java:808)
+	at org.hibernate.internal.SessionImpl.persist(SessionImpl.java:756)
+	at org.hibernate.engine.spi.CascadingActions$7.cascade(CascadingActions.java:290)
+	at org.hibernate.engine.spi.CascadingActions$7.cascade(CascadingActions.java:280)
+	at org.hibernate.engine.internal.Cascade.cascadeToOne(Cascade.java:517)
+	at org.hibernate.engine.internal.Cascade.cascadeAssociation(Cascade.java:439)
+	at org.hibernate.engine.internal.Cascade.cascadeProperty(Cascade.java:224)
+	at org.hibernate.engine.internal.Cascade.cascadeCollectionElements(Cascade.java:551)
+	at org.hibernate.engine.internal.Cascade.cascadeCollection(Cascade.java:481)
+	at org.hibernate.engine.internal.Cascade.cascadeAssociation(Cascade.java:442)
+	at org.hibernate.engine.internal.Cascade.cascadeProperty(Cascade.java:224)
+	at org.hibernate.engine.internal.Cascade.cascade(Cascade.java:157)
+	at org.hibernate.event.internal.AbstractSaveEventListener.cascadeAfterSave(AbstractSaveEventListener.java:513)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSaveOrReplicate(AbstractSaveEventListener.java:312)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSave(AbstractSaveEventListener.java:219)
+	at org.hibernate.event.internal.AbstractSaveEventListener.saveWithGeneratedId(AbstractSaveEventListener.java:134)
+	at org.hibernate.event.internal.DefaultPersistEventListener.entityIsTransient(DefaultPersistEventListener.java:175)
+	at org.hibernate.event.internal.DefaultPersistEventListener.persist(DefaultPersistEventListener.java:93)
+	at org.hibernate.event.internal.DefaultPersistEventListener.onPersist(DefaultPersistEventListener.java:77)
+	at org.hibernate.event.internal.DefaultPersistEventListener.onPersist(DefaultPersistEventListener.java:54)
+	at org.hibernate.event.service.internal.EventListenerGroupImpl.fireEventOnEachListener(EventListenerGroupImpl.java:127)
+	at org.hibernate.internal.SessionImpl.firePersist(SessionImpl.java:766)
+	at org.hibernate.internal.SessionImpl.persist(SessionImpl.java:750)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler.invoke(SharedEntityManagerCreator.java:311)
+	at jdk.proxy2/jdk.proxy2.$Proxy199.persist(Unknown Source)
+	at org.springframework.data.jpa.repository.support.SimpleJpaRepository.save(SimpleJpaRepository.java:618)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:352)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker$RepositoryFragmentMethodInvoker.lambda$new$0(RepositoryMethodInvoker.java:277)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158)
+	at org.springframework.data.repository.core.support.RepositoryComposition$RepositoryFragments.invoke(RepositoryComposition.java:516)
+	at org.springframework.data.repository.core.support.RepositoryComposition.invoke(RepositoryComposition.java:285)
+	at org.springframework.data.repository.core.support.RepositoryFactorySupport$ImplementationMethodExecutionInterceptor.invoke(RepositoryFactorySupport.java:628)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:168)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137)
+	... 149 common frames omitted
+Caused by: org.postgresql.util.PSQLException: ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:28.894119+05:30, 1, Payment initiated, system, null, null, INITIATED).
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2713)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2401)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:368)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:498)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:415)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:190)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:152)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.hibernate.engine.jdbc.internal.ResultSetReturnImpl.executeUpdate(ResultSetReturnImpl.java:280)
+	... 219 common frames omitted
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json]
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [PaymentInitiationResponse(paymentId=null, status=null, tenantContext=null, initiatedAt=null, errorMe (truncated)...]
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/v1/payments/initiate
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", X-Correlation-ID:"b2c3048b-d533-4e45-a42d-2c720e861bd5", X-Tenant-ID:"TENANT-001", X-Business-Unit-ID:"BU-001", Content-Length:"445"]
+             Body = {"paymentId":{"value":"PAY-0a349967"},"idempotencyKey":"IDEMPOTENCY-47b16ae9","sourceAccount":"12345678901","destinationAccount":"98765432109","amount":{"amount":1000.00,"currency":"ZAR","negativeOrZero":false},"reference":"Integration test payment","paymentType":"EFT","priority":"NORMAL","tenantContext":{"tenantId":"TENANT-001","tenantName":null,"businessUnitId":"BU-001","businessUnitName":null},"initiatedBy":"integration-test@example.com"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.payments.paymentinitiation.api.PaymentInitiationController
+           Method = com.payments.paymentinitiation.api.PaymentInitiationController#initiatePayment(PaymentInitiationRequest, String, String, String)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 500
+    Error message = null
+          Headers = [Content-Type:"application/json"]
+     Content type = application/json
+             Body = {"paymentId":null,"status":null,"tenantContext":null,"initiatedAt":null,"errorMessage":"Payment initiation failed"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+]]></system-out>
+  </testcase>
+  <testcase name="completePaymentFlow_ShouldWorkEndToEnd" classname="com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest" time="0.037">
+    <failure message="Status expected:&lt;201&gt; but was:&lt;500&gt;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Status expected:<201> but was:<500>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:59)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:122)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:637)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest.completePaymentFlow_ShouldWorkEndToEnd(PaymentInitiationIntegrationTest.java:84)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+]]></failure>
+    <system-out><![CDATA[2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.payments.paymentinitiation.api.PaymentInitiationController#initiatePayment(PaymentInitiationRequest, String, String, String)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Payment validation interceptor processing request: /api/v1/payments/initiate
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Request validation passed for tenant: TENANT-001, business unit: BU-001
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [PaymentInitiationRequest(paymentId=PaymentId(value=PAY-d674297d), idempotencyKey=IDEMPOTENCY-6950f5e (truncated)...]
+2025-10-16 18:52:28 [main] INFO  [] c.p.p.a.PaymentInitiationController - Initiating payment for tenant: TENANT-001, business unit: BU-001, correlation: 66d9fe70-2610-4ef3-9520-f68b433417f6
+2025-10-16 18:52:28 [main] INFO  [] c.p.p.s.PaymentInitiationService - Processing payment initiation for payment: PaymentId(value=PAY-d674297d)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.IdempotencyRepositoryAdapter - Checking idempotency key existence: IDEMPOTENCY-6950f5e7, TENANT-001
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    select
+        count(ire1_0.id)>0 
+    from
+        idempotency_records ire1_0 
+    where
+        ire1_0.idempotency_key=? 
+        and ire1_0.tenant_id=?
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.s.PaymentInitiationService - Payment request validation passed for: PaymentId(value=PAY-d674297d)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Validating business rules for payment: PaymentId(value=PAY-d674297d)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.PaymentRepositoryAdapter - Finding payments by tenant and date range: TENANT-001, 2025-10-16T00:00:00Z to 2025-10-17T00:00:00Z
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    select
+        pe1_0.payment_id,
+        pe1_0.amount,
+        pe1_0.currency,
+        pe1_0.cleared_at,
+        pe1_0.completed_at,
+        pe1_0.destination_account,
+        pe1_0.failed_at,
+        pe1_0.failure_reason,
+        pe1_0.idempotency_key,
+        pe1_0.initiated_at,
+        pe1_0.initiated_by,
+        pe1_0.payment_type,
+        pe1_0.priority,
+        pe1_0.reference,
+        pe1_0.source_account,
+        pe1_0.status,
+        pe1_0.submitted_to_clearing_at,
+        pe1_0.business_unit_id,
+        pe1_0.tenant_id,
+        pe1_0.updated_at,
+        pe1_0.validated_at,
+        pe1_0.version 
+    from
+        payments pe1_0 
+    where
+        pe1_0.tenant_id=? 
+        and pe1_0.initiated_at between ? and ? 
+    order by
+        pe1_0.initiated_at desc
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Daily limit validation passed for payment: PaymentId(value=PAY-d674297d)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.PaymentRepositoryAdapter - Finding payments by tenant and date range: TENANT-001, 2025-10-16T12:22:28.934796900Z to 2025-10-16T13:22:28.934796900Z
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    select
+        pe1_0.payment_id,
+        pe1_0.amount,
+        pe1_0.currency,
+        pe1_0.cleared_at,
+        pe1_0.completed_at,
+        pe1_0.destination_account,
+        pe1_0.failed_at,
+        pe1_0.failure_reason,
+        pe1_0.idempotency_key,
+        pe1_0.initiated_at,
+        pe1_0.initiated_by,
+        pe1_0.payment_type,
+        pe1_0.priority,
+        pe1_0.reference,
+        pe1_0.source_account,
+        pe1_0.status,
+        pe1_0.submitted_to_clearing_at,
+        pe1_0.business_unit_id,
+        pe1_0.tenant_id,
+        pe1_0.updated_at,
+        pe1_0.validated_at,
+        pe1_0.version 
+    from
+        payments pe1_0 
+    where
+        pe1_0.tenant_id=? 
+        and pe1_0.initiated_at between ? and ? 
+    order by
+        pe1_0.initiated_at desc
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Velocity limit validation passed for payment: PaymentId(value=PAY-d674297d)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Account restrictions validation passed for payment: PaymentId(value=PAY-d674297d)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Compliance rules validation passed for payment: PaymentId(value=PAY-d674297d)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Business rules validation passed for payment: PaymentId(value=PAY-d674297d)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.PaymentRepositoryAdapter - Saving payment: PaymentId(value=PAY-d674297d)
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    insert 
+    into
+        payments
+        (amount, currency, cleared_at, completed_at, destination_account, failed_at, failure_reason, idempotency_key, initiated_at, initiated_by, payment_type, priority, reference, source_account, status, submitted_to_clearing_at, business_unit_id, tenant_id, updated_at, validated_at, version, payment_id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    insert 
+    into
+        payment_status_history
+        (changed_at, changed_by, from_status, payment_id, reason, to_status) 
+    values
+        (?, ?, ?, ?, ?, ?)
+2025-10-16 18:52:28 [main] WARN  [] o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 0, SQLState: 23502
+2025-10-16 18:52:28 [main] ERROR [] o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:28.944729+05:30, 2, Payment initiated, system, null, null, INITIATED).
+2025-10-16 18:52:28 [main] ERROR [] c.p.p.a.PaymentInitiationController - Failed to initiate payment
+org.springframework.dao.DataIntegrityViolationException: could not execute statement [ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:28.944729+05:30, 2, Payment initiated, system, null, null, INITIATED).] [insert into payment_status_history (changed_at,changed_by,from_status,payment_id,reason,to_status) values (?,?,?,?,?,?)]; SQL [insert into payment_status_history (changed_at,changed_by,from_status,payment_id,reason,to_status) values (?,?,?,?,?,?)]; constraint [payment_id" of relation "payment_status_history]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:290)
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)
+	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:550)
+	at org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61)
+	at org.springframework.dao.support.DataAccessUtils.translateIfNecessary(DataAccessUtils.java:335)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:152)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:164)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:249)
+	at jdk.proxy2/jdk.proxy2.$Proxy205.save(Unknown Source)
+	at com.payments.paymentinitiation.adapter.PaymentRepositoryAdapter.save(PaymentRepositoryAdapter.java:40)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:352)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:717)
+	at com.payments.paymentinitiation.adapter.PaymentRepositoryAdapter$$SpringCGLIB$$0.save(<generated>)
+	at com.payments.paymentinitiation.service.PaymentInitiationService.initiatePayment(PaymentInitiationService.java:93)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:352)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:717)
+	at com.payments.paymentinitiation.service.PaymentInitiationService$$SpringCGLIB$$0.initiatePayment(<generated>)
+	at com.payments.paymentinitiation.api.PaymentInitiationController.initiatePayment(PaymentInitiationController.java:92)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:254)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:182)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:917)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:829)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:165)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:109)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201)
+	at com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest.completePaymentFlow_ShouldWorkEndToEnd(PaymentInitiationIntegrationTest.java:77)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:728)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:218)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:214)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:139)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+Caused by: org.hibernate.exception.ConstraintViolationException: could not execute statement [ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:28.944729+05:30, 2, Payment initiated, system, null, null, INITIATED).] [insert into payment_status_history (changed_at,changed_by,from_status,payment_id,reason,to_status) values (?,?,?,?,?,?)]
+	at org.hibernate.exception.internal.SQLStateConversionDelegate.convert(SQLStateConversionDelegate.java:97)
+	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58)
+	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108)
+	at org.hibernate.engine.jdbc.internal.ResultSetReturnImpl.executeUpdate(ResultSetReturnImpl.java:283)
+	at org.hibernate.id.insert.GetGeneratedKeysDelegate.performInsert(GetGeneratedKeysDelegate.java:107)
+	at org.hibernate.engine.jdbc.mutation.internal.MutationExecutorPostInsertSingleTable.execute(MutationExecutorPostInsertSingleTable.java:100)
+	at org.hibernate.persister.entity.mutation.InsertCoordinator.doStaticInserts(InsertCoordinator.java:171)
+	at org.hibernate.persister.entity.mutation.InsertCoordinator.coordinateInsert(InsertCoordinator.java:112)
+	at org.hibernate.persister.entity.AbstractEntityPersister.insert(AbstractEntityPersister.java:2860)
+	at org.hibernate.action.internal.EntityIdentityInsertAction.execute(EntityIdentityInsertAction.java:81)
+	at org.hibernate.engine.spi.ActionQueue.execute(ActionQueue.java:667)
+	at org.hibernate.engine.spi.ActionQueue.addResolvedEntityInsertAction(ActionQueue.java:290)
+	at org.hibernate.engine.spi.ActionQueue.addInsertAction(ActionQueue.java:271)
+	at org.hibernate.engine.spi.ActionQueue.addAction(ActionQueue.java:321)
+	at org.hibernate.event.internal.AbstractSaveEventListener.addInsertAction(AbstractSaveEventListener.java:386)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSaveOrReplicate(AbstractSaveEventListener.java:300)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSave(AbstractSaveEventListener.java:219)
+	at org.hibernate.event.internal.AbstractSaveEventListener.saveWithGeneratedId(AbstractSaveEventListener.java:134)
+	at org.hibernate.event.internal.DefaultPersistEventListener.entityIsTransient(DefaultPersistEventListener.java:175)
+	at org.hibernate.event.internal.DefaultPersistEventListener.persist(DefaultPersistEventListener.java:93)
+	at org.hibernate.event.internal.DefaultPersistEventListener.onPersist(DefaultPersistEventListener.java:77)
+	at org.hibernate.event.service.internal.EventListenerGroupImpl.fireEventOnEachListener(EventListenerGroupImpl.java:138)
+	at org.hibernate.internal.SessionImpl.firePersist(SessionImpl.java:808)
+	at org.hibernate.internal.SessionImpl.persist(SessionImpl.java:756)
+	at org.hibernate.engine.spi.CascadingActions$7.cascade(CascadingActions.java:290)
+	at org.hibernate.engine.spi.CascadingActions$7.cascade(CascadingActions.java:280)
+	at org.hibernate.engine.internal.Cascade.cascadeToOne(Cascade.java:517)
+	at org.hibernate.engine.internal.Cascade.cascadeAssociation(Cascade.java:439)
+	at org.hibernate.engine.internal.Cascade.cascadeProperty(Cascade.java:224)
+	at org.hibernate.engine.internal.Cascade.cascadeCollectionElements(Cascade.java:551)
+	at org.hibernate.engine.internal.Cascade.cascadeCollection(Cascade.java:481)
+	at org.hibernate.engine.internal.Cascade.cascadeAssociation(Cascade.java:442)
+	at org.hibernate.engine.internal.Cascade.cascadeProperty(Cascade.java:224)
+	at org.hibernate.engine.internal.Cascade.cascade(Cascade.java:157)
+	at org.hibernate.event.internal.AbstractSaveEventListener.cascadeAfterSave(AbstractSaveEventListener.java:513)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSaveOrReplicate(AbstractSaveEventListener.java:312)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSave(AbstractSaveEventListener.java:219)
+	at org.hibernate.event.internal.AbstractSaveEventListener.saveWithGeneratedId(AbstractSaveEventListener.java:134)
+	at org.hibernate.event.internal.DefaultPersistEventListener.entityIsTransient(DefaultPersistEventListener.java:175)
+	at org.hibernate.event.internal.DefaultPersistEventListener.persist(DefaultPersistEventListener.java:93)
+	at org.hibernate.event.internal.DefaultPersistEventListener.onPersist(DefaultPersistEventListener.java:77)
+	at org.hibernate.event.internal.DefaultPersistEventListener.onPersist(DefaultPersistEventListener.java:54)
+	at org.hibernate.event.service.internal.EventListenerGroupImpl.fireEventOnEachListener(EventListenerGroupImpl.java:127)
+	at org.hibernate.internal.SessionImpl.firePersist(SessionImpl.java:766)
+	at org.hibernate.internal.SessionImpl.persist(SessionImpl.java:750)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler.invoke(SharedEntityManagerCreator.java:311)
+	at jdk.proxy2/jdk.proxy2.$Proxy199.persist(Unknown Source)
+	at org.springframework.data.jpa.repository.support.SimpleJpaRepository.save(SimpleJpaRepository.java:618)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:352)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker$RepositoryFragmentMethodInvoker.lambda$new$0(RepositoryMethodInvoker.java:277)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158)
+	at org.springframework.data.repository.core.support.RepositoryComposition$RepositoryFragments.invoke(RepositoryComposition.java:516)
+	at org.springframework.data.repository.core.support.RepositoryComposition.invoke(RepositoryComposition.java:285)
+	at org.springframework.data.repository.core.support.RepositoryFactorySupport$ImplementationMethodExecutionInterceptor.invoke(RepositoryFactorySupport.java:628)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:168)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137)
+	... 149 common frames omitted
+Caused by: org.postgresql.util.PSQLException: ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:28.944729+05:30, 2, Payment initiated, system, null, null, INITIATED).
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2713)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2401)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:368)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:498)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:415)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:190)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:152)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.hibernate.engine.jdbc.internal.ResultSetReturnImpl.executeUpdate(ResultSetReturnImpl.java:280)
+	... 219 common frames omitted
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json]
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [PaymentInitiationResponse(paymentId=null, status=null, tenantContext=null, initiatedAt=null, errorMe (truncated)...]
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/v1/payments/initiate
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", X-Correlation-ID:"66d9fe70-2610-4ef3-9520-f68b433417f6", X-Tenant-ID:"TENANT-001", X-Business-Unit-ID:"BU-001", Content-Length:"445"]
+             Body = {"paymentId":{"value":"PAY-d674297d"},"idempotencyKey":"IDEMPOTENCY-6950f5e7","sourceAccount":"12345678901","destinationAccount":"98765432109","amount":{"amount":1000.00,"currency":"ZAR","negativeOrZero":false},"reference":"Integration test payment","paymentType":"EFT","priority":"NORMAL","tenantContext":{"tenantId":"TENANT-001","tenantName":null,"businessUnitId":"BU-001","businessUnitName":null},"initiatedBy":"integration-test@example.com"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.payments.paymentinitiation.api.PaymentInitiationController
+           Method = com.payments.paymentinitiation.api.PaymentInitiationController#initiatePayment(PaymentInitiationRequest, String, String, String)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 500
+    Error message = null
+          Headers = [Content-Type:"application/json"]
+     Content type = application/json
+             Body = {"paymentId":null,"status":null,"tenantContext":null,"initiatedAt":null,"errorMessage":"Payment initiation failed"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+]]></system-out>
+  </testcase>
+  <testcase name="idempotencyTest_ShouldPreventDuplicatePayments" classname="com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest" time="0.031">
+    <failure message="Status expected:&lt;201&gt; but was:&lt;500&gt;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Status expected:<201> but was:<500>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:59)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:122)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:637)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest.idempotencyTest_ShouldPreventDuplicatePayments(PaymentInitiationIntegrationTest.java:209)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+]]></failure>
+    <system-out><![CDATA[2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.payments.paymentinitiation.api.PaymentInitiationController#initiatePayment(PaymentInitiationRequest, String, String, String)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Payment validation interceptor processing request: /api/v1/payments/initiate
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Request validation passed for tenant: TENANT-001, business unit: BU-001
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [PaymentInitiationRequest(paymentId=PaymentId(value=PAY-1f90c700), idempotencyKey=IDEMPOTENCY-c947bc8 (truncated)...]
+2025-10-16 18:52:28 [main] INFO  [] c.p.p.a.PaymentInitiationController - Initiating payment for tenant: TENANT-001, business unit: BU-001, correlation: 575c8335-9146-40ab-993a-daab7d350d2e
+2025-10-16 18:52:28 [main] INFO  [] c.p.p.s.PaymentInitiationService - Processing payment initiation for payment: PaymentId(value=PAY-1f90c700)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.IdempotencyRepositoryAdapter - Checking idempotency key existence: IDEMPOTENCY-c947bc86, TENANT-001
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    select
+        count(ire1_0.id)>0 
+    from
+        idempotency_records ire1_0 
+    where
+        ire1_0.idempotency_key=? 
+        and ire1_0.tenant_id=?
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.s.PaymentInitiationService - Payment request validation passed for: PaymentId(value=PAY-1f90c700)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Validating business rules for payment: PaymentId(value=PAY-1f90c700)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.PaymentRepositoryAdapter - Finding payments by tenant and date range: TENANT-001, 2025-10-16T00:00:00Z to 2025-10-17T00:00:00Z
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    select
+        pe1_0.payment_id,
+        pe1_0.amount,
+        pe1_0.currency,
+        pe1_0.cleared_at,
+        pe1_0.completed_at,
+        pe1_0.destination_account,
+        pe1_0.failed_at,
+        pe1_0.failure_reason,
+        pe1_0.idempotency_key,
+        pe1_0.initiated_at,
+        pe1_0.initiated_by,
+        pe1_0.payment_type,
+        pe1_0.priority,
+        pe1_0.reference,
+        pe1_0.source_account,
+        pe1_0.status,
+        pe1_0.submitted_to_clearing_at,
+        pe1_0.business_unit_id,
+        pe1_0.tenant_id,
+        pe1_0.updated_at,
+        pe1_0.validated_at,
+        pe1_0.version 
+    from
+        payments pe1_0 
+    where
+        pe1_0.tenant_id=? 
+        and pe1_0.initiated_at between ? and ? 
+    order by
+        pe1_0.initiated_at desc
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Daily limit validation passed for payment: PaymentId(value=PAY-1f90c700)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.PaymentRepositoryAdapter - Finding payments by tenant and date range: TENANT-001, 2025-10-16T12:22:28.973552300Z to 2025-10-16T13:22:28.973552300Z
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    select
+        pe1_0.payment_id,
+        pe1_0.amount,
+        pe1_0.currency,
+        pe1_0.cleared_at,
+        pe1_0.completed_at,
+        pe1_0.destination_account,
+        pe1_0.failed_at,
+        pe1_0.failure_reason,
+        pe1_0.idempotency_key,
+        pe1_0.initiated_at,
+        pe1_0.initiated_by,
+        pe1_0.payment_type,
+        pe1_0.priority,
+        pe1_0.reference,
+        pe1_0.source_account,
+        pe1_0.status,
+        pe1_0.submitted_to_clearing_at,
+        pe1_0.business_unit_id,
+        pe1_0.tenant_id,
+        pe1_0.updated_at,
+        pe1_0.validated_at,
+        pe1_0.version 
+    from
+        payments pe1_0 
+    where
+        pe1_0.tenant_id=? 
+        and pe1_0.initiated_at between ? and ? 
+    order by
+        pe1_0.initiated_at desc
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Velocity limit validation passed for payment: PaymentId(value=PAY-1f90c700)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Account restrictions validation passed for payment: PaymentId(value=PAY-1f90c700)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Compliance rules validation passed for payment: PaymentId(value=PAY-1f90c700)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.service.PaymentDomainService - Business rules validation passed for payment: PaymentId(value=PAY-1f90c700)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.PaymentRepositoryAdapter - Saving payment: PaymentId(value=PAY-1f90c700)
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    insert 
+    into
+        payments
+        (amount, currency, cleared_at, completed_at, destination_account, failed_at, failure_reason, idempotency_key, initiated_at, initiated_by, payment_type, priority, reference, source_account, status, submitted_to_clearing_at, business_unit_id, tenant_id, updated_at, validated_at, version, payment_id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2025-10-16 18:52:28 [main] DEBUG [] org.hibernate.SQL - 
+    insert 
+    into
+        payment_status_history
+        (changed_at, changed_by, from_status, payment_id, reason, to_status) 
+    values
+        (?, ?, ?, ?, ?, ?)
+2025-10-16 18:52:28 [main] WARN  [] o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 0, SQLState: 23502
+2025-10-16 18:52:28 [main] ERROR [] o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:28.981886+05:30, 3, Payment initiated, system, null, null, INITIATED).
+2025-10-16 18:52:28 [main] ERROR [] c.p.p.a.PaymentInitiationController - Failed to initiate payment
+org.springframework.dao.DataIntegrityViolationException: could not execute statement [ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:28.981886+05:30, 3, Payment initiated, system, null, null, INITIATED).] [insert into payment_status_history (changed_at,changed_by,from_status,payment_id,reason,to_status) values (?,?,?,?,?,?)]; SQL [insert into payment_status_history (changed_at,changed_by,from_status,payment_id,reason,to_status) values (?,?,?,?,?,?)]; constraint [payment_id" of relation "payment_status_history]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:290)
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)
+	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:550)
+	at org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61)
+	at org.springframework.dao.support.DataAccessUtils.translateIfNecessary(DataAccessUtils.java:335)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:152)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:164)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:249)
+	at jdk.proxy2/jdk.proxy2.$Proxy205.save(Unknown Source)
+	at com.payments.paymentinitiation.adapter.PaymentRepositoryAdapter.save(PaymentRepositoryAdapter.java:40)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:352)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:717)
+	at com.payments.paymentinitiation.adapter.PaymentRepositoryAdapter$$SpringCGLIB$$0.save(<generated>)
+	at com.payments.paymentinitiation.service.PaymentInitiationService.initiatePayment(PaymentInitiationService.java:93)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:352)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:717)
+	at com.payments.paymentinitiation.service.PaymentInitiationService$$SpringCGLIB$$0.initiatePayment(<generated>)
+	at com.payments.paymentinitiation.api.PaymentInitiationController.initiatePayment(PaymentInitiationController.java:92)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:254)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:182)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:917)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:829)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:165)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:109)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201)
+	at com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest.idempotencyTest_ShouldPreventDuplicatePayments(PaymentInitiationIntegrationTest.java:202)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:728)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:218)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:214)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:139)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+Caused by: org.hibernate.exception.ConstraintViolationException: could not execute statement [ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:28.981886+05:30, 3, Payment initiated, system, null, null, INITIATED).] [insert into payment_status_history (changed_at,changed_by,from_status,payment_id,reason,to_status) values (?,?,?,?,?,?)]
+	at org.hibernate.exception.internal.SQLStateConversionDelegate.convert(SQLStateConversionDelegate.java:97)
+	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58)
+	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108)
+	at org.hibernate.engine.jdbc.internal.ResultSetReturnImpl.executeUpdate(ResultSetReturnImpl.java:283)
+	at org.hibernate.id.insert.GetGeneratedKeysDelegate.performInsert(GetGeneratedKeysDelegate.java:107)
+	at org.hibernate.engine.jdbc.mutation.internal.MutationExecutorPostInsertSingleTable.execute(MutationExecutorPostInsertSingleTable.java:100)
+	at org.hibernate.persister.entity.mutation.InsertCoordinator.doStaticInserts(InsertCoordinator.java:171)
+	at org.hibernate.persister.entity.mutation.InsertCoordinator.coordinateInsert(InsertCoordinator.java:112)
+	at org.hibernate.persister.entity.AbstractEntityPersister.insert(AbstractEntityPersister.java:2860)
+	at org.hibernate.action.internal.EntityIdentityInsertAction.execute(EntityIdentityInsertAction.java:81)
+	at org.hibernate.engine.spi.ActionQueue.execute(ActionQueue.java:667)
+	at org.hibernate.engine.spi.ActionQueue.addResolvedEntityInsertAction(ActionQueue.java:290)
+	at org.hibernate.engine.spi.ActionQueue.addInsertAction(ActionQueue.java:271)
+	at org.hibernate.engine.spi.ActionQueue.addAction(ActionQueue.java:321)
+	at org.hibernate.event.internal.AbstractSaveEventListener.addInsertAction(AbstractSaveEventListener.java:386)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSaveOrReplicate(AbstractSaveEventListener.java:300)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSave(AbstractSaveEventListener.java:219)
+	at org.hibernate.event.internal.AbstractSaveEventListener.saveWithGeneratedId(AbstractSaveEventListener.java:134)
+	at org.hibernate.event.internal.DefaultPersistEventListener.entityIsTransient(DefaultPersistEventListener.java:175)
+	at org.hibernate.event.internal.DefaultPersistEventListener.persist(DefaultPersistEventListener.java:93)
+	at org.hibernate.event.internal.DefaultPersistEventListener.onPersist(DefaultPersistEventListener.java:77)
+	at org.hibernate.event.service.internal.EventListenerGroupImpl.fireEventOnEachListener(EventListenerGroupImpl.java:138)
+	at org.hibernate.internal.SessionImpl.firePersist(SessionImpl.java:808)
+	at org.hibernate.internal.SessionImpl.persist(SessionImpl.java:756)
+	at org.hibernate.engine.spi.CascadingActions$7.cascade(CascadingActions.java:290)
+	at org.hibernate.engine.spi.CascadingActions$7.cascade(CascadingActions.java:280)
+	at org.hibernate.engine.internal.Cascade.cascadeToOne(Cascade.java:517)
+	at org.hibernate.engine.internal.Cascade.cascadeAssociation(Cascade.java:439)
+	at org.hibernate.engine.internal.Cascade.cascadeProperty(Cascade.java:224)
+	at org.hibernate.engine.internal.Cascade.cascadeCollectionElements(Cascade.java:551)
+	at org.hibernate.engine.internal.Cascade.cascadeCollection(Cascade.java:481)
+	at org.hibernate.engine.internal.Cascade.cascadeAssociation(Cascade.java:442)
+	at org.hibernate.engine.internal.Cascade.cascadeProperty(Cascade.java:224)
+	at org.hibernate.engine.internal.Cascade.cascade(Cascade.java:157)
+	at org.hibernate.event.internal.AbstractSaveEventListener.cascadeAfterSave(AbstractSaveEventListener.java:513)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSaveOrReplicate(AbstractSaveEventListener.java:312)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSave(AbstractSaveEventListener.java:219)
+	at org.hibernate.event.internal.AbstractSaveEventListener.saveWithGeneratedId(AbstractSaveEventListener.java:134)
+	at org.hibernate.event.internal.DefaultPersistEventListener.entityIsTransient(DefaultPersistEventListener.java:175)
+	at org.hibernate.event.internal.DefaultPersistEventListener.persist(DefaultPersistEventListener.java:93)
+	at org.hibernate.event.internal.DefaultPersistEventListener.onPersist(DefaultPersistEventListener.java:77)
+	at org.hibernate.event.internal.DefaultPersistEventListener.onPersist(DefaultPersistEventListener.java:54)
+	at org.hibernate.event.service.internal.EventListenerGroupImpl.fireEventOnEachListener(EventListenerGroupImpl.java:127)
+	at org.hibernate.internal.SessionImpl.firePersist(SessionImpl.java:766)
+	at org.hibernate.internal.SessionImpl.persist(SessionImpl.java:750)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler.invoke(SharedEntityManagerCreator.java:311)
+	at jdk.proxy2/jdk.proxy2.$Proxy199.persist(Unknown Source)
+	at org.springframework.data.jpa.repository.support.SimpleJpaRepository.save(SimpleJpaRepository.java:618)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:352)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker$RepositoryFragmentMethodInvoker.lambda$new$0(RepositoryMethodInvoker.java:277)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158)
+	at org.springframework.data.repository.core.support.RepositoryComposition$RepositoryFragments.invoke(RepositoryComposition.java:516)
+	at org.springframework.data.repository.core.support.RepositoryComposition.invoke(RepositoryComposition.java:285)
+	at org.springframework.data.repository.core.support.RepositoryFactorySupport$ImplementationMethodExecutionInterceptor.invoke(RepositoryFactorySupport.java:628)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:168)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137)
+	... 149 common frames omitted
+Caused by: org.postgresql.util.PSQLException: ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:28.981886+05:30, 3, Payment initiated, system, null, null, INITIATED).
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2713)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2401)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:368)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:498)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:415)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:190)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:152)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.hibernate.engine.jdbc.internal.ResultSetReturnImpl.executeUpdate(ResultSetReturnImpl.java:280)
+	... 219 common frames omitted
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json]
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [PaymentInitiationResponse(paymentId=null, status=null, tenantContext=null, initiatedAt=null, errorMe (truncated)...]
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/v1/payments/initiate
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", X-Correlation-ID:"575c8335-9146-40ab-993a-daab7d350d2e", X-Tenant-ID:"TENANT-001", X-Business-Unit-ID:"BU-001", Content-Length:"445"]
+             Body = {"paymentId":{"value":"PAY-1f90c700"},"idempotencyKey":"IDEMPOTENCY-c947bc86","sourceAccount":"12345678901","destinationAccount":"98765432109","amount":{"amount":1000.00,"currency":"ZAR","negativeOrZero":false},"reference":"Integration test payment","paymentType":"EFT","priority":"NORMAL","tenantContext":{"tenantId":"TENANT-001","tenantName":null,"businessUnitId":"BU-001","businessUnitName":null},"initiatedBy":"integration-test@example.com"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.payments.paymentinitiation.api.PaymentInitiationController
+           Method = com.payments.paymentinitiation.api.PaymentInitiationController#initiatePayment(PaymentInitiationRequest, String, String, String)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 500
+    Error message = null
+          Headers = [Content-Type:"application/json"]
+     Content type = application/json
+             Body = {"paymentId":null,"status":null,"tenantContext":null,"initiatedAt":null,"errorMessage":"Payment initiation failed"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+]]></system-out>
+  </testcase>
+  <testcase name="validationTest_ShouldRejectInvalidRequests" classname="com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest" time="0.012">
+    <system-out><![CDATA[2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.payments.paymentinitiation.api.PaymentInitiationController#initiatePayment(PaymentInitiationRequest, String, String, String)
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Payment validation interceptor processing request: /api/v1/payments/initiate
+2025-10-16 18:52:28 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Request validation passed for tenant: TENANT-001, business unit: BU-001
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [PaymentInitiationRequest(paymentId=PaymentId(value=PAY-INVALID), idempotencyKey=, sourceAccount=1234 (truncated)...]
+2025-10-16 18:52:28 [main] DEBUG [] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Using @ExceptionHandler com.payments.paymentinitiation.api.exception.GlobalExceptionHandler#handleValidationErrors(MethodArgumentNotValidException)
+2025-10-16 18:52:28 [main] WARN  [] c.p.p.a.e.GlobalExceptionHandler - Validation error: Validation failed for argument [0] in public org.springframework.http.ResponseEntity<com.payments.contracts.payment.PaymentInitiationResponse> com.payments.paymentinitiation.api.PaymentInitiationController.initiatePayment(com.payments.contracts.payment.PaymentInitiationRequest,java.lang.String,java.lang.String,java.lang.String): [Field error in object 'paymentInitiationRequest' on field 'idempotencyKey': rejected value []; codes [NotBlank.paymentInitiationRequest.idempotencyKey,NotBlank.idempotencyKey,NotBlank.java.lang.String,NotBlank]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [paymentInitiationRequest.idempotencyKey,idempotencyKey]; arguments []; default message [idempotencyKey]]; default message [Idempotency key is required]] 
+2025-10-16 18:52:29 [main] DEBUG [] o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2025-10-16 18:52:29 [main] DEBUG [] o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [GlobalExceptionHandler.ErrorResponse(message=Validation failed, code=VALIDATION_ERROR, timestamp=202 (truncated)...]
+2025-10-16 18:52:29 [main] DEBUG [] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [0] in public org.springframework.http.ResponseEntity<com.payments.contracts.payment.PaymentInitiationResponse> com.payments.paymentinitiation.api.PaymentInitiationController.initiatePayment(com.payments.contracts.payment.PaymentInitiationRequest,java.lang.String,java.lang.String,java.lang.String): [Field error in object 'paymentInitiationRequest' on field 'idempotencyKey': rejected value []; codes [NotBlank.paymentInitiationRequest.idempotencyKey,NotBlank.idempotencyKey,NotBlank.java.lang.String,NotBlank]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [paymentInitiationRequest.idempotencyKey,idempotencyKey]; arguments []; default message [idempotencyKey]]; default message [Idempotency key is required]] ]
+]]></system-out>
+  </testcase>
+  <testcase name="multiTenantTest_ShouldIsolateData" classname="com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest" time="0.056">
+    <failure message="Status expected:&lt;201&gt; but was:&lt;500&gt;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Status expected:<201> but was:<500>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:59)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:122)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:637)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest.multiTenantTest_ShouldIsolateData(PaymentInitiationIntegrationTest.java:261)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+]]></failure>
+    <system-out><![CDATA[2025-10-16 18:52:29 [main] DEBUG [] o.s.w.s.m.m.a.RequestMappingHandlerMapping - Mapped to com.payments.paymentinitiation.api.PaymentInitiationController#initiatePayment(PaymentInitiationRequest, String, String, String)
+2025-10-16 18:52:29 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Payment validation interceptor processing request: /api/v1/payments/initiate
+2025-10-16 18:52:29 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Request validation passed for tenant: TENANT-001, business unit: BU-001
+2025-10-16 18:52:29 [main] DEBUG [] o.s.w.s.m.m.a.RequestResponseBodyMethodProcessor - Read "application/json;charset=UTF-8" to [PaymentInitiationRequest(paymentId=PaymentId(value=PAY-3d6c35a6), idempotencyKey=IDEMPOTENCY-29b7725 (truncated)...]
+2025-10-16 18:52:29 [main] INFO  [] c.p.p.a.PaymentInitiationController - Initiating payment for tenant: TENANT-001, business unit: BU-001, correlation: 8ecc2739-06bd-4b33-8fdf-4a37c5cd6ff0
+2025-10-16 18:52:29 [main] INFO  [] c.p.p.s.PaymentInitiationService - Processing payment initiation for payment: PaymentId(value=PAY-3d6c35a6)
+2025-10-16 18:52:29 [main] DEBUG [] c.p.p.a.IdempotencyRepositoryAdapter - Checking idempotency key existence: IDEMPOTENCY-29b7725b, TENANT-001
+2025-10-16 18:52:29 [main] DEBUG [] org.hibernate.SQL - 
+    select
+        count(ire1_0.id)>0 
+    from
+        idempotency_records ire1_0 
+    where
+        ire1_0.idempotency_key=? 
+        and ire1_0.tenant_id=?
+2025-10-16 18:52:29 [main] DEBUG [] c.p.p.s.PaymentInitiationService - Payment request validation passed for: PaymentId(value=PAY-3d6c35a6)
+2025-10-16 18:52:29 [main] DEBUG [] c.p.p.service.PaymentDomainService - Validating business rules for payment: PaymentId(value=PAY-3d6c35a6)
+2025-10-16 18:52:29 [main] DEBUG [] c.p.p.a.PaymentRepositoryAdapter - Finding payments by tenant and date range: TENANT-001, 2025-10-16T00:00:00Z to 2025-10-17T00:00:00Z
+2025-10-16 18:52:29 [main] DEBUG [] org.hibernate.SQL - 
+    select
+        pe1_0.payment_id,
+        pe1_0.amount,
+        pe1_0.currency,
+        pe1_0.cleared_at,
+        pe1_0.completed_at,
+        pe1_0.destination_account,
+        pe1_0.failed_at,
+        pe1_0.failure_reason,
+        pe1_0.idempotency_key,
+        pe1_0.initiated_at,
+        pe1_0.initiated_by,
+        pe1_0.payment_type,
+        pe1_0.priority,
+        pe1_0.reference,
+        pe1_0.source_account,
+        pe1_0.status,
+        pe1_0.submitted_to_clearing_at,
+        pe1_0.business_unit_id,
+        pe1_0.tenant_id,
+        pe1_0.updated_at,
+        pe1_0.validated_at,
+        pe1_0.version 
+    from
+        payments pe1_0 
+    where
+        pe1_0.tenant_id=? 
+        and pe1_0.initiated_at between ? and ? 
+    order by
+        pe1_0.initiated_at desc
+2025-10-16 18:52:29 [main] DEBUG [] c.p.p.service.PaymentDomainService - Daily limit validation passed for payment: PaymentId(value=PAY-3d6c35a6)
+2025-10-16 18:52:29 [main] DEBUG [] c.p.p.a.PaymentRepositoryAdapter - Finding payments by tenant and date range: TENANT-001, 2025-10-16T12:22:29.020616300Z to 2025-10-16T13:22:29.020616300Z
+2025-10-16 18:52:29 [main] DEBUG [] org.hibernate.SQL - 
+    select
+        pe1_0.payment_id,
+        pe1_0.amount,
+        pe1_0.currency,
+        pe1_0.cleared_at,
+        pe1_0.completed_at,
+        pe1_0.destination_account,
+        pe1_0.failed_at,
+        pe1_0.failure_reason,
+        pe1_0.idempotency_key,
+        pe1_0.initiated_at,
+        pe1_0.initiated_by,
+        pe1_0.payment_type,
+        pe1_0.priority,
+        pe1_0.reference,
+        pe1_0.source_account,
+        pe1_0.status,
+        pe1_0.submitted_to_clearing_at,
+        pe1_0.business_unit_id,
+        pe1_0.tenant_id,
+        pe1_0.updated_at,
+        pe1_0.validated_at,
+        pe1_0.version 
+    from
+        payments pe1_0 
+    where
+        pe1_0.tenant_id=? 
+        and pe1_0.initiated_at between ? and ? 
+    order by
+        pe1_0.initiated_at desc
+2025-10-16 18:52:29 [main] DEBUG [] c.p.p.service.PaymentDomainService - Velocity limit validation passed for payment: PaymentId(value=PAY-3d6c35a6)
+2025-10-16 18:52:29 [main] DEBUG [] c.p.p.service.PaymentDomainService - Account restrictions validation passed for payment: PaymentId(value=PAY-3d6c35a6)
+2025-10-16 18:52:29 [main] DEBUG [] c.p.p.service.PaymentDomainService - Compliance rules validation passed for payment: PaymentId(value=PAY-3d6c35a6)
+2025-10-16 18:52:29 [main] DEBUG [] c.p.p.service.PaymentDomainService - Business rules validation passed for payment: PaymentId(value=PAY-3d6c35a6)
+2025-10-16 18:52:29 [main] DEBUG [] c.p.p.a.PaymentRepositoryAdapter - Saving payment: PaymentId(value=PAY-3d6c35a6)
+2025-10-16 18:52:29 [main] DEBUG [] org.hibernate.SQL - 
+    insert 
+    into
+        payments
+        (amount, currency, cleared_at, completed_at, destination_account, failed_at, failure_reason, idempotency_key, initiated_at, initiated_by, payment_type, priority, reference, source_account, status, submitted_to_clearing_at, business_unit_id, tenant_id, updated_at, validated_at, version, payment_id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2025-10-16 18:52:29 [main] DEBUG [] org.hibernate.SQL - 
+    insert 
+    into
+        payment_status_history
+        (changed_at, changed_by, from_status, payment_id, reason, to_status) 
+    values
+        (?, ?, ?, ?, ?, ?)
+2025-10-16 18:52:29 [main] WARN  [] o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 0, SQLState: 23502
+2025-10-16 18:52:29 [main] ERROR [] o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:29.028999+05:30, 4, Payment initiated, system, null, null, INITIATED).
+2025-10-16 18:52:29 [main] ERROR [] c.p.p.a.PaymentInitiationController - Failed to initiate payment
+org.springframework.dao.DataIntegrityViolationException: could not execute statement [ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:29.028999+05:30, 4, Payment initiated, system, null, null, INITIATED).] [insert into payment_status_history (changed_at,changed_by,from_status,payment_id,reason,to_status) values (?,?,?,?,?,?)]; SQL [insert into payment_status_history (changed_at,changed_by,from_status,payment_id,reason,to_status) values (?,?,?,?,?,?)]; constraint [payment_id" of relation "payment_status_history]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:290)
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)
+	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:550)
+	at org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61)
+	at org.springframework.dao.support.DataAccessUtils.translateIfNecessary(DataAccessUtils.java:335)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:152)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:164)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:249)
+	at jdk.proxy2/jdk.proxy2.$Proxy205.save(Unknown Source)
+	at com.payments.paymentinitiation.adapter.PaymentRepositoryAdapter.save(PaymentRepositoryAdapter.java:40)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:352)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:717)
+	at com.payments.paymentinitiation.adapter.PaymentRepositoryAdapter$$SpringCGLIB$$0.save(<generated>)
+	at com.payments.paymentinitiation.service.PaymentInitiationService.initiatePayment(PaymentInitiationService.java:93)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:352)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:765)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:717)
+	at com.payments.paymentinitiation.service.PaymentInitiationService$$SpringCGLIB$$0.initiatePayment(<generated>)
+	at com.payments.paymentinitiation.api.PaymentInitiationController.initiatePayment(PaymentInitiationController.java:92)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:254)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:182)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:917)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:829)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:165)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:109)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:151)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:132)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:201)
+	at com.payments.paymentinitiation.integration.PaymentInitiationIntegrationTest.multiTenantTest_ShouldIsolateData(PaymentInitiationIntegrationTest.java:254)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:728)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:218)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:214)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:139)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+Caused by: org.hibernate.exception.ConstraintViolationException: could not execute statement [ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:29.028999+05:30, 4, Payment initiated, system, null, null, INITIATED).] [insert into payment_status_history (changed_at,changed_by,from_status,payment_id,reason,to_status) values (?,?,?,?,?,?)]
+	at org.hibernate.exception.internal.SQLStateConversionDelegate.convert(SQLStateConversionDelegate.java:97)
+	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58)
+	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108)
+	at org.hibernate.engine.jdbc.internal.ResultSetReturnImpl.executeUpdate(ResultSetReturnImpl.java:283)
+	at org.hibernate.id.insert.GetGeneratedKeysDelegate.performInsert(GetGeneratedKeysDelegate.java:107)
+	at org.hibernate.engine.jdbc.mutation.internal.MutationExecutorPostInsertSingleTable.execute(MutationExecutorPostInsertSingleTable.java:100)
+	at org.hibernate.persister.entity.mutation.InsertCoordinator.doStaticInserts(InsertCoordinator.java:171)
+	at org.hibernate.persister.entity.mutation.InsertCoordinator.coordinateInsert(InsertCoordinator.java:112)
+	at org.hibernate.persister.entity.AbstractEntityPersister.insert(AbstractEntityPersister.java:2860)
+	at org.hibernate.action.internal.EntityIdentityInsertAction.execute(EntityIdentityInsertAction.java:81)
+	at org.hibernate.engine.spi.ActionQueue.execute(ActionQueue.java:667)
+	at org.hibernate.engine.spi.ActionQueue.addResolvedEntityInsertAction(ActionQueue.java:290)
+	at org.hibernate.engine.spi.ActionQueue.addInsertAction(ActionQueue.java:271)
+	at org.hibernate.engine.spi.ActionQueue.addAction(ActionQueue.java:321)
+	at org.hibernate.event.internal.AbstractSaveEventListener.addInsertAction(AbstractSaveEventListener.java:386)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSaveOrReplicate(AbstractSaveEventListener.java:300)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSave(AbstractSaveEventListener.java:219)
+	at org.hibernate.event.internal.AbstractSaveEventListener.saveWithGeneratedId(AbstractSaveEventListener.java:134)
+	at org.hibernate.event.internal.DefaultPersistEventListener.entityIsTransient(DefaultPersistEventListener.java:175)
+	at org.hibernate.event.internal.DefaultPersistEventListener.persist(DefaultPersistEventListener.java:93)
+	at org.hibernate.event.internal.DefaultPersistEventListener.onPersist(DefaultPersistEventListener.java:77)
+	at org.hibernate.event.service.internal.EventListenerGroupImpl.fireEventOnEachListener(EventListenerGroupImpl.java:138)
+	at org.hibernate.internal.SessionImpl.firePersist(SessionImpl.java:808)
+	at org.hibernate.internal.SessionImpl.persist(SessionImpl.java:756)
+	at org.hibernate.engine.spi.CascadingActions$7.cascade(CascadingActions.java:290)
+	at org.hibernate.engine.spi.CascadingActions$7.cascade(CascadingActions.java:280)
+	at org.hibernate.engine.internal.Cascade.cascadeToOne(Cascade.java:517)
+	at org.hibernate.engine.internal.Cascade.cascadeAssociation(Cascade.java:439)
+	at org.hibernate.engine.internal.Cascade.cascadeProperty(Cascade.java:224)
+	at org.hibernate.engine.internal.Cascade.cascadeCollectionElements(Cascade.java:551)
+	at org.hibernate.engine.internal.Cascade.cascadeCollection(Cascade.java:481)
+	at org.hibernate.engine.internal.Cascade.cascadeAssociation(Cascade.java:442)
+	at org.hibernate.engine.internal.Cascade.cascadeProperty(Cascade.java:224)
+	at org.hibernate.engine.internal.Cascade.cascade(Cascade.java:157)
+	at org.hibernate.event.internal.AbstractSaveEventListener.cascadeAfterSave(AbstractSaveEventListener.java:513)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSaveOrReplicate(AbstractSaveEventListener.java:312)
+	at org.hibernate.event.internal.AbstractSaveEventListener.performSave(AbstractSaveEventListener.java:219)
+	at org.hibernate.event.internal.AbstractSaveEventListener.saveWithGeneratedId(AbstractSaveEventListener.java:134)
+	at org.hibernate.event.internal.DefaultPersistEventListener.entityIsTransient(DefaultPersistEventListener.java:175)
+	at org.hibernate.event.internal.DefaultPersistEventListener.persist(DefaultPersistEventListener.java:93)
+	at org.hibernate.event.internal.DefaultPersistEventListener.onPersist(DefaultPersistEventListener.java:77)
+	at org.hibernate.event.internal.DefaultPersistEventListener.onPersist(DefaultPersistEventListener.java:54)
+	at org.hibernate.event.service.internal.EventListenerGroupImpl.fireEventOnEachListener(EventListenerGroupImpl.java:127)
+	at org.hibernate.internal.SessionImpl.firePersist(SessionImpl.java:766)
+	at org.hibernate.internal.SessionImpl.persist(SessionImpl.java:750)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler.invoke(SharedEntityManagerCreator.java:311)
+	at jdk.proxy2/jdk.proxy2.$Proxy199.persist(Unknown Source)
+	at org.springframework.data.jpa.repository.support.SimpleJpaRepository.save(SimpleJpaRepository.java:618)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:352)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker$RepositoryFragmentMethodInvoker.lambda$new$0(RepositoryMethodInvoker.java:277)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158)
+	at org.springframework.data.repository.core.support.RepositoryComposition$RepositoryFragments.invoke(RepositoryComposition.java:516)
+	at org.springframework.data.repository.core.support.RepositoryComposition.invoke(RepositoryComposition.java:285)
+	at org.springframework.data.repository.core.support.RepositoryFactorySupport$ImplementationMethodExecutionInterceptor.invoke(RepositoryFactorySupport.java:628)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:168)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137)
+	... 149 common frames omitted
+Caused by: org.postgresql.util.PSQLException: ERROR: null value in column "payment_id" of relation "payment_status_history" violates not-null constraint
+  Detail: Failing row contains (2025-10-16 18:52:29.028999+05:30, 4, Payment initiated, system, null, null, INITIATED).
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2713)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2401)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:368)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:498)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:415)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:190)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:152)
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61)
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java)
+	at org.hibernate.engine.jdbc.internal.ResultSetReturnImpl.executeUpdate(ResultSetReturnImpl.java:280)
+	... 219 common frames omitted
+2025-10-16 18:52:29 [main] DEBUG [] o.s.w.s.m.m.a.HttpEntityMethodProcessor - Using 'application/json', given [*/*] and supported [application/json]
+2025-10-16 18:52:29 [main] DEBUG [] o.s.w.s.m.m.a.HttpEntityMethodProcessor - Writing [PaymentInitiationResponse(paymentId=null, status=null, tenantContext=null, initiatedAt=null, errorMe (truncated)...]
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/v1/payments/initiate
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", X-Correlation-ID:"8ecc2739-06bd-4b33-8fdf-4a37c5cd6ff0", X-Tenant-ID:"TENANT-001", X-Business-Unit-ID:"BU-001", Content-Length:"445"]
+             Body = {"paymentId":{"value":"PAY-3d6c35a6"},"idempotencyKey":"IDEMPOTENCY-29b7725b","sourceAccount":"12345678901","destinationAccount":"98765432109","amount":{"amount":1000.00,"currency":"ZAR","negativeOrZero":false},"reference":"Integration test payment","paymentType":"EFT","priority":"NORMAL","tenantContext":{"tenantId":"TENANT-001","tenantName":null,"businessUnitId":"BU-001","businessUnitName":null},"initiatedBy":"integration-test@example.com"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.payments.paymentinitiation.api.PaymentInitiationController
+           Method = com.payments.paymentinitiation.api.PaymentInitiationController#initiatePayment(PaymentInitiationRequest, String, String, String)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 500
+    Error message = null
+          Headers = [Content-Type:"application/json"]
+     Content type = application/json
+             Body = {"paymentId":null,"status":null,"tenantContext":null,"initiatedAt":null,"errorMessage":"Payment initiation failed"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+]]></system-out>
+  </testcase>
+</testsuite>

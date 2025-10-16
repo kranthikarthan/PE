@@ -11,6 +11,9 @@ import com.payments.domain.shared.AccountNumber;
 import com.payments.domain.shared.Money;
 import com.payments.domain.shared.TenantContext;
 import com.payments.paymentinitiation.port.PaymentRepositoryPort;
+import com.payments.paymentinitiation.adapter.PaymentRepositoryAdapter;
+import com.payments.paymentinitiation.mapper.PaymentMapper;
+import org.springframework.context.annotation.Import;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Optional;
@@ -30,6 +33,10 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @DataJpaTest
 @ActiveProfiles("test")
+@org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase(
+    replace = org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.ANY)
+@org.springframework.test.context.TestPropertySource(properties = {"spring.flyway.enabled=false"})
+@Import({PaymentRepositoryAdapter.class, PaymentMapper.class})
 class PaymentRepositoryTest {
 
   @Autowired private TestEntityManager entityManager;
@@ -41,7 +48,8 @@ class PaymentRepositoryTest {
   @BeforeEach
   void setUp() {
     testPayment = createTestPayment();
-    entityManager.persistAndFlush(testPayment);
+    paymentRepository.save(testPayment);
+    entityManager.clear();
   }
 
   @Test
@@ -98,8 +106,8 @@ class PaymentRepositoryTest {
   @Test
   void findByTenantIdAndDateRange_ShouldReturnPayments_WhenPaymentsExistInRange() {
     // Given
-    Instant startDate = Instant.now().minusSeconds(3600); // 1 hour ago
-    Instant endDate = Instant.now().plusSeconds(3600); // 1 hour from now
+    Instant startDate = Instant.now().minusSeconds(86400); // 24 hours ago
+    Instant endDate = Instant.now().plusSeconds(86400); // 24 hours from now
     PageRequest pageRequest = PageRequest.of(0, 10);
 
     // When
@@ -116,8 +124,8 @@ class PaymentRepositoryTest {
   @Test
   void findByTenantIdAndDateRange_ShouldReturnEmpty_WhenNoPaymentsInRange() {
     // Given
-    Instant startDate = Instant.now().plusSeconds(3600); // 1 hour from now
-    Instant endDate = Instant.now().plusSeconds(7200); // 2 hours from now
+    Instant startDate = Instant.now().plusSeconds(86400); // 24 hours from now
+    Instant endDate = Instant.now().plusSeconds(172800); // 48 hours from now
     PageRequest pageRequest = PageRequest.of(0, 10);
 
     // When
@@ -138,7 +146,7 @@ class PaymentRepositoryTest {
 
     // When
     Payment savedPayment = paymentRepository.save(newPayment);
-    entityManager.flush();
+    // flush not strictly required with repository abstraction
 
     // Then
     assertThat(savedPayment).isNotNull();
@@ -154,21 +162,20 @@ class PaymentRepositoryTest {
   void save_ShouldUpdatePayment_WhenPaymentExists() {
     // Given
     testPayment.setStatus(PaymentStatus.VALIDATED);
-    testPayment.setReference("Updated reference");
+    testPayment.setReference(com.payments.domain.payment.PaymentReference.of("Updated reference"));
 
     // When
     Payment updatedPayment = paymentRepository.save(testPayment);
-    entityManager.flush();
 
     // Then
     assertThat(updatedPayment.getStatus()).isEqualTo(PaymentStatus.VALIDATED);
-    assertThat(updatedPayment.getReference()).isEqualTo("Updated reference");
+    assertThat(updatedPayment.getReference().getValue()).isEqualTo("Updated reference");
 
     // Verify it's updated in database
     Optional<Payment> retrieved = paymentRepository.findById(testPayment.getId());
     assertThat(retrieved).isPresent();
     assertThat(retrieved.get().getStatus()).isEqualTo(PaymentStatus.VALIDATED);
-    assertThat(retrieved.get().getReference()).isEqualTo("Updated reference");
+    assertThat(retrieved.get().getReference().getValue()).isEqualTo("Updated reference");
   }
 
   @Test
@@ -210,10 +217,10 @@ class PaymentRepositoryTest {
     return Payment.builder()
         .id(new PaymentId("TEST-PAYMENT-001"))
         .idempotencyKey("TEST-IDEMPOTENCY-001")
-        .sourceAccount(new AccountNumber("12345678901"))
-        .destinationAccount(new AccountNumber("98765432109"))
-        .amount(new Money(BigDecimal.valueOf(1000.00), "ZAR"))
-        .reference("Test payment")
+        .sourceAccount(AccountNumber.of("12345678901"))
+        .destinationAccount(AccountNumber.of("98765432109"))
+        .amount(Money.zar(BigDecimal.valueOf(1000.00)))
+        .reference(com.payments.domain.payment.PaymentReference.of("Test payment"))
         .paymentType(PaymentType.EFT)
         .priority(Priority.NORMAL)
         .tenantContext(

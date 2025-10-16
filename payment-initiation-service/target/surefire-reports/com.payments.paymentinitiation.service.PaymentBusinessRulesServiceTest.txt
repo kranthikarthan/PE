@@ -1,0 +1,100 @@
+-------------------------------------------------------------------------------
+Test set: com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest
+-------------------------------------------------------------------------------
+Tests run: 13, Failures: 0, Errors: 12, Skipped: 0, Time elapsed: 0.575 s <<< FAILURE! -- in com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest
+com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateAmountLimits_ShouldThrowException_WhenUnderMinAmount -- Time elapsed: 0.269 s <<< ERROR!
+java.lang.NoSuchMethodError: 'com.payments.domain.payment.Payment$PaymentBuilder com.payments.domain.payment.Payment.builder()'
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.createPaymentWithAmount(PaymentBusinessRulesServiceTest.java:286)
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateAmountLimits_ShouldThrowException_WhenUnderMinAmount(PaymentBusinessRulesServiceTest.java:190)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateDailyLimit_ShouldThrowException_WhenOverLimit -- Time elapsed: 0.003 s <<< ERROR!
+java.lang.NoSuchMethodError: 'com.payments.domain.payment.Payment$PaymentBuilder com.payments.domain.payment.Payment.builder()'
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.createValidPayment(PaymentBusinessRulesServiceTest.java:269)
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateDailyLimit_ShouldThrowException_WhenOverLimit(PaymentBusinessRulesServiceTest.java:88)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateAmountLimits_ShouldPass_WhenWithinLimits -- Time elapsed: 0.001 s <<< ERROR!
+java.lang.NoSuchMethodError: 'com.payments.domain.payment.Payment$PaymentBuilder com.payments.domain.payment.Payment.builder()'
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.createValidPayment(PaymentBusinessRulesServiceTest.java:269)
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateAmountLimits_ShouldPass_WhenWithinLimits(PaymentBusinessRulesServiceTest.java:167)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateAccountRestrictions_ShouldThrowException_WhenSourceAccountBlocked -- Time elapsed: 0.005 s <<< ERROR!
+java.lang.NoSuchMethodError: 'com.payments.domain.payment.Payment$PaymentBuilder com.payments.domain.payment.Payment.builder()'
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.createValidPayment(PaymentBusinessRulesServiceTest.java:269)
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateAccountRestrictions_ShouldThrowException_WhenSourceAccountBlocked(PaymentBusinessRulesServiceTest.java:213)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateCompliance_ShouldPass_WhenCompliant -- Time elapsed: 0.021 s <<< ERROR!
+java.lang.NoSuchMethodError: 'com.payments.domain.payment.Payment$PaymentBuilder com.payments.domain.payment.Payment.builder()'
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.createValidPayment(PaymentBusinessRulesServiceTest.java:269)
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateCompliance_ShouldPass_WhenCompliant(PaymentBusinessRulesServiceTest.java:247)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateAmountLimits_ShouldThrowException_WhenOverMaxAmount -- Time elapsed: 0.006 s <<< ERROR!
+java.lang.NoSuchMethodError: 'com.payments.domain.payment.Payment$PaymentBuilder com.payments.domain.payment.Payment.builder()'
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.createPaymentWithAmount(PaymentBusinessRulesServiceTest.java:286)
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateAmountLimits_ShouldThrowException_WhenOverMaxAmount(PaymentBusinessRulesServiceTest.java:178)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateVelocityLimit_ShouldThrowException_WhenOverLimit -- Time elapsed: 0.004 s <<< ERROR!
+java.lang.NoSuchMethodError: 'com.payments.domain.payment.Payment$PaymentBuilder com.payments.domain.payment.Payment.builder()'
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.createValidPayment(PaymentBusinessRulesServiceTest.java:269)
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateVelocityLimit_ShouldThrowException_WhenOverLimit(PaymentBusinessRulesServiceTest.java:134)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateAccountRestrictions_ShouldPass_WhenAccountsNotBlocked -- Time elapsed: 0 s <<< ERROR!
+java.lang.NoSuchMethodError: 'com.payments.domain.payment.Payment$PaymentBuilder com.payments.domain.payment.Payment.builder()'
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.createValidPayment(PaymentBusinessRulesServiceTest.java:269)
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateAccountRestrictions_ShouldPass_WhenAccountsNotBlocked(PaymentBusinessRulesServiceTest.java:202)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateCompliance_ShouldThrowException_WhenNonCompliant -- Time elapsed: 0.004 s <<< ERROR!
+java.lang.NoSuchMethodError: 'com.payments.domain.payment.Payment$PaymentBuilder com.payments.domain.payment.Payment.builder()'
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.createValidPayment(PaymentBusinessRulesServiceTest.java:269)
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateCompliance_ShouldThrowException_WhenNonCompliant(PaymentBusinessRulesServiceTest.java:258)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateVelocityLimit_ShouldPass_WhenUnderLimit -- Time elapsed: 0.013 s <<< ERROR!
+java.lang.NoSuchMethodError: 'com.payments.domain.payment.Payment$PaymentBuilder com.payments.domain.payment.Payment.builder()'
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.createValidPayment(PaymentBusinessRulesServiceTest.java:269)
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateVelocityLimit_ShouldPass_WhenUnderLimit(PaymentBusinessRulesServiceTest.java:111)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateAccountRestrictions_ShouldThrowException_WhenDestinationAccountBlocked -- Time elapsed: 0.003 s <<< ERROR!
+java.lang.NoSuchMethodError: 'com.payments.domain.payment.Payment$PaymentBuilder com.payments.domain.payment.Payment.builder()'
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.createValidPayment(PaymentBusinessRulesServiceTest.java:269)
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateAccountRestrictions_ShouldThrowException_WhenDestinationAccountBlocked(PaymentBusinessRulesServiceTest.java:230)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateDailyLimit_ShouldPass_WhenUnderLimit -- Time elapsed: 0.005 s <<< ERROR!
+java.lang.NoSuchMethodError: 'com.payments.domain.payment.Payment$PaymentBuilder com.payments.domain.payment.Payment.builder()'
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.createValidPayment(PaymentBusinessRulesServiceTest.java:269)
+	at com.payments.paymentinitiation.service.PaymentBusinessRulesServiceTest.validateDailyLimit_ShouldPass_WhenUnderLimit(PaymentBusinessRulesServiceTest.java:65)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+

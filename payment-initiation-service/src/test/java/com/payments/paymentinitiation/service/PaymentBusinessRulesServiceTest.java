@@ -256,7 +256,7 @@ class PaymentBusinessRulesServiceTest {
   void validateCompliance_ShouldThrowException_WhenNonCompliant() {
     // Given
     Payment payment = createValidPayment();
-    payment.setReference(""); // Empty reference might be non-compliant
+    payment.setReference(null); // Null reference to simulate non-compliance
     TenantContext tenantContext = createValidTenantContext();
 
     // When & Then
@@ -269,10 +269,10 @@ class PaymentBusinessRulesServiceTest {
     return Payment.builder()
         .id(new PaymentId("TEST-PAYMENT-001"))
         .idempotencyKey("TEST-IDEMPOTENCY-001")
-        .sourceAccount(new AccountNumber("12345678901"))
-        .destinationAccount(new AccountNumber("98765432109"))
-        .amount(new Money(BigDecimal.valueOf(1000.00), "ZAR"))
-        .reference("Test payment")
+        .sourceAccount(AccountNumber.of("12345678901"))
+        .destinationAccount(AccountNumber.of("98765432109"))
+        .amount(Money.zar(BigDecimal.valueOf(1000.00)))
+        .reference(com.payments.domain.payment.PaymentReference.of("Test payment"))
         .paymentType(PaymentType.EFT)
         .priority(Priority.NORMAL)
         .tenantContext(createValidTenantContext())
@@ -286,10 +286,10 @@ class PaymentBusinessRulesServiceTest {
     return Payment.builder()
         .id(new PaymentId("TEST-PAYMENT-EXISTING"))
         .idempotencyKey("TEST-IDEMPOTENCY-EXISTING")
-        .sourceAccount(new AccountNumber("12345678901"))
-        .destinationAccount(new AccountNumber("98765432109"))
-        .amount(new Money(amount, "ZAR"))
-        .reference("Existing payment")
+        .sourceAccount(AccountNumber.of("12345678901"))
+        .destinationAccount(AccountNumber.of("98765432109"))
+        .amount(Money.zar(amount))
+        .reference(com.payments.domain.payment.PaymentReference.of("Existing payment"))
         .paymentType(PaymentType.EFT)
         .priority(Priority.NORMAL)
         .tenantContext(createValidTenantContext())

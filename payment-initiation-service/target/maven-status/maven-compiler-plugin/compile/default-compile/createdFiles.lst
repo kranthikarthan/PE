@@ -9,6 +9,7 @@ com\payments\paymentinitiation\api\exception\GlobalExceptionHandler$ErrorRespons
 com\payments\paymentinitiation\entity\PaymentStatusHistoryEntity$PaymentStatusHistoryEntityBuilder.class
 com\payments\paymentinitiation\api\exception\GlobalExceptionHandler.class
 com\payments\paymentinitiation\entity\PaymentEntity$PaymentEntityBuilder.class
+com\payments\paymentinitiation\mapper\PaymentMapper$1.class
 com\payments\paymentinitiation\api\exception\GlobalExceptionHandler$ErrorResponse.class
 com\payments\paymentinitiation\service\EnhancedIdempotencyService.class
 com\payments\paymentinitiation\port\IdempotencyRepositoryPort$IdempotencyRecord.class

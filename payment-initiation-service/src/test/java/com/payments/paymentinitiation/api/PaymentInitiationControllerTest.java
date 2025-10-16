@@ -14,6 +14,8 @@ import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.Money;
 import com.payments.domain.shared.TenantContext;
 import com.payments.paymentinitiation.service.PaymentInitiationService;
+import com.payments.paymentinitiation.service.PaymentBusinessRulesService;
+import com.payments.paymentinitiation.port.IdempotencyRepositoryPort;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -29,7 +31,17 @@ import org.springframework.test.web.servlet.MockMvc;
  *
  * <p>Tests REST endpoints with mocked service layer
  */
-@WebMvcTest(PaymentInitiationController.class)
+@org.springframework.boot.test.context.SpringBootTest
+@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+@org.springframework.test.context.TestPropertySource(
+    properties = {
+      "spring.datasource.url=jdbc:h2:mem:pi_ctrl;DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
+      "spring.datasource.driver-class-name=org.h2.Driver",
+      "spring.datasource.username=sa",
+      "spring.datasource.password=",
+      "spring.jpa.hibernate.ddl-auto=none",
+      "spring.flyway.enabled=false"
+    })
 class PaymentInitiationControllerTest {
 
   @Autowired private MockMvc mockMvc;
@@ -37,6 +49,13 @@ class PaymentInitiationControllerTest {
   @Autowired private ObjectMapper objectMapper;
 
   @MockBean private PaymentInitiationService paymentInitiationService;
+  @MockBean private PaymentBusinessRulesService paymentBusinessRulesService;
+  @MockBean private com.payments.paymentinitiation.service.IdempotencyService idempotencyService;
+  @MockBean(name = "idempotencyRepositoryAdapter")
+  private IdempotencyRepositoryPort idempotencyRepositoryAdapter;
+  @MockBean(name = "idempotencyRepositoryPort")
+  private IdempotencyRepositoryPort idempotencyRepositoryPort;
+  @MockBean private com.payments.paymentinitiation.service.EnhancedIdempotencyService enhancedIdempotencyService;
 
   @Test
   void initiatePayment_ShouldReturn201_WhenValidRequest() throws Exception {
@@ -237,7 +256,7 @@ class PaymentInitiationControllerTest {
         .idempotencyKey("IDEMPOTENCY-001")
         .sourceAccount("12345678901")
         .destinationAccount("98765432109")
-        .amount(new Money(BigDecimal.valueOf(1000.00), "ZAR"))
+        .amount(Money.zar(BigDecimal.valueOf(1000.00)))
         .reference("Test payment")
         .paymentType(com.payments.contracts.payment.PaymentType.EFT)
         .priority(com.payments.contracts.payment.Priority.NORMAL)
@@ -253,7 +272,7 @@ class PaymentInitiationControllerTest {
         .idempotencyKey("") // Invalid: empty idempotency key
         .sourceAccount("12345678901")
         .destinationAccount("98765432109")
-        .amount(new Money(BigDecimal.valueOf(1000.00), "ZAR"))
+        .amount(Money.zar(BigDecimal.valueOf(1000.00)))
         .reference("Test payment")
         .paymentType(com.payments.contracts.payment.PaymentType.EFT)
         .priority(com.payments.contracts.payment.Priority.NORMAL)

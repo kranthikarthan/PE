@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.actuator.health.Health;
-import org.springframework.boot.actuator.health.HealthIndicator;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -172,13 +172,15 @@ public class ServiceHealthMonitor implements HealthIndicator {
       health.put("externalService", checkExternalServiceHealth());
 
       // Overall status
-      boolean overallHealthy =
-          (Boolean) health.get("redis") instanceof Map
-              && (Boolean) ((Map<?, ?>) health.get("redis")).get("healthy")
-              && (Boolean) health.get("oauth2") instanceof Map
-              && (Boolean) ((Map<?, ?>) health.get("oauth2")).get("healthy")
-              && (Boolean) health.get("externalService") instanceof Map
-              && (Boolean) ((Map<?, ?>) health.get("externalService")).get("healthy");
+      Map<?, ?> redis = health.get("redis") instanceof Map<?, ?> m1 ? m1 : null;
+      Map<?, ?> oauth2 = health.get("oauth2") instanceof Map<?, ?> m2 ? m2 : null;
+      Map<?, ?> external = health.get("externalService") instanceof Map<?, ?> m3 ? m3 : null;
+
+      boolean redisHealthy = redis != null && Boolean.TRUE.equals(redis.get("healthy"));
+      boolean oauthHealthy = oauth2 != null && Boolean.TRUE.equals(oauth2.get("healthy"));
+      boolean externalHealthy = external != null && Boolean.TRUE.equals(external.get("healthy"));
+
+      boolean overallHealthy = redisHealthy && oauthHealthy && externalHealthy;
 
       health.put(
           "overall", Map.of("healthy", overallHealthy, "status", overallHealthy ? "UP" : "DOWN"));

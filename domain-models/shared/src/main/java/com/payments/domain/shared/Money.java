@@ -1,6 +1,8 @@
 package com.payments.domain.shared;
 
 import jakarta.persistence.Embeddable;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Currency;
@@ -13,6 +15,7 @@ import lombok.Value;
  */
 @Embeddable
 @Value // Lombok: Immutable, equals/hashCode based on fields
+@NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public class Money {
 
   BigDecimal amount;

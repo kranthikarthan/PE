@@ -19,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 /**
  * Contract tests for Payment Initiation API
@@ -26,13 +27,30 @@ import org.springframework.test.web.servlet.MockMvc;
  * <p>Tests API contracts and OpenAPI documentation compliance
  */
 @SpringBootTest
-@AutoConfigureWebMvc
+@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 @ActiveProfiles("test")
+@org.springframework.test.context.TestPropertySource(
+    properties = {
+      "spring.datasource.url=jdbc:h2:mem:pi_contract;DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
+      "spring.datasource.driver-class-name=org.h2.Driver",
+      "spring.datasource.username=sa",
+      "spring.datasource.password=",
+      "spring.jpa.hibernate.ddl-auto=none",
+      "spring.flyway.enabled=false"
+    })
 class PaymentInitiationContractTest {
 
   @Autowired private MockMvc mockMvc;
 
   @Autowired private ObjectMapper objectMapper;
+  @MockBean private com.payments.paymentinitiation.service.IdempotencyService idempotencyService;
+
+  // Avoid wiring real idempotency infra in this contract test
+  @MockBean(name = "idempotencyRepositoryAdapter")
+  private com.payments.paymentinitiation.port.IdempotencyRepositoryPort idempotencyRepositoryAdapter;
+  @MockBean(name = "idempotencyRepositoryPort")
+  private com.payments.paymentinitiation.port.IdempotencyRepositoryPort idempotencyRepositoryPort;
+  @MockBean private com.payments.paymentinitiation.service.EnhancedIdempotencyService enhancedIdempotencyService;
 
   @Test
   void paymentInitiationRequest_ShouldMatchContract() throws Exception {
@@ -43,7 +61,7 @@ class PaymentInitiationContractTest {
             .idempotencyKey("IDEMPOTENCY-001")
             .sourceAccount("12345678901")
             .destinationAccount("98765432109")
-            .amount(new Money(BigDecimal.valueOf(1000.00), "ZAR"))
+            .amount(Money.zar(BigDecimal.valueOf(1000.00)))
             .reference("Contract test payment")
             .paymentType(PaymentType.EFT)
             .priority(Priority.NORMAL)
@@ -244,7 +262,7 @@ class PaymentInitiationContractTest {
         .idempotencyKey("IDEMPOTENCY-001")
         .sourceAccount("12345678901")
         .destinationAccount("98765432109")
-        .amount(new Money(BigDecimal.valueOf(1000.00), "ZAR"))
+        .amount(Money.zar(BigDecimal.valueOf(1000.00)))
         .reference("Contract test payment")
         .paymentType(PaymentType.EFT)
         .priority(Priority.NORMAL)

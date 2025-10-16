@@ -1,9 +1,14 @@
 package com.payments.paymentinitiation.mapper;
 
+import com.payments.contracts.payment.PaymentInitiationResponse;
+import com.payments.contracts.payment.PaymentStatus;
+import com.payments.contracts.payment.PaymentType;
+import com.payments.contracts.payment.Priority;
 import com.payments.domain.payment.Payment;
 import com.payments.domain.payment.PaymentReference;
 import com.payments.paymentinitiation.entity.PaymentEntity;
 import com.payments.paymentinitiation.entity.PaymentStatusHistoryEntity;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -80,6 +85,46 @@ public class PaymentMapper {
                 .map(this::toStatusChange)
                 .collect(Collectors.toList()))
         .build();
+  }
+
+  /** Map domain to contract response */
+  public PaymentInitiationResponse toResponse(Payment payment) {
+    return PaymentInitiationResponse.builder()
+        .paymentId(payment.getId())
+        .status(mapStatus(payment.getStatus()))
+        .tenantContext(payment.getTenantContext())
+        .initiatedAt(payment.getInitiatedAt())
+        .errorMessage(payment.getFailureReason())
+        .build();
+  }
+
+  /** Map domain status history list to entities */
+  public List<PaymentStatusHistoryEntity> toStatusHistoryEntities(Payment payment) {
+    return payment.getStatusHistory().stream()
+        .map(this::toStatusHistoryEntity)
+        .collect(Collectors.toList());
+  }
+
+  /** Enum mappers: domain -> contract */
+  public PaymentType mapPaymentType(com.payments.domain.payment.PaymentType type) {
+    if (type == null) return null;
+    return switch (type) {
+      case EFT -> PaymentType.EFT;
+      case RTC, PAYSHAP -> PaymentType.IMMEDIATE_PAYMENT;
+      case SWIFT, INTERNAL_TRANSFER -> PaymentType.EFT;
+    };
+  }
+
+  public Priority mapPriority(com.payments.domain.payment.Priority priority) {
+    if (priority == null) return null;
+    return switch (priority) {
+      case NORMAL -> Priority.NORMAL;
+      case HIGH -> Priority.HIGH;
+    };
+  }
+
+  public PaymentStatus mapStatus(com.payments.domain.payment.PaymentStatus status) {
+    return status == null ? null : PaymentStatus.valueOf(status.name());
   }
 
   /** Convert status history entity to domain status change */

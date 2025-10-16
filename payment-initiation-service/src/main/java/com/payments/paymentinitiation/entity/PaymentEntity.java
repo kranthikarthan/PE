@@ -38,22 +38,22 @@ import org.hibernate.annotations.UpdateTimestamp;
 @AllArgsConstructor
 public class PaymentEntity {
 
-  @EmbeddedId private PaymentId paymentId;
+  @EmbeddedId
+  @AttributeOverride(name = "value", column = @Column(name = "payment_id", nullable = false))
+  private PaymentId paymentId;
 
   @Column(name = "idempotency_key", nullable = false, length = 255)
   private String idempotencyKey;
 
   @Embedded
-  @AttributeOverrides({
-    @AttributeOverride(
-        name = "accountNumber",
-        column = @Column(name = "source_account", nullable = false, length = 11))
-  })
+  @AttributeOverride(
+      name = "value",
+      column = @Column(name = "source_account", nullable = false, length = 11))
   private AccountNumber sourceAccount;
 
   @Embedded
   @AttributeOverride(
-      name = "accountNumber",
+      name = "value",
       column = @Column(name = "destination_account", nullable = false, length = 11))
   private AccountNumber destinationAccount;
 

@@ -32,7 +32,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * <p>Tests complete payment flow with real database using Testcontainers
  */
 @SpringBootTest
-@AutoConfigureWebMvc
+@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 @Testcontainers
 @ActiveProfiles("test")
 @Transactional
@@ -297,7 +297,7 @@ class PaymentInitiationIntegrationTest {
         .idempotencyKey("IDEMPOTENCY-" + UUID.randomUUID().toString().substring(0, 8))
         .sourceAccount("12345678901")
         .destinationAccount("98765432109")
-        .amount(new Money(BigDecimal.valueOf(1000.00), "ZAR"))
+        .amount(Money.zar(BigDecimal.valueOf(1000.00)))
         .reference("Integration test payment")
         .paymentType(com.payments.contracts.payment.PaymentType.EFT)
         .priority(com.payments.contracts.payment.Priority.NORMAL)
@@ -313,7 +313,7 @@ class PaymentInitiationIntegrationTest {
         .idempotencyKey("") // Invalid: empty idempotency key
         .sourceAccount("12345678901")
         .destinationAccount("98765432109")
-        .amount(new Money(BigDecimal.valueOf(1000.00), "ZAR"))
+        .amount(Money.zar(BigDecimal.valueOf(1000.00)))
         .reference("Invalid payment")
         .paymentType(com.payments.contracts.payment.PaymentType.EFT)
         .priority(com.payments.contracts.payment.Priority.NORMAL)

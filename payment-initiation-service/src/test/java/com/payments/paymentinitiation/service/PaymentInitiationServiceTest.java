@@ -11,7 +11,7 @@ import com.payments.contracts.payment.PaymentInitiationResponse;
 import com.payments.contracts.payment.PaymentStatus;
 import com.payments.domain.payment.Payment;
 import com.payments.domain.shared.PaymentId;
-import com.payments.domain.payment.PaymentType;
+// use fully qualified enums to avoid contract/domain mismatch
 import com.payments.domain.payment.Priority;
 import com.payments.domain.shared.AccountNumber;
 import com.payments.domain.shared.Money;
@@ -260,10 +260,10 @@ class PaymentInitiationServiceTest {
         .idempotencyKey("IDEMPOTENCY-001")
         .sourceAccount("12345678901")
         .destinationAccount("98765432109")
-        .amount(new Money(BigDecimal.valueOf(1000.00), "ZAR"))
+        .amount(Money.zar(BigDecimal.valueOf(1000.00)))
         .reference("Test payment")
-        .paymentType(PaymentType.EFT)
-        .priority(Priority.NORMAL)
+        .paymentType(com.payments.contracts.payment.PaymentType.EFT)
+        .priority(com.payments.contracts.payment.Priority.NORMAL)
         .tenantContext(
             TenantContext.builder().tenantId("TENANT-001").businessUnitId("BU-001").build())
         .initiatedBy("user@example.com")
@@ -274,11 +274,11 @@ class PaymentInitiationServiceTest {
     return Payment.builder()
         .id(new PaymentId("PAY-001"))
         .idempotencyKey("IDEMPOTENCY-001")
-        .sourceAccount(new AccountNumber("12345678901"))
-        .destinationAccount(new AccountNumber("98765432109"))
-        .amount(new Money(BigDecimal.valueOf(1000.00), "ZAR"))
-        .reference("Test payment")
-        .paymentType(PaymentType.EFT)
+        .sourceAccount(AccountNumber.of("12345678901"))
+        .destinationAccount(AccountNumber.of("98765432109"))
+        .amount(Money.zar(BigDecimal.valueOf(1000.00)))
+        .reference(com.payments.domain.payment.PaymentReference.of("Test payment"))
+        .paymentType(com.payments.domain.payment.PaymentType.EFT)
         .priority(Priority.NORMAL)
         .tenantContext(
             TenantContext.builder().tenantId("TENANT-001").businessUnitId("BU-001").build())

@@ -1,0 +1,46 @@
+-------------------------------------------------------------------------------
+Test set: com.payments.paymentinitiation.service.PaymentInitiationServiceTest
+-------------------------------------------------------------------------------
+Tests run: 7, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.089 s <<< FAILURE! -- in com.payments.paymentinitiation.service.PaymentInitiationServiceTest
+com.payments.paymentinitiation.service.PaymentInitiationServiceTest.failPayment_ShouldReturnFailedResponse_WhenPaymentExists -- Time elapsed: 0.053 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: FAILED
+ but was: INITIATED
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at com.payments.paymentinitiation.service.PaymentInitiationServiceTest.failPayment_ShouldReturnFailedResponse_WhenPaymentExists(PaymentInitiationServiceTest.java:221)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.paymentinitiation.service.PaymentInitiationServiceTest.validatePayment_ShouldReturnValidatedResponse_WhenValidationSucceeds -- Time elapsed: 0.005 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: VALIDATED
+ but was: INITIATED
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at com.payments.paymentinitiation.service.PaymentInitiationServiceTest.validatePayment_ShouldReturnValidatedResponse_WhenValidationSucceeds(PaymentInitiationServiceTest.java:189)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.paymentinitiation.service.PaymentInitiationServiceTest.completePayment_ShouldReturnCompletedResponse_WhenPaymentExists -- Time elapsed: 0.004 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: COMPLETED
+ but was: INITIATED
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at com.payments.paymentinitiation.service.PaymentInitiationServiceTest.completePayment_ShouldReturnCompletedResponse_WhenPaymentExists(PaymentInitiationServiceTest.java:251)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+

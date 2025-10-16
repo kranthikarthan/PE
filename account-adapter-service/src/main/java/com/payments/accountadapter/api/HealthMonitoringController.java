@@ -44,9 +44,12 @@ public class HealthMonitoringController {
     log.debug("Getting service health");
     Map<String, Object> health = serviceHealthMonitor.getDetailedHealth();
 
-    boolean isHealthy =
-        (Boolean) health.get("overall") instanceof Map
-            && (Boolean) ((Map<?, ?>) health.get("overall")).get("healthy");
+    boolean isHealthy = false;
+    Object overallObj = health.get("overall");
+    if (overallObj instanceof Map<?, ?> overall) {
+      Object healthyObj = overall.get("healthy");
+      isHealthy = Boolean.TRUE.equals(healthyObj);
+    }
 
     if (isHealthy) {
       return ResponseEntity.ok(health);

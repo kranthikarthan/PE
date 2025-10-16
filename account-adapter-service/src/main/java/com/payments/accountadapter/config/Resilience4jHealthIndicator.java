@@ -10,8 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.actuator.health.Health;
-import org.springframework.boot.actuator.health.HealthIndicator;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
 /**
@@ -111,7 +111,10 @@ public class Resilience4jHealthIndicator implements HealthIndicator {
 
       health.put("name", retry.getName());
       health.put("maxAttempts", retry.getRetryConfig().getMaxAttempts());
-      health.put("waitDuration", retry.getRetryConfig().getWaitDuration());
+      // Expose interval function as string due to API differences
+      health.put(
+          "intervalFunction",
+          String.valueOf(retry.getRetryConfig().getIntervalFunction()));
 
       // Retry is always healthy (it's a passive component)
       isHealthy = true;
@@ -137,7 +140,8 @@ public class Resilience4jHealthIndicator implements HealthIndicator {
       health.put("name", timeLimiter.getName());
       health.put("timeoutDuration", timeLimiter.getTimeLimiterConfig().getTimeoutDuration());
       health.put(
-          "cancelRunningFuture", timeLimiter.getTimeLimiterConfig().getCancelRunningFuture());
+          "cancelRunningFuture",
+          timeLimiter.getTimeLimiterConfig().shouldCancelRunningFuture());
 
       // Time limiter is always healthy (it's a passive component)
       isHealthy = true;

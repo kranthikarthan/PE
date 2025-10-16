@@ -110,7 +110,7 @@ public interface PaymentJpaRepository extends JpaRepository<PaymentEntity, Payme
    * @return Page of payment entities
    */
   @Query(
-      "SELECT p FROM PaymentEntity p WHERE p.sourceAccount.accountNumber = :sourceAccount AND p.tenantContext.tenantId = :tenantId ORDER BY p.initiatedAt DESC")
+      "SELECT p FROM PaymentEntity p WHERE p.sourceAccount.value = :sourceAccount AND p.tenantContext.tenantId = :tenantId ORDER BY p.initiatedAt DESC")
   Page<PaymentEntity> findBySourceAccountAndTenantId(
       @Param("sourceAccount") String sourceAccount,
       @Param("tenantId") String tenantId,
@@ -125,7 +125,7 @@ public interface PaymentJpaRepository extends JpaRepository<PaymentEntity, Payme
    * @return Page of payment entities
    */
   @Query(
-      "SELECT p FROM PaymentEntity p WHERE p.destinationAccount.accountNumber = :destinationAccount AND p.tenantContext.tenantId = :tenantId ORDER BY p.initiatedAt DESC")
+      "SELECT p FROM PaymentEntity p WHERE p.destinationAccount.value = :destinationAccount AND p.tenantContext.tenantId = :tenantId ORDER BY p.initiatedAt DESC")
   Page<PaymentEntity> findByDestinationAccountAndTenantId(
       @Param("destinationAccount") String destinationAccount,
       @Param("tenantId") String tenantId,

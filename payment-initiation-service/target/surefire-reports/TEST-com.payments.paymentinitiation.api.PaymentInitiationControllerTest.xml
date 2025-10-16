@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.payments.paymentinitiation.api.PaymentInitiationControllerTest" time="15.699" tests="9" errors="0" skipped="0" failures="6">
+  <properties>
+    <property name="java.specification.version" value="17"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+    <property name="sun.jnu.encoding" value="Cp1252"/>
+    <property name="java.class.path" value="C:\git\clone\PE\payment-initiation-service\target\test-classes;C:\git\clone\PE\payment-initiation-service\target\classes;C:\git\clone\PE\contracts\target\classes;C:\git\clone\PE\domain-models\shared\target\classes;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.15.3\jackson-annotations-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-annotations\2.2.15\swagger-annotations-2.2.15.jar;C:\git\clone\PE\domain-models\payment-initiation\target\classes;C:\git\clone\PE\domain-models\validation\target\classes;C:\Users\Kranthi Karthan\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.2.0\spring-boot-starter-web-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter\3.2.0\spring-boot-starter-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot\3.2.0\spring-boot-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.2.0\spring-boot-autoconfigure-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.2.0\spring-boot-starter-logging-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\ch\qos\logback\logback-classic\1.4.11\logback-classic-1.4.11.jar;C:\Users\Kranthi Karthan\.m2\repository\ch\qos\logback\logback-core\1.4.11\logback-core-1.4.11.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\slf4j\jul-to-slf4j\2.0.9\jul-to-slf4j-2.0.9.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.2.0\spring-boot-starter-json-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.15.3\jackson-databind-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.3\jackson-datatype-jdk8-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.3\jackson-datatype-jsr310-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.3\jackson-module-parameter-names-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.2.0\spring-boot-starter-tomcat-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.16\tomcat-embed-core-10.1.16.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.16\tomcat-embed-websocket-10.1.16.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-web\6.1.1\spring-web-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-beans\6.1.1\spring-beans-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-webmvc\6.1.1\spring-webmvc-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-aop\6.1.1\spring-aop-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-context\6.1.1\spring-context-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-expression\6.1.1\spring-expression-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.2.0\spring-boot-starter-validation-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.16\tomcat-embed-el-10.1.16.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.1.Final\hibernate-validator-8.0.1.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\jboss\logging\jboss-logging\3.5.3.Final\jboss-logging-3.5.3.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\classmate\1.6.0\classmate-1.6.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.2.0\spring-boot-starter-data-jpa-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-aop\3.2.0\spring-boot-starter-aop-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\aspectj\aspectjweaver\1.9.20.1\aspectjweaver-1.9.20.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.2.0\spring-boot-starter-jdbc-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-jdbc\6.1.1\spring-jdbc-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hibernate\orm\hibernate-core\6.3.1.Final\hibernate-core-6.3.1.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hibernate\common\hibernate-commons-annotations\6.0.6.Final\hibernate-commons-annotations-6.0.6.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\io\smallrye\jandex\3.1.2\jandex-3.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\net\bytebuddy\byte-buddy\1.14.10\byte-buddy-1.14.10.jar;C:\Users\Kranthi Karthan\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.4\jaxb-runtime-4.0.4.jar;C:\Users\Kranthi Karthan\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.4\jaxb-core-4.0.4.jar;C:\Users\Kranthi Karthan\.m2\repository\org\eclipse\angus\angus-activation\2.0.1\angus-activation-2.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\glassfish\jaxb\txw2\4.0.4\txw2-4.0.4.jar;C:\Users\Kranthi Karthan\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\antlr\antlr4-runtime\4.10.1\antlr4-runtime-4.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\data\spring-data-jpa\3.2.0\spring-data-jpa-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\data\spring-data-commons\3.2.0\spring-data-commons-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-orm\6.1.1\spring-orm-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-tx\6.1.1\spring-tx-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\slf4j\slf4j-api\2.0.9\slf4j-api-2.0.9.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-aspects\6.1.1\spring-aspects-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-actuator\3.2.0\spring-boot-starter-actuator-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-actuator-autoconfigure\3.2.0\spring-boot-actuator-autoconfigure-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-actuator\3.2.0\spring-boot-actuator-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-observation\1.12.0\micrometer-observation-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-commons\1.12.0\micrometer-commons-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-jakarta9\1.12.0\micrometer-jakarta9-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-core\1.12.0\micrometer-core-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hdrhistogram\HdrHistogram\2.1.12\HdrHistogram-2.1.12.jar;C:\Users\Kranthi Karthan\.m2\repository\org\latencyutils\LatencyUtils\2.0.3\LatencyUtils-2.0.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-ui\2.2.0\springdoc-openapi-starter-webmvc-ui-2.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-api\2.2.0\springdoc-openapi-starter-webmvc-api-2.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springdoc\springdoc-openapi-starter-common\2.2.0\springdoc-openapi-starter-common-2.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-core-jakarta\2.2.15\swagger-core-jakarta-2.2.15.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\commons\commons-lang3\3.13.0\commons-lang3-3.13.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-annotations-jakarta\2.2.15\swagger-annotations-jakarta-2.2.15.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-models-jakarta\2.2.15\swagger-models-jakarta-2.2.15.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-yaml\2.15.3\jackson-dataformat-yaml-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\webjars\swagger-ui\5.2.0\swagger-ui-5.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\postgresql\postgresql\42.6.0\postgresql-42.6.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\checkerframework\checker-qual\3.31.0\checker-qual-3.31.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\flywaydb\flyway-core\9.22.3\flyway-core-9.22.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-toml\2.15.3\jackson-dataformat-toml-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.15.3\jackson-core-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\projectlombok\lombok\1.18.30\lombok-1.18.30.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.2.0\spring-boot-starter-test-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-test\3.2.0\spring-boot-test-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.2.0\spring-boot-test-autoconfigure-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\jayway\jsonpath\json-path\2.8.0\json-path-2.8.0.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.1\jakarta.xml.bind-api-4.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.2\jakarta.activation-api-2.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\net\minidev\json-smart\2.5.0\json-smart-2.5.0.jar;C:\Users\Kranthi Karthan\.m2\repository\net\minidev\accessors-smart\2.5.0\accessors-smart-2.5.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\ow2\asm\asm\9.3\asm-9.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\assertj\assertj-core\3.24.2\assertj-core-3.24.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\awaitility\awaitility\4.2.0\awaitility-4.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hamcrest\hamcrest\2.2\hamcrest-2.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.1\junit-jupiter-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.1\junit-jupiter-api-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\platform\junit-platform-commons\1.10.1\junit-platform-commons-1.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.1\junit-jupiter-params-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.1\junit-jupiter-engine-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\platform\junit-platform-engine\1.10.1\junit-platform-engine-1.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\mockito\mockito-core\5.7.0\mockito-core-5.7.0.jar;C:\Users\Kranthi Karthan\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.10\byte-buddy-agent-1.14.10.jar;C:\Users\Kranthi Karthan\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\mockito\mockito-junit-jupiter\5.7.0\mockito-junit-jupiter-5.7.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\skyscreamer\jsonassert\1.5.1\jsonassert-1.5.1.jar;C:\Users\Kranthi Karthan\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-core\6.1.1\spring-core-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-jcl\6.1.1\spring-jcl-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-test\6.1.1\spring-test-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\xmlunit\xmlunit-core\2.9.1\xmlunit-core-2.9.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\junit-jupiter\1.19.3\junit-jupiter-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\testcontainers\1.19.3\testcontainers-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\junit\junit\4.13.2\junit-4.13.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hamcrest\hamcrest-core\2.2\hamcrest-core-2.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\commons\commons-compress\1.24.0\commons-compress-1.24.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\rnorth\duct-tape\duct-tape\1.0.8\duct-tape-1.0.8.jar;C:\Users\Kranthi Karthan\.m2\repository\org\jetbrains\annotations\17.0.0\annotations-17.0.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\github\docker-java\docker-java-api\3.3.4\docker-java-api-3.3.4.jar;C:\Users\Kranthi Karthan\.m2\repository\com\github\docker-java\docker-java-transport-zerodep\3.3.4\docker-java-transport-zerodep-3.3.4.jar;C:\Users\Kranthi Karthan\.m2\repository\com\github\docker-java\docker-java-transport\3.3.4\docker-java-transport-3.3.4.jar;C:\Users\Kranthi Karthan\.m2\repository\net\java\dev\jna\jna\5.13.0\jna-5.13.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\postgresql\1.19.3\postgresql-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\jdbc\1.19.3\jdbc-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\database-commons\1.19.3\database-commons-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\h2database\h2\2.2.224\h2-2.2.224.jar;"/>
+    <property name="java.vm.vendor" value="Microsoft"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="user.variant" value=""/>
+    <property name="java.vendor.url" value="https://www.microsoft.com"/>
+    <property name="user.timezone" value="Asia/Calcutta"/>
+    <property name="org.jboss.logging.provider" value="slf4j"/>
+    <property name="os.name" value="Windows 11"/>
+    <property name="java.vm.specification.version" value="17"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="IN"/>
+    <property name="sun.boot.library.path" value="C:\Program Files\Microsoft\jdk-17.0.16.8-hotspot\bin"/>
+    <property name="sun.java.command" value="C:\Users\Kranthi Karthan\AppData\Local\Temp\surefire13873214991976226092\surefirebooter-20251016185159932_6.jar C:\Users\Kranthi Karthan\AppData\Local\Temp\surefire13873214991976226092 2025-10-16T18-51-48_091-jvmRun1 surefire-20251016185159932_4tmp surefire_1-20251016185159932_5tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="C:\git\clone\PE\payment-initiation-service\target\test-classes;C:\git\clone\PE\payment-initiation-service\target\classes;C:\git\clone\PE\contracts\target\classes;C:\git\clone\PE\domain-models\shared\target\classes;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.15.3\jackson-annotations-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-annotations\2.2.15\swagger-annotations-2.2.15.jar;C:\git\clone\PE\domain-models\payment-initiation\target\classes;C:\git\clone\PE\domain-models\validation\target\classes;C:\Users\Kranthi Karthan\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.2.0\spring-boot-starter-web-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter\3.2.0\spring-boot-starter-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot\3.2.0\spring-boot-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.2.0\spring-boot-autoconfigure-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.2.0\spring-boot-starter-logging-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\ch\qos\logback\logback-classic\1.4.11\logback-classic-1.4.11.jar;C:\Users\Kranthi Karthan\.m2\repository\ch\qos\logback\logback-core\1.4.11\logback-core-1.4.11.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\slf4j\jul-to-slf4j\2.0.9\jul-to-slf4j-2.0.9.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.2.0\spring-boot-starter-json-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.15.3\jackson-databind-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.3\jackson-datatype-jdk8-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.3\jackson-datatype-jsr310-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.3\jackson-module-parameter-names-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.2.0\spring-boot-starter-tomcat-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.16\tomcat-embed-core-10.1.16.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.16\tomcat-embed-websocket-10.1.16.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-web\6.1.1\spring-web-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-beans\6.1.1\spring-beans-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-webmvc\6.1.1\spring-webmvc-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-aop\6.1.1\spring-aop-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-context\6.1.1\spring-context-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-expression\6.1.1\spring-expression-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.2.0\spring-boot-starter-validation-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.16\tomcat-embed-el-10.1.16.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.1.Final\hibernate-validator-8.0.1.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\jboss\logging\jboss-logging\3.5.3.Final\jboss-logging-3.5.3.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\classmate\1.6.0\classmate-1.6.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.2.0\spring-boot-starter-data-jpa-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-aop\3.2.0\spring-boot-starter-aop-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\aspectj\aspectjweaver\1.9.20.1\aspectjweaver-1.9.20.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.2.0\spring-boot-starter-jdbc-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-jdbc\6.1.1\spring-jdbc-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hibernate\orm\hibernate-core\6.3.1.Final\hibernate-core-6.3.1.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hibernate\common\hibernate-commons-annotations\6.0.6.Final\hibernate-commons-annotations-6.0.6.Final.jar;C:\Users\Kranthi Karthan\.m2\repository\io\smallrye\jandex\3.1.2\jandex-3.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\net\bytebuddy\byte-buddy\1.14.10\byte-buddy-1.14.10.jar;C:\Users\Kranthi Karthan\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.4\jaxb-runtime-4.0.4.jar;C:\Users\Kranthi Karthan\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.4\jaxb-core-4.0.4.jar;C:\Users\Kranthi Karthan\.m2\repository\org\eclipse\angus\angus-activation\2.0.1\angus-activation-2.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\glassfish\jaxb\txw2\4.0.4\txw2-4.0.4.jar;C:\Users\Kranthi Karthan\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\antlr\antlr4-runtime\4.10.1\antlr4-runtime-4.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\data\spring-data-jpa\3.2.0\spring-data-jpa-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\data\spring-data-commons\3.2.0\spring-data-commons-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-orm\6.1.1\spring-orm-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-tx\6.1.1\spring-tx-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\slf4j\slf4j-api\2.0.9\slf4j-api-2.0.9.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-aspects\6.1.1\spring-aspects-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-actuator\3.2.0\spring-boot-starter-actuator-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-actuator-autoconfigure\3.2.0\spring-boot-actuator-autoconfigure-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-actuator\3.2.0\spring-boot-actuator-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-observation\1.12.0\micrometer-observation-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-commons\1.12.0\micrometer-commons-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-jakarta9\1.12.0\micrometer-jakarta9-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\micrometer\micrometer-core\1.12.0\micrometer-core-1.12.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hdrhistogram\HdrHistogram\2.1.12\HdrHistogram-2.1.12.jar;C:\Users\Kranthi Karthan\.m2\repository\org\latencyutils\LatencyUtils\2.0.3\LatencyUtils-2.0.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-ui\2.2.0\springdoc-openapi-starter-webmvc-ui-2.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-api\2.2.0\springdoc-openapi-starter-webmvc-api-2.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springdoc\springdoc-openapi-starter-common\2.2.0\springdoc-openapi-starter-common-2.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-core-jakarta\2.2.15\swagger-core-jakarta-2.2.15.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\commons\commons-lang3\3.13.0\commons-lang3-3.13.0.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-annotations-jakarta\2.2.15\swagger-annotations-jakarta-2.2.15.jar;C:\Users\Kranthi Karthan\.m2\repository\io\swagger\core\v3\swagger-models-jakarta\2.2.15\swagger-models-jakarta-2.2.15.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-yaml\2.15.3\jackson-dataformat-yaml-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\webjars\swagger-ui\5.2.0\swagger-ui-5.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\postgresql\postgresql\42.6.0\postgresql-42.6.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\checkerframework\checker-qual\3.31.0\checker-qual-3.31.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\flywaydb\flyway-core\9.22.3\flyway-core-9.22.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-toml\2.15.3\jackson-dataformat-toml-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.15.3\jackson-core-2.15.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\projectlombok\lombok\1.18.30\lombok-1.18.30.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.2.0\spring-boot-starter-test-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-test\3.2.0\spring-boot-test-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.2.0\spring-boot-test-autoconfigure-3.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\jayway\jsonpath\json-path\2.8.0\json-path-2.8.0.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.1\jakarta.xml.bind-api-4.0.1.jar;C:\Users\Kranthi Karthan\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.2\jakarta.activation-api-2.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\net\minidev\json-smart\2.5.0\json-smart-2.5.0.jar;C:\Users\Kranthi Karthan\.m2\repository\net\minidev\accessors-smart\2.5.0\accessors-smart-2.5.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\ow2\asm\asm\9.3\asm-9.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\assertj\assertj-core\3.24.2\assertj-core-3.24.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\awaitility\awaitility\4.2.0\awaitility-4.2.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hamcrest\hamcrest\2.2\hamcrest-2.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.1\junit-jupiter-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.1\junit-jupiter-api-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\platform\junit-platform-commons\1.10.1\junit-platform-commons-1.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.1\junit-jupiter-params-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.1\junit-jupiter-engine-5.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\junit\platform\junit-platform-engine\1.10.1\junit-platform-engine-1.10.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\mockito\mockito-core\5.7.0\mockito-core-5.7.0.jar;C:\Users\Kranthi Karthan\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.10\byte-buddy-agent-1.14.10.jar;C:\Users\Kranthi Karthan\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\mockito\mockito-junit-jupiter\5.7.0\mockito-junit-jupiter-5.7.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\skyscreamer\jsonassert\1.5.1\jsonassert-1.5.1.jar;C:\Users\Kranthi Karthan\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-core\6.1.1\spring-core-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-jcl\6.1.1\spring-jcl-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\springframework\spring-test\6.1.1\spring-test-6.1.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\xmlunit\xmlunit-core\2.9.1\xmlunit-core-2.9.1.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\junit-jupiter\1.19.3\junit-jupiter-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\testcontainers\1.19.3\testcontainers-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\junit\junit\4.13.2\junit-4.13.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\hamcrest\hamcrest-core\2.2\hamcrest-core-2.2.jar;C:\Users\Kranthi Karthan\.m2\repository\org\apache\commons\commons-compress\1.24.0\commons-compress-1.24.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\rnorth\duct-tape\duct-tape\1.0.8\duct-tape-1.0.8.jar;C:\Users\Kranthi Karthan\.m2\repository\org\jetbrains\annotations\17.0.0\annotations-17.0.0.jar;C:\Users\Kranthi Karthan\.m2\repository\com\github\docker-java\docker-java-api\3.3.4\docker-java-api-3.3.4.jar;C:\Users\Kranthi Karthan\.m2\repository\com\github\docker-java\docker-java-transport-zerodep\3.3.4\docker-java-transport-zerodep-3.3.4.jar;C:\Users\Kranthi Karthan\.m2\repository\com\github\docker-java\docker-java-transport\3.3.4\docker-java-transport-3.3.4.jar;C:\Users\Kranthi Karthan\.m2\repository\net\java\dev\jna\jna\5.13.0\jna-5.13.0.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\postgresql\1.19.3\postgresql-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\jdbc\1.19.3\jdbc-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\org\testcontainers\database-commons\1.19.3\database-commons-1.19.3.jar;C:\Users\Kranthi Karthan\.m2\repository\com\h2database\h2\2.2.224\h2-2.2.224.jar;"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="C:\Users\Kranthi Karthan"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2025-07-15"/>
+    <property name="java.home" value="C:\Program Files\Microsoft\jdk-17.0.16.8-hotspot"/>
+    <property name="file.separator" value="\"/>
+    <property name="basedir" value="C:\git\clone\PE\payment-initiation-service"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="FILE_LOG_CHARSET" value="windows-1252"/>
+    <property name="java.awt.headless" value="true"/>
+    <property name="surefire.real.class.path" value="C:\Users\Kranthi Karthan\AppData\Local\Temp\surefire13873214991976226092\surefirebooter-20251016185159932_6.jar"/>
+    <property name="user.script" value=""/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="17.0.16+8-LTS"/>
+    <property name="user.name" value="Kranthi Karthan"/>
+    <property name="path.separator" value=";"/>
+    <property name="os.version" value="10.0"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="Cp1252"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="Microsoft-11926163"/>
+    <property name="localRepository" value="C:\Users\Kranthi Karthan\.m2\repository"/>
+    <property name="java.vendor.url.bug" value="https://github.com/microsoft/openjdk/issues"/>
+    <property name="java.io.tmpdir" value="C:\Users\KRANTH~1\AppData\Local\Temp\"/>
+    <property name="com.zaxxer.hikari.pool_number" value="1"/>
+    <property name="java.version" value="17.0.16"/>
+    <property name="user.dir" value="C:\git\clone\PE\payment-initiation-service"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="PID" value="22280"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="CONSOLE_LOG_CHARSET" value="windows-1252"/>
+    <property name="native.encoding" value="Cp1252"/>
+    <property name="java.library.path" value="C:\Program Files\Microsoft\jdk-17.0.16.8-hotspot\bin;C:\Windows\Sun\Java\bin;C:\Windows\system32;C:\Windows;C:\Users\KRANTH~1\AppData\Local\Temp\.tmptZNusI;C:\Program Files\Microsoft\jdk-17.0.16.8-hotspot\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\cursor\resources\app\bin;C:\Program Files\Git\cmd;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\apache-maven-3.9.11\bin;C:\Users\Kranthi Karthan\AppData\Local\Microsoft\WindowsApps;C:\Users\Kranthi Karthan\AppData\Local\Programs\Microsoft VS Code\bin;c:\Users\Kranthi Karthan\.cursor\extensions\openai.chatgpt-0.4.19-universal\bin\windows-x86_64;."/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.vendor" value="Microsoft"/>
+    <property name="java.vm.version" value="17.0.16+8-LTS"/>
+    <property name="java.specification.maintenance.version" value="1"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="61.0"/>
+    <property name="CONSOLE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"/>
+    <property name="LOGGED_APPLICATION_NAME" value="[payment-initiation-service] "/>
+  </properties>
+  <testcase name="completePayment_ShouldReturn200_WhenPaymentCompletes" classname="com.payments.paymentinitiation.api.PaymentInitiationControllerTest" time="0.413">
+    <failure message="Status expected:&lt;200&gt; but was:&lt;400&gt;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Status expected:<200> but was:<400>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:59)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:122)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:637)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.payments.paymentinitiation.api.PaymentInitiationControllerTest.completePayment_ShouldReturn200_WhenPaymentCompletes(PaymentInitiationControllerTest.java:214)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+]]></failure>
+    <system-out><![CDATA[18:52:02.160 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.payments.paymentinitiation.api.PaymentInitiationControllerTest]: PaymentInitiationControllerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+18:52:02.420 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.payments.paymentinitiation.PaymentInitiationServiceApplication for test class com.payments.paymentinitiation.api.PaymentInitiationControllerTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.0)
+
+2025-10-16 18:52:03 [main] INFO  [] c.p.p.a.PaymentInitiationControllerTest - Starting PaymentInitiationControllerTest using Java 17.0.16 with PID 22280 (started by Kranthi Karthan in C:\git\clone\PE\payment-initiation-service)
+2025-10-16 18:52:03 [main] DEBUG [] c.p.p.a.PaymentInitiationControllerTest - Running with Spring Boot v3.2.0, Spring v6.1.1
+2025-10-16 18:52:03 [main] INFO  [] c.p.p.a.PaymentInitiationControllerTest - No active profile set, falling back to 1 default profile: "default"
+2025-10-16 18:52:04 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-10-16 18:52:04 [main] INFO  [] o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 54 ms. Found 2 JPA repository interfaces.
+2025-10-16 18:52:08 [main] INFO  [] o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-10-16 18:52:09 [main] INFO  [] org.hibernate.Version - HHH000412: Hibernate ORM core version 6.3.1.Final
+2025-10-16 18:52:09 [main] INFO  [] o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2025-10-16 18:52:09 [main] INFO  [] o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-10-16 18:52:09 [main] INFO  [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-10-16 18:52:09 [main] INFO  [] com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:pi_ctrl user=SA
+2025-10-16 18:52:09 [main] INFO  [] com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-10-16 18:52:09 [main] WARN  [] org.hibernate.dialect.Dialect - HHH000511: The 2.2.0 version for [org.hibernate.dialect.PostgreSQLDialect] is no longer supported, hence certain features may not work properly. The minimum supported version is 11.0.0. Check the community dialects project for available legacy versions.
+2025-10-16 18:52:09 [main] WARN  [] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-10-16 18:52:11 [main] INFO  [] o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-10-16 18:52:11 [main] INFO  [] o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-10-16 18:52:12 [main] INFO  [] o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-10-16 18:52:14 [main] INFO  [] o.s.b.a.e.web.EndpointLinksResolver - Exposing 3 endpoint(s) beneath base path '/actuator'
+2025-10-16 18:52:14 [main] WARN  [] o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-10-16 18:52:16 [main] INFO  [] o.s.b.t.m.w.SpringBootMockServletContext - Initializing Spring TestDispatcherServlet ''
+2025-10-16 18:52:16 [main] INFO  [] o.s.t.w.s.TestDispatcherServlet - Initializing Servlet ''
+2025-10-16 18:52:16 [main] INFO  [] o.s.t.w.s.TestDispatcherServlet - Completed initialization in 0 ms
+2025-10-16 18:52:16 [main] INFO  [] c.p.p.a.PaymentInitiationControllerTest - Started PaymentInitiationControllerTest in 13.572 seconds (process running for 16.312)
+2025-10-16 18:52:16 [main] WARN  [] c.p.p.a.e.GlobalExceptionHandler - Business logic error: Name for argument of type [java.lang.String] not specified, and parameter name information not found in class file either.
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/v1/payments/PAY-001/complete
+       Parameters = {}
+          Headers = [X-Correlation-ID:"c815ea31-fad0-4536-9a9d-d658121e3602", X-Tenant-ID:"TENANT-001", X-Business-Unit-ID:"BU-001"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.payments.paymentinitiation.api.PaymentInitiationController
+           Method = com.payments.paymentinitiation.api.PaymentInitiationController#completePayment(String, String, String, String)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = java.lang.IllegalArgumentException
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 400
+    Error message = null
+          Headers = [Content-Type:"application/json"]
+     Content type = application/json
+             Body = {"message":"Name for argument of type [java.lang.String] not specified, and parameter name information not found in class file either.","code":"BUSINESS_ERROR","timestamp":"2025-10-16T13:22:16.730271800Z","details":null}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+]]></system-out>
+  </testcase>
+  <testcase name="getPaymentStatus_ShouldReturn404_WhenPaymentNotFound" classname="com.payments.paymentinitiation.api.PaymentInitiationControllerTest" time="0.01">
+    <failure message="Status expected:&lt;404&gt; but was:&lt;400&gt;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Status expected:<404> but was:<400>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:59)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:122)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:637)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.payments.paymentinitiation.api.PaymentInitiationControllerTest.getPaymentStatus_ShouldReturn404_WhenPaymentNotFound(PaymentInitiationControllerTest.java:146)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+]]></failure>
+    <system-out><![CDATA[2025-10-16 18:52:16 [main] WARN  [] c.p.p.a.e.GlobalExceptionHandler - Business logic error: Name for argument of type [java.lang.String] not specified, and parameter name information not found in class file either.
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/payments/PAY-001/status
+       Parameters = {}
+          Headers = [X-Correlation-ID:"a3ee38c3-2dcb-434a-9903-5ce1db53e9c4", X-Tenant-ID:"TENANT-001", X-Business-Unit-ID:"BU-001"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.payments.paymentinitiation.api.PaymentInitiationController
+           Method = com.payments.paymentinitiation.api.PaymentInitiationController#getPaymentStatus(String, String, String, String)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = java.lang.IllegalArgumentException
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 400
+    Error message = null
+          Headers = [Content-Type:"application/json"]
+     Content type = application/json
+             Body = {"message":"Name for argument of type [java.lang.String] not specified, and parameter name information not found in class file either.","code":"BUSINESS_ERROR","timestamp":"2025-10-16T13:22:16.876909700Z","details":null}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+]]></system-out>
+  </testcase>
+  <testcase name="initiatePayment_ShouldReturn400_WhenInvalidRequest" classname="com.payments.paymentinitiation.api.PaymentInitiationControllerTest" time="0.44">
+    <failure message="No value at JSON path &quot;$.errorMessage&quot;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: No value at JSON path "$.errorMessage"
+	at org.springframework.test.util.JsonPathExpectationsHelper.evaluateJsonPath(JsonPathExpectationsHelper.java:302)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertValue(JsonPathExpectationsHelper.java:99)
+	at org.springframework.test.web.servlet.result.JsonPathResultMatchers.lambda$value$2(JsonPathResultMatchers.java:111)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.payments.paymentinitiation.api.PaymentInitiationControllerTest.initiatePayment_ShouldReturn400_WhenInvalidRequest(PaymentInitiationControllerTest.java:105)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+Caused by: com.jayway.jsonpath.PathNotFoundException: No results for path: $['errorMessage']
+]]></failure>
+    <system-out><![CDATA[2025-10-16 18:52:16 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Payment validation interceptor processing request: /api/v1/payments/initiate
+2025-10-16 18:52:16 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Request validation passed for tenant: TENANT-001, business unit: BU-001
+2025-10-16 18:52:17 [main] WARN  [] c.p.p.a.e.GlobalExceptionHandler - Validation error: Validation failed for argument [0] in public org.springframework.http.ResponseEntity<com.payments.contracts.payment.PaymentInitiationResponse> com.payments.paymentinitiation.api.PaymentInitiationController.initiatePayment(com.payments.contracts.payment.PaymentInitiationRequest,java.lang.String,java.lang.String,java.lang.String): [Field error in object 'paymentInitiationRequest' on field 'idempotencyKey': rejected value []; codes [NotBlank.paymentInitiationRequest.idempotencyKey,NotBlank.idempotencyKey,NotBlank.java.lang.String,NotBlank]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [paymentInitiationRequest.idempotencyKey,idempotencyKey]; arguments []; default message [idempotencyKey]]; default message [Idempotency key is required]] 
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/v1/payments/initiate
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", X-Correlation-ID:"1d1e0152-decb-45bd-8a1d-74af62b4ea6e", X-Tenant-ID:"TENANT-001", X-Business-Unit-ID:"BU-001", Content-Length:"396"]
+             Body = {"paymentId":{"value":"PAY-001"},"idempotencyKey":"","sourceAccount":"12345678901","destinationAccount":"98765432109","amount":{"amount":1000.00,"currency":"ZAR","negativeOrZero":false},"reference":"Test payment","paymentType":"EFT","priority":"NORMAL","tenantContext":{"tenantId":"TENANT-001","tenantName":null,"businessUnitId":"BU-001","businessUnitName":null},"initiatedBy":"user@example.com"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.payments.paymentinitiation.api.PaymentInitiationController
+           Method = com.payments.paymentinitiation.api.PaymentInitiationController#initiatePayment(PaymentInitiationRequest, String, String, String)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = org.springframework.web.bind.MethodArgumentNotValidException
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 400
+    Error message = null
+          Headers = [Content-Type:"application/json"]
+     Content type = application/json
+             Body = {"message":"Validation failed","code":"VALIDATION_ERROR","timestamp":"2025-10-16T13:22:17.224331100Z","details":{"idempotencyKey":"Idempotency key is required"}}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+]]></system-out>
+  </testcase>
+  <testcase name="getPaymentStatus_ShouldReturn200_WhenPaymentExists" classname="com.payments.paymentinitiation.api.PaymentInitiationControllerTest" time="0.009">
+    <failure message="Status expected:&lt;200&gt; but was:&lt;400&gt;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Status expected:<200> but was:<400>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:59)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:122)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:637)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.payments.paymentinitiation.api.PaymentInitiationControllerTest.getPaymentStatus_ShouldReturn200_WhenPaymentExists(PaymentInitiationControllerTest.java:125)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+]]></failure>
+    <system-out><![CDATA[2025-10-16 18:52:17 [main] WARN  [] c.p.p.a.e.GlobalExceptionHandler - Business logic error: Name for argument of type [java.lang.String] not specified, and parameter name information not found in class file either.
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/v1/payments/PAY-001/status
+       Parameters = {}
+          Headers = [X-Correlation-ID:"2be448ef-e5e9-4ac6-9197-957e4938113e", X-Tenant-ID:"TENANT-001", X-Business-Unit-ID:"BU-001"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.payments.paymentinitiation.api.PaymentInitiationController
+           Method = com.payments.paymentinitiation.api.PaymentInitiationController#getPaymentStatus(String, String, String, String)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = java.lang.IllegalArgumentException
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 400
+    Error message = null
+          Headers = [Content-Type:"application/json"]
+     Content type = application/json
+             Body = {"message":"Name for argument of type [java.lang.String] not specified, and parameter name information not found in class file either.","code":"BUSINESS_ERROR","timestamp":"2025-10-16T13:22:17.328764800Z","details":null}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+]]></system-out>
+  </testcase>
+  <testcase name="getPaymentHistory_ShouldReturn200_WhenHistoryExists" classname="com.payments.paymentinitiation.api.PaymentInitiationControllerTest" time="0.046">
+    <system-out><![CDATA[2025-10-16 18:52:17 [main] INFO  [] c.p.p.a.PaymentInitiationController - Retrieving payment history for tenant: TENANT-001, business unit: BU-001, correlation: 0991cb25-7e8f-4b2d-a049-ab2db62c9ad8
+]]></system-out>
+  </testcase>
+  <testcase name="validatePayment_ShouldReturn200_WhenValidationSucceeds" classname="com.payments.paymentinitiation.api.PaymentInitiationControllerTest" time="0.011">
+    <failure message="Status expected:&lt;200&gt; but was:&lt;400&gt;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Status expected:<200> but was:<400>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:59)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:122)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:637)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.payments.paymentinitiation.api.PaymentInitiationControllerTest.validatePayment_ShouldReturn200_WhenValidationSucceeds(PaymentInitiationControllerTest.java:166)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+]]></failure>
+    <system-out><![CDATA[2025-10-16 18:52:17 [main] WARN  [] c.p.p.a.e.GlobalExceptionHandler - Business logic error: Name for argument of type [java.lang.String] not specified, and parameter name information not found in class file either.
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/v1/payments/PAY-001/validate
+       Parameters = {}
+          Headers = [X-Correlation-ID:"82ac160d-dca6-4fb2-a6f8-a699209d391e", X-Tenant-ID:"TENANT-001", X-Business-Unit-ID:"BU-001"]
+             Body = null
+    Session Attrs = {}
+
+Handler:
+             Type = com.payments.paymentinitiation.api.PaymentInitiationController
+           Method = com.payments.paymentinitiation.api.PaymentInitiationController#validatePayment(String, String, String, String)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = java.lang.IllegalArgumentException
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 400
+    Error message = null
+          Headers = [Content-Type:"application/json"]
+     Content type = application/json
+             Body = {"message":"Name for argument of type [java.lang.String] not specified, and parameter name information not found in class file either.","code":"BUSINESS_ERROR","timestamp":"2025-10-16T13:22:17.393426900Z","details":null}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+]]></system-out>
+  </testcase>
+  <testcase name="failPayment_ShouldReturn200_WhenPaymentFails" classname="com.payments.paymentinitiation.api.PaymentInitiationControllerTest" time="0.008">
+    <failure message="Status expected:&lt;200&gt; but was:&lt;400&gt;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Status expected:<200> but was:<400>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:59)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:122)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:637)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+	at com.payments.paymentinitiation.api.PaymentInitiationControllerTest.failPayment_ShouldReturn200_WhenPaymentFails(PaymentInitiationControllerTest.java:191)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+]]></failure>
+    <system-out><![CDATA[2025-10-16 18:52:17 [main] WARN  [] c.p.p.a.e.GlobalExceptionHandler - Business logic error: Name for argument of type [java.lang.String] not specified, and parameter name information not found in class file either.
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/v1/payments/PAY-001/fail
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", X-Correlation-ID:"3c41d66b-6454-4570-ad87-309d6bb24611", X-Tenant-ID:"TENANT-001", X-Business-Unit-ID:"BU-001", Content-Length:"31"]
+             Body = {"reason":"Insufficient funds"}
+    Session Attrs = {}
+
+Handler:
+             Type = com.payments.paymentinitiation.api.PaymentInitiationController
+           Method = com.payments.paymentinitiation.api.PaymentInitiationController#failPayment(String, FailureRequest, String, String, String)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = java.lang.IllegalArgumentException
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 400
+    Error message = null
+          Headers = [Content-Type:"application/json"]
+     Content type = application/json
+             Body = {"message":"Name for argument of type [java.lang.String] not specified, and parameter name information not found in class file either.","code":"BUSINESS_ERROR","timestamp":"2025-10-16T13:22:17.410432600Z","details":null}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+]]></system-out>
+  </testcase>
+  <testcase name="initiatePayment_ShouldReturn201_WhenValidRequest" classname="com.payments.paymentinitiation.api.PaymentInitiationControllerTest" time="0.013">
+    <system-out><![CDATA[2025-10-16 18:52:17 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Payment validation interceptor processing request: /api/v1/payments/initiate
+2025-10-16 18:52:17 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Request validation passed for tenant: TENANT-001, business unit: BU-001
+2025-10-16 18:52:17 [main] INFO  [] c.p.p.a.PaymentInitiationController - Initiating payment for tenant: TENANT-001, business unit: BU-001, correlation: 59229273-5e69-45c0-b1d6-bd05ebdc1516
+2025-10-16 18:52:17 [main] INFO  [] c.p.p.a.PaymentInitiationController - Payment initiated successfully: PaymentId(value=PAY-001)
+]]></system-out>
+  </testcase>
+  <testcase name="initiatePayment_ShouldReturn400_WhenMissingHeaders" classname="com.payments.paymentinitiation.api.PaymentInitiationControllerTest" time="0.012">
+    <system-out><![CDATA[2025-10-16 18:52:17 [main] DEBUG [] c.p.p.a.v.PaymentValidationInterceptor - Payment validation interceptor processing request: /api/v1/payments/initiate
+2025-10-16 18:52:17 [main] WARN  [] c.p.p.a.v.PaymentValidationInterceptor - Missing tenant ID in request
+]]></system-out>
+  </testcase>
+</testsuite>

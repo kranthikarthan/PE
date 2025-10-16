@@ -1,12 +1,15 @@
 package com.payments.domain.shared;
 
 import jakarta.persistence.Embeddable;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import java.util.UUID;
 import lombok.Value;
 
 /** PaymentId - Value Object (Entity ID) */
 @Embeddable
 @Value
+@NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public class PaymentId {
   String value;
 

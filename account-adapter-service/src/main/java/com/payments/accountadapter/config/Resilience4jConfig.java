@@ -44,7 +44,6 @@ public class Resilience4jConfig {
             feign.FeignException.class,
             com.payments.accountadapter.dto.AccountServiceException.class)
         .ignoreExceptions(com.payments.accountadapter.dto.AccountServiceException.class)
-        .eventConsumerBufferSize(10)
         .build();
   }
 
@@ -105,11 +104,14 @@ public class Resilience4jConfig {
   /** Retry Configuration */
   @Bean
   public RetryConfig retryConfig() {
+    // Use IntervalFunction for exponential backoff with multiplier
+    io.github.resilience4j.core.IntervalFunction intervalFunction =
+        io.github.resilience4j.core.IntervalFunction.ofExponentialBackoff(
+            Duration.ofSeconds(1).toMillis(), 2.0);
+
     return RetryConfig.custom()
         .maxAttempts(3)
-        .waitDuration(Duration.ofSeconds(1))
-        .exponentialBackoffMultiplier(2)
-        .maxWaitDuration(Duration.ofSeconds(10))
+        .intervalFunction(intervalFunction)
         .retryExceptions(
             java.io.IOException.class,
             java.util.concurrent.TimeoutException.class,
@@ -156,14 +158,14 @@ public class Resilience4jConfig {
                   event.getNumberOfRetryAttempts(),
                   event.getEventType());
             })
-        .onRetrySucceeded(
+        .onSuccess(
             event -> {
               log.info("Retry succeeded after {} attempts", event.getNumberOfRetryAttempts());
             })
-        .onRetryFailed(
+        .onError(
             event -> {
               log.error(
-                  "Retry failed after {} attempts",
+                  "Retry error after {} attempts",
                   event.getNumberOfRetryAttempts(),
                   event.getLastThrowable());
             });
