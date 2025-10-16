@@ -8,110 +8,106 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 
 /**
- * JPA Entity for ValidationResult
+ * Validation Result Entity
  * 
- * Maps to validation_results table with:
- * - Validation result details
- * - Tenant and business unit context
+ * JPA entity for validation results persistence:
+ * - Validation outcome and metadata
  * - Risk and fraud assessment
+ * - Applied and failed rules
  * - Audit trail information
  */
 @Entity
 @Table(name = "validation_results", indexes = {
-    @Index(name = "idx_validation_results_payment_id", columnList = "payment_id"),
-    @Index(name = "idx_validation_results_tenant_id", columnList = "tenant_id"),
-    @Index(name = "idx_validation_results_business_unit_id", columnList = "business_unit_id"),
-    @Index(name = "idx_validation_results_validated_at", columnList = "validated_at"),
-    @Index(name = "idx_validation_results_correlation_id", columnList = "correlation_id")
+    @Index(name = "idx_validation_id", columnList = "validation_id"),
+    @Index(name = "idx_payment_id", columnList = "payment_id"),
+    @Index(name = "idx_tenant_id", columnList = "tenant_id"),
+    @Index(name = "idx_business_unit_id", columnList = "business_unit_id"),
+    @Index(name = "idx_correlation_id", columnList = "correlation_id"),
+    @Index(name = "idx_status", columnList = "status"),
+    @Index(name = "idx_risk_level", columnList = "risk_level"),
+    @Index(name = "idx_validated_at", columnList = "validated_at")
 })
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ValidationResultEntity {
-
+    
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @Column(name = "validation_id", nullable = false, unique = true)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(name = "validation_id", nullable = false, unique = true, length = 255)
     private String validationId;
-
-    @Column(name = "payment_id", nullable = false)
+    
+    @Column(name = "payment_id", nullable = false, length = 255)
     private String paymentId;
-
-    @Column(name = "tenant_id", nullable = false)
+    
+    @Column(name = "tenant_id", nullable = false, length = 255)
     private String tenantId;
-
-    @Column(name = "business_unit_id", nullable = false)
+    
+    @Column(name = "business_unit_id", nullable = false, length = 255)
     private String businessUnitId;
-
+    
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ValidationStatus status;
-
+    
     @Enumerated(EnumType.STRING)
-    @Column(name = "risk_level", nullable = false)
+    @Column(name = "risk_level")
     private RiskLevel riskLevel;
-
-    @Column(name = "fraud_score")
-    @Builder.Default
-    private Integer fraudScore = 0;
-
-    @Column(name = "risk_score")
-    @Builder.Default
-    private Integer riskScore = 0;
-
-    @ElementCollection
-    @CollectionTable(name = "validation_applied_rules", joinColumns = @JoinColumn(name = "validation_result_id"))
-    @Column(name = "rule_id")
-    private List<String> appliedRules;
-
-    @Column(name = "validation_metadata", columnDefinition = "jsonb")
+    
+    @Column(name = "fraud_score", precision = 5, scale = 2)
+    private BigDecimal fraudScore;
+    
+    @Column(name = "risk_score", precision = 5, scale = 2)
+    private BigDecimal riskScore;
+    
+    @Column(name = "applied_rules", columnDefinition = "TEXT")
+    private String appliedRules;
+    
+    @Column(name = "failed_rules", columnDefinition = "TEXT")
+    private String failedRules;
+    
+    @Column(name = "validation_metadata", columnDefinition = "TEXT")
     private String validationMetadata;
-
+    
     @Column(name = "validated_at", nullable = false)
     private Instant validatedAt;
-
+    
+    @Column(name = "correlation_id", length = 255)
+    private String correlationId;
+    
+    @Column(name = "created_by", length = 255)
+    private String createdBy;
+    
+    @Column(name = "reason", length = 1000)
+    private String reason;
+    
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
-
+    
     @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private Instant updatedAt;
-
-    @Column(name = "correlation_id")
-    private String correlationId;
-
-    @Column(name = "created_by")
-    @Builder.Default
-    private String createdBy = "validation-service";
-
-    @OneToMany(mappedBy = "validationResult", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ValidationFailedRuleEntity> failedRules;
-
-    @OneToOne(mappedBy = "validationResult", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private FraudDetectionResultEntity fraudDetectionResult;
-
-    @OneToOne(mappedBy = "validationResult", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private RiskAssessmentResultEntity riskAssessmentResult;
-
-    @OneToMany(mappedBy = "validationResult", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ValidationAuditTrailEntity> auditTrail;
-
+    
+    @Version
+    @Column(name = "version")
+    private Long version;
+    
     /**
      * Validation Status Enum
      */
     public enum ValidationStatus {
         PASSED, FAILED
     }
-
+    
     /**
      * Risk Level Enum
      */

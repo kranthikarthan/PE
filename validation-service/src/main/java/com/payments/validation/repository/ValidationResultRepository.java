@@ -11,133 +11,191 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
- * Repository for ValidationResultEntity
+ * Validation Result Repository
  * 
- * Provides data access methods for:
- * - Validation result queries
- * - Tenant and business unit filtering
- * - Time-based queries
- * - Performance analytics
+ * JPA repository for validation results:
+ * - CRUD operations
+ * - Custom queries for analytics
+ * - Multi-tenant data access
+ * - Performance optimized queries
  */
 @Repository
-public interface ValidationResultRepository extends JpaRepository<ValidationResultEntity, UUID> {
+public interface ValidationResultRepository extends JpaRepository<ValidationResultEntity, Long> {
 
     /**
-     * Find validation result by validation ID
+     * Find by validation ID
      */
     Optional<ValidationResultEntity> findByValidationId(String validationId);
 
     /**
-     * Find validation results by payment ID
+     * Find by payment ID ordered by validation date
      */
     List<ValidationResultEntity> findByPaymentIdOrderByValidatedAtDesc(String paymentId);
 
     /**
-     * Find validation results by tenant ID
+     * Find by tenant ID ordered by validation date
      */
     Page<ValidationResultEntity> findByTenantIdOrderByValidatedAtDesc(String tenantId, Pageable pageable);
 
     /**
-     * Find validation results by tenant and business unit
+     * Find by tenant ID and business unit ID ordered by validation date
      */
     Page<ValidationResultEntity> findByTenantIdAndBusinessUnitIdOrderByValidatedAtDesc(
             String tenantId, String businessUnitId, Pageable pageable);
 
     /**
-     * Find validation results by correlation ID
+     * Find by correlation ID ordered by validation date
      */
     List<ValidationResultEntity> findByCorrelationIdOrderByValidatedAtDesc(String correlationId);
 
     /**
-     * Find validation results by status
+     * Find by status ordered by validation date
      */
     Page<ValidationResultEntity> findByStatusOrderByValidatedAtDesc(
             ValidationResultEntity.ValidationStatus status, Pageable pageable);
 
     /**
-     * Find validation results by risk level
+     * Find by risk level ordered by validation date
      */
     Page<ValidationResultEntity> findByRiskLevelOrderByValidatedAtDesc(
             ValidationResultEntity.RiskLevel riskLevel, Pageable pageable);
 
     /**
-     * Find validation results within date range
+     * Find by validation date range
      */
-    @Query("SELECT v FROM ValidationResultEntity v WHERE v.validatedAt BETWEEN :startDate AND :endDate ORDER BY v.validatedAt DESC")
     Page<ValidationResultEntity> findByValidatedAtBetween(
-            @Param("startDate") Instant startDate,
-            @Param("endDate") Instant endDate,
-            Pageable pageable);
+            Instant startDate, Instant endDate, Pageable pageable);
 
     /**
-     * Find validation results by tenant within date range
+     * Find by tenant ID and validation date range
      */
-    @Query("SELECT v FROM ValidationResultEntity v WHERE v.tenantId = :tenantId AND v.validatedAt BETWEEN :startDate AND :endDate ORDER BY v.validatedAt DESC")
     Page<ValidationResultEntity> findByTenantIdAndValidatedAtBetween(
-            @Param("tenantId") String tenantId,
-            @Param("startDate") Instant startDate,
-            @Param("endDate") Instant endDate,
-            Pageable pageable);
+            String tenantId, Instant startDate, Instant endDate, Pageable pageable);
 
     /**
-     * Count validation results by status for tenant
+     * Find by tenant ID and status
      */
-    @Query("SELECT COUNT(v) FROM ValidationResultEntity v WHERE v.tenantId = :tenantId AND v.status = :status")
-    long countByTenantIdAndStatus(@Param("tenantId") String tenantId, @Param("status") ValidationResultEntity.ValidationStatus status);
+    Page<ValidationResultEntity> findByTenantIdAndStatusOrderByValidatedAtDesc(
+            String tenantId, ValidationResultEntity.ValidationStatus status, Pageable pageable);
 
     /**
-     * Count validation results by risk level for tenant
+     * Find by tenant ID and risk level
      */
-    @Query("SELECT COUNT(v) FROM ValidationResultEntity v WHERE v.tenantId = :tenantId AND v.riskLevel = :riskLevel")
-    long countByTenantIdAndRiskLevel(@Param("tenantId") String tenantId, @Param("riskLevel") ValidationResultEntity.RiskLevel riskLevel);
+    Page<ValidationResultEntity> findByTenantIdAndRiskLevelOrderByValidatedAtDesc(
+            String tenantId, ValidationResultEntity.RiskLevel riskLevel, Pageable pageable);
 
     /**
-     * Find validation results with fraud score above threshold
+     * Find by tenant ID, business unit ID and status
      */
-    @Query("SELECT v FROM ValidationResultEntity v WHERE v.fraudScore >= :threshold ORDER BY v.fraudScore DESC")
-    Page<ValidationResultEntity> findByFraudScoreGreaterThanEqual(
-            @Param("threshold") Integer threshold, Pageable pageable);
+    Page<ValidationResultEntity> findByTenantIdAndBusinessUnitIdAndStatusOrderByValidatedAtDesc(
+            String tenantId, String businessUnitId, ValidationResultEntity.ValidationStatus status, Pageable pageable);
 
     /**
-     * Find validation results with risk score above threshold
+     * Find by tenant ID, business unit ID and risk level
      */
-    @Query("SELECT v FROM ValidationResultEntity v WHERE v.riskScore >= :threshold ORDER BY v.riskScore DESC")
-    Page<ValidationResultEntity> findByRiskScoreGreaterThanEqual(
-            @Param("threshold") Integer threshold, Pageable pageable);
+    Page<ValidationResultEntity> findByTenantIdAndBusinessUnitIdAndRiskLevelOrderByValidatedAtDesc(
+            String tenantId, String businessUnitId, ValidationResultEntity.RiskLevel riskLevel, Pageable pageable);
+
+    /**
+     * Delete by validation date before
+     */
+    int deleteByValidatedAtBefore(Instant cutoffDate);
+
+    /**
+     * Delete by tenant ID and validation date before
+     */
+    int deleteByTenantIdAndValidatedAtBefore(String tenantId, Instant cutoffDate);
+
+    /**
+     * Count by tenant ID
+     */
+    long countByTenantId(String tenantId);
+
+    /**
+     * Count by tenant ID and status
+     */
+    long countByTenantIdAndStatus(String tenantId, ValidationResultEntity.ValidationStatus status);
+
+    /**
+     * Count by tenant ID and risk level
+     */
+    long countByTenantIdAndRiskLevel(String tenantId, ValidationResultEntity.RiskLevel riskLevel);
+
+    /**
+     * Count by tenant ID and business unit ID
+     */
+    long countByTenantIdAndBusinessUnitId(String tenantId, String businessUnitId);
+
+    /**
+     * Count by tenant ID, business unit ID and status
+     */
+    long countByTenantIdAndBusinessUnitIdAndStatus(
+            String tenantId, String businessUnitId, ValidationResultEntity.ValidationStatus status);
+
+    /**
+     * Count by tenant ID, business unit ID and risk level
+     */
+    long countByTenantIdAndBusinessUnitIdAndRiskLevel(
+            String tenantId, String businessUnitId, ValidationResultEntity.RiskLevel riskLevel);
 
     /**
      * Get validation statistics for tenant
      */
     @Query("SELECT " +
-           "COUNT(v) as totalValidations, " +
-           "SUM(CASE WHEN v.status = 'PASSED' THEN 1 ELSE 0 END) as passedValidations, " +
-           "SUM(CASE WHEN v.status = 'FAILED' THEN 1 ELSE 0 END) as failedValidations, " +
-           "AVG(v.fraudScore) as avgFraudScore, " +
-           "AVG(v.riskScore) as avgRiskScore " +
-           "FROM ValidationResultEntity v WHERE v.tenantId = :tenantId")
+           "COUNT(v), " +
+           "COUNT(CASE WHEN v.status = 'PASSED' THEN 1 END), " +
+           "COUNT(CASE WHEN v.status = 'FAILED' THEN 1 END), " +
+           "AVG(v.fraudScore), " +
+           "AVG(v.riskScore) " +
+           "FROM ValidationResultEntity v " +
+           "WHERE v.tenantId = :tenantId")
     Object[] getValidationStatistics(@Param("tenantId") String tenantId);
 
     /**
-     * Get validation statistics for tenant within date range
+     * Get validation statistics for tenant and business unit
      */
     @Query("SELECT " +
-           "COUNT(v) as totalValidations, " +
-           "SUM(CASE WHEN v.status = 'PASSED' THEN 1 ELSE 0 END) as passedValidations, " +
-           "SUM(CASE WHEN v.status = 'FAILED' THEN 1 ELSE 0 END) as failedValidations, " +
-           "AVG(v.fraudScore) as avgFraudScore, " +
-           "AVG(v.riskScore) as avgRiskScore " +
-           "FROM ValidationResultEntity v WHERE v.tenantId = :tenantId AND v.validatedAt BETWEEN :startDate AND :endDate")
-    Object[] getValidationStatisticsForDateRange(
-            @Param("tenantId") String tenantId,
-            @Param("startDate") Instant startDate,
+           "COUNT(v), " +
+           "COUNT(CASE WHEN v.status = 'PASSED' THEN 1 END), " +
+           "COUNT(CASE WHEN v.status = 'FAILED' THEN 1 END), " +
+           "AVG(v.fraudScore), " +
+           "AVG(v.riskScore) " +
+           "FROM ValidationResultEntity v " +
+           "WHERE v.tenantId = :tenantId AND v.businessUnitId = :businessUnitId")
+    Object[] getValidationStatisticsByTenantAndBusinessUnit(
+            @Param("tenantId") String tenantId, 
+            @Param("businessUnitId") String businessUnitId);
+
+    /**
+     * Get validation statistics for date range
+     */
+    @Query("SELECT " +
+           "COUNT(v), " +
+           "COUNT(CASE WHEN v.status = 'PASSED' THEN 1 END), " +
+           "COUNT(CASE WHEN v.status = 'FAILED' THEN 1 END), " +
+           "AVG(v.fraudScore), " +
+           "AVG(v.riskScore) " +
+           "FROM ValidationResultEntity v " +
+           "WHERE v.validatedAt BETWEEN :startDate AND :endDate")
+    Object[] getValidationStatisticsByDateRange(
+            @Param("startDate") Instant startDate, 
             @Param("endDate") Instant endDate);
 
     /**
-     * Delete old validation results (for cleanup)
+     * Get validation statistics for tenant and date range
      */
-    @Query("DELETE FROM ValidationResultEntity v WHERE v.validatedAt < :cutoffDate")
-    int deleteByValidatedAtBefore(@Param("cutoffDate") Instant cutoffDate);
+    @Query("SELECT " +
+           "COUNT(v), " +
+           "COUNT(CASE WHEN v.status = 'PASSED' THEN 1 END), " +
+           "COUNT(CASE WHEN v.status = 'FAILED' THEN 1 END), " +
+           "AVG(v.fraudScore), " +
+           "AVG(v.riskScore) " +
+           "FROM ValidationResultEntity v " +
+           "WHERE v.tenantId = :tenantId AND v.validatedAt BETWEEN :startDate AND :endDate")
+    Object[] getValidationStatisticsByTenantAndDateRange(
+            @Param("tenantId") String tenantId,
+            @Param("startDate") Instant startDate, 
+            @Param("endDate") Instant endDate);
 }

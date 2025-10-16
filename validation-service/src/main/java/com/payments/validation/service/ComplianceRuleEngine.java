@@ -16,10 +16,10 @@ import java.util.List;
 /**
  * Compliance Rule Engine
  * 
- * Executes compliance validation rules:
- * - Regulatory compliance rules
+ * Executes regulatory compliance validation rules:
  * - AML (Anti-Money Laundering) checks
  * - KYC (Know Your Customer) validation
+ * - Regulatory reporting requirements
  * - Sanctions screening
  */
 @Slf4j
@@ -42,25 +42,22 @@ public class ComplianceRuleEngine {
         List<FailedRule> failedRules = new ArrayList<>();
         
         try {
-            // Rule 1: Payment reference validation
-            executePaymentReferenceRule(event, appliedRules, failedRules);
+            // Rule 1: AML check
+            executeAMLCheck(event, appliedRules, failedRules);
             
-            // Rule 2: AML screening
-            executeAMLScreeningRule(event, appliedRules, failedRules);
+            // Rule 2: KYC validation
+            executeKYCValidation(event, appliedRules, failedRules);
             
             // Rule 3: Sanctions screening
-            executeSanctionsScreeningRule(event, appliedRules, failedRules);
+            executeSanctionsScreening(event, appliedRules, failedRules);
             
-            // Rule 4: KYC validation
-            executeKYCValidationRule(event, appliedRules, failedRules);
-            
-            // Rule 5: Regulatory reporting
-            executeRegulatoryReportingRule(event, appliedRules, failedRules);
+            // Rule 4: Regulatory reporting check
+            executeRegulatoryReportingCheck(event, appliedRules, failedRules);
             
             long executionTime = System.currentTimeMillis() - startTime;
             
             return RuleExecutionResult.builder()
-                    .ruleType(RuleType.COMPLIANCE.toString())
+                    .ruleType(RuleType.COMPLIANCE)
                     .success(failedRules.isEmpty())
                     .appliedRules(appliedRules)
                     .failedRules(failedRules)
@@ -75,7 +72,7 @@ public class ComplianceRuleEngine {
             
             long executionTime = System.currentTimeMillis() - startTime;
             return RuleExecutionResult.builder()
-                    .ruleType(RuleType.COMPLIANCE.toString())
+                    .ruleType(RuleType.COMPLIANCE)
                     .success(false)
                     .appliedRules(appliedRules)
                     .failedRules(failedRules)
@@ -88,64 +85,47 @@ public class ComplianceRuleEngine {
     }
 
     /**
-     * Execute payment reference rule
+     * Execute AML check
      */
-    private void executePaymentReferenceRule(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
+    private void executeAMLCheck(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
         appliedRules.add("COMPLIANCE_RULE_001");
         
-        if (event.getReference() == null || event.getReference().trim().isEmpty()) {
-            failedRules.add(FailedRule.builder()
-                    .ruleId("COMPLIANCE_RULE_001")
-                    .ruleName("Payment Reference Check")
-                    .ruleType(RuleType.COMPLIANCE.toString())
-                    .failureReason("Payment reference is required for compliance reporting")
-                    .failedAt(Instant.now())
-                    .build());
-        }
+        // TODO: Implement actual AML check
+        // For now, just log that the rule was applied
+        log.debug("AML check applied for payment: {}", event.getPaymentId().getValue());
     }
 
     /**
-     * Execute AML screening rule
+     * Execute KYC validation
      */
-    private void executeAMLScreeningRule(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
+    private void executeKYCValidation(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
         appliedRules.add("COMPLIANCE_RULE_002");
         
-        // TODO: Implement actual AML screening
+        // TODO: Implement actual KYC validation
         // For now, just log that the rule was applied
-        log.debug("AML screening rule applied for payment: {}", event.getPaymentId().getValue());
+        log.debug("KYC validation applied for payment: {}", event.getPaymentId().getValue());
     }
 
     /**
-     * Execute sanctions screening rule
+     * Execute sanctions screening
      */
-    private void executeSanctionsScreeningRule(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
+    private void executeSanctionsScreening(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
         appliedRules.add("COMPLIANCE_RULE_003");
         
         // TODO: Implement actual sanctions screening
         // For now, just log that the rule was applied
-        log.debug("Sanctions screening rule applied for payment: {}", event.getPaymentId().getValue());
+        log.debug("Sanctions screening applied for payment: {}", event.getPaymentId().getValue());
     }
 
     /**
-     * Execute KYC validation rule
+     * Execute regulatory reporting check
      */
-    private void executeKYCValidationRule(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
+    private void executeRegulatoryReportingCheck(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
         appliedRules.add("COMPLIANCE_RULE_004");
         
-        // TODO: Implement actual KYC validation
+        // TODO: Implement actual regulatory reporting check
         // For now, just log that the rule was applied
-        log.debug("KYC validation rule applied for payment: {}", event.getPaymentId().getValue());
-    }
-
-    /**
-     * Execute regulatory reporting rule
-     */
-    private void executeRegulatoryReportingRule(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
-        appliedRules.add("COMPLIANCE_RULE_005");
-        
-        // TODO: Implement actual regulatory reporting
-        // For now, just log that the rule was applied
-        log.debug("Regulatory reporting rule applied for payment: {}", event.getPaymentId().getValue());
+        log.debug("Regulatory reporting check applied for payment: {}", event.getPaymentId().getValue());
     }
 
     /**

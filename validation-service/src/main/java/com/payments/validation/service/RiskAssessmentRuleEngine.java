@@ -16,12 +16,11 @@ import java.util.List;
 /**
  * Risk Assessment Rule Engine
  * 
- * Executes risk assessment rules:
+ * Executes risk assessment validation rules:
  * - Credit risk assessment
  * - Market risk analysis
  * - Operational risk evaluation
- * - Liquidity risk assessment
- * - Counterparty risk analysis
+ * - Counterparty risk assessment
  */
 @Slf4j
 @Service
@@ -41,33 +40,29 @@ public class RiskAssessmentRuleEngine {
         long startTime = System.currentTimeMillis();
         List<String> appliedRules = new ArrayList<>();
         List<FailedRule> failedRules = new ArrayList<>();
-        int riskScore = 0;
         
         try {
             // Rule 1: Credit risk assessment
-            riskScore += executeCreditRiskRule(event, appliedRules, failedRules);
+            executeCreditRiskAssessment(event, appliedRules, failedRules);
             
             // Rule 2: Market risk analysis
-            riskScore += executeMarketRiskRule(event, appliedRules, failedRules);
+            executeMarketRiskAnalysis(event, appliedRules, failedRules);
             
             // Rule 3: Operational risk evaluation
-            riskScore += executeOperationalRiskRule(event, appliedRules, failedRules);
+            executeOperationalRiskEvaluation(event, appliedRules, failedRules);
             
-            // Rule 4: Liquidity risk assessment
-            riskScore += executeLiquidityRiskRule(event, appliedRules, failedRules);
-            
-            // Rule 5: Counterparty risk analysis
-            riskScore += executeCounterpartyRiskRule(event, appliedRules, failedRules);
+            // Rule 4: Counterparty risk assessment
+            executeCounterpartyRiskAssessment(event, appliedRules, failedRules);
             
             long executionTime = System.currentTimeMillis() - startTime;
             
             return RuleExecutionResult.builder()
-                    .ruleType(RuleType.RISK.toString())
+                    .ruleType(RuleType.RISK)
                     .success(failedRules.isEmpty())
                     .appliedRules(appliedRules)
                     .failedRules(failedRules)
                     .fraudScore(0)
-                    .riskScore(Math.min(riskScore, 100))
+                    .riskScore(calculateRiskScore(failedRules))
                     .executionTime(executionTime)
                     .build();
             
@@ -77,7 +72,7 @@ public class RiskAssessmentRuleEngine {
             
             long executionTime = System.currentTimeMillis() - startTime;
             return RuleExecutionResult.builder()
-                    .ruleType(RuleType.RISK.toString())
+                    .ruleType(RuleType.RISK)
                     .success(false)
                     .appliedRules(appliedRules)
                     .failedRules(failedRules)
@@ -90,131 +85,53 @@ public class RiskAssessmentRuleEngine {
     }
 
     /**
-     * Execute credit risk rule
+     * Execute credit risk assessment
      */
-    private int executeCreditRiskRule(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
+    private void executeCreditRiskAssessment(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
         appliedRules.add("RISK_RULE_001");
         
         // TODO: Implement actual credit risk assessment
         // For now, just log that the rule was applied
-        log.debug("Credit risk rule applied for payment: {}", event.getPaymentId().getValue());
-        
-        // Simulate credit risk assessment
-        double amount = event.getAmount().getAmount().doubleValue();
-        if (amount > 200000.0) {
-            failedRules.add(FailedRule.builder()
-                    .ruleId("RISK_RULE_001")
-                    .ruleName("Credit Risk Assessment")
-                    .ruleType(RuleType.RISK.toString())
-                    .failureReason("High credit risk transaction detected")
-                    .failedAt(Instant.now())
-                    .build());
-            return 30; // High risk score
-        }
-        
-        return 0;
+        log.debug("Credit risk assessment applied for payment: {}", event.getPaymentId().getValue());
     }
 
     /**
-     * Execute market risk rule
+     * Execute market risk analysis
      */
-    private int executeMarketRiskRule(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
+    private void executeMarketRiskAnalysis(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
         appliedRules.add("RISK_RULE_002");
         
         // TODO: Implement actual market risk analysis
         // For now, just log that the rule was applied
-        log.debug("Market risk rule applied for payment: {}", event.getPaymentId().getValue());
-        
-        // Simulate market risk analysis
-        String currency = event.getAmount().getCurrency().getCurrencyCode();
-        if (!"ZAR".equals(currency)) {
-            failedRules.add(FailedRule.builder()
-                    .ruleId("RISK_RULE_002")
-                    .ruleName("Market Risk Analysis")
-                    .ruleType(RuleType.RISK.toString())
-                    .failureReason("Foreign currency transaction - market risk detected")
-                    .failedAt(Instant.now())
-                    .build());
-            return 25; // Medium risk score
-        }
-        
-        return 0;
+        log.debug("Market risk analysis applied for payment: {}", event.getPaymentId().getValue());
     }
 
     /**
-     * Execute operational risk rule
+     * Execute operational risk evaluation
      */
-    private int executeOperationalRiskRule(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
+    private void executeOperationalRiskEvaluation(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
         appliedRules.add("RISK_RULE_003");
         
         // TODO: Implement actual operational risk evaluation
         // For now, just log that the rule was applied
-        log.debug("Operational risk rule applied for payment: {}", event.getPaymentId().getValue());
-        
-        // Simulate operational risk evaluation
-        double amount = event.getAmount().getAmount().doubleValue();
-        if (amount > 1000000.0) {
-            failedRules.add(FailedRule.builder()
-                    .ruleId("RISK_RULE_003")
-                    .ruleName("Operational Risk Evaluation")
-                    .ruleType(RuleType.RISK.toString())
-                    .failureReason("High-value transaction - operational risk detected")
-                    .failedAt(Instant.now())
-                    .build());
-            return 35; // High risk score
-        }
-        
-        return 0;
+        log.debug("Operational risk evaluation applied for payment: {}", event.getPaymentId().getValue());
     }
 
     /**
-     * Execute liquidity risk rule
+     * Execute counterparty risk assessment
      */
-    private int executeLiquidityRiskRule(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
+    private void executeCounterpartyRiskAssessment(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
         appliedRules.add("RISK_RULE_004");
         
-        // TODO: Implement actual liquidity risk assessment
+        // TODO: Implement actual counterparty risk assessment
         // For now, just log that the rule was applied
-        log.debug("Liquidity risk rule applied for payment: {}", event.getPaymentId().getValue());
-        
-        // Simulate liquidity risk assessment
-        double amount = event.getAmount().getAmount().doubleValue();
-        if (amount > 500000.0) {
-            failedRules.add(FailedRule.builder()
-                    .ruleId("RISK_RULE_004")
-                    .ruleName("Liquidity Risk Assessment")
-                    .ruleType(RuleType.RISK.toString())
-                    .failureReason("Large transaction - liquidity risk detected")
-                    .failedAt(Instant.now())
-                    .build());
-            return 20; // Medium risk score
-        }
-        
-        return 0;
+        log.debug("Counterparty risk assessment applied for payment: {}", event.getPaymentId().getValue());
     }
 
     /**
-     * Execute counterparty risk rule
+     * Calculate risk score based on failed rules
      */
-    private int executeCounterpartyRiskRule(PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
-        appliedRules.add("RISK_RULE_005");
-        
-        // TODO: Implement actual counterparty risk analysis
-        // For now, just log that the rule was applied
-        log.debug("Counterparty risk rule applied for payment: {}", event.getPaymentId().getValue());
-        
-        // Simulate counterparty risk analysis
-        if (event.getDestinationAccount().contains("RISK")) {
-            failedRules.add(FailedRule.builder()
-                    .ruleId("RISK_RULE_005")
-                    .ruleName("Counterparty Risk Analysis")
-                    .ruleType(RuleType.RISK.toString())
-                    .failureReason("High-risk counterparty detected")
-                    .failedAt(Instant.now())
-                    .build());
-            return 40; // High risk score
-        }
-        
-        return 0;
+    private int calculateRiskScore(List<FailedRule> failedRules) {
+        return failedRules.size() * 20; // Each failed risk rule adds 20 points
     }
 }
