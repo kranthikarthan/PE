@@ -5,17 +5,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Annotation for tracing database operations
- */
+/** Annotation for tracing database operations */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DatabaseOperation {
-    String value() default "";
+  String value() default "";
 }
-
-
-
-
-
-

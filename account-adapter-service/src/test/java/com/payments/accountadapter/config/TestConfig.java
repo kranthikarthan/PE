@@ -10,32 +10,30 @@ import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Test Configuration
- * 
- * Configuration for integration tests:
- * - WireMock server setup
- * - Test profiles
- * - Mock services
+ *
+ * <p>Configuration for integration tests: - WireMock server setup - Test profiles - Mock services
  */
 @Slf4j
 @TestConfiguration
 @ActiveProfiles("test")
 public class TestConfig {
 
-    /**
-     * WireMock server for external service mocking
-     */
-    @Bean
-    @Primary
-    public WireMockServer wireMockServer() {
-        WireMockConfiguration config = WireMockConfiguration.options()
-                .port(8089)
-                .extensions(new com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer(false))
-                .usingFilesUnderClasspath("wiremock");
-        
-        WireMockServer server = new WireMockServer(config);
-        server.start();
-        
-        log.info("WireMock server started on port: {}", server.port());
-        return server;
-    }
+  /** WireMock server for external service mocking */
+  @Bean
+  @Primary
+  public WireMockServer wireMockServer() {
+    WireMockConfiguration config =
+        WireMockConfiguration.options()
+            .port(8089)
+            .extensions(
+                new com.github.tomakehurst.wiremock.extension.responsetemplating
+                    .ResponseTemplateTransformer(false))
+            .usingFilesUnderClasspath("wiremock");
+
+    WireMockServer server = new WireMockServer(config);
+    server.start();
+
+    log.info("WireMock server started on port: {}", server.port());
+    return server;
+  }
 }

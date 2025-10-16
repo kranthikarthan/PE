@@ -1,14 +1,20 @@
 package com.payments.saga.integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import com.payments.domain.shared.TenantContext;
 import com.payments.saga.domain.*;
+import com.payments.saga.service.SagaEventService;
+import com.payments.saga.service.SagaLookupService;
 import com.payments.saga.service.SagaOrchestrator;
 import com.payments.saga.service.SagaService;
 import com.payments.saga.service.SagaStepService;
-import com.payments.saga.service.SagaEventService;
 import com.payments.saga.service.SagaTemplateService;
-import com.payments.saga.service.SagaLookupService;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,327 +30,315 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
-/**
- * Integration tests for Saga Orchestrator using Testcontainers
- */
+/** Integration tests for Saga Orchestrator using Testcontainers */
 @SpringBootTest
 @Testcontainers
 class SagaOrchestratorIntegrationTest {
 
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
-            .withDatabaseName("saga_test")
-            .withUsername("test")
-            .withPassword("test");
+  @Container
+  static PostgreSQLContainer<?> postgres =
+      new PostgreSQLContainer<>("postgres:15-alpine")
+          .withDatabaseName("saga_test")
+          .withUsername("test")
+          .withPassword("test");
 
-    @Container
-    static RedisContainer redis = new RedisContainer("redis:7-alpine");
+  @Container static RedisContainer redis = new RedisContainer("redis:7-alpine");
 
-    @Container
-    static KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.4.0"));
+  @Container
+  static KafkaContainer kafka =
+      new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.4.0"));
 
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.redis.host", redis::getHost);
-        registry.add("spring.redis.port", redis::getFirstMappedPort);
-        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+  @DynamicPropertySource
+  static void configureProperties(DynamicPropertyRegistry registry) {
+    registry.add("spring.datasource.url", postgres::getJdbcUrl);
+    registry.add("spring.datasource.username", postgres::getUsername);
+    registry.add("spring.datasource.password", postgres::getPassword);
+    registry.add("spring.redis.host", redis::getHost);
+    registry.add("spring.redis.port", redis::getFirstMappedPort);
+    registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+  }
+
+  @Autowired private SagaOrchestrator sagaOrchestrator;
+
+  @Autowired private SagaService sagaService;
+
+  @Autowired private SagaStepService sagaStepService;
+
+  @Autowired private SagaEventService sagaEventService;
+
+  @Autowired private SagaTemplateService sagaTemplateService;
+
+  @Autowired private SagaLookupService sagaLookupService;
+
+  @MockBean private KafkaTemplate<String, String> kafkaTemplate;
+
+  private TenantContext tenantContext;
+
+  @BeforeEach
+  void setUp() {
+    tenantContext = TenantContext.of("tenant-1", "Test Tenant", "bu-1", "Test Business Unit");
+  }
+
+  @Test
+  void testCompleteSagaWorkflow_Success() {
+    // Given
+    String templateName = "PaymentProcessingSaga";
+    String correlationId = "corr-123";
+    String paymentId = "pay-456";
+    Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
+
+    // When
+    Saga saga =
+        sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
+
+    // Then
+    assertNotNull(saga);
+    assertEquals(templateName, saga.getSagaName());
+    assertEquals(tenantContext, saga.getTenantContext());
+    assertEquals(correlationId, saga.getCorrelationId());
+    assertEquals(paymentId, saga.getPaymentId());
+    assertEquals(SagaStatus.PENDING, saga.getStatus());
+    assertTrue(saga.getTotalSteps() > 0);
+
+    // Verify saga is saved
+    Optional<Saga> savedSaga = sagaService.getSaga(saga.getId());
+    assertTrue(savedSaga.isPresent());
+    assertEquals(saga.getId(), savedSaga.get().getId());
+
+    // Verify steps are created
+    List<SagaStep> steps = sagaStepService.getStepsBySagaId(saga.getId());
+    assertFalse(steps.isEmpty());
+    assertEquals(saga.getTotalSteps(), steps.size());
+
+    // Verify all steps are in PENDING status
+    for (SagaStep step : steps) {
+      assertEquals(SagaStepStatus.PENDING, step.getStatus());
     }
+  }
 
-    @Autowired
-    private SagaOrchestrator sagaOrchestrator;
-    
-    @Autowired
-    private SagaService sagaService;
-    
-    @Autowired
-    private SagaStepService sagaStepService;
-    
-    @Autowired
-    private SagaEventService sagaEventService;
-    
-    @Autowired
-    private SagaTemplateService sagaTemplateService;
-    
-    @Autowired
-    private SagaLookupService sagaLookupService;
+  @Test
+  void testSagaLookupByPaymentId() {
+    // Given
+    String templateName = "PaymentProcessingSaga";
+    String correlationId = "corr-123";
+    String paymentId = "pay-456";
+    Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
 
-    @MockBean
-    private KafkaTemplate<String, String> kafkaTemplate;
+    Saga saga =
+        sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
 
-    private TenantContext tenantContext;
+    // When
+    Optional<Saga> foundSaga = sagaLookupService.findSagaByPaymentId(paymentId);
 
-    @BeforeEach
-    void setUp() {
-        tenantContext = TenantContext.of("tenant-1", "Test Tenant", "bu-1", "Test Business Unit");
-    }
+    // Then
+    assertTrue(foundSaga.isPresent());
+    assertEquals(saga.getId(), foundSaga.get().getId());
+    assertEquals(paymentId, foundSaga.get().getPaymentId());
+  }
 
-    @Test
-    void testCompleteSagaWorkflow_Success() {
-        // Given
-        String templateName = "PaymentProcessingSaga";
-        String correlationId = "corr-123";
-        String paymentId = "pay-456";
-        Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
+  @Test
+  void testSagaLookupByCorrelationId() {
+    // Given
+    String templateName = "PaymentProcessingSaga";
+    String correlationId = "corr-123";
+    String paymentId = "pay-456";
+    Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
 
-        // When
-        Saga saga = sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
+    Saga saga =
+        sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
 
-        // Then
-        assertNotNull(saga);
-        assertEquals(templateName, saga.getSagaName());
-        assertEquals(tenantContext, saga.getTenantContext());
-        assertEquals(correlationId, saga.getCorrelationId());
-        assertEquals(paymentId, saga.getPaymentId());
-        assertEquals(SagaStatus.PENDING, saga.getStatus());
-        assertTrue(saga.getTotalSteps() > 0);
+    // When
+    Optional<Saga> foundSaga = sagaLookupService.findSagaByCorrelationId(correlationId);
 
-        // Verify saga is saved
-        Optional<Saga> savedSaga = sagaService.getSaga(saga.getId());
-        assertTrue(savedSaga.isPresent());
-        assertEquals(saga.getId(), savedSaga.get().getId());
+    // Then
+    assertTrue(foundSaga.isPresent());
+    assertEquals(saga.getId(), foundSaga.get().getId());
+    assertEquals(correlationId, foundSaga.get().getCorrelationId());
+  }
 
-        // Verify steps are created
-        List<SagaStep> steps = sagaStepService.getStepsBySagaId(saga.getId());
-        assertFalse(steps.isEmpty());
-        assertEquals(saga.getTotalSteps(), steps.size());
+  @Test
+  void testSagaLookupBySagaId() {
+    // Given
+    String templateName = "PaymentProcessingSaga";
+    String correlationId = "corr-123";
+    String paymentId = "pay-456";
+    Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
 
-        // Verify all steps are in PENDING status
-        for (SagaStep step : steps) {
-            assertEquals(SagaStepStatus.PENDING, step.getStatus());
-        }
-    }
+    Saga saga =
+        sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
 
-    @Test
-    void testSagaLookupByPaymentId() {
-        // Given
-        String templateName = "PaymentProcessingSaga";
-        String correlationId = "corr-123";
-        String paymentId = "pay-456";
-        Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
+    // When
+    Optional<Saga> foundSaga = sagaLookupService.findSagaById(saga.getId().getValue());
 
-        Saga saga = sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
+    // Then
+    assertTrue(foundSaga.isPresent());
+    assertEquals(saga.getId(), foundSaga.get().getId());
+  }
 
-        // When
-        Optional<Saga> foundSaga = sagaLookupService.findSagaByPaymentId(paymentId);
+  @Test
+  void testSagaLookup_NotFound() {
+    // When
+    Optional<Saga> foundSaga = sagaLookupService.findSagaByPaymentId("non-existent-payment");
 
-        // Then
-        assertTrue(foundSaga.isPresent());
-        assertEquals(saga.getId(), foundSaga.get().getId());
-        assertEquals(paymentId, foundSaga.get().getPaymentId());
-    }
+    // Then
+    assertTrue(foundSaga.isEmpty());
+  }
 
-    @Test
-    void testSagaLookupByCorrelationId() {
-        // Given
-        String templateName = "PaymentProcessingSaga";
-        String correlationId = "corr-123";
-        String paymentId = "pay-456";
-        Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
+  @Test
+  void testSagaTemplateRegistration() {
+    // Given
+    String templateName = "PaymentProcessingSaga";
 
-        Saga saga = sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
+    // When
+    SagaTemplate template = sagaTemplateService.getTemplate(templateName);
 
-        // When
-        Optional<Saga> foundSaga = sagaLookupService.findSagaByCorrelationId(correlationId);
+    // Then
+    assertNotNull(template);
+    assertEquals(templateName, template.getTemplateName());
+    assertFalse(template.getStepDefinitions().isEmpty());
+  }
 
-        // Then
-        assertTrue(foundSaga.isPresent());
-        assertEquals(saga.getId(), foundSaga.get().getId());
-        assertEquals(correlationId, foundSaga.get().getCorrelationId());
-    }
+  @Test
+  void testSagaTemplateRegistration_NotFound() {
+    // When
+    SagaTemplate template = sagaTemplateService.getTemplate("NonExistentTemplate");
 
-    @Test
-    void testSagaLookupBySagaId() {
-        // Given
-        String templateName = "PaymentProcessingSaga";
-        String correlationId = "corr-123";
-        String paymentId = "pay-456";
-        Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
+    // Then
+    assertNull(template);
+  }
 
-        Saga saga = sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
+  @Test
+  void testSagaStepExecution() {
+    // Given
+    String templateName = "PaymentProcessingSaga";
+    String correlationId = "corr-123";
+    String paymentId = "pay-456";
+    Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
 
-        // When
-        Optional<Saga> foundSaga = sagaLookupService.findSagaById(saga.getId().getValue());
+    Saga saga =
+        sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
+    List<SagaStep> steps = sagaStepService.getStepsBySagaId(saga.getId());
+    SagaStep firstStep = steps.get(0);
 
-        // Then
-        assertTrue(foundSaga.isPresent());
-        assertEquals(saga.getId(), foundSaga.get().getId());
-    }
+    // When
+    sagaOrchestrator.executeNextStep(saga.getId());
 
-    @Test
-    void testSagaLookup_NotFound() {
-        // When
-        Optional<Saga> foundSaga = sagaLookupService.findSagaByPaymentId("non-existent-payment");
+    // Then
+    // Verify step status is updated (this would require mocking the execution engine)
+    SagaStep updatedStep = sagaStepService.getStep(firstStep.getId()).orElse(null);
+    assertNotNull(updatedStep);
+  }
 
-        // Then
-        assertTrue(foundSaga.isEmpty());
-    }
+  @Test
+  void testSagaStepCompletion() {
+    // Given
+    String templateName = "PaymentProcessingSaga";
+    String correlationId = "corr-123";
+    String paymentId = "pay-456";
+    Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
 
-    @Test
-    void testSagaTemplateRegistration() {
-        // Given
-        String templateName = "PaymentProcessingSaga";
+    Saga saga =
+        sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
+    List<SagaStep> steps = sagaStepService.getStepsBySagaId(saga.getId());
+    SagaStep firstStep = steps.get(0);
+    Map<String, Object> outputData = Map.of("validationResult", "success");
 
-        // When
-        SagaTemplate template = sagaTemplateService.getTemplate(templateName);
+    // When
+    sagaOrchestrator.handleStepCompletion(firstStep.getId(), outputData);
 
-        // Then
-        assertNotNull(template);
-        assertEquals(templateName, template.getTemplateName());
-        assertFalse(template.getStepDefinitions().isEmpty());
-    }
+    // Then
+    SagaStep updatedStep = sagaStepService.getStep(firstStep.getId()).orElse(null);
+    assertNotNull(updatedStep);
+    assertEquals(SagaStepStatus.COMPLETED, updatedStep.getStatus());
+    assertEquals(outputData, updatedStep.getOutputData());
+  }
 
-    @Test
-    void testSagaTemplateRegistration_NotFound() {
-        // When
-        SagaTemplate template = sagaTemplateService.getTemplate("NonExistentTemplate");
+  @Test
+  void testSagaStepFailure() {
+    // Given
+    String templateName = "PaymentProcessingSaga";
+    String correlationId = "corr-123";
+    String paymentId = "pay-456";
+    Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
 
-        // Then
-        assertNull(template);
-    }
+    Saga saga =
+        sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
+    List<SagaStep> steps = sagaStepService.getStepsBySagaId(saga.getId());
+    SagaStep firstStep = steps.get(0);
+    String errorMessage = "Validation failed";
+    Map<String, Object> errorData = Map.of("error", "invalid_data");
 
-    @Test
-    void testSagaStepExecution() {
-        // Given
-        String templateName = "PaymentProcessingSaga";
-        String correlationId = "corr-123";
-        String paymentId = "pay-456";
-        Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
+    // When
+    sagaOrchestrator.handleStepFailure(firstStep.getId(), errorMessage, errorData);
 
-        Saga saga = sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
-        List<SagaStep> steps = sagaStepService.getStepsBySagaId(saga.getId());
-        SagaStep firstStep = steps.get(0);
+    // Then
+    SagaStep updatedStep = sagaStepService.getStep(firstStep.getId()).orElse(null);
+    assertNotNull(updatedStep);
+    assertEquals(SagaStepStatus.FAILED, updatedStep.getStatus());
+    assertEquals(errorMessage, updatedStep.getErrorMessage());
+    assertEquals(errorData, updatedStep.getErrorData());
+  }
 
-        // When
-        sagaOrchestrator.executeNextStep(saga.getId());
+  @Test
+  void testSagaCompensation() {
+    // Given
+    String templateName = "PaymentProcessingSaga";
+    String correlationId = "corr-123";
+    String paymentId = "pay-456";
+    Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
 
-        // Then
-        // Verify step status is updated (this would require mocking the execution engine)
-        SagaStep updatedStep = sagaStepService.getStep(firstStep.getId()).orElse(null);
-        assertNotNull(updatedStep);
-    }
+    Saga saga =
+        sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
+    String reason = "Step failed";
 
-    @Test
-    void testSagaStepCompletion() {
-        // Given
-        String templateName = "PaymentProcessingSaga";
-        String correlationId = "corr-123";
-        String paymentId = "pay-456";
-        Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
+    // When
+    sagaOrchestrator.startCompensation(saga.getId(), reason);
 
-        Saga saga = sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
-        List<SagaStep> steps = sagaStepService.getStepsBySagaId(saga.getId());
-        SagaStep firstStep = steps.get(0);
-        Map<String, Object> outputData = Map.of("validationResult", "success");
+    // Then
+    Saga updatedSaga = sagaService.getSaga(saga.getId()).orElse(null);
+    assertNotNull(updatedSaga);
+    assertEquals(SagaStatus.COMPENSATING, updatedSaga.getStatus());
+  }
 
-        // When
-        sagaOrchestrator.handleStepCompletion(firstStep.getId(), outputData);
+  @Test
+  void testSagaCompletion() {
+    // Given
+    String templateName = "PaymentProcessingSaga";
+    String correlationId = "corr-123";
+    String paymentId = "pay-456";
+    Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
 
-        // Then
-        SagaStep updatedStep = sagaStepService.getStep(firstStep.getId()).orElse(null);
-        assertNotNull(updatedStep);
-        assertEquals(SagaStepStatus.COMPLETED, updatedStep.getStatus());
-        assertEquals(outputData, updatedStep.getOutputData());
-    }
+    Saga saga =
+        sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
+    saga.start(); // Set to RUNNING status
 
-    @Test
-    void testSagaStepFailure() {
-        // Given
-        String templateName = "PaymentProcessingSaga";
-        String correlationId = "corr-123";
-        String paymentId = "pay-456";
-        Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
+    // When
+    sagaOrchestrator.completeSaga(saga);
 
-        Saga saga = sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
-        List<SagaStep> steps = sagaStepService.getStepsBySagaId(saga.getId());
-        SagaStep firstStep = steps.get(0);
-        String errorMessage = "Validation failed";
-        Map<String, Object> errorData = Map.of("error", "invalid_data");
+    // Then
+    assertEquals(SagaStatus.COMPLETED, saga.getStatus());
+    assertNotNull(saga.getCompletedAt());
+  }
 
-        // When
-        sagaOrchestrator.handleStepFailure(firstStep.getId(), errorMessage, errorData);
+  @Test
+  void testSagaCompensationCompletion() {
+    // Given
+    String templateName = "PaymentProcessingSaga";
+    String correlationId = "corr-123";
+    String paymentId = "pay-456";
+    Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
 
-        // Then
-        SagaStep updatedStep = sagaStepService.getStep(firstStep.getId()).orElse(null);
-        assertNotNull(updatedStep);
-        assertEquals(SagaStepStatus.FAILED, updatedStep.getStatus());
-        assertEquals(errorMessage, updatedStep.getErrorMessage());
-        assertEquals(errorData, updatedStep.getErrorData());
-    }
+    Saga saga =
+        sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
+    saga.startCompensation(); // Set to COMPENSATING status
 
-    @Test
-    void testSagaCompensation() {
-        // Given
-        String templateName = "PaymentProcessingSaga";
-        String correlationId = "corr-123";
-        String paymentId = "pay-456";
-        Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
+    // When
+    sagaOrchestrator.completeCompensation(saga.getId());
 
-        Saga saga = sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
-        String reason = "Step failed";
-
-        // When
-        sagaOrchestrator.startCompensation(saga.getId(), reason);
-
-        // Then
-        Saga updatedSaga = sagaService.getSaga(saga.getId()).orElse(null);
-        assertNotNull(updatedSaga);
-        assertEquals(SagaStatus.COMPENSATING, updatedSaga.getStatus());
-    }
-
-    @Test
-    void testSagaCompletion() {
-        // Given
-        String templateName = "PaymentProcessingSaga";
-        String correlationId = "corr-123";
-        String paymentId = "pay-456";
-        Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
-
-        Saga saga = sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
-        saga.start(); // Set to RUNNING status
-
-        // When
-        sagaOrchestrator.completeSaga(saga);
-
-        // Then
-        assertEquals(SagaStatus.COMPLETED, saga.getStatus());
-        assertNotNull(saga.getCompletedAt());
-    }
-
-    @Test
-    void testSagaCompensationCompletion() {
-        // Given
-        String templateName = "PaymentProcessingSaga";
-        String correlationId = "corr-123";
-        String paymentId = "pay-456";
-        Map<String, Object> sagaData = Map.of("amount", 1000.0, "currency", "USD");
-
-        Saga saga = sagaOrchestrator.startSaga(templateName, tenantContext, correlationId, paymentId, sagaData);
-        saga.startCompensation(); // Set to COMPENSATING status
-
-        // When
-        sagaOrchestrator.completeCompensation(saga.getId());
-
-        // Then
-        Saga updatedSaga = sagaService.getSaga(saga.getId()).orElse(null);
-        assertNotNull(updatedSaga);
-        assertEquals(SagaStatus.COMPENSATED, updatedSaga.getStatus());
-        assertNotNull(updatedSaga.getCompensatedAt());
-    }
+    // Then
+    Saga updatedSaga = sagaService.getSaga(saga.getId()).orElse(null);
+    assertNotNull(updatedSaga);
+    assertEquals(SagaStatus.COMPENSATED, updatedSaga.getStatus());
+    assertNotNull(updatedSaga.getCompensatedAt());
+  }
 }
-
-
-
-
-
-

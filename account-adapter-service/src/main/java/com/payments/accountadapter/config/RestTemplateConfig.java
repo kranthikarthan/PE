@@ -16,60 +16,49 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * RestTemplate Configuration
- * 
- * Configuration for RestTemplate with resilience patterns:
- * - Circuit breaker integration
- * - Retry integration
- * - Timeout configuration
- * - Error handling
+ *
+ * <p>Configuration for RestTemplate with resilience patterns: - Circuit breaker integration - Retry
+ * integration - Timeout configuration - Error handling
  */
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class RestTemplateConfig {
 
-    private final CircuitBreakerRegistry circuitBreakerRegistry;
-    private final RetryRegistry retryRegistry;
-    private final TimeLimiterRegistry timeLimiterRegistry;
+  private final CircuitBreakerRegistry circuitBreakerRegistry;
+  private final RetryRegistry retryRegistry;
+  private final TimeLimiterRegistry timeLimiterRegistry;
 
-    /**
-     * RestTemplate with resilience patterns
-     */
-    @Bean
-    public RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        
-        // Configure request factory with timeouts
-        ClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        ((SimpleClientHttpRequestFactory) requestFactory).setConnectTimeout(10000);
-        ((SimpleClientHttpRequestFactory) requestFactory).setReadTimeout(30000);
-        restTemplate.setRequestFactory(requestFactory);
-        
-        log.info("RestTemplate configured with resilience patterns");
-        return restTemplate;
-    }
+  /** RestTemplate with resilience patterns */
+  @Bean
+  public RestTemplate restTemplate() {
+    RestTemplate restTemplate = new RestTemplate();
 
-    /**
-     * Circuit breaker for RestTemplate
-     */
-    @Bean
-    public CircuitBreaker restTemplateCircuitBreaker() {
-        return circuitBreakerRegistry.circuitBreaker("rest-template");
-    }
+    // Configure request factory with timeouts
+    ClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+    ((SimpleClientHttpRequestFactory) requestFactory).setConnectTimeout(10000);
+    ((SimpleClientHttpRequestFactory) requestFactory).setReadTimeout(30000);
+    restTemplate.setRequestFactory(requestFactory);
 
-    /**
-     * Retry for RestTemplate
-     */
-    @Bean
-    public Retry restTemplateRetry() {
-        return retryRegistry.retry("rest-template");
-    }
+    log.info("RestTemplate configured with resilience patterns");
+    return restTemplate;
+  }
 
-    /**
-     * Time limiter for RestTemplate
-     */
-    @Bean
-    public TimeLimiter restTemplateTimeLimiter() {
-        return timeLimiterRegistry.timeLimiter("rest-template");
-    }
+  /** Circuit breaker for RestTemplate */
+  @Bean
+  public CircuitBreaker restTemplateCircuitBreaker() {
+    return circuitBreakerRegistry.circuitBreaker("rest-template");
+  }
+
+  /** Retry for RestTemplate */
+  @Bean
+  public Retry restTemplateRetry() {
+    return retryRegistry.retry("rest-template");
+  }
+
+  /** Time limiter for RestTemplate */
+  @Bean
+  public TimeLimiter restTemplateTimeLimiter() {
+    return timeLimiterRegistry.timeLimiter("rest-template");
+  }
 }

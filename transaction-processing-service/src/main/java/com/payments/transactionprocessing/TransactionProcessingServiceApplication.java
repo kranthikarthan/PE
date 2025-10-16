@@ -9,13 +9,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableCaching
 @EnableTransactionManagement
 public class TransactionProcessingServiceApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(TransactionProcessingServiceApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(TransactionProcessingServiceApplication.class, args);
+  }
 }
-
-
-
-
-
-

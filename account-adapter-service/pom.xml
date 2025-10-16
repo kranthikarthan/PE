@@ -144,6 +144,14 @@
             <artifactId>redis</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Lombok for annotations like @Slf4j, @RequiredArgsConstructor, etc. -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.32</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -7,9 +7,3 @@ public enum TransactionStatus {
   COMPLETED,
   FAILED
 }
-
-
-
-
-
-

@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import lombok.*;
 
 /**
@@ -24,14 +25,17 @@ import lombok.*;
           name = "uk_idempotency_tenant",
           columnNames = {"tenant_id", "idempotency_key"})
     })
-@Data
+@Getter
+@Setter
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // For JPA
 @AllArgsConstructor
 public class Payment {
 
   @EmbeddedId
   @AttributeOverride(name = "value", column = @Column(name = "payment_id"))
+  @EqualsAndHashCode.Include
   private PaymentId id;
 
   @Embedded
@@ -97,7 +101,9 @@ public class Payment {
   @Column(name = "idempotency_key", nullable = false)
   private String idempotencyKey;
 
-  @Transient private List<StatusChange> statusHistory = new ArrayList<>();
+  @Getter(AccessLevel.NONE)
+  @Transient
+  private List<StatusChange> statusHistory = new ArrayList<>();
 
   @Transient private List<DomainEvent> domainEvents = new ArrayList<>();
 
@@ -117,6 +123,13 @@ public class Payment {
       String initiatedBy,
       String idempotencyKey) {
     // Business validation
+    Objects.requireNonNull(id, "Payment id cannot be null");
+    Objects.requireNonNull(tenantContext, "Tenant context cannot be null");
+    Objects.requireNonNull(amount, "Amount cannot be null");
+    Objects.requireNonNull(sourceAccount, "Source account cannot be null");
+    Objects.requireNonNull(destinationAccount, "Destination account cannot be null");
+    Objects.requireNonNull(paymentType, "Payment type cannot be null");
+    Objects.requireNonNull(priority, "Priority cannot be null");
     if (amount.isNegativeOrZero()) {
       throw new InvalidPaymentException("Amount must be positive");
     }
@@ -127,6 +140,10 @@ public class Payment {
 
     if (idempotencyKey == null || idempotencyKey.isBlank()) {
       throw new InvalidPaymentException("Idempotency key cannot be null or blank");
+    }
+
+    if (initiatedBy == null || initiatedBy.isBlank()) {
+      throw new InvalidPaymentException("InitiatedBy cannot be null or blank");
     }
 
     // Create payment
@@ -167,14 +184,16 @@ public class Payment {
 
   /** Validate the payment Precondition: Payment must be INITIATED */
   public void validate(ValidationResult validationResult) {
+    Objects.requireNonNull(validationResult, "Validation result cannot be null");
     // Guard: Can only validate INITIATED payments
     if (this.status != PaymentStatus.INITIATED) {
       throw new InvalidStateTransitionException(
           "Can only validate INITIATED payments. Current status: " + this.status);
     }
 
-    if (validationResult.isValid()) {
+    if (validationResult.isPassed()) {
       this.status = PaymentStatus.VALIDATED;
+      this.validatedAt = Instant.now();
       addStatusChange(
           PaymentStatus.INITIATED, PaymentStatus.VALIDATED, "Payment validated successfully");
 
@@ -186,6 +205,7 @@ public class Payment {
 
   /** Submit payment to clearing Precondition: Payment must be VALIDATED */
   public void submitToClearing(ClearingSystemReference clearingRef) {
+    Objects.requireNonNull(clearingRef, "Clearing reference cannot be null");
     // Guard: Can only clear VALIDATED payments
     if (this.status != PaymentStatus.VALIDATED) {
       throw new InvalidStateTransitionException(
@@ -193,6 +213,7 @@ public class Payment {
     }
 
     this.status = PaymentStatus.CLEARING;
+    this.submittedToClearingAt = Instant.now();
     addStatusChange(
         PaymentStatus.VALIDATED,
         PaymentStatus.CLEARING,
@@ -203,6 +224,7 @@ public class Payment {
 
   /** Mark payment as cleared (clearing confirmed) */
   public void markCleared(ClearingConfirmation confirmation) {
+    Objects.requireNonNull(confirmation, "Clearing confirmation cannot be null");
     // Guard: Payment must be in CLEARING status
     if (this.status != PaymentStatus.CLEARING) {
       throw new InvalidStateTransitionException(
@@ -210,6 +232,7 @@ public class Payment {
     }
 
     this.status = PaymentStatus.CLEARED;
+    this.clearedAt = Instant.now();
     addStatusChange(
         PaymentStatus.CLEARING,
         PaymentStatus.CLEARED,
@@ -237,6 +260,9 @@ public class Payment {
 
   /** Fail the payment Can be called from any non-final state */
   public void fail(String reason) {
+    if (reason == null || reason.isBlank()) {
+      throw new IllegalArgumentException("Failure reason cannot be null or blank");
+    }
     // Guard: Cannot fail already completed/failed payments
     if (this.status == PaymentStatus.COMPLETED || this.status == PaymentStatus.FAILED) {
       throw new InvalidStateTransitionException(
@@ -245,6 +271,8 @@ public class Payment {
 
     PaymentStatus previousStatus = this.status;
     this.status = PaymentStatus.FAILED;
+    this.failedAt = Instant.now();
+    this.failureReason = reason;
     addStatusChange(previousStatus, PaymentStatus.FAILED, reason);
 
     registerEvent(new PaymentFailedEvent(this.id, this.tenantContext, reason, previousStatus));
@@ -266,11 +294,17 @@ public class Payment {
     return Collections.unmodifiableList(domainEvents);
   }
 
+  public List<StatusChange> getStatusHistory() {
+    return Collections.unmodifiableList(statusHistory);
+  }
+
   public void clearDomainEvents() {
     this.domainEvents.clear();
   }
 
   public void updateStatus(PaymentStatus newStatus, String reason) {
+    Objects.requireNonNull(newStatus, "New status cannot be null");
+    Objects.requireNonNull(reason, "Reason cannot be null");
     PaymentStatus oldStatus = this.status;
     this.status = newStatus;
     addStatusChange(oldStatus, newStatus, reason);
@@ -288,4 +322,3 @@ public class Payment {
     this.domainEvents.add(event);
   }
 }
-

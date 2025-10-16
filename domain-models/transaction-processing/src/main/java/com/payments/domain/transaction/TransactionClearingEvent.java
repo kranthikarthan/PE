@@ -24,9 +24,3 @@ public class TransactionClearingEvent implements DomainEvent {
     return Instant.now();
   }
 }
-
-
-
-
-
-

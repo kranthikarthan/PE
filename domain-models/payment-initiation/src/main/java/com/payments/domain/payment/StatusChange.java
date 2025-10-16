@@ -3,16 +3,13 @@ package com.payments.domain.payment;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-
-/**
- * Status Change (Entity within Payment Aggregate)
- */
+/** Status Change (Entity within Payment Aggregate) */
 @Embeddable
 @Data
 @Builder

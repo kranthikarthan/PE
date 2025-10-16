@@ -1,3 +1,4 @@
+C:\git\clone\PE\contracts\src\main\java\com\payments\contracts\events\FailedRuleDto.java
 C:\git\clone\PE\contracts\src\main\java\com\payments\contracts\events\BaseEvent.java
 C:\git\clone\PE\contracts\src\main\java\com\payments\contracts\events\PaymentCompletedEvent.java
 C:\git\clone\PE\contracts\src\main\java\com\payments\contracts\validation\FailedRule.java
@@ -14,4 +15,5 @@ C:\git\clone\PE\contracts\src\main\java\com\payments\contracts\events\PaymentFai
 C:\git\clone\PE\contracts\src\main\java\com\payments\contracts\validation\ValidationStatus.java
 C:\git\clone\PE\contracts\src\main\java\com\payments\contracts\validation\RuleType.java
 C:\git\clone\PE\contracts\src\main\java\com\payments\contracts\validation\ValidationRequest.java
+C:\git\clone\PE\contracts\src\main\java\com\payments\contracts\events\ValidationResponseDto.java
 C:\git\clone\PE\contracts\src\main\java\com\payments\contracts\validation\RiskLevel.java

@@ -8,21 +8,20 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Web Configuration
- * 
- * Configures web-related components:
- * - Validation interceptors
- * - CORS settings
- * - Request/response handling
+ *
+ * <p>Configures web-related components: - Validation interceptors - CORS settings -
+ * Request/response handling
  */
 @Configuration
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    private final PaymentValidationInterceptor paymentValidationInterceptor;
+  private final PaymentValidationInterceptor paymentValidationInterceptor;
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(paymentValidationInterceptor)
-                .addPathPatterns("/api/v1/payments/initiate");
-    }
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry
+        .addInterceptor(paymentValidationInterceptor)
+        .addPathPatterns("/api/v1/payments/initiate");
+  }
 }

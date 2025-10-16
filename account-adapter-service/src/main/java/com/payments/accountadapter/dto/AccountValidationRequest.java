@@ -9,11 +9,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * Account Validation Request DTO
- * 
- * Request for validating account information:
- * - Account details
- * - Validation criteria
- * - Request metadata
+ *
+ * <p>Request for validating account information: - Account details - Validation criteria - Request
+ * metadata
  */
 @Data
 @Builder
@@ -21,22 +19,22 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AccountValidationRequest {
 
-    @NotBlank(message = "Account number is required")
-    private String accountNumber;
+  @NotBlank(message = "Account number is required")
+  private String accountNumber;
 
-    @NotBlank(message = "Tenant ID is required")
-    private String tenantId;
+  @NotBlank(message = "Tenant ID is required")
+  private String tenantId;
 
-    @NotBlank(message = "Business unit ID is required")
-    private String businessUnitId;
+  @NotBlank(message = "Business unit ID is required")
+  private String businessUnitId;
 
-    @NotNull(message = "Request timestamp is required")
-    private Long requestTimestamp;
+  @NotNull(message = "Request timestamp is required")
+  private Long requestTimestamp;
 
-    private String accountHolderName;
-    private String accountType;
-    private String validationType;
-    private String correlationId;
-    private String requestId;
-    private String clientId;
+  private String accountHolderName;
+  private String accountType;
+  private String validationType;
+  private String correlationId;
+  private String requestId;
+  private String clientId;
 }

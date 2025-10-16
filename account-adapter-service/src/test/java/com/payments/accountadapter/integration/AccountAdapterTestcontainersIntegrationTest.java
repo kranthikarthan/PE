@@ -1,8 +1,11 @@
 package com.payments.accountadapter.integration;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.payments.accountadapter.dto.*;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,305 +25,291 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.math.BigDecimal;
-import java.util.UUID;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Account Adapter Testcontainers Integration Test
- * 
- * Integration tests using Testcontainers for Redis:
- * - Redis integration testing
- * - Cache functionality testing
- * - End-to-end testing
- * - Real infrastructure testing
+ *
+ * <p>Integration tests using Testcontainers for Redis: - Redis integration testing - Cache
+ * functionality testing - End-to-end testing - Real infrastructure testing
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Testcontainers
 class AccountAdapterTestcontainersIntegrationTest {
 
-    @Container
-    static GenericContainer<?> redis = new GenericContainer<>("redis:7-alpine")
-            .withExposedPorts(6379);
+  @Container
+  static GenericContainer<?> redis =
+      new GenericContainer<>("redis:7-alpine").withExposedPorts(6379);
 
-    @Autowired
-    private WireMockServer wireMockServer;
+  @Autowired private WireMockServer wireMockServer;
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+  @Autowired private TestRestTemplate restTemplate;
 
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+  @Autowired private RedisTemplate<String, Object> redisTemplate;
 
-    @LocalServerPort
-    private int port;
+  @LocalServerPort private int port;
 
-    private String baseUrl;
-    private String accountNumber;
-    private String tenantId;
-    private String businessUnitId;
-    private String correlationId;
+  private String baseUrl;
+  private String accountNumber;
+  private String tenantId;
+  private String businessUnitId;
+  private String correlationId;
 
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.redis.host", redis::getHost);
-        registry.add("spring.redis.port", () -> redis.getMappedPort(6379));
+  @DynamicPropertySource
+  static void configureProperties(DynamicPropertyRegistry registry) {
+    registry.add("spring.redis.host", redis::getHost);
+    registry.add("spring.redis.port", () -> redis.getMappedPort(6379));
+  }
+
+  @BeforeEach
+  void setUp() {
+    baseUrl = "http://localhost:" + port + "/account-adapter-service";
+    accountNumber = "12345678901";
+    tenantId = "tenant-123";
+    businessUnitId = "business-unit-456";
+    correlationId = UUID.randomUUID().toString();
+
+    // Clear Redis cache
+    redisTemplate.getConnectionFactory().getConnection().flushAll();
+
+    // Setup WireMock stubs
+    setupWireMockStubs();
+  }
+
+  @AfterEach
+  void tearDown() {
+    wireMockServer.resetAll();
+    redisTemplate.getConnectionFactory().getConnection().flushAll();
+  }
+
+  /** Test Redis cache integration */
+  @Test
+  void testRedisCacheIntegration() {
+    // Given
+    String url = baseUrl + "/api/v1/accounts/" + accountNumber + "/balance";
+    HttpHeaders headers = createHeaders();
+
+    // When - First call (should cache response)
+    ResponseEntity<AccountBalanceResponse> response1 =
+        restTemplate.exchange(
+            url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
+
+    // When - Second call (should use cache)
+    ResponseEntity<AccountBalanceResponse> response2 =
+        restTemplate.exchange(
+            url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
+
+    // Then
+    assertThat(response1.getStatusCode().is2xxSuccessful()).isTrue();
+    assertThat(response2.getStatusCode().is2xxSuccessful()).isTrue();
+    assertThat(response1.getBody()).isNotNull();
+    assertThat(response2.getBody()).isNotNull();
+
+    // Verify cache is working
+    String cacheKey = "account:balance:" + tenantId + ":" + accountNumber;
+    Object cached = redisTemplate.opsForValue().get(cacheKey);
+    assertThat(cached).isNotNull();
+
+    // Verify WireMock was called only once (second call used cache)
+    wireMockServer.verify(1, getRequestedFor(urlEqualTo("/api/v1/accounts/balance")));
+  }
+
+  /** Test OAuth2 token caching in Redis */
+  @Test
+  void testOAuth2TokenCaching() {
+    // Given
+    String url = baseUrl + "/api/v1/accounts/" + accountNumber + "/balance";
+    HttpHeaders headers = createHeaders();
+
+    // When - Make multiple calls
+    for (int i = 0; i < 3; i++) {
+      ResponseEntity<AccountBalanceResponse> response =
+          restTemplate.exchange(
+              url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
+
+      assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
     }
 
-    @BeforeEach
-    void setUp() {
-        baseUrl = "http://localhost:" + port + "/account-adapter-service";
-        accountNumber = "12345678901";
-        tenantId = "tenant-123";
-        businessUnitId = "business-unit-456";
-        correlationId = UUID.randomUUID().toString();
+    // Then - Verify OAuth2 token is cached
+    String tokenCacheKey = "oauth2:token:account-service";
+    Object cachedToken = redisTemplate.opsForValue().get(tokenCacheKey);
+    assertThat(cachedToken).isNotNull();
 
-        // Clear Redis cache
-        redisTemplate.getConnectionFactory().getConnection().flushAll();
+    // Verify OAuth2 token endpoint was called only once
+    wireMockServer.verify(1, postRequestedFor(urlEqualTo("/oauth/token")));
+  }
 
-        // Setup WireMock stubs
-        setupWireMockStubs();
-    }
+  /** Test cache expiration */
+  @Test
+  void testCacheExpiration() throws InterruptedException {
+    // Given
+    String url = baseUrl + "/api/v1/accounts/" + accountNumber + "/balance";
+    HttpHeaders headers = createHeaders();
 
-    @AfterEach
-    void tearDown() {
-        wireMockServer.resetAll();
-        redisTemplate.getConnectionFactory().getConnection().flushAll();
-    }
+    // When - First call
+    ResponseEntity<AccountBalanceResponse> response1 =
+        restTemplate.exchange(
+            url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
 
-    /**
-     * Test Redis cache integration
-     */
-    @Test
-    void testRedisCacheIntegration() {
-        // Given
-        String url = baseUrl + "/api/v1/accounts/" + accountNumber + "/balance";
-        HttpHeaders headers = createHeaders();
+    // Wait for cache to expire (test TTL is 10 seconds)
+    Thread.sleep(11000);
 
-        // When - First call (should cache response)
-        ResponseEntity<AccountBalanceResponse> response1 = restTemplate.exchange(
-                url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
+    // When - Second call after cache expiration
+    ResponseEntity<AccountBalanceResponse> response2 =
+        restTemplate.exchange(
+            url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
 
-        // When - Second call (should use cache)
-        ResponseEntity<AccountBalanceResponse> response2 = restTemplate.exchange(
-                url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
+    // Then
+    assertThat(response1.getStatusCode().is2xxSuccessful()).isTrue();
+    assertThat(response2.getStatusCode().is2xxSuccessful()).isTrue();
 
-        // Then
-        assertThat(response1.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response2.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response1.getBody()).isNotNull();
-        assertThat(response2.getBody()).isNotNull();
+    // Verify WireMock was called twice (cache expired)
+    wireMockServer.verify(2, getRequestedFor(urlEqualTo("/api/v1/accounts/balance")));
+  }
 
-        // Verify cache is working
-        String cacheKey = "account:balance:" + tenantId + ":" + accountNumber;
-        Object cached = redisTemplate.opsForValue().get(cacheKey);
-        assertThat(cached).isNotNull();
+  /** Test cache clearing functionality */
+  @Test
+  void testCacheClearing() {
+    // Given
+    String url = baseUrl + "/api/v1/accounts/" + accountNumber + "/balance";
+    HttpHeaders headers = createHeaders();
 
-        // Verify WireMock was called only once (second call used cache)
-        wireMockServer.verify(1, getRequestedFor(urlEqualTo("/api/v1/accounts/balance")));
-    }
+    // When - First call (should cache response)
+    ResponseEntity<AccountBalanceResponse> response1 =
+        restTemplate.exchange(
+            url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
 
-    /**
-     * Test OAuth2 token caching in Redis
-     */
-    @Test
-    void testOAuth2TokenCaching() {
-        // Given
-        String url = baseUrl + "/api/v1/accounts/" + accountNumber + "/balance";
-        HttpHeaders headers = createHeaders();
+    // Clear cache via API
+    String clearCacheUrl = baseUrl + "/api/v1/cache/accounts/" + accountNumber;
+    ResponseEntity<Object> clearResponse =
+        restTemplate.exchange(
+            clearCacheUrl, HttpMethod.DELETE, new HttpEntity<>(headers), Object.class);
 
-        // When - Make multiple calls
-        for (int i = 0; i < 3; i++) {
-            ResponseEntity<AccountBalanceResponse> response = restTemplate.exchange(
-                    url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
-            
-            assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        }
+    // When - Second call after cache clearing
+    ResponseEntity<AccountBalanceResponse> response2 =
+        restTemplate.exchange(
+            url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
 
-        // Then - Verify OAuth2 token is cached
-        String tokenCacheKey = "oauth2:token:account-service";
-        Object cachedToken = redisTemplate.opsForValue().get(tokenCacheKey);
-        assertThat(cachedToken).isNotNull();
+    // Then
+    assertThat(response1.getStatusCode().is2xxSuccessful()).isTrue();
+    assertThat(clearResponse.getStatusCode().is2xxSuccessful()).isTrue();
+    assertThat(response2.getStatusCode().is2xxSuccessful()).isTrue();
 
-        // Verify OAuth2 token endpoint was called only once
-        wireMockServer.verify(1, postRequestedFor(urlEqualTo("/oauth/token")));
-    }
+    // Verify WireMock was called twice (cache was cleared)
+    wireMockServer.verify(2, getRequestedFor(urlEqualTo("/api/v1/accounts/balance")));
+  }
 
-    /**
-     * Test cache expiration
-     */
-    @Test
-    void testCacheExpiration() throws InterruptedException {
-        // Given
-        String url = baseUrl + "/api/v1/accounts/" + accountNumber + "/balance";
-        HttpHeaders headers = createHeaders();
+  /** Test comprehensive account information */
+  @Test
+  void testComprehensiveAccountInfo() {
+    // Given
+    String url = baseUrl + "/api/v1/orchestration/accounts/" + accountNumber + "/comprehensive";
+    HttpHeaders headers = createHeaders();
 
-        // When - First call
-        ResponseEntity<AccountBalanceResponse> response1 = restTemplate.exchange(
-                url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
+    // When
+    ResponseEntity<Object> response =
+        restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), Object.class);
 
-        // Wait for cache to expire (test TTL is 10 seconds)
-        Thread.sleep(11000);
+    // Then
+    assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+    assertThat(response.getBody()).isNotNull();
 
-        // When - Second call after cache expiration
-        ResponseEntity<AccountBalanceResponse> response2 = restTemplate.exchange(
-                url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
+    // Verify all required endpoints were called
+    wireMockServer.verify(postRequestedFor(urlEqualTo("/api/v1/accounts/validate")));
+    wireMockServer.verify(getRequestedFor(urlEqualTo("/api/v1/accounts/status")));
+    wireMockServer.verify(getRequestedFor(urlEqualTo("/api/v1/accounts/balance")));
+  }
 
-        // Then
-        assertThat(response1.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response2.getStatusCode().is2xxSuccessful()).isTrue();
+  /** Test batch account validation */
+  @Test
+  void testBatchAccountValidation() {
+    // Given
+    String url = baseUrl + "/api/v1/orchestration/accounts/batch-validation";
+    HttpHeaders headers = createHeaders();
+    headers.set("Content-Type", "application/json");
 
-        // Verify WireMock was called twice (cache expired)
-        wireMockServer.verify(2, getRequestedFor(urlEqualTo("/api/v1/accounts/balance")));
-    }
+    String requestBody = "[\"12345678901\", \"12345678902\", \"12345678903\"]";
 
-    /**
-     * Test cache clearing functionality
-     */
-    @Test
-    void testCacheClearing() {
-        // Given
-        String url = baseUrl + "/api/v1/accounts/" + accountNumber + "/balance";
-        HttpHeaders headers = createHeaders();
+    // When
+    ResponseEntity<Object> response =
+        restTemplate.exchange(
+            url, HttpMethod.POST, new HttpEntity<>(requestBody, headers), Object.class);
 
-        // When - First call (should cache response)
-        ResponseEntity<AccountBalanceResponse> response1 = restTemplate.exchange(
-                url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
+    // Then
+    assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+    assertThat(response.getBody()).isNotNull();
 
-        // Clear cache via API
-        String clearCacheUrl = baseUrl + "/api/v1/cache/accounts/" + accountNumber;
-        ResponseEntity<Object> clearResponse = restTemplate.exchange(
-                clearCacheUrl, HttpMethod.DELETE, new HttpEntity<>(headers), Object.class);
+    // Verify validation endpoint was called for each account
+    wireMockServer.verify(3, postRequestedFor(urlEqualTo("/api/v1/accounts/validate")));
+  }
 
-        // When - Second call after cache clearing
-        ResponseEntity<AccountBalanceResponse> response2 = restTemplate.exchange(
-                url, HttpMethod.GET, new HttpEntity<>(headers), AccountBalanceResponse.class);
+  /** Test health monitoring */
+  @Test
+  void testHealthMonitoring() {
+    // Given
+    String url = baseUrl + "/api/v1/health";
 
-        // Then
-        assertThat(response1.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(clearResponse.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response2.getStatusCode().is2xxSuccessful()).isTrue();
+    // When
+    ResponseEntity<Object> response =
+        restTemplate.exchange(
+            url, HttpMethod.GET, new HttpEntity<>(new HttpHeaders()), Object.class);
 
-        // Verify WireMock was called twice (cache was cleared)
-        wireMockServer.verify(2, getRequestedFor(urlEqualTo("/api/v1/accounts/balance")));
-    }
+    // Then
+    assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+    assertThat(response.getBody()).isNotNull();
+  }
 
-    /**
-     * Test comprehensive account information
-     */
-    @Test
-    void testComprehensiveAccountInfo() {
-        // Given
-        String url = baseUrl + "/api/v1/orchestration/accounts/" + accountNumber + "/comprehensive";
-        HttpHeaders headers = createHeaders();
+  /** Setup WireMock stubs */
+  private void setupWireMockStubs() {
+    // OAuth2 token endpoint
+    wireMockServer.stubFor(
+        post(urlEqualTo("/oauth/token"))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        "{\"access_token\":\"test-token-123\",\"token_type\":\"Bearer\",\"expires_in\":3600}")));
 
-        // When
-        ResponseEntity<Object> response = restTemplate.exchange(
-                url, HttpMethod.GET, new HttpEntity<>(headers), Object.class);
+    // Account balance endpoint
+    wireMockServer.stubFor(
+        get(urlEqualTo("/api/v1/accounts/balance"))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(createAccountBalanceResponseJson())));
 
-        // Then
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isNotNull();
+    // Account validation endpoint
+    wireMockServer.stubFor(
+        post(urlEqualTo("/api/v1/accounts/validate"))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(createAccountValidationResponseJson())));
 
-        // Verify all required endpoints were called
-        wireMockServer.verify(postRequestedFor(urlEqualTo("/api/v1/accounts/validate")));
-        wireMockServer.verify(getRequestedFor(urlEqualTo("/api/v1/accounts/status")));
-        wireMockServer.verify(getRequestedFor(urlEqualTo("/api/v1/accounts/balance")));
-    }
+    // Account status endpoint
+    wireMockServer.stubFor(
+        get(urlEqualTo("/api/v1/accounts/status"))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(createAccountStatusResponseJson())));
+  }
 
-    /**
-     * Test batch account validation
-     */
-    @Test
-    void testBatchAccountValidation() {
-        // Given
-        String url = baseUrl + "/api/v1/orchestration/accounts/batch-validation";
-        HttpHeaders headers = createHeaders();
-        headers.set("Content-Type", "application/json");
+  /** Create test headers */
+  private HttpHeaders createHeaders() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("X-Tenant-ID", tenantId);
+    headers.set("X-Business-Unit-ID", businessUnitId);
+    headers.set("X-Correlation-ID", correlationId);
+    return headers;
+  }
 
-        String requestBody = "[\"12345678901\", \"12345678902\", \"12345678903\"]";
-
-        // When
-        ResponseEntity<Object> response = restTemplate.exchange(
-                url, HttpMethod.POST, new HttpEntity<>(requestBody, headers), Object.class);
-
-        // Then
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isNotNull();
-
-        // Verify validation endpoint was called for each account
-        wireMockServer.verify(3, postRequestedFor(urlEqualTo("/api/v1/accounts/validate")));
-    }
-
-    /**
-     * Test health monitoring
-     */
-    @Test
-    void testHealthMonitoring() {
-        // Given
-        String url = baseUrl + "/api/v1/health";
-
-        // When
-        ResponseEntity<Object> response = restTemplate.exchange(
-                url, HttpMethod.GET, new HttpEntity<>(new HttpHeaders()), Object.class);
-
-        // Then
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isNotNull();
-    }
-
-    /**
-     * Setup WireMock stubs
-     */
-    private void setupWireMockStubs() {
-        // OAuth2 token endpoint
-        wireMockServer.stubFor(post(urlEqualTo("/oauth/token"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("{\"access_token\":\"test-token-123\",\"token_type\":\"Bearer\",\"expires_in\":3600}")));
-
-        // Account balance endpoint
-        wireMockServer.stubFor(get(urlEqualTo("/api/v1/accounts/balance"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(createAccountBalanceResponseJson())));
-
-        // Account validation endpoint
-        wireMockServer.stubFor(post(urlEqualTo("/api/v1/accounts/validate"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(createAccountValidationResponseJson())));
-
-        // Account status endpoint
-        wireMockServer.stubFor(get(urlEqualTo("/api/v1/accounts/status"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(createAccountStatusResponseJson())));
-    }
-
-    /**
-     * Create test headers
-     */
-    private HttpHeaders createHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Tenant-ID", tenantId);
-        headers.set("X-Business-Unit-ID", businessUnitId);
-        headers.set("X-Correlation-ID", correlationId);
-        return headers;
-    }
-
-    /**
-     * Create account balance response JSON
-     */
-    private String createAccountBalanceResponseJson() {
-        return """
+  /** Create account balance response JSON */
+  private String createAccountBalanceResponseJson() {
+    return """
                 {
                     "accountNumber": "12345678901",
                     "accountHolderName": "John Doe",
@@ -337,14 +326,13 @@ class AccountAdapterTestcontainersIntegrationTest {
                     "responseTimestamp": %d,
                     "requestId": "req-123"
                 }
-                """.formatted(correlationId, System.currentTimeMillis());
-    }
+                """
+        .formatted(correlationId, System.currentTimeMillis());
+  }
 
-    /**
-     * Create account validation response JSON
-     */
-    private String createAccountValidationResponseJson() {
-        return """
+  /** Create account validation response JSON */
+  private String createAccountValidationResponseJson() {
+    return """
                 {
                     "accountNumber": "12345678901",
                     "accountHolderName": "John Doe",
@@ -361,14 +349,13 @@ class AccountAdapterTestcontainersIntegrationTest {
                     "requestId": "req-123",
                     "validatedAt": "2024-01-15T10:30:00Z"
                 }
-                """.formatted(correlationId, System.currentTimeMillis());
-    }
+                """
+        .formatted(correlationId, System.currentTimeMillis());
+  }
 
-    /**
-     * Create account status response JSON
-     */
-    private String createAccountStatusResponseJson() {
-        return """
+  /** Create account status response JSON */
+  private String createAccountStatusResponseJson() {
+    return """
                 {
                     "accountNumber": "12345678901",
                     "accountHolderName": "John Doe",
@@ -386,6 +373,7 @@ class AccountAdapterTestcontainersIntegrationTest {
                     "requestId": "req-123",
                     "lastActivityDate": "2024-01-15T10:30:00Z"
                 }
-                """.formatted(correlationId, System.currentTimeMillis());
-    }
+                """
+        .formatted(correlationId, System.currentTimeMillis());
+  }
 }

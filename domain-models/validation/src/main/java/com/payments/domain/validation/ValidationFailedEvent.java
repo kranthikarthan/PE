@@ -25,9 +25,3 @@ public class ValidationFailedEvent implements DomainEvent {
     return Instant.now();
   }
 }
-
-
-
-
-
-

@@ -1,13 +1,12 @@
 package com.payments.domain.payment;
 
 import com.payments.domain.shared.DomainEvent;
+import com.payments.domain.shared.Money;
 import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
-import com.payments.domain.shared.Money;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Value;
-
-import java.time.Instant;
 
 @Value
 @AllArgsConstructor
@@ -27,9 +26,3 @@ public class PaymentCompletedEvent implements DomainEvent {
     return completedAt;
   }
 }
-
-
-
-
-
-

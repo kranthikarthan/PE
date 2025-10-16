@@ -6,20 +6,16 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * Account Adapter Service Application
- * 
- * Provides account system integration:
- * - External account system integration
- * - Account balance validation
- * - Account status checking
- * - Account holder verification
- * - OAuth2 authentication
- * - Circuit breaker patterns
+ *
+ * <p>Provides account system integration: - External account system integration - Account balance
+ * validation - Account status checking - Account holder verification - OAuth2 authentication -
+ * Circuit breaker patterns
  */
 @SpringBootApplication
 @EnableFeignClients
 public class AccountAdapterServiceApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(AccountAdapterServiceApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(AccountAdapterServiceApplication.class, args);
+  }
 }

@@ -24,9 +24,3 @@ public class TransactionCompletedEvent implements DomainEvent {
     return completedAt;
   }
 }
-
-
-
-
-
-

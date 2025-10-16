@@ -1,9 +1,13 @@
 package com.payments.saga.event;
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payments.domain.shared.TenantContext;
 import com.payments.saga.domain.*;
-import com.payments.saga.event.SagaEventPublisher;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,253 +15,274 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
-import org.springframework.util.concurrent.ListenableFuture;
 
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
-/**
- * Unit tests for SagaEventPublisher
- */
+/** Unit tests for SagaEventPublisher */
 @ExtendWith(MockitoExtension.class)
 class SagaEventPublisherTest {
 
-    @Mock
-    private KafkaTemplate<String, String> kafkaTemplate;
-    
-    @Mock
-    private ObjectMapper objectMapper;
+  @Mock private KafkaTemplate<String, String> kafkaTemplate;
 
-    private SagaEventPublisher sagaEventPublisher;
-    private TenantContext tenantContext;
+  @Mock private ObjectMapper objectMapper;
 
-    @BeforeEach
-    void setUp() {
-        sagaEventPublisher = new SagaEventPublisher(kafkaTemplate, objectMapper);
-        tenantContext = TenantContext.of("tenant-1", "Test Tenant", "bu-1", "Test Business Unit");
-    }
+  private SagaEventPublisher sagaEventPublisher;
+  private TenantContext tenantContext;
 
-    @Test
-    void testPublishSagaStarted() throws Exception {
-        // Given
-        SagaId sagaId = SagaId.generate();
-        SagaStartedEvent event = new SagaStartedEvent(
-            sagaId, tenantContext, "corr-123", "TestSaga", 
-            Map.of("paymentId", "pay-456", "amount", 1000.0)
-        );
-        
-        String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
-        CompletableFuture<SendResult<String, String>> future = CompletableFuture.completedFuture(mock(SendResult.class));
-        
-        when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
-        when(kafkaTemplate.send(eq("saga.started"), eq(sagaId.getValue()), eq(expectedMessage)))
-                .thenReturn(future);
+  @BeforeEach
+  void setUp() {
+    sagaEventPublisher = new SagaEventPublisher(kafkaTemplate, objectMapper);
+    tenantContext = TenantContext.of("tenant-1", "Test Tenant", "bu-1", "Test Business Unit");
+  }
 
-        // When
-        sagaEventPublisher.publishSagaStarted(event);
+  @Test
+  void testPublishSagaStarted() throws Exception {
+    // Given
+    SagaId sagaId = SagaId.generate();
+    SagaStartedEvent event =
+        new SagaStartedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "TestSaga",
+            Map.of("paymentId", "pay-456", "amount", 1000.0));
 
-        // Then
-        verify(objectMapper).writeValueAsString(any(Map.class));
-        verify(kafkaTemplate).send(eq("saga.started"), eq(sagaId.getValue()), eq(expectedMessage));
-    }
+    String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
+    CompletableFuture<SendResult<String, String>> future =
+        CompletableFuture.completedFuture(mock(SendResult.class));
 
-    @Test
-    void testPublishSagaStepStarted() throws Exception {
-        // Given
-        SagaId sagaId = SagaId.generate();
-        SagaStepStartedEvent event = new SagaStepStartedEvent(
-            sagaId, tenantContext, "corr-123", "ValidatePayment", 
-            SagaStepType.VALIDATION, 1, "validation-service", "/api/v1/validate"
-        );
-        
-        String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
-        CompletableFuture<SendResult<String, String>> future = CompletableFuture.completedFuture(mock(SendResult.class));
-        
-        when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
-        when(kafkaTemplate.send(eq("saga.step.started"), eq(sagaId.getValue()), eq(expectedMessage)))
-                .thenReturn(future);
+    when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
+    when(kafkaTemplate.send(eq("saga.started"), eq(sagaId.getValue()), eq(expectedMessage)))
+        .thenReturn(future);
 
-        // When
-        sagaEventPublisher.publishSagaStepStarted(event);
+    // When
+    sagaEventPublisher.publishSagaStarted(event);
 
-        // Then
-        verify(objectMapper).writeValueAsString(any(Map.class));
-        verify(kafkaTemplate).send(eq("saga.step.started"), eq(sagaId.getValue()), eq(expectedMessage));
-    }
+    // Then
+    verify(objectMapper).writeValueAsString(any(Map.class));
+    verify(kafkaTemplate).send(eq("saga.started"), eq(sagaId.getValue()), eq(expectedMessage));
+  }
 
-    @Test
-    void testPublishSagaStepCompleted() throws Exception {
-        // Given
-        SagaId sagaId = SagaId.generate();
-        SagaStepCompletedEvent event = new SagaStepCompletedEvent(
-            sagaId, tenantContext, "corr-123", "ValidatePayment", 
-            SagaStepType.VALIDATION, 1, "validation-service", 
-            Map.of("validationResult", "success")
-        );
-        
-        String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
-        CompletableFuture<SendResult<String, String>> future = CompletableFuture.completedFuture(mock(SendResult.class));
-        
-        when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
-        when(kafkaTemplate.send(eq("saga.step.completed"), eq(sagaId.getValue()), eq(expectedMessage)))
-                .thenReturn(future);
+  @Test
+  void testPublishSagaStepStarted() throws Exception {
+    // Given
+    SagaId sagaId = SagaId.generate();
+    SagaStepStartedEvent event =
+        new SagaStepStartedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "ValidatePayment",
+            SagaStepType.VALIDATION,
+            1,
+            "validation-service",
+            "/api/v1/validate");
 
-        // When
-        sagaEventPublisher.publishSagaStepCompleted(event);
+    String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
+    CompletableFuture<SendResult<String, String>> future =
+        CompletableFuture.completedFuture(mock(SendResult.class));
 
-        // Then
-        verify(objectMapper).writeValueAsString(any(Map.class));
-        verify(kafkaTemplate).send(eq("saga.step.completed"), eq(sagaId.getValue()), eq(expectedMessage));
-    }
+    when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
+    when(kafkaTemplate.send(eq("saga.step.started"), eq(sagaId.getValue()), eq(expectedMessage)))
+        .thenReturn(future);
 
-    @Test
-    void testPublishSagaStepFailed() throws Exception {
-        // Given
-        SagaId sagaId = SagaId.generate();
-        SagaStepFailedEvent event = new SagaStepFailedEvent(
-            sagaId, tenantContext, "corr-123", "ValidatePayment", 
-            SagaStepType.VALIDATION, 1, "validation-service", 
-            "Validation failed", Map.of("error", "invalid_data")
-        );
-        
-        String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
-        CompletableFuture<SendResult<String, String>> future = CompletableFuture.completedFuture(mock(SendResult.class));
-        
-        when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
-        when(kafkaTemplate.send(eq("saga.step.failed"), eq(sagaId.getValue()), eq(expectedMessage)))
-                .thenReturn(future);
+    // When
+    sagaEventPublisher.publishSagaStepStarted(event);
 
-        // When
-        sagaEventPublisher.publishSagaStepFailed(event);
+    // Then
+    verify(objectMapper).writeValueAsString(any(Map.class));
+    verify(kafkaTemplate).send(eq("saga.step.started"), eq(sagaId.getValue()), eq(expectedMessage));
+  }
 
-        // Then
-        verify(objectMapper).writeValueAsString(any(Map.class));
-        verify(kafkaTemplate).send(eq("saga.step.failed"), eq(sagaId.getValue()), eq(expectedMessage));
-    }
+  @Test
+  void testPublishSagaStepCompleted() throws Exception {
+    // Given
+    SagaId sagaId = SagaId.generate();
+    SagaStepCompletedEvent event =
+        new SagaStepCompletedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "ValidatePayment",
+            SagaStepType.VALIDATION,
+            1,
+            "validation-service",
+            Map.of("validationResult", "success"));
 
-    @Test
-    void testPublishSagaCompleted() throws Exception {
-        // Given
-        SagaId sagaId = SagaId.generate();
-        SagaCompletedEvent event = new SagaCompletedEvent(
-            sagaId, tenantContext, "corr-123", "TestSaga", 
-            Map.of("totalSteps", 5, "duration", 1200)
-        );
-        
-        String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
-        CompletableFuture<SendResult<String, String>> future = CompletableFuture.completedFuture(mock(SendResult.class));
-        
-        when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
-        when(kafkaTemplate.send(eq("saga.completed"), eq(sagaId.getValue()), eq(expectedMessage)))
-                .thenReturn(future);
+    String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
+    CompletableFuture<SendResult<String, String>> future =
+        CompletableFuture.completedFuture(mock(SendResult.class));
 
-        // When
-        sagaEventPublisher.publishSagaCompleted(event);
+    when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
+    when(kafkaTemplate.send(eq("saga.step.completed"), eq(sagaId.getValue()), eq(expectedMessage)))
+        .thenReturn(future);
 
-        // Then
-        verify(objectMapper).writeValueAsString(any(Map.class));
-        verify(kafkaTemplate).send(eq("saga.completed"), eq(sagaId.getValue()), eq(expectedMessage));
-    }
+    // When
+    sagaEventPublisher.publishSagaStepCompleted(event);
 
-    @Test
-    void testPublishSagaCompensationStarted() throws Exception {
-        // Given
-        SagaId sagaId = SagaId.generate();
-        SagaCompensationStartedEvent event = new SagaCompensationStartedEvent(
-            sagaId, tenantContext, "corr-123", "TestSaga", 
-            "Step failed", Map.of("failedStep", "ValidatePayment")
-        );
-        
-        String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
-        CompletableFuture<SendResult<String, String>> future = CompletableFuture.completedFuture(mock(SendResult.class));
-        
-        when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
-        when(kafkaTemplate.send(eq("saga.compensation.started"), eq(sagaId.getValue()), eq(expectedMessage)))
-                .thenReturn(future);
+    // Then
+    verify(objectMapper).writeValueAsString(any(Map.class));
+    verify(kafkaTemplate)
+        .send(eq("saga.step.completed"), eq(sagaId.getValue()), eq(expectedMessage));
+  }
 
-        // When
-        sagaEventPublisher.publishSagaCompensationStarted(event);
+  @Test
+  void testPublishSagaStepFailed() throws Exception {
+    // Given
+    SagaId sagaId = SagaId.generate();
+    SagaStepFailedEvent event =
+        new SagaStepFailedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "ValidatePayment",
+            SagaStepType.VALIDATION,
+            1,
+            "validation-service",
+            "Validation failed",
+            Map.of("error", "invalid_data"));
 
-        // Then
-        verify(objectMapper).writeValueAsString(any(Map.class));
-        verify(kafkaTemplate).send(eq("saga.compensation.started"), eq(sagaId.getValue()), eq(expectedMessage));
-    }
+    String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
+    CompletableFuture<SendResult<String, String>> future =
+        CompletableFuture.completedFuture(mock(SendResult.class));
 
-    @Test
-    void testPublishSagaCompensated() throws Exception {
-        // Given
-        SagaId sagaId = SagaId.generate();
-        SagaCompensatedEvent event = new SagaCompensatedEvent(
-            sagaId, tenantContext, "corr-123", "TestSaga", 
-            Map.of("compensatedSteps", 3, "compensationDuration", 800)
-        );
-        
-        String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
-        CompletableFuture<SendResult<String, String>> future = CompletableFuture.completedFuture(mock(SendResult.class));
-        
-        when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
-        when(kafkaTemplate.send(eq("saga.compensated"), eq(sagaId.getValue()), eq(expectedMessage)))
-                .thenReturn(future);
+    when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
+    when(kafkaTemplate.send(eq("saga.step.failed"), eq(sagaId.getValue()), eq(expectedMessage)))
+        .thenReturn(future);
 
-        // When
-        sagaEventPublisher.publishSagaCompensated(event);
+    // When
+    sagaEventPublisher.publishSagaStepFailed(event);
 
-        // Then
-        verify(objectMapper).writeValueAsString(any(Map.class));
-        verify(kafkaTemplate).send(eq("saga.compensated"), eq(sagaId.getValue()), eq(expectedMessage));
-    }
+    // Then
+    verify(objectMapper).writeValueAsString(any(Map.class));
+    verify(kafkaTemplate).send(eq("saga.step.failed"), eq(sagaId.getValue()), eq(expectedMessage));
+  }
 
-    @Test
-    void testPublishEvent_SerializationError() throws Exception {
-        // Given
-        SagaId sagaId = SagaId.generate();
-        SagaStartedEvent event = new SagaStartedEvent(
-            sagaId, tenantContext, "corr-123", "TestSaga", 
-            Map.of("paymentId", "pay-456")
-        );
-        
-        when(objectMapper.writeValueAsString(any(Map.class)))
-                .thenThrow(new RuntimeException("Serialization failed"));
+  @Test
+  void testPublishSagaCompleted() throws Exception {
+    // Given
+    SagaId sagaId = SagaId.generate();
+    SagaCompletedEvent event =
+        new SagaCompletedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "TestSaga",
+            Map.of("totalSteps", 5, "duration", 1200));
 
-        // When
-        sagaEventPublisher.publishSagaStarted(event);
+    String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
+    CompletableFuture<SendResult<String, String>> future =
+        CompletableFuture.completedFuture(mock(SendResult.class));
 
-        // Then
-        verify(objectMapper).writeValueAsString(any(Map.class));
-        verify(kafkaTemplate, never()).send(anyString(), anyString(), anyString());
-    }
+    when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
+    when(kafkaTemplate.send(eq("saga.completed"), eq(sagaId.getValue()), eq(expectedMessage)))
+        .thenReturn(future);
 
-    @Test
-    void testPublishEvent_KafkaError() throws Exception {
-        // Given
-        SagaId sagaId = SagaId.generate();
-        SagaStartedEvent event = new SagaStartedEvent(
-            sagaId, tenantContext, "corr-123", "TestSaga", 
-            Map.of("paymentId", "pay-456")
-        );
-        
-        String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
-        CompletableFuture<SendResult<String, String>> future = new CompletableFuture<>();
-        future.completeExceptionally(new RuntimeException("Kafka error"));
-        
-        when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
-        when(kafkaTemplate.send(eq("saga.started"), eq(sagaId.getValue()), eq(expectedMessage)))
-                .thenReturn(future);
+    // When
+    sagaEventPublisher.publishSagaCompleted(event);
 
-        // When
-        sagaEventPublisher.publishSagaStarted(event);
+    // Then
+    verify(objectMapper).writeValueAsString(any(Map.class));
+    verify(kafkaTemplate).send(eq("saga.completed"), eq(sagaId.getValue()), eq(expectedMessage));
+  }
 
-        // Then
-        verify(objectMapper).writeValueAsString(any(Map.class));
-        verify(kafkaTemplate).send(eq("saga.started"), eq(sagaId.getValue()), eq(expectedMessage));
-    }
+  @Test
+  void testPublishSagaCompensationStarted() throws Exception {
+    // Given
+    SagaId sagaId = SagaId.generate();
+    SagaCompensationStartedEvent event =
+        new SagaCompensationStartedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "TestSaga",
+            "Step failed",
+            Map.of("failedStep", "ValidatePayment"));
+
+    String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
+    CompletableFuture<SendResult<String, String>> future =
+        CompletableFuture.completedFuture(mock(SendResult.class));
+
+    when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
+    when(kafkaTemplate.send(
+            eq("saga.compensation.started"), eq(sagaId.getValue()), eq(expectedMessage)))
+        .thenReturn(future);
+
+    // When
+    sagaEventPublisher.publishSagaCompensationStarted(event);
+
+    // Then
+    verify(objectMapper).writeValueAsString(any(Map.class));
+    verify(kafkaTemplate)
+        .send(eq("saga.compensation.started"), eq(sagaId.getValue()), eq(expectedMessage));
+  }
+
+  @Test
+  void testPublishSagaCompensated() throws Exception {
+    // Given
+    SagaId sagaId = SagaId.generate();
+    SagaCompensatedEvent event =
+        new SagaCompensatedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "TestSaga",
+            Map.of("compensatedSteps", 3, "compensationDuration", 800));
+
+    String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
+    CompletableFuture<SendResult<String, String>> future =
+        CompletableFuture.completedFuture(mock(SendResult.class));
+
+    when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
+    when(kafkaTemplate.send(eq("saga.compensated"), eq(sagaId.getValue()), eq(expectedMessage)))
+        .thenReturn(future);
+
+    // When
+    sagaEventPublisher.publishSagaCompensated(event);
+
+    // Then
+    verify(objectMapper).writeValueAsString(any(Map.class));
+    verify(kafkaTemplate).send(eq("saga.compensated"), eq(sagaId.getValue()), eq(expectedMessage));
+  }
+
+  @Test
+  void testPublishEvent_SerializationError() throws Exception {
+    // Given
+    SagaId sagaId = SagaId.generate();
+    SagaStartedEvent event =
+        new SagaStartedEvent(
+            sagaId, tenantContext, "corr-123", "TestSaga", Map.of("paymentId", "pay-456"));
+
+    when(objectMapper.writeValueAsString(any(Map.class)))
+        .thenThrow(new RuntimeException("Serialization failed"));
+
+    // When
+    sagaEventPublisher.publishSagaStarted(event);
+
+    // Then
+    verify(objectMapper).writeValueAsString(any(Map.class));
+    verify(kafkaTemplate, never()).send(anyString(), anyString(), anyString());
+  }
+
+  @Test
+  void testPublishEvent_KafkaError() throws Exception {
+    // Given
+    SagaId sagaId = SagaId.generate();
+    SagaStartedEvent event =
+        new SagaStartedEvent(
+            sagaId, tenantContext, "corr-123", "TestSaga", Map.of("paymentId", "pay-456"));
+
+    String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
+    CompletableFuture<SendResult<String, String>> future = new CompletableFuture<>();
+    future.completeExceptionally(new RuntimeException("Kafka error"));
+
+    when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(expectedMessage);
+    when(kafkaTemplate.send(eq("saga.started"), eq(sagaId.getValue()), eq(expectedMessage)))
+        .thenReturn(future);
+
+    // When
+    sagaEventPublisher.publishSagaStarted(event);
+
+    // Then
+    verify(objectMapper).writeValueAsString(any(Map.class));
+    verify(kafkaTemplate).send(eq("saga.started"), eq(sagaId.getValue()), eq(expectedMessage));
+  }
 }
-
-
-
-
-
-

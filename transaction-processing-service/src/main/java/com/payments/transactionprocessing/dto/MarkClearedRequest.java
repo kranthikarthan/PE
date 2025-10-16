@@ -11,15 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MarkClearedRequest {
-    @NotBlank(message = "Clearing system is required")
-    private String clearingSystem;
-    
-    @NotBlank(message = "Clearing reference is required")
-    private String clearingReference;
+  @NotBlank(message = "Clearing system is required")
+  private String clearingSystem;
+
+  @NotBlank(message = "Clearing reference is required")
+  private String clearingReference;
 }
-
-
-
-
-
-

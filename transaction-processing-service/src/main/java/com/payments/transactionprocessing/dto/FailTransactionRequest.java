@@ -11,12 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FailTransactionRequest {
-    @NotBlank(message = "Failure reason is required")
-    private String reason;
+  @NotBlank(message = "Failure reason is required")
+  private String reason;
 }
-
-
-
-
-
-

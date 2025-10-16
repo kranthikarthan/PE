@@ -1,21 +1,17 @@
 package com.payments.accountadapter.dto;
 
+import java.time.Instant;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-import java.util.List;
-
 /**
  * Account Validation Response DTO
- * 
- * Response containing account validation results:
- * - Validation status
- * - Account details
- * - Validation results
- * - Response metadata
+ *
+ * <p>Response containing account validation results: - Validation status - Account details -
+ * Validation results - Response metadata
  */
 @Data
 @Builder
@@ -23,18 +19,18 @@ import java.util.List;
 @AllArgsConstructor
 public class AccountValidationResponse {
 
-    private String accountNumber;
-    private String accountHolderName;
-    private String accountType;
-    private String accountStatus;
-    private boolean isValid;
-    private String validationStatus;
-    private List<String> validationErrors;
-    private List<String> validationWarnings;
-    private String responseCode;
-    private String responseMessage;
-    private String correlationId;
-    private Long responseTimestamp;
-    private String requestId;
-    private Instant validatedAt;
+  private String accountNumber;
+  private String accountHolderName;
+  private String accountType;
+  private String accountStatus;
+  private boolean isValid;
+  private String validationStatus;
+  private List<String> validationErrors;
+  private List<String> validationWarnings;
+  private String responseCode;
+  private String responseMessage;
+  private String correlationId;
+  private Long responseTimestamp;
+  private String requestId;
+  private Instant validatedAt;
 }

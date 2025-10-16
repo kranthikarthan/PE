@@ -23,9 +23,3 @@ public class TransactionProcessingEvent implements DomainEvent {
     return Instant.now();
   }
 }
-
-
-
-
-
-

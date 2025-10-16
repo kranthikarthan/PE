@@ -5,17 +5,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Annotation for tracing external service calls
- */
+/** Annotation for tracing external service calls */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExternalService {
-    String value() default "";
+  String value() default "";
 }
-
-
-
-
-
-

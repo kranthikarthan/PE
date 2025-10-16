@@ -6,18 +6,15 @@ import org.springframework.cache.annotation.EnableCaching;
 
 /**
  * Routing Service Application
- * 
- * Provides payment routing decisions:
- * - Routing rule management
- * - Payment routing decisions
- * - Clearing system selection
- * - Routing optimization
+ *
+ * <p>Provides payment routing decisions: - Routing rule management - Payment routing decisions -
+ * Clearing system selection - Routing optimization
  */
 @SpringBootApplication
 @EnableCaching
 public class RoutingServiceApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(RoutingServiceApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(RoutingServiceApplication.class, args);
+  }
 }

@@ -9,13 +9,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 @EnableCaching
 @EnableKafka
 public class SagaOrchestratorApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(SagaOrchestratorApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(SagaOrchestratorApplication.class, args);
+  }
 }
-
-
-
-
-
-

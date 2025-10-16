@@ -24,9 +24,3 @@ public class TransactionFailedEvent implements DomainEvent {
     return Instant.now();
   }
 }
-
-
-
-
-
-
