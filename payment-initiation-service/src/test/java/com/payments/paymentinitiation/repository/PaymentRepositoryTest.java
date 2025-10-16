@@ -214,23 +214,16 @@ class PaymentRepositoryTest {
   }
 
   private Payment createTestPayment() {
-    return Payment.builder()
-        .id(new PaymentId("TEST-PAYMENT-001"))
-        .idempotencyKey("TEST-IDEMPOTENCY-001")
-        .sourceAccount(AccountNumber.of("12345678901"))
-        .destinationAccount(AccountNumber.of("98765432109"))
-        .amount(Money.zar(BigDecimal.valueOf(1000.00)))
-        .reference(com.payments.domain.payment.PaymentReference.of("Test payment"))
-        .paymentType(PaymentType.EFT)
-        .priority(Priority.NORMAL)
-        .tenantContext(
-            TenantContext.builder()
-                .tenantId("TEST-TENANT-001")
-                .businessUnitId("TEST-BU-001")
-                .build())
-        .status(PaymentStatus.INITIATED)
-        .initiatedBy("test@example.com")
-        .initiatedAt(Instant.now())
-        .build();
+    return Payment.initiate(
+        new PaymentId("TEST-PAYMENT-001"),
+        TenantContext.builder().tenantId("TEST-TENANT-001").businessUnitId("TEST-BU-001").build(),
+        Money.zar(BigDecimal.valueOf(1000.00)),
+        AccountNumber.of("12345678901"),
+        AccountNumber.of("98765432109"),
+        com.payments.domain.payment.PaymentReference.of("Test payment"),
+        PaymentType.EFT,
+        Priority.NORMAL,
+        "test@example.com",
+        "TEST-IDEMPOTENCY-001");
   }
 }

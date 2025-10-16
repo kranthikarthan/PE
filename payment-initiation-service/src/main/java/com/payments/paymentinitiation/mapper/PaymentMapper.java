@@ -47,10 +47,6 @@ public class PaymentMapper {
         .completedAt(payment.getCompletedAt())
         .failedAt(payment.getFailedAt())
         .failureReason(payment.getFailureReason())
-        .statusHistory(
-            payment.getStatusHistory().stream()
-                .map(this::toStatusHistoryEntity)
-                .collect(Collectors.toList()))
         .build();
   }
 
@@ -80,10 +76,6 @@ public class PaymentMapper {
         .completedAt(entity.getCompletedAt())
         .failedAt(entity.getFailedAt())
         .failureReason(entity.getFailureReason())
-        .statusHistory(
-            entity.getStatusHistory().stream()
-                .map(this::toStatusChange)
-                .collect(Collectors.toList()))
         .build();
   }
 
@@ -98,12 +90,7 @@ public class PaymentMapper {
         .build();
   }
 
-  /** Map domain status history list to entities */
-  public List<PaymentStatusHistoryEntity> toStatusHistoryEntities(Payment payment) {
-    return payment.getStatusHistory().stream()
-        .map(this::toStatusHistoryEntity)
-        .collect(Collectors.toList());
-  }
+  // Intentionally not mapping status history here to avoid tight coupling on domain internals
 
   /** Enum mappers: domain -> contract */
   public PaymentType mapPaymentType(com.payments.domain.payment.PaymentType type) {
@@ -127,27 +114,5 @@ public class PaymentMapper {
     return status == null ? null : PaymentStatus.valueOf(status.name());
   }
 
-  /** Convert status history entity to domain status change */
-  private com.payments.domain.payment.StatusChange toStatusChange(
-      PaymentStatusHistoryEntity entity) {
-    return com.payments.domain.payment.StatusChange.builder()
-        .fromStatus(entity.getFromStatus())
-        .toStatus(entity.getToStatus())
-        .reason(entity.getReason())
-        .changedAt(entity.getChangedAt())
-        .changedBy(entity.getChangedBy())
-        .build();
-  }
 
-  /** Convert domain status change to status history entity */
-  private PaymentStatusHistoryEntity toStatusHistoryEntity(
-      com.payments.domain.payment.StatusChange statusChange) {
-    return PaymentStatusHistoryEntity.builder()
-        .fromStatus(statusChange.getFromStatus())
-        .toStatus(statusChange.getToStatus())
-        .reason(statusChange.getReason())
-        .changedAt(statusChange.getChangedAt())
-        .changedBy(statusChange.getChangedBy())
-        .build();
-  }
 }

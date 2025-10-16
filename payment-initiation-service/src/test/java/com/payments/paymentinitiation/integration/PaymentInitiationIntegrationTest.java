@@ -55,6 +55,8 @@ class PaymentInitiationIntegrationTest {
   @Autowired private MockMvc mockMvc;
 
   @Autowired private ObjectMapper objectMapper;
+  @org.springframework.boot.test.mock.mockito.MockBean
+  private com.payments.paymentinitiation.service.PaymentDomainService paymentDomainService;
 
   private String correlationId;
   private String tenantId;

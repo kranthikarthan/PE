@@ -1,9 +1,0 @@
-C:\git\clone\PE\payment-initiation-service\src\test\java\com\payments\paymentinitiation\contract\PaymentInitiationContractTest.java
-C:\git\clone\PE\payment-initiation-service\src\test\java\com\payments\paymentinitiation\api\PaymentInitiationControllerTest.java
-C:\git\clone\PE\payment-initiation-service\src\test\java\com\payments\paymentinitiation\repository\PaymentRepositoryTest.java
-C:\git\clone\PE\payment-initiation-service\src\test\java\com\payments\paymentinitiation\mapper\PaymentMapperTest.java
-C:\git\clone\PE\payment-initiation-service\src\test\java\com\payments\paymentinitiation\service\PaymentDomainServiceTest.java
-C:\git\clone\PE\payment-initiation-service\src\test\java\com\payments\paymentinitiation\service\PaymentBusinessRulesServiceTest.java
-C:\git\clone\PE\payment-initiation-service\src\test\java\com\payments\paymentinitiation\service\PaymentInitiationServiceTest.java
-C:\git\clone\PE\payment-initiation-service\src\test\java\com\payments\paymentinitiation\config\TestConfig.java
-C:\git\clone\PE\payment-initiation-service\src\test\java\com\payments\paymentinitiation\integration\PaymentInitiationIntegrationTest.java

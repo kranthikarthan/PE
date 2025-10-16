@@ -139,7 +139,7 @@ public class PaymentInitiationController {
                     schema = @Schema(implementation = ErrorResponse.class)))
       })
   public ResponseEntity<PaymentInitiationResponse> getPaymentStatus(
-      @Parameter(description = "Payment ID", required = true) @PathVariable String paymentId,
+      @Parameter(description = "Payment ID", required = true) @PathVariable("paymentId") String paymentId,
       @Parameter(description = "Correlation ID for tracing", required = true)
           @RequestHeader("X-Correlation-ID")
           String correlationId,
@@ -200,7 +200,7 @@ public class PaymentInitiationController {
                     schema = @Schema(implementation = ErrorResponse.class)))
       })
   public ResponseEntity<PaymentInitiationResponse> validatePayment(
-      @Parameter(description = "Payment ID", required = true) @PathVariable String paymentId,
+      @Parameter(description = "Payment ID", required = true) @PathVariable("paymentId") String paymentId,
       @Parameter(description = "Correlation ID for tracing", required = true)
           @RequestHeader("X-Correlation-ID")
           String correlationId,
@@ -258,7 +258,7 @@ public class PaymentInitiationController {
                     schema = @Schema(implementation = ErrorResponse.class)))
       })
   public ResponseEntity<PaymentInitiationResponse> failPayment(
-      @Parameter(description = "Payment ID", required = true) @PathVariable String paymentId,
+      @Parameter(description = "Payment ID", required = true) @PathVariable("paymentId") String paymentId,
       @Parameter(description = "Failure reason", required = true) @RequestBody
           FailureRequest failureRequest,
       @Parameter(description = "Correlation ID for tracing", required = true)
@@ -318,7 +318,7 @@ public class PaymentInitiationController {
                     schema = @Schema(implementation = ErrorResponse.class)))
       })
   public ResponseEntity<PaymentInitiationResponse> completePayment(
-      @Parameter(description = "Payment ID", required = true) @PathVariable String paymentId,
+      @Parameter(description = "Payment ID", required = true) @PathVariable("paymentId") String paymentId,
       @Parameter(description = "Correlation ID for tracing", required = true)
           @RequestHeader("X-Correlation-ID")
           String correlationId,

@@ -266,37 +266,31 @@ class PaymentBusinessRulesServiceTest {
   }
 
   private Payment createValidPayment() {
-    return Payment.builder()
-        .id(new PaymentId("TEST-PAYMENT-001"))
-        .idempotencyKey("TEST-IDEMPOTENCY-001")
-        .sourceAccount(AccountNumber.of("12345678901"))
-        .destinationAccount(AccountNumber.of("98765432109"))
-        .amount(Money.zar(BigDecimal.valueOf(1000.00)))
-        .reference(com.payments.domain.payment.PaymentReference.of("Test payment"))
-        .paymentType(PaymentType.EFT)
-        .priority(Priority.NORMAL)
-        .tenantContext(createValidTenantContext())
-        .status(com.payments.domain.payment.PaymentStatus.INITIATED)
-        .initiatedBy("test@example.com")
-        .initiatedAt(Instant.now())
-        .build();
+    return Payment.initiate(
+        new PaymentId("TEST-PAYMENT-001"),
+        createValidTenantContext(),
+        Money.zar(BigDecimal.valueOf(1000.00)),
+        AccountNumber.of("12345678901"),
+        AccountNumber.of("98765432109"),
+        com.payments.domain.payment.PaymentReference.of("Test payment"),
+        PaymentType.EFT,
+        Priority.NORMAL,
+        "test@example.com",
+        "TEST-IDEMPOTENCY-001");
   }
 
   private Payment createPaymentWithAmount(BigDecimal amount) {
-    return Payment.builder()
-        .id(new PaymentId("TEST-PAYMENT-EXISTING"))
-        .idempotencyKey("TEST-IDEMPOTENCY-EXISTING")
-        .sourceAccount(AccountNumber.of("12345678901"))
-        .destinationAccount(AccountNumber.of("98765432109"))
-        .amount(Money.zar(amount))
-        .reference(com.payments.domain.payment.PaymentReference.of("Existing payment"))
-        .paymentType(PaymentType.EFT)
-        .priority(Priority.NORMAL)
-        .tenantContext(createValidTenantContext())
-        .status(com.payments.domain.payment.PaymentStatus.INITIATED)
-        .initiatedBy("test@example.com")
-        .initiatedAt(Instant.now())
-        .build();
+    return Payment.initiate(
+        new PaymentId("TEST-PAYMENT-EXISTING"),
+        createValidTenantContext(),
+        Money.zar(amount),
+        AccountNumber.of("12345678901"),
+        AccountNumber.of("98765432109"),
+        com.payments.domain.payment.PaymentReference.of("Existing payment"),
+        PaymentType.EFT,
+        Priority.NORMAL,
+        "test@example.com",
+        "TEST-IDEMPOTENCY-EXISTING");
   }
 
   private TenantContext createValidTenantContext() {

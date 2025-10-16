@@ -12,8 +12,6 @@ src\main\java\com\payments\domain\shared\ClearingRouteId.java 2025-10-15T16:45:0
 src\main\java\com\payments\domain\shared\ConfigurationId.java 2025-10-15T16:45:05.926279400Z
 src\main\java\com\payments\domain\shared\DomainEvent.java 2025-10-15T16:45:05.926279400Z
 src\main\java\com\payments\domain\shared\LogId.java 2025-10-15T16:45:05.926279400Z
-src\main\java\com\payments\domain\shared\Money.java 2025-10-15T16:45:05.927279500Z
-src\main\java\com\payments\domain\shared\PaymentId.java 2025-10-16T11:45:49.143454Z
 src\main\java\com\payments\domain\shared\Result.java 2025-10-15T16:45:05.927279500Z
 src\main\java\com\payments\domain\shared\RoutingRuleId.java 2025-10-15T16:45:05.928278Z
 src\main\java\com\payments\domain\shared\SagaEventId.java 2025-10-15T16:45:05.928278Z
