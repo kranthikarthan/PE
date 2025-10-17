@@ -110,11 +110,6 @@
             <artifactId>contracts</artifactId>
             <version>${contracts.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.payments</groupId>
-            <artifactId>shared-telemetry</artifactId>
-            <version>${shared-telemetry.version}</version>
-        </dependency>
 
         <!-- Resilience4j -->
         <dependency>
@@ -132,12 +127,6 @@
         <dependency>
             <groupId>io.github.resilience4j</groupId>
             <artifactId>resilience4j-timelimiter</artifactId>
-        </dependency>
-
-        <!-- OpenFeign -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
 
         <!-- OpenAPI Documentation -->
@@ -195,6 +184,7 @@
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
+                <version>9.21.0</version>
             </plugin>
         </plugins>
     </build>
