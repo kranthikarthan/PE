@@ -5,13 +5,12 @@ import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.ClearingMessageId;
 import com.payments.domain.shared.ClearingRouteId;
 import com.payments.domain.shared.TenantContext;
-import com.payments.rtcadapter.domain.RtcAdapter;
-import com.payments.rtcadapter.domain.ClearingRoute;
 import com.payments.rtcadapter.domain.ClearingMessageLog;
+import com.payments.rtcadapter.domain.ClearingRoute;
+import com.payments.rtcadapter.domain.RtcAdapter;
 import com.payments.rtcadapter.exception.RtcAdapterNotFoundException;
-import com.payments.rtcadapter.exception.RtcAdapterOperationException;
-import com.payments.telemetry.TracingService;
 import com.payments.rtcadapter.repository.RtcAdapterRepository;
+import com.payments.telemetry.TracingService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
@@ -44,29 +43,41 @@ public class RtcAdapterService {
       String adapterName,
       String endpoint,
       String createdBy) {
-    return CompletableFuture.supplyAsync(() -> {
-      return tracingService.executeInSpan("rtc.adapter.create", Map.of(
-          "adapter.name", adapterName,
-          "tenant.id", tenantContext.getTenantId(),
-          "business.unit.id", tenantContext.getBusinessUnitId()
-      ), () -> {
-        log.info("Creating RTC adapter: {} for tenant: {}", adapterName, tenantContext.getTenantId());
+    return CompletableFuture.supplyAsync(
+        () -> {
+          return tracingService.executeInSpan(
+              "rtc.adapter.create",
+              Map.of(
+                  "adapter.name", adapterName,
+                  "tenant.id", tenantContext.getTenantId(),
+                  "business.unit.id", tenantContext.getBusinessUnitId()),
+              () -> {
+                log.info(
+                    "Creating RTC adapter: {} for tenant: {}",
+                    adapterName,
+                    tenantContext.getTenantId());
 
-    RtcAdapter adapter =
-        RtcAdapter.create(adapterId, tenantContext, adapterName, endpoint, createdBy);
-    RtcAdapter savedAdapter = rtcAdapterRepository.save(adapter);
+                RtcAdapter adapter =
+                    RtcAdapter.create(adapterId, tenantContext, adapterName, endpoint, createdBy);
+                RtcAdapter savedAdapter = rtcAdapterRepository.save(adapter);
 
-    // Publish domain events
-    savedAdapter.getDomainEvents().forEach(event -> {
-      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), savedAdapter.getId());
-      // TODO: Publish to event bus (Kafka/Azure Service Bus)
-    });
-    savedAdapter.clearDomainEvents();
+                // Publish domain events
+                savedAdapter
+                    .getDomainEvents()
+                    .forEach(
+                        event -> {
+                          log.info(
+                              "Publishing domain event: {} for adapter: {}",
+                              event.getEventType(),
+                              savedAdapter.getId());
+                          // TODO: Publish to event bus (Kafka/Azure Service Bus)
+                        });
+                savedAdapter.clearDomainEvents();
 
-    log.info("RTC adapter created successfully: {}", savedAdapter.getId());
-    return savedAdapter;
-      });
-    });
+                log.info("RTC adapter created successfully: {}", savedAdapter.getId());
+                return savedAdapter;
+              });
+        });
   }
 
   /** Get adapter by ID */
@@ -111,26 +122,36 @@ public class RtcAdapterService {
         updatedBy);
 
     RtcAdapter updatedAdapter = rtcAdapterRepository.save(adapter);
-    
+
     // Apply configuration changes to resilience patterns
     applyConfigurationToResiliencePatterns(updatedAdapter);
-    
+
     // Publish domain events
-    updatedAdapter.getDomainEvents().forEach(event -> {
-      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), updatedAdapter.getId());
-      // TODO: Publish to event bus (Kafka/Azure Service Bus)
-    });
+    updatedAdapter
+        .getDomainEvents()
+        .forEach(
+            event -> {
+              log.info(
+                  "Publishing domain event: {} for adapter: {}",
+                  event.getEventType(),
+                  updatedAdapter.getId());
+              // TODO: Publish to event bus (Kafka/Azure Service Bus)
+            });
     updatedAdapter.clearDomainEvents();
-    
-    log.info("RTC adapter configuration updated successfully: {} with timeout: {}s, retries: {}, encryption: {}, api: {}", 
-             adapterId, updatedAdapter.getTimeoutSeconds(), updatedAdapter.getRetryAttempts(), 
-             updatedAdapter.getEncryptionEnabled(), updatedAdapter.getApiVersion());
+
+    log.info(
+        "RTC adapter configuration updated successfully: {} with timeout: {}s, retries: {}, encryption: {}, api: {}",
+        adapterId,
+        updatedAdapter.getTimeoutSeconds(),
+        updatedAdapter.getRetryAttempts(),
+        updatedAdapter.getEncryptionEnabled(),
+        updatedAdapter.getApiVersion());
     return updatedAdapter;
   }
 
   /**
    * Add a route to the RTC adapter
-   * 
+   *
    * @param adapterId The adapter ID
    * @param routeName The route name
    * @param source The source endpoint
@@ -147,64 +168,75 @@ public class RtcAdapterService {
       String destination,
       Integer priority,
       String addedBy) {
-    
-    return tracingService.executeInSpan("rtc.adapter.addRoute", Map.of(
-        "adapter.id", adapterId.toString(),
-        "route.name", routeName,
-        "source", source,
-        "destination", destination,
-        "priority", priority != null ? priority.toString() : "null",
-        "added.by", addedBy
-    ), () -> {
-      log.info("Adding route to RTC adapter: {} - route: {} from {} to {}", 
-               adapterId, routeName, source, destination);
-    
-    RtcAdapter adapter = rtcAdapterRepository.findById(adapterId)
-        .orElseThrow(() -> new RtcAdapterNotFoundException(adapterId));
-    
-    adapter.addRoute(
-        ClearingRouteId.generate(),
-        routeName,
-        source,
-        destination,
-        priority,
-        addedBy);
-    
-    RtcAdapter updatedAdapter = rtcAdapterRepository.save(adapter);
-    
-    // Publish domain events
-    updatedAdapter.getDomainEvents().forEach(event -> {
-      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), updatedAdapter.getId());
-      // TODO: Publish to event bus (Kafka/Azure Service Bus)
-    });
-    updatedAdapter.clearDomainEvents();
-    
-    log.info("Successfully added route to RTC adapter: {} - route: {}", adapterId, routeName);
-    return updatedAdapter;
-    });
+
+    return tracingService.executeInSpan(
+        "rtc.adapter.addRoute",
+        Map.of(
+            "adapter.id", adapterId.toString(),
+            "route.name", routeName,
+            "source", source,
+            "destination", destination,
+            "priority", priority != null ? priority.toString() : "null",
+            "added.by", addedBy),
+        () -> {
+          log.info(
+              "Adding route to RTC adapter: {} - route: {} from {} to {}",
+              adapterId,
+              routeName,
+              source,
+              destination);
+
+          RtcAdapter adapter =
+              rtcAdapterRepository
+                  .findById(adapterId)
+                  .orElseThrow(() -> new RtcAdapterNotFoundException(adapterId));
+
+          adapter.addRoute(
+              ClearingRouteId.generate(), routeName, source, destination, priority, addedBy);
+
+          RtcAdapter updatedAdapter = rtcAdapterRepository.save(adapter);
+
+          // Publish domain events
+          updatedAdapter
+              .getDomainEvents()
+              .forEach(
+                  event -> {
+                    log.info(
+                        "Publishing domain event: {} for adapter: {}",
+                        event.getEventType(),
+                        updatedAdapter.getId());
+                    // TODO: Publish to event bus (Kafka/Azure Service Bus)
+                  });
+          updatedAdapter.clearDomainEvents();
+
+          log.info("Successfully added route to RTC adapter: {} - route: {}", adapterId, routeName);
+          return updatedAdapter;
+        });
   }
-  
+
   /**
    * Get all routes for the RTC adapter
-   * 
+   *
    * @param adapterId The adapter ID
    * @return List of routes
    */
   public List<ClearingRoute> getRoutes(ClearingAdapterId adapterId) {
     log.info("Getting routes for RTC adapter: {}", adapterId);
-    
-    RtcAdapter adapter = rtcAdapterRepository.findById(adapterId)
-        .orElseThrow(() -> new RtcAdapterNotFoundException(adapterId));
-    
+
+    RtcAdapter adapter =
+        rtcAdapterRepository
+            .findById(adapterId)
+            .orElseThrow(() -> new RtcAdapterNotFoundException(adapterId));
+
     List<ClearingRoute> routes = adapter.getRoutes();
     log.info("Found {} routes for RTC adapter: {}", routes.size(), adapterId);
-    
+
     return routes;
   }
-  
+
   /**
    * Log a message for the RTC adapter
-   * 
+   *
    * @param adapterId The adapter ID
    * @param direction The message direction (INBOUND/OUTBOUND)
    * @param messageType The message type (e.g., pacs.008, pacs.002)
@@ -219,79 +251,113 @@ public class RtcAdapterService {
       String messageType,
       String payloadHash,
       Integer statusCode) {
-    
-    return tracingService.executeInSpan("rtc.adapter.logMessage", Map.of(
-        "adapter.id", adapterId.toString(),
-        "direction", direction,
-        "message.type", messageType,
-        "payload.hash", payloadHash != null ? payloadHash : "null",
-        "status.code", statusCode != null ? statusCode.toString() : "null"
-    ), () -> {
-      log.info("Logging message for RTC adapter: {} - direction: {}, type: {}, status: {}", 
-               adapterId, direction, messageType, statusCode);
-    
-    RtcAdapter adapter = rtcAdapterRepository.findById(adapterId)
-        .orElseThrow(() -> new RtcAdapterNotFoundException(adapterId));
-    
-    adapter.logMessage(
-        ClearingMessageId.generate(),
-        direction,
-        messageType,
-        payloadHash,
-        statusCode);
-    
-    RtcAdapter updatedAdapter = rtcAdapterRepository.save(adapter);
-    
-    // Publish domain events
-    updatedAdapter.getDomainEvents().forEach(event -> {
-      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), updatedAdapter.getId());
-      // TODO: Publish to event bus (Kafka/Azure Service Bus)
-    });
-    updatedAdapter.clearDomainEvents();
-    
-    log.info("Successfully logged message for RTC adapter: {} - direction: {}, type: {}", 
-             adapterId, direction, messageType);
-    return updatedAdapter;
-    });
+
+    return tracingService.executeInSpan(
+        "rtc.adapter.logMessage",
+        Map.of(
+            "adapter.id",
+            adapterId.toString(),
+            "direction",
+            direction,
+            "message.type",
+            messageType,
+            "payload.hash",
+            payloadHash != null ? payloadHash : "null",
+            "status.code",
+            statusCode != null ? statusCode.toString() : "null"),
+        () -> {
+          log.info(
+              "Logging message for RTC adapter: {} - direction: {}, type: {}, status: {}",
+              adapterId,
+              direction,
+              messageType,
+              statusCode);
+
+          RtcAdapter adapter =
+              rtcAdapterRepository
+                  .findById(adapterId)
+                  .orElseThrow(() -> new RtcAdapterNotFoundException(adapterId));
+
+          adapter.logMessage(
+              ClearingMessageId.generate(), direction, messageType, payloadHash, statusCode);
+
+          RtcAdapter updatedAdapter = rtcAdapterRepository.save(adapter);
+
+          // Publish domain events
+          updatedAdapter
+              .getDomainEvents()
+              .forEach(
+                  event -> {
+                    log.info(
+                        "Publishing domain event: {} for adapter: {}",
+                        event.getEventType(),
+                        updatedAdapter.getId());
+                    // TODO: Publish to event bus (Kafka/Azure Service Bus)
+                  });
+          updatedAdapter.clearDomainEvents();
+
+          log.info(
+              "Successfully logged message for RTC adapter: {} - direction: {}, type: {}",
+              adapterId,
+              direction,
+              messageType);
+          return updatedAdapter;
+        });
   }
-  
+
   /**
    * Get all message logs for the RTC adapter
-   * 
+   *
    * @param adapterId The adapter ID
    * @return List of message logs
    */
   public List<ClearingMessageLog> getMessageLogs(ClearingAdapterId adapterId) {
     log.info("Getting message logs for RTC adapter: {}", adapterId);
-    
-    RtcAdapter adapter = rtcAdapterRepository.findById(adapterId)
-        .orElseThrow(() -> new RtcAdapterNotFoundException(adapterId));
-    
+
+    RtcAdapter adapter =
+        rtcAdapterRepository
+            .findById(adapterId)
+            .orElseThrow(() -> new RtcAdapterNotFoundException(adapterId));
+
     List<ClearingMessageLog> messageLogs = adapter.getMessageLogs();
     log.info("Found {} message logs for RTC adapter: {}", messageLogs.size(), adapterId);
-    
+
     return messageLogs;
   }
 
   /**
    * Apply adapter configuration to resilience patterns
-   * 
+   *
    * @param adapter The adapter with updated configuration
    */
   private void applyConfigurationToResiliencePatterns(RtcAdapter adapter) {
-    log.info("Applying configuration to resilience patterns for adapter: {} - timeout: {}s, retries: {}, encryption: {}", 
-             adapter.getId(), adapter.getTimeoutSeconds(), adapter.getRetryAttempts(), adapter.getEncryptionEnabled());
-    
+    log.info(
+        "Applying configuration to resilience patterns for adapter: {} - timeout: {}s, retries: {}, encryption: {}",
+        adapter.getId(),
+        adapter.getTimeoutSeconds(),
+        adapter.getRetryAttempts(),
+        adapter.getEncryptionEnabled());
+
     // Log configuration changes for monitoring
     if (adapter.getEncryptionEnabled()) {
-      log.info("Encryption enabled for RTC adapter: {} - API version: {}", adapter.getId(), adapter.getApiVersion());
+      log.info(
+          "Encryption enabled for RTC adapter: {} - API version: {}",
+          adapter.getId(),
+          adapter.getApiVersion());
     } else {
-      log.warn("Encryption disabled for RTC adapter: {} - API version: {}", adapter.getId(), adapter.getApiVersion());
+      log.warn(
+          "Encryption disabled for RTC adapter: {} - API version: {}",
+          adapter.getId(),
+          adapter.getApiVersion());
     }
-    
+
     // Log real-time processing configuration
-    log.info("Real-time processing configuration for adapter: {} - batch size: {}, window: {} to {}", 
-             adapter.getId(), adapter.getBatchSize(), adapter.getProcessingWindowStart(), adapter.getProcessingWindowEnd());
+    log.info(
+        "Real-time processing configuration for adapter: {} - batch size: {}, window: {} to {}",
+        adapter.getId(),
+        adapter.getBatchSize(),
+        adapter.getProcessingWindowStart(),
+        adapter.getProcessingWindowEnd());
   }
 
   /** Activate adapter */
@@ -308,10 +374,16 @@ public class RtcAdapterService {
     RtcAdapter activatedAdapter = rtcAdapterRepository.save(adapter);
 
     // Publish domain events
-    activatedAdapter.getDomainEvents().forEach(event -> {
-      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), activatedAdapter.getId());
-      // TODO: Publish to event bus (Kafka/Azure Service Bus)
-    });
+    activatedAdapter
+        .getDomainEvents()
+        .forEach(
+            event -> {
+              log.info(
+                  "Publishing domain event: {} for adapter: {}",
+                  event.getEventType(),
+                  activatedAdapter.getId());
+              // TODO: Publish to event bus (Kafka/Azure Service Bus)
+            });
     activatedAdapter.clearDomainEvents();
 
     log.info("RTC adapter activated successfully: {}", adapterId);
@@ -333,10 +405,16 @@ public class RtcAdapterService {
     RtcAdapter deactivatedAdapter = rtcAdapterRepository.save(adapter);
 
     // Publish domain events
-    deactivatedAdapter.getDomainEvents().forEach(event -> {
-      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), deactivatedAdapter.getId());
-      // TODO: Publish to event bus (Kafka/Azure Service Bus)
-    });
+    deactivatedAdapter
+        .getDomainEvents()
+        .forEach(
+            event -> {
+              log.info(
+                  "Publishing domain event: {} for adapter: {}",
+                  event.getEventType(),
+                  deactivatedAdapter.getId());
+              // TODO: Publish to event bus (Kafka/Azure Service Bus)
+            });
     deactivatedAdapter.clearDomainEvents();
 
     log.info("RTC adapter deactivated successfully: {}", adapterId);

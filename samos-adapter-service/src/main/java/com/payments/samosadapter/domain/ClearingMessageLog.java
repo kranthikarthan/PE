@@ -8,9 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Clearing Message Log Entity for SAMOS Adapter
- */
+/** Clearing Message Log Entity for SAMOS Adapter */
 @Entity
 @Table(name = "samos_clearing_message_logs")
 @Data

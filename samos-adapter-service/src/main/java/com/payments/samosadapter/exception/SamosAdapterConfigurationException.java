@@ -1,8 +1,6 @@
 package com.payments.samosadapter.exception;
 
-/**
- * Exception thrown when SAMOS adapter configuration is invalid
- */
+/** Exception thrown when SAMOS adapter configuration is invalid */
 public class SamosAdapterConfigurationException extends RuntimeException {
 
   public SamosAdapterConfigurationException(String message) {

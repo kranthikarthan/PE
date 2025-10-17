@@ -54,8 +54,10 @@ public class SamosAdapterController {
 
     ClearingAdapterId adapterId = ClearingAdapterId.generate();
     SamosAdapter adapter =
-        samosAdapterService.createAdapter(
-            adapterId, tenantContext, request.getAdapterName(), request.getEndpoint(), userId).join();
+        samosAdapterService
+            .createAdapter(
+                adapterId, tenantContext, request.getAdapterName(), request.getEndpoint(), userId)
+            .join();
 
     return ResponseEntity.status(HttpStatus.CREATED).body(adapter);
   }
@@ -135,16 +137,18 @@ public class SamosAdapterController {
     log.info("Updating SAMOS adapter configuration: {}", adapterId);
 
     SamosAdapter adapter =
-        samosAdapterService.updateAdapterConfiguration(
-            ClearingAdapterId.of(adapterId),
-            request.getEndpoint(),
-            request.getApiVersion(),
-            request.getTimeoutSeconds(),
-            request.getRetryAttempts(),
-            request.getEncryptionEnabled(),
-            request.getCertificatePath(),
-            request.getCertificatePassword(),
-            userId).join();
+        samosAdapterService
+            .updateAdapterConfiguration(
+                ClearingAdapterId.of(adapterId),
+                request.getEndpoint(),
+                request.getApiVersion(),
+                request.getTimeoutSeconds(),
+                request.getRetryAttempts(),
+                request.getEncryptionEnabled(),
+                request.getCertificatePath(),
+                request.getCertificatePassword(),
+                userId)
+            .join();
 
     return ResponseEntity.ok(adapter);
   }
@@ -174,8 +178,9 @@ public class SamosAdapterController {
     log.info("Deactivating SAMOS adapter: {} - Reason: {}", adapterId, request.getReason());
 
     SamosAdapter adapter =
-        samosAdapterService.deactivateAdapter(
-            ClearingAdapterId.of(adapterId), request.getReason(), userId).join();
+        samosAdapterService
+            .deactivateAdapter(ClearingAdapterId.of(adapterId), request.getReason(), userId)
+            .join();
     return ResponseEntity.ok(adapter);
   }
 

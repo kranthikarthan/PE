@@ -1,10 +1,13 @@
 package com.payments.samosadapter.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.TenantContext;
 import com.payments.samosadapter.domain.SamosAdapter;
 import com.payments.samosadapter.repository.SamosAdapterRepository;
 import com.payments.samosadapter.service.SamosAdapterService;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +21,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.concurrent.CompletableFuture;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-/**
- * Integration tests for SAMOS adapter using Testcontainers
- */
+/** Integration tests for SAMOS adapter using Testcontainers */
 @SpringBootTest
 @Testcontainers
 @AutoConfigureWebMvc
@@ -33,10 +30,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SamosAdapterIntegrationTest {
 
   @Container
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
-      .withDatabaseName("samos_adapter_test")
-      .withUsername("test")
-      .withPassword("test");
+  static PostgreSQLContainer<?> postgres =
+      new PostgreSQLContainer<>("postgres:15-alpine")
+          .withDatabaseName("samos_adapter_test")
+          .withUsername("test")
+          .withPassword("test");
 
   @DynamicPropertySource
   static void configureProperties(DynamicPropertyRegistry registry) {
@@ -45,23 +43,17 @@ class SamosAdapterIntegrationTest {
     registry.add("spring.datasource.password", postgres::getPassword);
   }
 
-  @Autowired
-  private SamosAdapterService samosAdapterService;
+  @Autowired private SamosAdapterService samosAdapterService;
 
-  @Autowired
-  private SamosAdapterRepository samosAdapterRepository;
+  @Autowired private SamosAdapterRepository samosAdapterRepository;
 
   private TenantContext tenantContext;
   private ClearingAdapterId adapterId;
 
   @BeforeEach
   void setUp() {
-    tenantContext = TenantContext.of(
-        "tenant-123",
-        "Test Tenant",
-        "business-unit-456",
-        "Test Business Unit"
-    );
+    tenantContext =
+        TenantContext.of("tenant-123", "Test Tenant", "business-unit-456", "Test Business Unit");
     adapterId = ClearingAdapterId.generate();
   }
 
@@ -73,8 +65,9 @@ class SamosAdapterIntegrationTest {
     String createdBy = "test-user";
 
     // When
-    CompletableFuture<SamosAdapter> future = samosAdapterService.createAdapter(
-        adapterId, tenantContext, adapterName, endpoint, createdBy);
+    CompletableFuture<SamosAdapter> future =
+        samosAdapterService.createAdapter(
+            adapterId, tenantContext, adapterName, endpoint, createdBy);
     SamosAdapter adapter = future.get();
 
     // Then
@@ -94,8 +87,8 @@ class SamosAdapterIntegrationTest {
     String activatedBy = "admin-user";
 
     // When
-    CompletableFuture<SamosAdapter> future = samosAdapterService.activateAdapter(
-        adapter.getId(), activatedBy);
+    CompletableFuture<SamosAdapter> future =
+        samosAdapterService.activateAdapter(adapter.getId(), activatedBy);
     SamosAdapter activatedAdapter = future.get();
 
     // Then
@@ -112,8 +105,8 @@ class SamosAdapterIntegrationTest {
     String reason = "Maintenance";
 
     // When
-    CompletableFuture<SamosAdapter> future = samosAdapterService.deactivateAdapter(
-        adapter.getId(), reason, deactivatedBy);
+    CompletableFuture<SamosAdapter> future =
+        samosAdapterService.deactivateAdapter(adapter.getId(), reason, deactivatedBy);
     SamosAdapter deactivatedAdapter = future.get();
 
     // Then
@@ -135,16 +128,17 @@ class SamosAdapterIntegrationTest {
     String updatedBy = "admin-user";
 
     // When
-    CompletableFuture<SamosAdapter> future = samosAdapterService.updateAdapterConfiguration(
-        adapter.getId(),
-        newEndpoint,
-        newApiVersion,
-        newTimeoutSeconds,
-        newRetryAttempts,
-        newEncryptionEnabled,
-        newCertificatePath,
-        newCertificatePassword,
-        updatedBy);
+    CompletableFuture<SamosAdapter> future =
+        samosAdapterService.updateAdapterConfiguration(
+            adapter.getId(),
+            newEndpoint,
+            newApiVersion,
+            newTimeoutSeconds,
+            newRetryAttempts,
+            newEncryptionEnabled,
+            newCertificatePath,
+            newCertificatePassword,
+            updatedBy);
     SamosAdapter updatedAdapter = future.get();
 
     // Then
@@ -164,7 +158,8 @@ class SamosAdapterIntegrationTest {
     SamosAdapter expectedAdapter = createTestAdapter();
 
     // When
-    CompletableFuture<SamosAdapter> future = samosAdapterService.getAdapter(expectedAdapter.getId());
+    CompletableFuture<SamosAdapter> future =
+        samosAdapterService.getAdapter(expectedAdapter.getId());
     SamosAdapter actualAdapter = future.get();
 
     // Then
@@ -179,13 +174,15 @@ class SamosAdapterIntegrationTest {
     createTestAdapterWithDifferentTenant();
 
     // When
-    CompletableFuture<List<SamosAdapter>> future = samosAdapterService.getAdaptersByTenant(
-        tenantContext.getTenantId(), tenantContext.getBusinessUnitId());
+    CompletableFuture<List<SamosAdapter>> future =
+        samosAdapterService.getAdaptersByTenant(
+            tenantContext.getTenantId(), tenantContext.getBusinessUnitId());
     List<SamosAdapter> adapters = future.get();
 
     // Then
     assertThat(adapters).hasSize(1);
-    assertThat(adapters.get(0).getTenantContext().getTenantId()).isEqualTo(tenantContext.getTenantId());
+    assertThat(adapters.get(0).getTenantContext().getTenantId())
+        .isEqualTo(tenantContext.getTenantId());
   }
 
   @Test
@@ -196,8 +193,8 @@ class SamosAdapterIntegrationTest {
     samosAdapterService.activateAdapter(adapter1.getId(), "admin").get();
 
     // When
-    CompletableFuture<List<SamosAdapter>> future = samosAdapterService.getActiveAdaptersByTenant(
-        tenantContext.getTenantId());
+    CompletableFuture<List<SamosAdapter>> future =
+        samosAdapterService.getActiveAdaptersByTenant(tenantContext.getTenantId());
     List<SamosAdapter> activeAdapters = future.get();
 
     // Then
@@ -212,7 +209,8 @@ class SamosAdapterIntegrationTest {
     SamosAdapter adapter = createTestAdapter();
 
     // When
-    CompletableFuture<Boolean> future = samosAdapterService.validateAdapterConfiguration(adapter.getId());
+    CompletableFuture<Boolean> future =
+        samosAdapterService.validateAdapterConfiguration(adapter.getId());
     Boolean isValid = future.get();
 
     // Then
@@ -228,7 +226,8 @@ class SamosAdapterIntegrationTest {
     samosAdapterService.deleteAdapter(adapter.getId());
 
     // Then
-    CompletableFuture<Optional<SamosAdapter>> future = samosAdapterService.getAdapter(adapter.getId());
+    CompletableFuture<Optional<SamosAdapter>> future =
+        samosAdapterService.getAdapter(adapter.getId());
     Optional<SamosAdapter> deletedAdapter = future.get();
     assertThat(deletedAdapter).isEmpty();
   }
@@ -238,25 +237,24 @@ class SamosAdapterIntegrationTest {
     String endpoint = "https://samos.test.com/api";
     String createdBy = "test-user";
 
-    CompletableFuture<SamosAdapter> future = samosAdapterService.createAdapter(
-        ClearingAdapterId.generate(), tenantContext, adapterName, endpoint, createdBy);
+    CompletableFuture<SamosAdapter> future =
+        samosAdapterService.createAdapter(
+            ClearingAdapterId.generate(), tenantContext, adapterName, endpoint, createdBy);
     return future.get();
   }
 
   private SamosAdapter createTestAdapterWithDifferentTenant() throws Exception {
-    TenantContext differentTenant = TenantContext.of(
-        "tenant-789",
-        "Different Tenant",
-        "business-unit-101",
-        "Different Business Unit"
-    );
+    TenantContext differentTenant =
+        TenantContext.of(
+            "tenant-789", "Different Tenant", "business-unit-101", "Different Business Unit");
 
     String adapterName = "Different Tenant Adapter";
     String endpoint = "https://samos.different.com/api";
     String createdBy = "different-user";
 
-    CompletableFuture<SamosAdapter> future = samosAdapterService.createAdapter(
-        ClearingAdapterId.generate(), differentTenant, adapterName, endpoint, createdBy);
+    CompletableFuture<SamosAdapter> future =
+        samosAdapterService.createAdapter(
+            ClearingAdapterId.generate(), differentTenant, adapterName, endpoint, createdBy);
     return future.get();
   }
 }

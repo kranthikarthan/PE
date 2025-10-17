@@ -13,7 +13,8 @@ import org.springframework.web.client.RestTemplate;
 /**
  * RTC OAuth2 Token Service with Redis Caching
  *
- * <p>Service for managing OAuth2 access tokens for RTC clearing network: - Token acquisition - Redis token caching - Token refresh - Token validation - Cache management
+ * <p>Service for managing OAuth2 access tokens for RTC clearing network: - Token acquisition -
+ * Redis token caching - Token refresh - Token validation - Cache management
  */
 @Slf4j
 @Service

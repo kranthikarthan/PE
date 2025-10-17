@@ -1,45 +1,45 @@
 package com.payments.samosadapter.validation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.payments.domain.clearing.AdapterOperationalStatus;
 import com.payments.domain.clearing.ClearingNetwork;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.samosadapter.domain.SamosAdapter;
 import com.payments.samosadapter.repository.SamosAdapterRepository;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * SAMOS Domain Model Validation Test
  *
- * <p>Comprehensive validation tests to ensure SAMOS adapter properly aligns with shared clearing-adapter domain model
+ * <p>Comprehensive validation tests to ensure SAMOS adapter properly aligns with shared
+ * clearing-adapter domain model
  */
 @DataJpaTest
 @ActiveProfiles("test")
 public class SamosDomainModelValidationTest {
 
-  @Autowired
-  private SamosAdapterRepository samosAdapterRepository;
+  @Autowired private SamosAdapterRepository samosAdapterRepository;
 
   private SamosAdapter testAdapter;
 
   @BeforeEach
   void setUp() {
-    testAdapter = SamosAdapter.create(
-        ClearingAdapterId.of("samos-test-001"),
-        com.payments.domain.shared.TenantContext.of("test-tenant", "Test Tenant", "test-business-unit", "Test Business Unit"),
-        "SAMOS Test Adapter",
-        "https://test.samos.co.za/api/v1",
-        "test-user"
-    );
+    testAdapter =
+        SamosAdapter.create(
+            ClearingAdapterId.of("samos-test-001"),
+            com.payments.domain.shared.TenantContext.of(
+                "test-tenant", "Test Tenant", "test-business-unit", "Test Business Unit"),
+            "SAMOS Test Adapter",
+            "https://test.samos.co.za/api/v1",
+            "test-user");
   }
 
   @Test
@@ -66,7 +66,8 @@ public class SamosDomainModelValidationTest {
     samosAdapterRepository.save(testAdapter);
 
     // When
-    Optional<SamosAdapter> foundAdapter = samosAdapterRepository.findById(ClearingAdapterId.of("samos-test-001"));
+    Optional<SamosAdapter> foundAdapter =
+        samosAdapterRepository.findById(ClearingAdapterId.of("samos-test-001"));
 
     // Then
     assertThat(foundAdapter).isPresent();
@@ -80,7 +81,8 @@ public class SamosDomainModelValidationTest {
     samosAdapterRepository.save(testAdapter);
 
     // When
-    List<SamosAdapter> activeAdapters = samosAdapterRepository.findByStatus(AdapterOperationalStatus.ACTIVE);
+    List<SamosAdapter> activeAdapters =
+        samosAdapterRepository.findByStatus(AdapterOperationalStatus.ACTIVE);
 
     // Then
     assertThat(activeAdapters).hasSize(1);

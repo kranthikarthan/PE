@@ -5,17 +5,17 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 /**
  * PayShap Performance Controller
  *
- * <p>REST controller for PayShap performance optimization operations: - Performance metrics - Optimization recommendations - Cache management - Resource optimization
+ * <p>REST controller for PayShap performance optimization operations: - Performance metrics -
+ * Optimization recommendations - Cache management - Resource optimization
  */
 @Slf4j
 @RestController
@@ -37,7 +37,9 @@ public class PayShapPerformanceController {
       description = "Retrieve comprehensive performance metrics for PayShap adapter")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "200", description = "Performance metrics retrieved successfully"),
+        @ApiResponse(
+            responseCode = "200",
+            description = "Performance metrics retrieved successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<Map<String, Object>> getPerformanceMetrics() {
@@ -57,12 +59,15 @@ public class PayShapPerformanceController {
       description = "Retrieve performance optimization recommendations for PayShap adapter")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "200", description = "Optimization recommendations retrieved successfully"),
+        @ApiResponse(
+            responseCode = "200",
+            description = "Optimization recommendations retrieved successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<Map<String, Object>> getOptimizationRecommendations() {
     log.info("Getting PayShap optimization recommendations");
-    Map<String, Object> recommendations = payShapPerformanceOptimizationService.getOptimizationRecommendations();
+    Map<String, Object> recommendations =
+        payShapPerformanceOptimizationService.getOptimizationRecommendations();
     return ResponseEntity.ok(recommendations);
   }
 
@@ -83,13 +88,13 @@ public class PayShapPerformanceController {
   public ResponseEntity<Map<String, Object>> optimizeResources() {
     log.info("Optimizing PayShap resources");
     payShapPerformanceOptimizationService.optimizeResources();
-    
-    Map<String, Object> result = Map.of(
-        "status", "SUCCESS",
-        "message", "PayShap resources optimized successfully",
-        "timestamp", java.time.Instant.now().toString()
-    );
-    
+
+    Map<String, Object> result =
+        Map.of(
+            "status", "SUCCESS",
+            "message", "PayShap resources optimized successfully",
+            "timestamp", java.time.Instant.now().toString());
+
     return ResponseEntity.ok(result);
   }
 
@@ -110,13 +115,13 @@ public class PayShapPerformanceController {
   public ResponseEntity<Map<String, Object>> optimizeP2PProcessing() {
     log.info("Optimizing PayShap P2P processing");
     payShapPerformanceOptimizationService.optimizeP2PProcessing();
-    
-    Map<String, Object> result = Map.of(
-        "status", "SUCCESS",
-        "message", "PayShap P2P processing optimized successfully",
-        "timestamp", java.time.Instant.now().toString()
-    );
-    
+
+    Map<String, Object> result =
+        Map.of(
+            "status", "SUCCESS",
+            "message", "PayShap P2P processing optimized successfully",
+            "timestamp", java.time.Instant.now().toString());
+
     return ResponseEntity.ok(result);
   }
 
@@ -138,14 +143,18 @@ public class PayShapPerformanceController {
   public ResponseEntity<Map<String, Object>> evictAdapterCache(@PathVariable String adapterId) {
     log.info("Evicting PayShap adapter cache: {}", adapterId);
     payShapPerformanceOptimizationService.evictAdapterCache(adapterId);
-    
-    Map<String, Object> result = Map.of(
-        "status", "SUCCESS",
-        "message", "PayShap adapter cache evicted successfully",
-        "adapterId", adapterId,
-        "timestamp", java.time.Instant.now().toString()
-    );
-    
+
+    Map<String, Object> result =
+        Map.of(
+            "status",
+            "SUCCESS",
+            "message",
+            "PayShap adapter cache evicted successfully",
+            "adapterId",
+            adapterId,
+            "timestamp",
+            java.time.Instant.now().toString());
+
     return ResponseEntity.ok(result);
   }
 }

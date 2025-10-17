@@ -1,14 +1,11 @@
 package com.payments.bankservafricaadapter.config;
 
 import com.payments.bankservafricaadapter.repository.BankservAfricaAdapterRepository;
-import com.payments.domain.clearing.AdapterOperationalStatus;
 // import org.springframework.boot.actuator.health.Health;
 // import org.springframework.boot.actuator.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
-/**
- * Health indicator for BankservAfrica adapter
- */
+/** Health indicator for BankservAfrica adapter */
 @Component
 public class BankservAfricaAdapterHealthIndicator /* implements HealthIndicator */ {
 

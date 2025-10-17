@@ -4,9 +4,9 @@ import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.ClearingMessageId;
 import com.payments.domain.shared.ClearingRouteId;
 import com.payments.domain.shared.TenantContext;
-import com.payments.samosadapter.domain.SamosAdapter;
-import com.payments.samosadapter.domain.ClearingRoute;
 import com.payments.samosadapter.domain.ClearingMessageLog;
+import com.payments.samosadapter.domain.ClearingRoute;
+import com.payments.samosadapter.domain.SamosAdapter;
 import com.payments.samosadapter.dto.SamosAdapterValidationResponse;
 import com.payments.samosadapter.dto.SamosComplianceRequest;
 import com.payments.samosadapter.dto.SamosComplianceResponse;
@@ -14,13 +14,11 @@ import com.payments.samosadapter.dto.SamosFraudDetectionRequest;
 import com.payments.samosadapter.dto.SamosFraudDetectionResponse;
 import com.payments.samosadapter.dto.SamosRiskAssessmentRequest;
 import com.payments.samosadapter.dto.SamosRiskAssessmentResponse;
-import com.payments.samosadapter.exception.SamosAdapterNotFoundException;
 import com.payments.samosadapter.exception.SamosAdapterAlreadyExistsException;
-import com.payments.samosadapter.exception.SamosAdapterConfigurationException;
+import com.payments.samosadapter.exception.SamosAdapterNotFoundException;
 import com.payments.samosadapter.exception.SamosAdapterOperationException;
-import com.payments.telemetry.TracingService;
 import com.payments.samosadapter.repository.SamosAdapterRepository;
-import com.payments.samosadapter.service.SamosCacheService;
+import com.payments.telemetry.TracingService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
@@ -33,9 +31,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,51 +78,71 @@ public class SamosAdapterService {
       String endpoint,
       String createdBy) {
 
-    return CompletableFuture.supplyAsync(() -> {
-      return tracingService.executeInSpan("samos.adapter.create", Map.of(
-          "adapter.name", adapterName,
-          "tenant.id", tenantContext.getTenantId(),
-          "business.unit.id", tenantContext.getBusinessUnitId()
-      ), () -> {
-        try {
-          return samosAdapterCreationTimer.recordCallable(() -> {
-          log.info("Creating SAMOS adapter: {} for tenant: {}", adapterName, tenantContext.getTenantId());
+    return CompletableFuture.supplyAsync(
+        () -> {
+          return tracingService.executeInSpan(
+              "samos.adapter.create",
+              Map.of(
+                  "adapter.name", adapterName,
+                  "tenant.id", tenantContext.getTenantId(),
+                  "business.unit.id", tenantContext.getBusinessUnitId()),
+              () -> {
+                try {
+                  return samosAdapterCreationTimer.recordCallable(
+                      () -> {
+                        log.info(
+                            "Creating SAMOS adapter: {} for tenant: {}",
+                            adapterName,
+                            tenantContext.getTenantId());
 
-        // Check if adapter name already exists for tenant
-        if (samosAdapterRepository.existsByTenantIdAndAdapterName(
-            tenantContext.getTenantId(), adapterName)) {
-          throw new SamosAdapterAlreadyExistsException(adapterName, tenantContext.getTenantId());
-        }
+                        // Check if adapter name already exists for tenant
+                        if (samosAdapterRepository.existsByTenantIdAndAdapterName(
+                            tenantContext.getTenantId(), adapterName)) {
+                          throw new SamosAdapterAlreadyExistsException(
+                              adapterName, tenantContext.getTenantId());
+                        }
 
-        SamosAdapter adapter =
-            SamosAdapter.create(adapterId, tenantContext, adapterName, endpoint, createdBy);
+                        SamosAdapter adapter =
+                            SamosAdapter.create(
+                                adapterId, tenantContext, adapterName, endpoint, createdBy);
 
-        SamosAdapter savedAdapter = samosAdapterRepository.save(adapter);
+                        SamosAdapter savedAdapter = samosAdapterRepository.save(adapter);
 
-        // Apply default configuration to resilience patterns
-        applyConfigurationToResiliencePatterns(savedAdapter);
+                        // Apply default configuration to resilience patterns
+                        applyConfigurationToResiliencePatterns(savedAdapter);
 
-        // Publish domain events
-        savedAdapter.getDomainEvents().forEach(event -> {
-          log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), savedAdapter.getId());
-          // TODO: Publish to event bus (Kafka/Azure Service Bus)
+                        // Publish domain events
+                        savedAdapter
+                            .getDomainEvents()
+                            .forEach(
+                                event -> {
+                                  log.info(
+                                      "Publishing domain event: {} for adapter: {}",
+                                      event.getEventType(),
+                                      savedAdapter.getId());
+                                  // TODO: Publish to event bus (Kafka/Azure Service Bus)
+                                });
+                        savedAdapter.clearDomainEvents();
+
+                        // Record metrics
+                        samosAdapterCreatedCounter.increment();
+
+                        log.info(
+                            "Created SAMOS adapter: {} with ID: {} - timeout: {}s, retries: {}, encryption: {}, api: {}",
+                            adapterName,
+                            savedAdapter.getId(),
+                            savedAdapter.getTimeoutSeconds(),
+                            savedAdapter.getRetryAttempts(),
+                            savedAdapter.getEncryptionEnabled(),
+                            savedAdapter.getApiVersion());
+                        return savedAdapter;
+                      });
+                } catch (Exception e) {
+                  log.error("Error creating SAMOS adapter: {} - {}", adapterName, e.getMessage());
+                  throw new SamosAdapterOperationException("create", e.getMessage());
+                }
+              });
         });
-        savedAdapter.clearDomainEvents();
-
-        // Record metrics
-        samosAdapterCreatedCounter.increment();
-
-        log.info("Created SAMOS adapter: {} with ID: {} - timeout: {}s, retries: {}, encryption: {}, api: {}", 
-                 adapterName, savedAdapter.getId(), savedAdapter.getTimeoutSeconds(), 
-                 savedAdapter.getRetryAttempts(), savedAdapter.getEncryptionEnabled(), savedAdapter.getApiVersion());
-        return savedAdapter;
-      });
-      } catch (Exception e) {
-        log.error("Error creating SAMOS adapter: {} - {}", adapterName, e.getMessage());
-        throw new SamosAdapterOperationException("create", e.getMessage());
-      }
-      });
-    });
   }
 
   /** Fallback method for createAdapter */
@@ -137,7 +154,8 @@ public class SamosAdapterService {
       String createdBy,
       Exception ex) {
     log.error("Failed to create SAMOS adapter: {} - {}", adapterName, ex.getMessage());
-    return CompletableFuture.failedFuture(new SamosAdapterOperationException("create", ex.getMessage()));
+    return CompletableFuture.failedFuture(
+        new SamosAdapterOperationException("create", ex.getMessage()));
   }
 
   /** Fallback method for getAdapter */
@@ -191,55 +209,69 @@ public class SamosAdapterService {
       String certificatePassword,
       String updatedBy) {
 
-    return CompletableFuture.supplyAsync(() -> {
-      return tracingService.executeInSpan("samos.adapter.update", Map.of(
-          "adapter.id", adapterId.toString(),
-          "endpoint", endpoint != null ? endpoint : "null",
-          "api.version", apiVersion != null ? apiVersion : "null",
-          "timeout.seconds", timeoutSeconds != null ? timeoutSeconds.toString() : "null",
-          "retry.attempts", retryAttempts != null ? retryAttempts.toString() : "null",
-          "encryption.enabled", encryptionEnabled != null ? encryptionEnabled.toString() : "null"
-      ), () -> {
-        log.info("Updating SAMOS adapter configuration: {}", adapterId);
+    return CompletableFuture.supplyAsync(
+        () -> {
+          return tracingService.executeInSpan(
+              "samos.adapter.update",
+              Map.of(
+                  "adapter.id", adapterId.toString(),
+                  "endpoint", endpoint != null ? endpoint : "null",
+                  "api.version", apiVersion != null ? apiVersion : "null",
+                  "timeout.seconds", timeoutSeconds != null ? timeoutSeconds.toString() : "null",
+                  "retry.attempts", retryAttempts != null ? retryAttempts.toString() : "null",
+                  "encryption.enabled",
+                      encryptionEnabled != null ? encryptionEnabled.toString() : "null"),
+              () -> {
+                log.info("Updating SAMOS adapter configuration: {}", adapterId);
 
-      SamosAdapter adapter =
-          samosAdapterRepository
-              .findById(adapterId)
-              .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
+                SamosAdapter adapter =
+                    samosAdapterRepository
+                        .findById(adapterId)
+                        .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
 
-      adapter.updateConfiguration(
-          endpoint,
-          apiVersion,
-          timeoutSeconds,
-          retryAttempts,
-          encryptionEnabled,
-          certificatePath,
-          certificatePassword,
-          updatedBy);
+                adapter.updateConfiguration(
+                    endpoint,
+                    apiVersion,
+                    timeoutSeconds,
+                    retryAttempts,
+                    encryptionEnabled,
+                    certificatePath,
+                    certificatePassword,
+                    updatedBy);
 
-      SamosAdapter updatedAdapter = samosAdapterRepository.save(adapter);
+                SamosAdapter updatedAdapter = samosAdapterRepository.save(adapter);
 
-      // Apply configuration changes to resilience patterns
-      applyConfigurationToResiliencePatterns(updatedAdapter);
+                // Apply configuration changes to resilience patterns
+                applyConfigurationToResiliencePatterns(updatedAdapter);
 
-      // Publish domain events
-      updatedAdapter.getDomainEvents().forEach(event -> {
-        log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), updatedAdapter.getId());
-        // TODO: Publish to event bus (Kafka/Azure Service Bus)
-      });
-      updatedAdapter.clearDomainEvents();
+                // Publish domain events
+                updatedAdapter
+                    .getDomainEvents()
+                    .forEach(
+                        event -> {
+                          log.info(
+                              "Publishing domain event: {} for adapter: {}",
+                              event.getEventType(),
+                              updatedAdapter.getId());
+                          // TODO: Publish to event bus (Kafka/Azure Service Bus)
+                        });
+                updatedAdapter.clearDomainEvents();
 
-      log.info("Updated SAMOS adapter configuration: {} with timeout: {}s, retries: {}, encryption: {}, api: {}", 
-               adapterId, updatedAdapter.getTimeoutSeconds(), updatedAdapter.getRetryAttempts(), 
-               updatedAdapter.getEncryptionEnabled(), updatedAdapter.getApiVersion());
-      return updatedAdapter;
-      });
-    });
+                log.info(
+                    "Updated SAMOS adapter configuration: {} with timeout: {}s, retries: {}, encryption: {}, api: {}",
+                    adapterId,
+                    updatedAdapter.getTimeoutSeconds(),
+                    updatedAdapter.getRetryAttempts(),
+                    updatedAdapter.getEncryptionEnabled(),
+                    updatedAdapter.getApiVersion());
+                return updatedAdapter;
+              });
+        });
   }
 
   /**
    * Add a route to the SAMOS adapter
-   * 
+   *
    * @param adapterId The adapter ID
    * @param routeName The route name
    * @param source The source endpoint
@@ -256,64 +288,76 @@ public class SamosAdapterService {
       String destination,
       Integer priority,
       String addedBy) {
-    
-    return tracingService.executeInSpan("samos.adapter.addRoute", Map.of(
-        "adapter.id", adapterId.toString(),
-        "route.name", routeName,
-        "source", source,
-        "destination", destination,
-        "priority", priority != null ? priority.toString() : "null",
-        "added.by", addedBy
-    ), () -> {
-      log.info("Adding route to SAMOS adapter: {} - route: {} from {} to {}", 
-               adapterId, routeName, source, destination);
-    
-    SamosAdapter adapter = samosAdapterRepository.findById(adapterId)
-        .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
-    
-    adapter.addRoute(
-        ClearingRouteId.generate(),
-        routeName,
-        source,
-        destination,
-        priority,
-        addedBy);
-    
-    SamosAdapter updatedAdapter = samosAdapterRepository.save(adapter);
-    
-    // Publish domain events
-    updatedAdapter.getDomainEvents().forEach(event -> {
-      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), updatedAdapter.getId());
-      // TODO: Publish to event bus (Kafka/Azure Service Bus)
-    });
-    updatedAdapter.clearDomainEvents();
-    
-    log.info("Successfully added route to SAMOS adapter: {} - route: {}", adapterId, routeName);
-    return updatedAdapter;
-    });
+
+    return tracingService.executeInSpan(
+        "samos.adapter.addRoute",
+        Map.of(
+            "adapter.id", adapterId.toString(),
+            "route.name", routeName,
+            "source", source,
+            "destination", destination,
+            "priority", priority != null ? priority.toString() : "null",
+            "added.by", addedBy),
+        () -> {
+          log.info(
+              "Adding route to SAMOS adapter: {} - route: {} from {} to {}",
+              adapterId,
+              routeName,
+              source,
+              destination);
+
+          SamosAdapter adapter =
+              samosAdapterRepository
+                  .findById(adapterId)
+                  .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
+
+          adapter.addRoute(
+              ClearingRouteId.generate(), routeName, source, destination, priority, addedBy);
+
+          SamosAdapter updatedAdapter = samosAdapterRepository.save(adapter);
+
+          // Publish domain events
+          updatedAdapter
+              .getDomainEvents()
+              .forEach(
+                  event -> {
+                    log.info(
+                        "Publishing domain event: {} for adapter: {}",
+                        event.getEventType(),
+                        updatedAdapter.getId());
+                    // TODO: Publish to event bus (Kafka/Azure Service Bus)
+                  });
+          updatedAdapter.clearDomainEvents();
+
+          log.info(
+              "Successfully added route to SAMOS adapter: {} - route: {}", adapterId, routeName);
+          return updatedAdapter;
+        });
   }
-  
+
   /**
    * Get all routes for the SAMOS adapter
-   * 
+   *
    * @param adapterId The adapter ID
    * @return List of routes
    */
   public List<ClearingRoute> getRoutes(ClearingAdapterId adapterId) {
     log.info("Getting routes for SAMOS adapter: {}", adapterId);
-    
-    SamosAdapter adapter = samosAdapterRepository.findById(adapterId)
-        .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
-    
+
+    SamosAdapter adapter =
+        samosAdapterRepository
+            .findById(adapterId)
+            .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
+
     List<ClearingRoute> routes = adapter.getRoutes();
     log.info("Found {} routes for SAMOS adapter: {}", routes.size(), adapterId);
-    
+
     return routes;
   }
-  
+
   /**
    * Log a message for the SAMOS adapter
-   * 
+   *
    * @param adapterId The adapter ID
    * @param direction The message direction (INBOUND/OUTBOUND)
    * @param messageType The message type (e.g., pacs.008, pain.001)
@@ -328,76 +372,106 @@ public class SamosAdapterService {
       String messageType,
       String payloadHash,
       Integer statusCode) {
-    
-    return tracingService.executeInSpan("samos.adapter.logMessage", Map.of(
-        "adapter.id", adapterId.toString(),
-        "direction", direction,
-        "message.type", messageType,
-        "payload.hash", payloadHash != null ? payloadHash : "null",
-        "status.code", statusCode != null ? statusCode.toString() : "null"
-    ), () -> {
-      log.info("Logging message for SAMOS adapter: {} - direction: {}, type: {}, status: {}", 
-               adapterId, direction, messageType, statusCode);
-    
-    SamosAdapter adapter = samosAdapterRepository.findById(adapterId)
-        .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
-    
-    adapter.logMessage(
-        ClearingMessageId.generate(),
-        direction,
-        messageType,
-        payloadHash,
-        statusCode);
-    
-    SamosAdapter updatedAdapter = samosAdapterRepository.save(adapter);
-    
-    // Publish domain events
-    updatedAdapter.getDomainEvents().forEach(event -> {
-      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), updatedAdapter.getId());
-      // TODO: Publish to event bus (Kafka/Azure Service Bus)
-    });
-    updatedAdapter.clearDomainEvents();
-    
-    log.info("Successfully logged message for SAMOS adapter: {} - direction: {}, type: {}", 
-             adapterId, direction, messageType);
-    return updatedAdapter;
-    });
+
+    return tracingService.executeInSpan(
+        "samos.adapter.logMessage",
+        Map.of(
+            "adapter.id",
+            adapterId.toString(),
+            "direction",
+            direction,
+            "message.type",
+            messageType,
+            "payload.hash",
+            payloadHash != null ? payloadHash : "null",
+            "status.code",
+            statusCode != null ? statusCode.toString() : "null"),
+        () -> {
+          log.info(
+              "Logging message for SAMOS adapter: {} - direction: {}, type: {}, status: {}",
+              adapterId,
+              direction,
+              messageType,
+              statusCode);
+
+          SamosAdapter adapter =
+              samosAdapterRepository
+                  .findById(adapterId)
+                  .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
+
+          adapter.logMessage(
+              ClearingMessageId.generate(), direction, messageType, payloadHash, statusCode);
+
+          SamosAdapter updatedAdapter = samosAdapterRepository.save(adapter);
+
+          // Publish domain events
+          updatedAdapter
+              .getDomainEvents()
+              .forEach(
+                  event -> {
+                    log.info(
+                        "Publishing domain event: {} for adapter: {}",
+                        event.getEventType(),
+                        updatedAdapter.getId());
+                    // TODO: Publish to event bus (Kafka/Azure Service Bus)
+                  });
+          updatedAdapter.clearDomainEvents();
+
+          log.info(
+              "Successfully logged message for SAMOS adapter: {} - direction: {}, type: {}",
+              adapterId,
+              direction,
+              messageType);
+          return updatedAdapter;
+        });
   }
-  
+
   /**
    * Get all message logs for the SAMOS adapter
-   * 
+   *
    * @param adapterId The adapter ID
    * @return List of message logs
    */
   public List<ClearingMessageLog> getMessageLogs(ClearingAdapterId adapterId) {
     log.info("Getting message logs for SAMOS adapter: {}", adapterId);
-    
-    SamosAdapter adapter = samosAdapterRepository.findById(adapterId)
-        .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
-    
+
+    SamosAdapter adapter =
+        samosAdapterRepository
+            .findById(adapterId)
+            .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
+
     List<ClearingMessageLog> messageLogs = adapter.getMessageLogs();
     log.info("Found {} message logs for SAMOS adapter: {}", messageLogs.size(), adapterId);
-    
+
     return messageLogs;
   }
 
   /**
    * Apply adapter configuration to resilience patterns
-   * 
+   *
    * @param adapter The adapter with updated configuration
    */
   private void applyConfigurationToResiliencePatterns(SamosAdapter adapter) {
-    log.info("Applying configuration to resilience patterns for adapter: {} - timeout: {}s, retries: {}, encryption: {}", 
-             adapter.getId(), adapter.getTimeoutSeconds(), adapter.getRetryAttempts(), adapter.getEncryptionEnabled());
-    
+    log.info(
+        "Applying configuration to resilience patterns for adapter: {} - timeout: {}s, retries: {}, encryption: {}",
+        adapter.getId(),
+        adapter.getTimeoutSeconds(),
+        adapter.getRetryAttempts(),
+        adapter.getEncryptionEnabled());
+
     // Log configuration changes for monitoring
     if (adapter.getEncryptionEnabled()) {
-      log.info("Encryption enabled for SAMOS adapter: {} - API version: {}", adapter.getId(), adapter.getApiVersion());
+      log.info(
+          "Encryption enabled for SAMOS adapter: {} - API version: {}",
+          adapter.getId(),
+          adapter.getApiVersion());
     } else {
-      log.warn("Encryption disabled for SAMOS adapter: {} - API version: {}", adapter.getId(), adapter.getApiVersion());
+      log.warn(
+          "Encryption disabled for SAMOS adapter: {} - API version: {}",
+          adapter.getId(),
+          adapter.getApiVersion());
     }
-    
+
     // Record configuration metrics
     samosAdapterConfigurationUpdatedCounter.increment();
   }
@@ -415,58 +489,69 @@ public class SamosAdapterService {
       String updatedBy,
       Exception ex) {
     log.error("Failed to update SAMOS adapter configuration: {} - {}", adapterId, ex.getMessage());
-    return CompletableFuture.failedFuture(new SamosAdapterOperationException("update configuration", ex.getMessage()));
+    return CompletableFuture.failedFuture(
+        new SamosAdapterOperationException("update configuration", ex.getMessage()));
   }
 
   /** Activate adapter */
   @CircuitBreaker(name = "samos-adapter", fallbackMethod = "activateAdapterFallback")
   @Retry(name = "samos-adapter")
   @TimeLimiter(name = "samos-adapter")
-  public CompletableFuture<SamosAdapter> activateAdapter(ClearingAdapterId adapterId, String activatedBy) {
-    return CompletableFuture.supplyAsync(() -> {
-      return tracingService.executeInSpan("samos.adapter.activate", Map.of(
-          "adapter.id", adapterId.toString(),
-          "activated.by", activatedBy
-      ), () -> {
-        try {
-          return samosAdapterActivationTimer.recordCallable(() -> {
-          log.info("Activating SAMOS adapter: {}", adapterId);
+  public CompletableFuture<SamosAdapter> activateAdapter(
+      ClearingAdapterId adapterId, String activatedBy) {
+    return CompletableFuture.supplyAsync(
+        () -> {
+          return tracingService.executeInSpan(
+              "samos.adapter.activate",
+              Map.of("adapter.id", adapterId.toString(), "activated.by", activatedBy),
+              () -> {
+                try {
+                  return samosAdapterActivationTimer.recordCallable(
+                      () -> {
+                        log.info("Activating SAMOS adapter: {}", adapterId);
 
-        SamosAdapter adapter =
-            samosAdapterRepository
-                .findById(adapterId)
-                .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
+                        SamosAdapter adapter =
+                            samosAdapterRepository
+                                .findById(adapterId)
+                                .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
 
-        adapter.activate(activatedBy);
+                        adapter.activate(activatedBy);
 
-        SamosAdapter activatedAdapter = samosAdapterRepository.save(adapter);
+                        SamosAdapter activatedAdapter = samosAdapterRepository.save(adapter);
 
-        // Publish domain events
-        activatedAdapter.getDomainEvents().forEach(event -> {
-          log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), activatedAdapter.getId());
-          // TODO: Publish to event bus (Kafka/Azure Service Bus)
+                        // Publish domain events
+                        activatedAdapter
+                            .getDomainEvents()
+                            .forEach(
+                                event -> {
+                                  log.info(
+                                      "Publishing domain event: {} for adapter: {}",
+                                      event.getEventType(),
+                                      activatedAdapter.getId());
+                                  // TODO: Publish to event bus (Kafka/Azure Service Bus)
+                                });
+                        activatedAdapter.clearDomainEvents();
+
+                        // Record metrics
+                        samosAdapterActivatedCounter.increment();
+
+                        log.info("Activated SAMOS adapter: {}", adapterId);
+                        return activatedAdapter;
+                      });
+                } catch (Exception e) {
+                  log.error("Error activating SAMOS adapter: {} - {}", adapterId, e.getMessage());
+                  throw new SamosAdapterOperationException("activate", e.getMessage());
+                }
+              });
         });
-        activatedAdapter.clearDomainEvents();
-
-        // Record metrics
-        samosAdapterActivatedCounter.increment();
-
-        log.info("Activated SAMOS adapter: {}", adapterId);
-        return activatedAdapter;
-      });
-      } catch (Exception e) {
-        log.error("Error activating SAMOS adapter: {} - {}", adapterId, e.getMessage());
-        throw new SamosAdapterOperationException("activate", e.getMessage());
-      }
-      });
-    });
   }
 
   /** Fallback method for activateAdapter */
   public CompletableFuture<SamosAdapter> activateAdapterFallback(
       ClearingAdapterId adapterId, String activatedBy, Exception ex) {
     log.error("Failed to activate SAMOS adapter: {} - {}", adapterId, ex.getMessage());
-    return CompletableFuture.failedFuture(new SamosAdapterOperationException("activate", ex.getMessage()));
+    return CompletableFuture.failedFuture(
+        new SamosAdapterOperationException("activate", ex.getMessage()));
   }
 
   /** Deactivate adapter */
@@ -475,41 +560,51 @@ public class SamosAdapterService {
   @TimeLimiter(name = "samos-adapter")
   public CompletableFuture<SamosAdapter> deactivateAdapter(
       ClearingAdapterId adapterId, String reason, String deactivatedBy) {
-    return CompletableFuture.supplyAsync(() -> {
-      return tracingService.executeInSpan("samos.adapter.deactivate", Map.of(
-          "adapter.id", adapterId.toString(),
-          "reason", reason,
-          "deactivated.by", deactivatedBy
-      ), () -> {
-        log.info("Deactivating SAMOS adapter: {} - Reason: {}", adapterId, reason);
+    return CompletableFuture.supplyAsync(
+        () -> {
+          return tracingService.executeInSpan(
+              "samos.adapter.deactivate",
+              Map.of(
+                  "adapter.id", adapterId.toString(),
+                  "reason", reason,
+                  "deactivated.by", deactivatedBy),
+              () -> {
+                log.info("Deactivating SAMOS adapter: {} - Reason: {}", adapterId, reason);
 
-      SamosAdapter adapter =
-          samosAdapterRepository
-              .findById(adapterId)
-              .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
+                SamosAdapter adapter =
+                    samosAdapterRepository
+                        .findById(adapterId)
+                        .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId));
 
-      adapter.deactivate(reason, deactivatedBy);
+                adapter.deactivate(reason, deactivatedBy);
 
-      SamosAdapter deactivatedAdapter = samosAdapterRepository.save(adapter);
+                SamosAdapter deactivatedAdapter = samosAdapterRepository.save(adapter);
 
-      // Publish domain events
-      deactivatedAdapter.getDomainEvents().forEach(event -> {
-        log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), deactivatedAdapter.getId());
-        // TODO: Publish to event bus (Kafka/Azure Service Bus)
-      });
-      deactivatedAdapter.clearDomainEvents();
+                // Publish domain events
+                deactivatedAdapter
+                    .getDomainEvents()
+                    .forEach(
+                        event -> {
+                          log.info(
+                              "Publishing domain event: {} for adapter: {}",
+                              event.getEventType(),
+                              deactivatedAdapter.getId());
+                          // TODO: Publish to event bus (Kafka/Azure Service Bus)
+                        });
+                deactivatedAdapter.clearDomainEvents();
 
-      log.info("Deactivated SAMOS adapter: {}", adapterId);
-      return deactivatedAdapter;
-      });
-    });
+                log.info("Deactivated SAMOS adapter: {}", adapterId);
+                return deactivatedAdapter;
+              });
+        });
   }
 
   /** Fallback method for deactivateAdapter */
   public CompletableFuture<SamosAdapter> deactivateAdapterFallback(
       ClearingAdapterId adapterId, String reason, String deactivatedBy, Exception ex) {
     log.error("Failed to deactivate SAMOS adapter: {} - {}", adapterId, ex.getMessage());
-    return CompletableFuture.failedFuture(new SamosAdapterOperationException("deactivate", ex.getMessage()));
+    return CompletableFuture.failedFuture(
+        new SamosAdapterOperationException("deactivate", ex.getMessage()));
   }
 
   /** Check if adapter is active */
@@ -561,121 +656,135 @@ public class SamosAdapterService {
         Map.of("operation", "getActiveAdapterCount"),
         () -> {
           log.debug("Getting active adapter count");
-          return samosAdapterRepository.countByStatus(com.payments.domain.clearing.AdapterOperationalStatus.ACTIVE);
+          return samosAdapterRepository.countByStatus(
+              com.payments.domain.clearing.AdapterOperationalStatus.ACTIVE);
         });
   }
 
   /**
    * Validate SAMOS adapter using business rules
-   * 
+   *
    * @param adapterId The adapter ID
    * @param tenantContext Tenant context
    * @return Validation response
    */
   public SamosAdapterValidationResponse validateAdapter(
       ClearingAdapterId adapterId, TenantContext tenantContext) {
-    
-    return tracingService.executeInSpan("samos.adapter.validate", Map.of(
-        "adapter.id", adapterId.toString(),
-        "tenant.id", tenantContext.getTenantId(),
-        "business.unit.id", tenantContext.getBusinessUnitId()
-    ), () -> {
-      log.info("Validating SAMOS adapter: {} for tenant: {}", adapterId, tenantContext.getTenantId());
-      
-      SamosAdapter adapter = samosAdapterRepository.findById(adapterId)
-          .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId.toString()));
-      
-      return samosBusinessRulesService.validateAdapterConfiguration(adapter, tenantContext);
-    });
+
+    return tracingService.executeInSpan(
+        "samos.adapter.validate",
+        Map.of(
+            "adapter.id", adapterId.toString(),
+            "tenant.id", tenantContext.getTenantId(),
+            "business.unit.id", tenantContext.getBusinessUnitId()),
+        () -> {
+          log.info(
+              "Validating SAMOS adapter: {} for tenant: {}",
+              adapterId,
+              tenantContext.getTenantId());
+
+          SamosAdapter adapter =
+              samosAdapterRepository
+                  .findById(adapterId)
+                  .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId.toString()));
+
+          return samosBusinessRulesService.validateAdapterConfiguration(adapter, tenantContext);
+        });
   }
 
   /**
    * Get OAuth2 authorization header for SAMOS clearing network
-   * 
+   *
    * @return Authorization header value
    */
   public String getAuthorizationHeader() {
-    return tracingService.executeInSpan("samos.adapter.getAuthorizationHeader", Map.of(
-        "operation", "getAuthorizationHeader"
-    ), () -> {
-      log.debug("Getting SAMOS OAuth2 authorization header");
-      return samosOAuth2TokenService.getAuthorizationHeader();
-    });
+    return tracingService.executeInSpan(
+        "samos.adapter.getAuthorizationHeader",
+        Map.of("operation", "getAuthorizationHeader"),
+        () -> {
+          log.debug("Getting SAMOS OAuth2 authorization header");
+          return samosOAuth2TokenService.getAuthorizationHeader();
+        });
   }
 
   /**
    * Check if OAuth2 token is valid for SAMOS clearing network
-   * 
+   *
    * @return True if token is valid
    */
   public boolean isTokenValid() {
-    return tracingService.executeInSpan("samos.adapter.isTokenValid", Map.of(
-        "operation", "isTokenValid"
-    ), () -> {
-      log.debug("Checking SAMOS OAuth2 token validity");
-      return samosOAuth2TokenService.isTokenValid();
-    });
+    return tracingService.executeInSpan(
+        "samos.adapter.isTokenValid",
+        Map.of("operation", "isTokenValid"),
+        () -> {
+          log.debug("Checking SAMOS OAuth2 token validity");
+          return samosOAuth2TokenService.isTokenValid();
+        });
   }
 
   /**
    * Refresh OAuth2 token for SAMOS clearing network
-   * 
+   *
    * @return New authorization header
    */
   public String refreshToken() {
-    return tracingService.executeInSpan("samos.adapter.refreshToken", Map.of(
-        "operation", "refreshToken"
-    ), () -> {
-      log.info("Refreshing SAMOS OAuth2 token");
-      return samosOAuth2TokenService.refreshAccessToken();
-    });
+    return tracingService.executeInSpan(
+        "samos.adapter.refreshToken",
+        Map.of("operation", "refreshToken"),
+        () -> {
+          log.info("Refreshing SAMOS OAuth2 token");
+          return samosOAuth2TokenService.refreshAccessToken();
+        });
   }
 
   /**
    * Discover available SAMOS clearing network services
-   * 
+   *
    * @return List of service instances
    */
   public List<org.springframework.cloud.client.ServiceInstance> discoverClearingServices() {
-    return tracingService.executeInSpan("samos.adapter.discoverServices", Map.of(
-        "operation", "discoverClearingServices"
-    ), () -> {
-      log.debug("Discovering SAMOS clearing network services");
-      return samosServiceDiscoveryService.discoverSamosServices();
-    });
+    return tracingService.executeInSpan(
+        "samos.adapter.discoverServices",
+        Map.of("operation", "discoverClearingServices"),
+        () -> {
+          log.debug("Discovering SAMOS clearing network services");
+          return samosServiceDiscoveryService.discoverSamosServices();
+        });
   }
 
   /**
    * Get the best available SAMOS service endpoint
-   * 
+   *
    * @return Service endpoint URL or null
    */
   public String getClearingServiceEndpoint() {
-    return tracingService.executeInSpan("samos.adapter.getServiceEndpoint", Map.of(
-        "operation", "getClearingServiceEndpoint"
-    ), () -> {
-      log.debug("Getting SAMOS clearing network service endpoint");
-      return samosServiceDiscoveryService.getSamosServiceEndpoint();
-    });
+    return tracingService.executeInSpan(
+        "samos.adapter.getServiceEndpoint",
+        Map.of("operation", "getClearingServiceEndpoint"),
+        () -> {
+          log.debug("Getting SAMOS clearing network service endpoint");
+          return samosServiceDiscoveryService.getSamosServiceEndpoint();
+        });
   }
 
   /**
    * Check if service discovery is healthy
-   * 
+   *
    * @return True if service discovery is working
    */
   public boolean isServiceDiscoveryHealthy() {
-    return tracingService.executeInSpan("samos.adapter.isServiceDiscoveryHealthy", Map.of(
-        "operation", "isServiceDiscoveryHealthy"
-    ), () -> {
-      log.debug("Checking SAMOS service discovery health");
-      return samosServiceDiscoveryService.isServiceDiscoveryHealthy();
-    });
+    return tracingService.executeInSpan(
+        "samos.adapter.isServiceDiscoveryHealthy",
+        Map.of("operation", "isServiceDiscoveryHealthy"),
+        () -> {
+          log.debug("Checking SAMOS service discovery health");
+          return samosServiceDiscoveryService.isServiceDiscoveryHealthy();
+        });
   }
 
   /**
    * Execute compliance rules for SAMOS clearing network
-   * 
+   *
    * @param adapterId The adapter ID
    * @param request Compliance request
    * @param tenantContext Tenant context
@@ -683,74 +792,98 @@ public class SamosAdapterService {
    */
   public SamosComplianceResponse executeComplianceRules(
       ClearingAdapterId adapterId, SamosComplianceRequest request, TenantContext tenantContext) {
-    
-    return tracingService.executeInSpan("samos.adapter.executeComplianceRules", Map.of(
-        "adapter.id", adapterId.toString(),
-        "payment.id", request.getPaymentId(),
-        "tenant.id", tenantContext.getTenantId(),
-        "business.unit.id", tenantContext.getBusinessUnitId()
-    ), () -> {
-      log.info("Executing SAMOS compliance rules for adapter: {} and payment: {}", 
-               adapterId, request.getPaymentId());
-      
-      SamosAdapter adapter = samosAdapterRepository.findById(adapterId)
-          .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId.toString()));
-      
-      return samosComplianceService.executeComplianceRules(adapter, request, tenantContext);
-    });
+
+    return tracingService.executeInSpan(
+        "samos.adapter.executeComplianceRules",
+        Map.of(
+            "adapter.id", adapterId.toString(),
+            "payment.id", request.getPaymentId(),
+            "tenant.id", tenantContext.getTenantId(),
+            "business.unit.id", tenantContext.getBusinessUnitId()),
+        () -> {
+          log.info(
+              "Executing SAMOS compliance rules for adapter: {} and payment: {}",
+              adapterId,
+              request.getPaymentId());
+
+          SamosAdapter adapter =
+              samosAdapterRepository
+                  .findById(adapterId)
+                  .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId.toString()));
+
+          return samosComplianceService.executeComplianceRules(adapter, request, tenantContext);
+        });
   }
 
   /**
    * Execute fraud detection rules for SAMOS clearing network
-   * 
+   *
    * @param adapterId The adapter ID
    * @param request Fraud detection request
    * @param tenantContext Tenant context
    * @return Fraud detection response
    */
   public SamosFraudDetectionResponse executeFraudDetectionRules(
-      ClearingAdapterId adapterId, SamosFraudDetectionRequest request, TenantContext tenantContext) {
-    
-    return tracingService.executeInSpan("samos.adapter.executeFraudDetectionRules", Map.of(
-        "adapter.id", adapterId.toString(),
-        "payment.id", request.getPaymentId(),
-        "tenant.id", tenantContext.getTenantId(),
-        "business.unit.id", tenantContext.getBusinessUnitId()
-    ), () -> {
-      log.info("Executing SAMOS fraud detection rules for adapter: {} and payment: {}", 
-               adapterId, request.getPaymentId());
-      
-      SamosAdapter adapter = samosAdapterRepository.findById(adapterId)
-          .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId.toString()));
-      
-      return samosFraudDetectionService.executeFraudDetectionRules(adapter, request, tenantContext);
-    });
+      ClearingAdapterId adapterId,
+      SamosFraudDetectionRequest request,
+      TenantContext tenantContext) {
+
+    return tracingService.executeInSpan(
+        "samos.adapter.executeFraudDetectionRules",
+        Map.of(
+            "adapter.id", adapterId.toString(),
+            "payment.id", request.getPaymentId(),
+            "tenant.id", tenantContext.getTenantId(),
+            "business.unit.id", tenantContext.getBusinessUnitId()),
+        () -> {
+          log.info(
+              "Executing SAMOS fraud detection rules for adapter: {} and payment: {}",
+              adapterId,
+              request.getPaymentId());
+
+          SamosAdapter adapter =
+              samosAdapterRepository
+                  .findById(adapterId)
+                  .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId.toString()));
+
+          return samosFraudDetectionService.executeFraudDetectionRules(
+              adapter, request, tenantContext);
+        });
   }
 
   /**
    * Execute risk assessment rules for SAMOS clearing network
-   * 
+   *
    * @param adapterId The adapter ID
    * @param request Risk assessment request
    * @param tenantContext Tenant context
    * @return Risk assessment response
    */
   public SamosRiskAssessmentResponse executeRiskAssessmentRules(
-      ClearingAdapterId adapterId, SamosRiskAssessmentRequest request, TenantContext tenantContext) {
-    
-    return tracingService.executeInSpan("samos.adapter.executeRiskAssessmentRules", Map.of(
-        "adapter.id", adapterId.toString(),
-        "payment.id", request.getPaymentId(),
-        "tenant.id", tenantContext.getTenantId(),
-        "business.unit.id", tenantContext.getBusinessUnitId()
-    ), () -> {
-      log.info("Executing SAMOS risk assessment rules for adapter: {} and payment: {}", 
-               adapterId, request.getPaymentId());
-      
-      SamosAdapter adapter = samosAdapterRepository.findById(adapterId)
-          .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId.toString()));
-      
-      return samosRiskAssessmentService.executeRiskAssessmentRules(adapter, request, tenantContext);
-    });
+      ClearingAdapterId adapterId,
+      SamosRiskAssessmentRequest request,
+      TenantContext tenantContext) {
+
+    return tracingService.executeInSpan(
+        "samos.adapter.executeRiskAssessmentRules",
+        Map.of(
+            "adapter.id", adapterId.toString(),
+            "payment.id", request.getPaymentId(),
+            "tenant.id", tenantContext.getTenantId(),
+            "business.unit.id", tenantContext.getBusinessUnitId()),
+        () -> {
+          log.info(
+              "Executing SAMOS risk assessment rules for adapter: {} and payment: {}",
+              adapterId,
+              request.getPaymentId());
+
+          SamosAdapter adapter =
+              samosAdapterRepository
+                  .findById(adapterId)
+                  .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId.toString()));
+
+          return samosRiskAssessmentService.executeRiskAssessmentRules(
+              adapter, request, tenantContext);
+        });
   }
 }

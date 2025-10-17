@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -12,18 +13,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 /**
  * BankservAfrica Monitoring Controller
  *
- * <p>REST controller for BankservAfrica monitoring operations: - Dashboard metrics - Health monitoring - Performance monitoring - Custom metrics
+ * <p>REST controller for BankservAfrica monitoring operations: - Dashboard metrics - Health
+ * monitoring - Performance monitoring - Custom metrics
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/bankservafrica/monitoring")
 @RequiredArgsConstructor
-@Tag(name = "BankservAfrica Monitoring", description = "BankservAfrica monitoring and metrics operations")
+@Tag(
+    name = "BankservAfrica Monitoring",
+    description = "BankservAfrica monitoring and metrics operations")
 public class BankservAfricaMonitoringController {
 
   private final BankservAfricaMonitoringService bankservAfricaMonitoringService;
@@ -39,7 +41,9 @@ public class BankservAfricaMonitoringController {
       description = "Retrieve comprehensive dashboard metrics for BankservAfrica adapter")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "200", description = "Dashboard metrics retrieved successfully"),
+        @ApiResponse(
+            responseCode = "200",
+            description = "Dashboard metrics retrieved successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<Map<String, Object>> getDashboardMetrics() {
@@ -79,7 +83,9 @@ public class BankservAfricaMonitoringController {
       description = "Retrieve performance metrics for BankservAfrica adapter")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "200", description = "Performance metrics retrieved successfully"),
+        @ApiResponse(
+            responseCode = "200",
+            description = "Performance metrics retrieved successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<Map<String, Object>> getPerformanceMetrics() {

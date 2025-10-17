@@ -8,9 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Clearing Message Log Entity for BankservAfrica Adapter
- */
+/** Clearing Message Log Entity for BankservAfrica Adapter */
 @Entity
 @Table(name = "bankservafrica_clearing_message_logs")
 @Data

@@ -3,13 +3,10 @@ package com.payments.bankservafricaadapter.config;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.Gauge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Micrometer metrics configuration for BankservAfrica adapter
- */
+/** Micrometer metrics configuration for BankservAfrica adapter */
 @Configuration
 public class MetricsConfig {
 

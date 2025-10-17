@@ -1,5 +1,6 @@
 package com.payments.payshapadapter.performance;
 
+import com.payments.domain.clearing.AdapterOperationalStatus;
 import com.payments.payshapadapter.domain.PayShapAdapter;
 import com.payments.payshapadapter.repository.PayShapAdapterRepository;
 import io.micrometer.core.instrument.Counter;
@@ -132,7 +133,7 @@ public class PayShapPerformanceOptimizationService {
 
   /** Optimized adapter list retrieval with caching */
   @Cacheable(value = "payshap-adapters-list", key = "#status")
-  public List<PayShapAdapter> getOptimizedAdaptersByStatus(String status) {
+  public List<PayShapAdapter> getOptimizedAdaptersByStatus(AdapterOperationalStatus status) {
     Timer.Sample sample = Timer.start(meterRegistry);
     try {
       payShapQueryOptimizationCounter.increment();

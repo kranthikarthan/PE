@@ -13,7 +13,8 @@ import org.springframework.stereotype.Service;
 /**
  * SAMOS Cache Service
  *
- * <p>Service for caching SAMOS adapter data in Redis: - Adapter configuration caching - Adapter status caching - Route caching - Message log caching - Cache management
+ * <p>Service for caching SAMOS adapter data in Redis: - Adapter configuration caching - Adapter
+ * status caching - Route caching - Message log caching - Cache management
  */
 @Slf4j
 @Service

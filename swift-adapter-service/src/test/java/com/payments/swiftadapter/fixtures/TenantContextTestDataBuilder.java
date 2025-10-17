@@ -4,10 +4,11 @@ import com.payments.domain.shared.TenantContext;
 
 /**
  * Test data builder for TenantContext
- * 
- * Provides a fluent API for creating test instances of TenantContext with sensible defaults.
- * 
- * Example usage:
+ *
+ * <p>Provides a fluent API for creating test instances of TenantContext with sensible defaults.
+ *
+ * <p>Example usage:
+ *
  * <pre>
  * TenantContext context = TenantContextTestDataBuilder.aTenantContext()
  *     .withTenantId("custom-tenant")

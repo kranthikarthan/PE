@@ -1,52 +1,52 @@
 package com.payments.rtcadapter.validation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.payments.domain.clearing.AdapterOperationalStatus;
 import com.payments.domain.clearing.ClearingNetwork;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.rtcadapter.domain.RtcAdapter;
 import com.payments.rtcadapter.repository.RtcAdapterRepository;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * RTC Domain Model Validation Test
  *
- * <p>Comprehensive validation tests to ensure RTC adapter properly aligns with shared clearing-adapter domain model
+ * <p>Comprehensive validation tests to ensure RTC adapter properly aligns with shared
+ * clearing-adapter domain model
  */
 @DataJpaTest
 @ActiveProfiles("test")
 public class RtcDomainModelValidationTest {
 
-  @Autowired
-  private RtcAdapterRepository rtcAdapterRepository;
+  @Autowired private RtcAdapterRepository rtcAdapterRepository;
 
   private RtcAdapter testAdapter;
 
   @BeforeEach
   void setUp() {
-    testAdapter = RtcAdapter.builder()
-        .id(ClearingAdapterId.of("rtc-test-001"))
-        .name("RTC Test Adapter")
-        .description("Test RTC adapter for domain model validation")
-        .status(AdapterOperationalStatus.ACTIVE)
-        .network(ClearingNetwork.RTC)
-        .endpoint("https://test.rtc.co.za/api/v1")
-        .apiVersion("1.0")
-        .timeoutSeconds(30)
-        .retryAttempts(3)
-        .encryptionEnabled(true)
-        .createdAt(Instant.now())
-        .updatedAt(Instant.now())
-        .build();
+    testAdapter =
+        RtcAdapter.builder()
+            .id(ClearingAdapterId.of("rtc-test-001"))
+            .name("RTC Test Adapter")
+            .description("Test RTC adapter for domain model validation")
+            .status(AdapterOperationalStatus.ACTIVE)
+            .network(ClearingNetwork.RTC)
+            .endpoint("https://test.rtc.co.za/api/v1")
+            .apiVersion("1.0")
+            .timeoutSeconds(30)
+            .retryAttempts(3)
+            .encryptionEnabled(true)
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .build();
   }
 
   @Test
@@ -73,7 +73,8 @@ public class RtcDomainModelValidationTest {
     rtcAdapterRepository.save(testAdapter);
 
     // When
-    Optional<RtcAdapter> foundAdapter = rtcAdapterRepository.findById(ClearingAdapterId.of("rtc-test-001"));
+    Optional<RtcAdapter> foundAdapter =
+        rtcAdapterRepository.findById(ClearingAdapterId.of("rtc-test-001"));
 
     // Then
     assertThat(foundAdapter).isPresent();
@@ -87,7 +88,8 @@ public class RtcDomainModelValidationTest {
     rtcAdapterRepository.save(testAdapter);
 
     // When
-    List<RtcAdapter> activeAdapters = rtcAdapterRepository.findByStatus(AdapterOperationalStatus.ACTIVE);
+    List<RtcAdapter> activeAdapters =
+        rtcAdapterRepository.findByStatus(AdapterOperationalStatus.ACTIVE);
 
     // Then
     assertThat(activeAdapters).hasSize(1);

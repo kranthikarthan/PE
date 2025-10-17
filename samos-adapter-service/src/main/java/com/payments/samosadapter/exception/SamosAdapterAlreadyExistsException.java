@@ -1,8 +1,6 @@
 package com.payments.samosadapter.exception;
 
-/**
- * Exception thrown when SAMOS adapter already exists
- */
+/** Exception thrown when SAMOS adapter already exists */
 public class SamosAdapterAlreadyExistsException extends RuntimeException {
 
   public SamosAdapterAlreadyExistsException(String message) {
@@ -14,6 +12,7 @@ public class SamosAdapterAlreadyExistsException extends RuntimeException {
   }
 
   public SamosAdapterAlreadyExistsException(String adapterName, String tenantId) {
-    super("SAMOS adapter already exists for tenant: " + adapterName + " (tenant: " + tenantId + ")");
+    super(
+        "SAMOS adapter already exists for tenant: " + adapterName + " (tenant: " + tenantId + ")");
   }
 }

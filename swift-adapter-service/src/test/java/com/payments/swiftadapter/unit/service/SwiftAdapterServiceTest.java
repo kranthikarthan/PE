@@ -28,9 +28,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit Tests for SwiftAdapterService
- * 
- * These tests verify the business logic of SwiftAdapterService with mocked dependencies.
- * Each test focuses on a specific behavior and is isolated from database/infrastructure.
+ *
+ * <p>These tests verify the business logic of SwiftAdapterService with mocked dependencies. Each
+ * test focuses on a specific behavior and is isolated from database/infrastructure.
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("SwiftAdapterService Unit Tests")
@@ -60,21 +60,24 @@ class SwiftAdapterServiceTest {
       String endpoint = "https://swift.prod.com/api";
       String createdBy = "system-user";
 
-      var expectedAdapter = SwiftAdapterTestDataBuilder.aSwiftAdapter()
-          .withId(adapterId)
-          .withAdapterName(adapterName)
-          .withEndpoint(endpoint)
-          .withTenantContext(tenantContext)
-          .withCreatedBy(createdBy)
-          .build();
+      var expectedAdapter =
+          SwiftAdapterTestDataBuilder.aSwiftAdapter()
+              .withId(adapterId)
+              .withAdapterName(adapterName)
+              .withEndpoint(endpoint)
+              .withTenantContext(tenantContext)
+              .withCreatedBy(createdBy)
+              .build();
 
       when(mockRepository.save(any(SwiftAdapter.class))).thenReturn(expectedAdapter);
       when(mockTracingService.executeInSpan(anyString(), anyMap(), any()))
-          .thenAnswer(invocation -> invocation.getArgument(2, java.util.function.Supplier.class).get());
+          .thenAnswer(
+              invocation -> invocation.getArgument(2, java.util.function.Supplier.class).get());
 
       // When
-      CompletableFuture<SwiftAdapter> result = swiftAdapterService.createAdapter(
-          adapterId, tenantContext, adapterName, endpoint, createdBy);
+      CompletableFuture<SwiftAdapter> result =
+          swiftAdapterService.createAdapter(
+              adapterId, tenantContext, adapterName, endpoint, createdBy);
       SwiftAdapter createdAdapter = result.get();
 
       // Then
@@ -84,7 +87,7 @@ class SwiftAdapterServiceTest {
       assertThat(createdAdapter.getEndpoint()).isEqualTo(endpoint);
       assertThat(createdAdapter.getTenantContext()).isEqualTo(tenantContext);
       assertThat(createdAdapter.getCreatedBy()).isEqualTo(createdBy);
-      
+
       verify(mockRepository, times(1)).save(any(SwiftAdapter.class));
       verify(mockTracingService, times(1)).executeInSpan(anyString(), anyMap(), any());
     }
@@ -95,24 +98,29 @@ class SwiftAdapterServiceTest {
       // Given
       var adapterId = ClearingAdapterId.generate();
       var tenantContext = TenantContextTestDataBuilder.aTenantContext().build();
-      var expectedAdapter = SwiftAdapterTestDataBuilder.aSwiftAdapter()
-          .withId(adapterId)
-          .withTenantContext(tenantContext)
-          .build();
+      var expectedAdapter =
+          SwiftAdapterTestDataBuilder.aSwiftAdapter()
+              .withId(adapterId)
+              .withTenantContext(tenantContext)
+              .build();
 
       when(mockRepository.save(any(SwiftAdapter.class))).thenReturn(expectedAdapter);
       when(mockTracingService.executeInSpan(anyString(), anyMap(), any()))
-          .thenAnswer(invocation -> invocation.getArgument(2, java.util.function.Supplier.class).get());
+          .thenAnswer(
+              invocation -> invocation.getArgument(2, java.util.function.Supplier.class).get());
 
       // When
-      swiftAdapterService.createAdapter(
-          adapterId, tenantContext, "Test Adapter", "https://test.com", "user").get();
+      swiftAdapterService
+          .createAdapter(adapterId, tenantContext, "Test Adapter", "https://test.com", "user")
+          .get();
 
       // Then
-      verify(mockRepository, times(1)).save(argThat(adapter ->
-          adapter.getId().equals(adapterId) &&
-          adapter.getAdapterName().equals("Test Adapter")
-      ));
+      verify(mockRepository, times(1))
+          .save(
+              argThat(
+                  adapter ->
+                      adapter.getId().equals(adapterId)
+                          && adapter.getAdapterName().equals("Test Adapter")));
     }
   }
 
@@ -125,9 +133,7 @@ class SwiftAdapterServiceTest {
     void shouldReturnAdapterWhenFound() {
       // Given
       var adapterId = ClearingAdapterId.generate();
-      var expectedAdapter = SwiftAdapterTestDataBuilder.aSwiftAdapter()
-          .withId(adapterId)
-          .build();
+      var expectedAdapter = SwiftAdapterTestDataBuilder.aSwiftAdapter().withId(adapterId).build();
 
       when(mockRepository.findById(adapterId)).thenReturn(Optional.of(expectedAdapter));
 
@@ -160,9 +166,7 @@ class SwiftAdapterServiceTest {
     void shouldFindAdapterUsingFindById() {
       // Given
       var adapterId = ClearingAdapterId.generate();
-      var expectedAdapter = SwiftAdapterTestDataBuilder.aSwiftAdapter()
-          .withId(adapterId)
-          .build();
+      var expectedAdapter = SwiftAdapterTestDataBuilder.aSwiftAdapter().withId(adapterId).build();
 
       when(mockRepository.findById(adapterId)).thenReturn(Optional.of(expectedAdapter));
 
@@ -184,33 +188,36 @@ class SwiftAdapterServiceTest {
     void shouldUpdateAdapterConfigurationSuccessfully() {
       // Given
       var adapterId = ClearingAdapterId.generate();
-      var existingAdapter = SwiftAdapterTestDataBuilder.aSwiftAdapter()
-          .withId(adapterId)
-          .withEndpoint("https://old.endpoint.com")
-          .withTimeoutSeconds(30)
-          .build();
+      var existingAdapter =
+          SwiftAdapterTestDataBuilder.aSwiftAdapter()
+              .withId(adapterId)
+              .withEndpoint("https://old.endpoint.com")
+              .withTimeoutSeconds(30)
+              .build();
 
-      var updatedAdapter = SwiftAdapterTestDataBuilder.aSwiftAdapter()
-          .withId(adapterId)
-          .withEndpoint("https://new.endpoint.com")
-          .withTimeoutSeconds(60)
-          .build();
+      var updatedAdapter =
+          SwiftAdapterTestDataBuilder.aSwiftAdapter()
+              .withId(adapterId)
+              .withEndpoint("https://new.endpoint.com")
+              .withTimeoutSeconds(60)
+              .build();
 
       when(mockRepository.findById(adapterId)).thenReturn(Optional.of(existingAdapter));
       when(mockRepository.save(any(SwiftAdapter.class))).thenReturn(updatedAdapter);
 
       // When
-      SwiftAdapter result = swiftAdapterService.updateAdapterConfiguration(
-          adapterId,
-          "https://new.endpoint.com",
-          "2.0",
-          60,
-          5,
-          true,
-          200,
-          "09:00",
-          "17:00",
-          "admin-user");
+      SwiftAdapter result =
+          swiftAdapterService.updateAdapterConfiguration(
+              adapterId,
+              "https://new.endpoint.com",
+              "2.0",
+              60,
+              5,
+              true,
+              200,
+              "09:00",
+              "17:00",
+              "admin-user");
 
       // Then
       assertThat(result).isNotNull();
@@ -228,10 +235,20 @@ class SwiftAdapterServiceTest {
       when(mockRepository.findById(adapterId)).thenReturn(Optional.empty());
 
       // When & Then
-      assertThatThrownBy(() ->
-          swiftAdapterService.updateAdapterConfiguration(
-              adapterId, "https://endpoint.com", "2.0", 30, 3, true, 100, "09:00", "17:00", "user")
-      ).isInstanceOf(SwiftAdapterNotFoundException.class);
+      assertThatThrownBy(
+              () ->
+                  swiftAdapterService.updateAdapterConfiguration(
+                      adapterId,
+                      "https://endpoint.com",
+                      "2.0",
+                      30,
+                      3,
+                      true,
+                      100,
+                      "09:00",
+                      "17:00",
+                      "user"))
+          .isInstanceOf(SwiftAdapterNotFoundException.class);
 
       verify(mockRepository, times(1)).findById(adapterId);
       verify(mockRepository, never()).save(any());
@@ -247,15 +264,11 @@ class SwiftAdapterServiceTest {
     void shouldActivateAdapterSuccessfully() {
       // Given
       var adapterId = ClearingAdapterId.generate();
-      var inactiveAdapter = SwiftAdapterTestDataBuilder.aSwiftAdapter()
-          .withId(adapterId)
-          .inactive()
-          .build();
+      var inactiveAdapter =
+          SwiftAdapterTestDataBuilder.aSwiftAdapter().withId(adapterId).inactive().build();
 
-      var activeAdapter = SwiftAdapterTestDataBuilder.aSwiftAdapter()
-          .withId(adapterId)
-          .active()
-          .build();
+      var activeAdapter =
+          SwiftAdapterTestDataBuilder.aSwiftAdapter().withId(adapterId).active().build();
 
       when(mockRepository.findById(adapterId)).thenReturn(Optional.of(inactiveAdapter));
       when(mockRepository.save(any(SwiftAdapter.class))).thenReturn(activeAdapter);
@@ -275,21 +288,18 @@ class SwiftAdapterServiceTest {
     void shouldDeactivateAdapterSuccessfully() {
       // Given
       var adapterId = ClearingAdapterId.generate();
-      var activeAdapter = SwiftAdapterTestDataBuilder.aSwiftAdapter()
-          .withId(adapterId)
-          .active()
-          .build();
+      var activeAdapter =
+          SwiftAdapterTestDataBuilder.aSwiftAdapter().withId(adapterId).active().build();
 
-      var inactiveAdapter = SwiftAdapterTestDataBuilder.aSwiftAdapter()
-          .withId(adapterId)
-          .inactive()
-          .build();
+      var inactiveAdapter =
+          SwiftAdapterTestDataBuilder.aSwiftAdapter().withId(adapterId).inactive().build();
 
       when(mockRepository.findById(adapterId)).thenReturn(Optional.of(activeAdapter));
       when(mockRepository.save(any(SwiftAdapter.class))).thenReturn(inactiveAdapter);
 
       // When
-      SwiftAdapter result = swiftAdapterService.deactivateAdapter(adapterId, "Maintenance", "admin");
+      SwiftAdapter result =
+          swiftAdapterService.deactivateAdapter(adapterId, "Maintenance", "admin");
 
       // Then
       assertThat(result).isNotNull();
@@ -370,9 +380,7 @@ class SwiftAdapterServiceTest {
       when(mockRepository.existsById(adapterId)).thenReturn(false);
 
       // When & Then - should not throw exception
-      assertThatNoException().isThrownBy(() ->
-          swiftAdapterService.deleteAdapter(adapterId)
-      );
+      assertThatNoException().isThrownBy(() -> swiftAdapterService.deleteAdapter(adapterId));
       verify(mockRepository, times(1)).deleteById(adapterId);
     }
   }
@@ -386,11 +394,12 @@ class SwiftAdapterServiceTest {
     void shouldValidateAdapterConfigurationSuccessfully() {
       // Given
       var adapterId = ClearingAdapterId.generate();
-      var validAdapter = SwiftAdapterTestDataBuilder.aSwiftAdapter()
-          .withId(adapterId)
-          .withEndpoint("https://valid.endpoint.com")
-          .active()
-          .build();
+      var validAdapter =
+          SwiftAdapterTestDataBuilder.aSwiftAdapter()
+              .withId(adapterId)
+              .withEndpoint("https://valid.endpoint.com")
+              .active()
+              .build();
 
       when(mockRepository.findById(adapterId)).thenReturn(Optional.of(validAdapter));
 

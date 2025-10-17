@@ -1,8 +1,6 @@
 package com.payments.rtcadapter.exception;
 
-/**
- * Exception thrown when RTC adapter operation fails
- */
+/** Exception thrown when RTC adapter operation fails */
 public class RtcAdapterOperationException extends RuntimeException {
 
   public RtcAdapterOperationException(String message) {

@@ -9,6 +9,7 @@ src\main\java\com\payments\payshapadapter\controller\PayShapCacheManagementContr
 src\main\java\com\payments\payshapadapter\controller\PayShapConfigurationController.java 2025-10-17T15:55:16.539298700Z
 src\main\java\com\payments\payshapadapter\controller\PayShapMonitoringController.java 2025-10-17T15:55:16.583746100Z
 src\main\java\com\payments\payshapadapter\controller\PayShapPaymentProcessingController.java 2025-10-17T10:04:30.598530100Z
+src\main\java\com\payments\payshapadapter\controller\PayShapPerformanceController.java 2025-10-17T16:57:10.065651500Z
 src\main\java\com\payments\payshapadapter\domain\ClearingMessageLog.java 2025-10-17T15:55:16.612395400Z
 src\main\java\com\payments\payshapadapter\domain\ClearingRoute.java 2025-10-17T15:55:16.647349200Z
 src\main\java\com\payments\payshapadapter\domain\PayShapAdapter.java 2025-10-17T15:55:16.734789100Z
@@ -29,7 +30,7 @@ src\main\java\com\payments\payshapadapter\exception\PayShapAdapterNotFoundExcept
 src\main\java\com\payments\payshapadapter\exception\PayShapAdapterOperationException.java 2025-10-17T15:55:16.844446900Z
 src\main\java\com\payments\payshapadapter\monitoring\PayShapMonitoringService.java 2025-10-17T16:01:18.621691600Z
 src\main\java\com\payments\payshapadapter\PayShapAdapterApplication.java 2025-10-17T10:04:30.596519400Z
-src\main\java\com\payments\payshapadapter\performance\PayShapPerformanceOptimizationService.java 2025-10-17T16:05:13.476692Z
+src\main\java\com\payments\payshapadapter\performance\PayShapPerformanceOptimizationService.java 2025-10-17T16:57:10.206414500Z
 src\main\java\com\payments\payshapadapter\repository\PayShapAdapterRepository.java 2025-10-17T13:50:53.846107600Z
 src\main\java\com\payments\payshapadapter\repository\PayShapPaymentMessageRepository.java 2025-10-17T10:04:30.596519400Z
 src\main\java\com\payments\payshapadapter\repository\PayShapSettlementRecordRepository.java 2025-10-17T10:04:30.598530100Z
@@ -41,3 +42,4 @@ src\main\java\com\payments\payshapadapter\service\PayShapOAuth2TokenService.java
 src\main\java\com\payments\payshapadapter\service\PayShapPaymentProcessingService.java 2025-10-17T10:04:30.598530100Z
 src\main\java\com\payments\payshapadapter\service\PayShapSecretManagementService.java 2025-10-17T15:55:17.121473900Z
 src\test\java\com\payments\payshapadapter\integration\PayShapAdapterIntegrationTest.java 2025-10-17T15:55:17.169473600Z
+src\test\java\com\payments\payshapadapter\validation\PayShapDomainModelValidationTest.java 2025-10-17T16:57:10.326434500Z

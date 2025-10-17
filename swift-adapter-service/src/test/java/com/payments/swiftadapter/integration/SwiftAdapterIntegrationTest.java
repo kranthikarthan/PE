@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.TenantContext;
 import com.payments.swiftadapter.domain.SwiftAdapter;
-import com.payments.swiftadapter.fixtures.SwiftAdapterTestDataBuilder;
 import com.payments.swiftadapter.fixtures.TenantContextTestDataBuilder;
 import com.payments.swiftadapter.repository.SwiftAdapterRepository;
 import com.payments.swiftadapter.service.SwiftAdapterService;
@@ -28,9 +27,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Integration tests for SWIFT adapter using Testcontainers
- * 
- * These tests verify end-to-end behavior with a real database.
- * They use test data builders for consistency and maintainability.
+ *
+ * <p>These tests verify end-to-end behavior with a real database. They use test data builders for
+ * consistency and maintainability.
  */
 @SpringBootTest
 @Testcontainers
@@ -103,7 +102,11 @@ class SwiftAdapterIntegrationTest {
       SwiftAdapter adapter =
           swiftAdapterService
               .createAdapter(
-                  adapterId, tenantContext, "Test SWIFT Adapter", "https://swift.test.com/api", "user")
+                  adapterId,
+                  tenantContext,
+                  "Test SWIFT Adapter",
+                  "https://swift.test.com/api",
+                  "user")
               .get();
 
       // When
@@ -128,7 +131,8 @@ class SwiftAdapterIntegrationTest {
       String activatedBy = "admin-user";
 
       // When
-      SwiftAdapter activatedAdapter = swiftAdapterService.activateAdapter(adapter.getId(), activatedBy);
+      SwiftAdapter activatedAdapter =
+          swiftAdapterService.activateAdapter(adapter.getId(), activatedBy);
 
       // Then
       assertThat(activatedAdapter.isActive()).isTrue();
@@ -206,8 +210,7 @@ class SwiftAdapterIntegrationTest {
       assertThat(updatedAdapter.getUpdatedBy()).isEqualTo(updatedBy);
 
       // Verify persistence
-      Optional<SwiftAdapter> persistedAdapter =
-          swiftAdapterRepository.findById(adapter.getId());
+      Optional<SwiftAdapter> persistedAdapter = swiftAdapterRepository.findById(adapter.getId());
       assertThat(persistedAdapter).isPresent();
       assertThat(persistedAdapter.get().getEndpoint()).isEqualTo(newEndpoint);
     }
@@ -224,7 +227,8 @@ class SwiftAdapterIntegrationTest {
       SwiftAdapter expectedAdapter = createTestAdapter();
 
       // When
-      Optional<SwiftAdapter> actualAdapter = swiftAdapterService.getAdapter(expectedAdapter.getId());
+      Optional<SwiftAdapter> actualAdapter =
+          swiftAdapterService.getAdapter(expectedAdapter.getId());
 
       // Then
       assertThat(actualAdapter).isPresent();
@@ -332,9 +336,7 @@ class SwiftAdapterIntegrationTest {
     }
   }
 
-  /**
-   * Test fixture: Creates a test adapter using the test data builder
-   */
+  /** Test fixture: Creates a test adapter using the test data builder */
   private SwiftAdapter createTestAdapter() throws Exception {
     return swiftAdapterService
         .createAdapter(
@@ -346,9 +348,7 @@ class SwiftAdapterIntegrationTest {
         .get();
   }
 
-  /**
-   * Test fixture: Creates a test adapter with a different tenant
-   */
+  /** Test fixture: Creates a test adapter with a different tenant */
   private SwiftAdapter createTestAdapterWithDifferentTenant() throws Exception {
     TenantContext differentTenant =
         TenantContextTestDataBuilder.aTenantContext()

@@ -12,7 +12,8 @@ import org.springframework.context.annotation.Configuration;
 /**
  * SAMOS Clearing Network Client Configuration
  *
- * <p>Feign client configuration for SAMOS clearing network: - Request interceptors - Logging configuration - Timeout configuration - Error handling
+ * <p>Feign client configuration for SAMOS clearing network: - Request interceptors - Logging
+ * configuration - Timeout configuration - Error handling
  */
 @Slf4j
 @Configuration

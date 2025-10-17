@@ -1,10 +1,13 @@
 package com.payments.rtcadapter.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.TenantContext;
 import com.payments.rtcadapter.domain.RtcAdapter;
 import com.payments.rtcadapter.repository.RtcAdapterRepository;
 import com.payments.rtcadapter.service.RtcAdapterService;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +21,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.concurrent.CompletableFuture;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-/**
- * Integration tests for RTC adapter using Testcontainers
- */
+/** Integration tests for RTC adapter using Testcontainers */
 @SpringBootTest
 @Testcontainers
 @AutoConfigureWebMvc
@@ -33,10 +30,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RtcAdapterIntegrationTest {
 
   @Container
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
-      .withDatabaseName("rtc_adapter_test")
-      .withUsername("test")
-      .withPassword("test");
+  static PostgreSQLContainer<?> postgres =
+      new PostgreSQLContainer<>("postgres:15-alpine")
+          .withDatabaseName("rtc_adapter_test")
+          .withUsername("test")
+          .withPassword("test");
 
   @DynamicPropertySource
   static void configureProperties(DynamicPropertyRegistry registry) {
@@ -45,23 +43,17 @@ class RtcAdapterIntegrationTest {
     registry.add("spring.datasource.password", postgres::getPassword);
   }
 
-  @Autowired
-  private RtcAdapterService rtcAdapterService;
+  @Autowired private RtcAdapterService rtcAdapterService;
 
-  @Autowired
-  private RtcAdapterRepository rtcAdapterRepository;
+  @Autowired private RtcAdapterRepository rtcAdapterRepository;
 
   private TenantContext tenantContext;
   private ClearingAdapterId adapterId;
 
   @BeforeEach
   void setUp() {
-    tenantContext = TenantContext.of(
-        "tenant-123",
-        "Test Tenant",
-        "business-unit-456",
-        "Test Business Unit"
-    );
+    tenantContext =
+        TenantContext.of("tenant-123", "Test Tenant", "business-unit-456", "Test Business Unit");
     adapterId = ClearingAdapterId.generate();
   }
 
@@ -73,8 +65,8 @@ class RtcAdapterIntegrationTest {
     String createdBy = "test-user";
 
     // When
-    CompletableFuture<RtcAdapter> future = rtcAdapterService.createAdapter(
-        adapterId, tenantContext, adapterName, endpoint, createdBy);
+    CompletableFuture<RtcAdapter> future =
+        rtcAdapterService.createAdapter(adapterId, tenantContext, adapterName, endpoint, createdBy);
     RtcAdapter adapter = future.get();
 
     // Then
@@ -94,8 +86,8 @@ class RtcAdapterIntegrationTest {
     String activatedBy = "admin-user";
 
     // When
-    CompletableFuture<RtcAdapter> future = rtcAdapterService.activateAdapter(
-        adapter.getId(), activatedBy);
+    CompletableFuture<RtcAdapter> future =
+        rtcAdapterService.activateAdapter(adapter.getId(), activatedBy);
     RtcAdapter activatedAdapter = future.get();
 
     // Then
@@ -112,8 +104,8 @@ class RtcAdapterIntegrationTest {
     String reason = "Maintenance";
 
     // When
-    CompletableFuture<RtcAdapter> future = rtcAdapterService.deactivateAdapter(
-        adapter.getId(), reason, deactivatedBy);
+    CompletableFuture<RtcAdapter> future =
+        rtcAdapterService.deactivateAdapter(adapter.getId(), reason, deactivatedBy);
     RtcAdapter deactivatedAdapter = future.get();
 
     // Then
@@ -135,16 +127,17 @@ class RtcAdapterIntegrationTest {
     String updatedBy = "admin-user";
 
     // When
-    CompletableFuture<RtcAdapter> future = rtcAdapterService.updateAdapterConfiguration(
-        adapter.getId(),
-        newEndpoint,
-        newApiVersion,
-        newTimeoutSeconds,
-        newRetryAttempts,
-        newEncryptionEnabled,
-        newCertificatePath,
-        newCertificatePassword,
-        updatedBy);
+    CompletableFuture<RtcAdapter> future =
+        rtcAdapterService.updateAdapterConfiguration(
+            adapter.getId(),
+            newEndpoint,
+            newApiVersion,
+            newTimeoutSeconds,
+            newRetryAttempts,
+            newEncryptionEnabled,
+            newCertificatePath,
+            newCertificatePassword,
+            updatedBy);
     RtcAdapter updatedAdapter = future.get();
 
     // Then
@@ -164,7 +157,8 @@ class RtcAdapterIntegrationTest {
     RtcAdapter expectedAdapter = createTestAdapter();
 
     // When
-    CompletableFuture<Optional<RtcAdapter>> future = rtcAdapterService.getAdapter(expectedAdapter.getId());
+    CompletableFuture<Optional<RtcAdapter>> future =
+        rtcAdapterService.getAdapter(expectedAdapter.getId());
     Optional<RtcAdapter> actualAdapter = future.get();
 
     // Then
@@ -179,13 +173,15 @@ class RtcAdapterIntegrationTest {
     createTestAdapterWithDifferentTenant();
 
     // When
-    CompletableFuture<List<RtcAdapter>> future = rtcAdapterService.getAdaptersByTenant(
-        tenantContext.getTenantId(), tenantContext.getBusinessUnitId());
+    CompletableFuture<List<RtcAdapter>> future =
+        rtcAdapterService.getAdaptersByTenant(
+            tenantContext.getTenantId(), tenantContext.getBusinessUnitId());
     List<RtcAdapter> adapters = future.get();
 
     // Then
     assertThat(adapters).hasSize(1);
-    assertThat(adapters.get(0).getTenantContext().getTenantId()).isEqualTo(tenantContext.getTenantId());
+    assertThat(adapters.get(0).getTenantContext().getTenantId())
+        .isEqualTo(tenantContext.getTenantId());
   }
 
   @Test
@@ -196,8 +192,8 @@ class RtcAdapterIntegrationTest {
     rtcAdapterService.activateAdapter(adapter1.getId(), "admin").get();
 
     // When
-    CompletableFuture<List<RtcAdapter>> future = rtcAdapterService.getActiveAdaptersByTenant(
-        tenantContext.getTenantId());
+    CompletableFuture<List<RtcAdapter>> future =
+        rtcAdapterService.getActiveAdaptersByTenant(tenantContext.getTenantId());
     List<RtcAdapter> activeAdapters = future.get();
 
     // Then
@@ -212,7 +208,8 @@ class RtcAdapterIntegrationTest {
     RtcAdapter adapter = createTestAdapter();
 
     // When
-    CompletableFuture<Boolean> future = rtcAdapterService.validateAdapterConfiguration(adapter.getId());
+    CompletableFuture<Boolean> future =
+        rtcAdapterService.validateAdapterConfiguration(adapter.getId());
     Boolean isValid = future.get();
 
     // Then
@@ -238,25 +235,24 @@ class RtcAdapterIntegrationTest {
     String endpoint = "https://rtc.test.com/api";
     String createdBy = "test-user";
 
-    CompletableFuture<RtcAdapter> future = rtcAdapterService.createAdapter(
-        ClearingAdapterId.generate(), tenantContext, adapterName, endpoint, createdBy);
+    CompletableFuture<RtcAdapter> future =
+        rtcAdapterService.createAdapter(
+            ClearingAdapterId.generate(), tenantContext, adapterName, endpoint, createdBy);
     return future.get();
   }
 
   private RtcAdapter createTestAdapterWithDifferentTenant() throws Exception {
-    TenantContext differentTenant = TenantContext.of(
-        "tenant-789",
-        "Different Tenant",
-        "business-unit-101",
-        "Different Business Unit"
-    );
+    TenantContext differentTenant =
+        TenantContext.of(
+            "tenant-789", "Different Tenant", "business-unit-101", "Different Business Unit");
 
     String adapterName = "Different Tenant Adapter";
     String endpoint = "https://rtc.different.com/api";
     String createdBy = "different-user";
 
-    CompletableFuture<RtcAdapter> future = rtcAdapterService.createAdapter(
-        ClearingAdapterId.generate(), differentTenant, adapterName, endpoint, createdBy);
+    CompletableFuture<RtcAdapter> future =
+        rtcAdapterService.createAdapter(
+            ClearingAdapterId.generate(), differentTenant, adapterName, endpoint, createdBy);
     return future.get();
   }
 }

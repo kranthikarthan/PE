@@ -5,17 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * SAMOS Payment Status Request
- */
+/** SAMOS Payment Status Request */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class SamosPaymentStatusRequest {
-    private String paymentId;
-    private String requestId;
-    private String transactionId;
-    private String tenantId;
-    private String businessUnitId;
+  private String paymentId;
+  private String requestId;
+  private String transactionId;
+  private String tenantId;
+  private String businessUnitId;
 }

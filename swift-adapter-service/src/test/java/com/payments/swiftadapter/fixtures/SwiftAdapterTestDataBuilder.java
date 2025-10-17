@@ -9,11 +9,12 @@ import java.time.Instant;
 
 /**
  * Test data builder for SwiftAdapter
- * 
- * Provides a fluent API for creating test instances of SwiftAdapter with sensible defaults.
- * This eliminates hardcoded test data and improves maintainability.
- * 
- * Example usage:
+ *
+ * <p>Provides a fluent API for creating test instances of SwiftAdapter with sensible defaults. This
+ * eliminates hardcoded test data and improves maintainability.
+ *
+ * <p>Example usage:
+ *
  * <pre>
  * SwiftAdapter adapter = SwiftAdapterTestDataBuilder.aSwiftAdapter()
  *     .withAdapterName("Custom Name")

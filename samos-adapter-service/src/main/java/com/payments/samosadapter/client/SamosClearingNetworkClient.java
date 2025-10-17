@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 /**
  * SAMOS Clearing Network Feign Client
  *
- * <p>Feign client for SAMOS clearing network integration: - Payment submission - Payment status checking - Settlement processing - ISO 20022 message handling
+ * <p>Feign client for SAMOS clearing network integration: - Payment submission - Payment status
+ * checking - Settlement processing - ISO 20022 message handling
  */
 @FeignClient(
     name = "samos-clearing-network",

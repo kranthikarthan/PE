@@ -121,7 +121,7 @@ public class SwiftDomainModelValidationTest {
     assertThat(savedAdapter.getTimeoutSeconds()).isInstanceOf(Integer.class);
     assertThat(savedAdapter.getRetryAttempts()).isInstanceOf(Integer.class);
     assertThat(savedAdapter.getEncryptionEnabled()).isInstanceOf(Boolean.class);
-    
+
     // Additionally verify actual values, not just types
     assertThat(savedAdapter.getId()).isEqualTo(testAdapter.getId());
     assertThat(savedAdapter.getStatus()).isEqualTo(AdapterOperationalStatus.ACTIVE);
@@ -173,11 +173,11 @@ public class SwiftDomainModelValidationTest {
     assertThat(savedAdapter.getCreatedAt()).isBeforeOrEqualTo(Instant.now());
     assertThat(savedAdapter.getUpdatedAt()).isBeforeOrEqualTo(Instant.now());
   }
-  
+
   @Test
   void shouldNotFindNonExistentAdapter() {
     // When
-    Optional<SwiftAdapter> foundAdapter = 
+    Optional<SwiftAdapter> foundAdapter =
         swiftAdapterRepository.findById(ClearingAdapterId.of("non-existent-id"));
 
     // Then

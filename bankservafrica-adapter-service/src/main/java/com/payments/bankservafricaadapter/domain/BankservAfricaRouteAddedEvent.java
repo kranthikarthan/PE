@@ -7,9 +7,7 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-/**
- * Domain event for BankservAfrica route addition
- */
+/** Domain event for BankservAfrica route addition */
 @Value
 @AllArgsConstructor
 public class BankservAfricaRouteAddedEvent implements DomainEvent {

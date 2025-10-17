@@ -3,13 +3,10 @@ package com.payments.rtcadapter.config;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.Gauge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Micrometer metrics configuration for RTC adapter
- */
+/** Micrometer metrics configuration for RTC adapter */
 @Configuration
 public class MetricsConfig {
 

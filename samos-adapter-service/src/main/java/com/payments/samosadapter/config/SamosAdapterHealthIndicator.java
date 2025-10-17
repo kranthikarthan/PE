@@ -1,14 +1,11 @@
 package com.payments.samosadapter.config;
 
 import com.payments.samosadapter.repository.SamosAdapterRepository;
-import com.payments.domain.clearing.AdapterOperationalStatus;
 // import org.springframework.boot.actuator.health.Health;
 // import org.springframework.boot.actuator.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
-/**
- * Health indicator for SAMOS adapter
- */
+/** Health indicator for SAMOS adapter */
 @Component
 public class SamosAdapterHealthIndicator /* implements HealthIndicator */ {
 
@@ -22,8 +19,10 @@ public class SamosAdapterHealthIndicator /* implements HealthIndicator */ {
   // public Health health() {
   //   try {
   //     long totalAdapters = samosAdapterRepository.count();
-  //     long activeAdapters = samosAdapterRepository.countByStatus(AdapterOperationalStatus.ACTIVE);
-  //     long inactiveAdapters = samosAdapterRepository.countByStatus(AdapterOperationalStatus.INACTIVE);
+  //     long activeAdapters =
+  // samosAdapterRepository.countByStatus(AdapterOperationalStatus.ACTIVE);
+  //     long inactiveAdapters =
+  // samosAdapterRepository.countByStatus(AdapterOperationalStatus.INACTIVE);
 
   //     if (totalAdapters == 0) {
   //       return Health.down()

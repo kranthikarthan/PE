@@ -1,0 +1,372 @@
+{
+  "groups": [
+    {
+      "name": "rtc.adapter",
+      "type": "com.payments.rtcadapter.config.RtcAdapterConfig",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.environment",
+      "type": "com.payments.rtcadapter.config.RtcEnvironmentConfig",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig"
+    },
+    {
+      "name": "rtc.environment.development",
+      "type": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Development",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig",
+      "sourceMethod": "public com.payments.rtcadapter.config.RtcEnvironmentConfig.Development getDevelopment() "
+    },
+    {
+      "name": "rtc.environment.environment-settings",
+      "type": "com.payments.rtcadapter.config.RtcEnvironmentConfig$EnvironmentSettings",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig",
+      "sourceMethod": "public com.payments.rtcadapter.config.RtcEnvironmentConfig.EnvironmentSettings getEnvironmentSettings() "
+    },
+    {
+      "name": "rtc.environment.production",
+      "type": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Production",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig",
+      "sourceMethod": "public com.payments.rtcadapter.config.RtcEnvironmentConfig.Production getProduction() "
+    },
+    {
+      "name": "rtc.environment.staging",
+      "type": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Staging",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig",
+      "sourceMethod": "public com.payments.rtcadapter.config.RtcEnvironmentConfig.Staging getStaging() "
+    }
+  ],
+  "properties": [
+    {
+      "name": "rtc.adapter.amount-limit",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.api-version",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.encryption-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.endpoint",
+      "type": "java.lang.String",
+      "description": "RTC endpoint configuration",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.processing-window-end",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.processing-window-start",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.retry-attempts",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.environment.currency",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig"
+    },
+    {
+      "name": "rtc.environment.data-center",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig"
+    },
+    {
+      "name": "rtc.environment.debug-mode",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig"
+    },
+    {
+      "name": "rtc.environment.development.amount-limit",
+      "type": "java.lang.Double",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Development"
+    },
+    {
+      "name": "rtc.environment.development.api-version",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Development"
+    },
+    {
+      "name": "rtc.environment.development.certificate-path",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Development"
+    },
+    {
+      "name": "rtc.environment.development.encryption-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Development"
+    },
+    {
+      "name": "rtc.environment.development.endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Development"
+    },
+    {
+      "name": "rtc.environment.development.log-level",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Development"
+    },
+    {
+      "name": "rtc.environment.development.mock-endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Development"
+    },
+    {
+      "name": "rtc.environment.development.mock-mode",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Development"
+    },
+    {
+      "name": "rtc.environment.development.processing-window-end",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Development"
+    },
+    {
+      "name": "rtc.environment.development.processing-window-start",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Development"
+    },
+    {
+      "name": "rtc.environment.development.retry-attempts",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Development"
+    },
+    {
+      "name": "rtc.environment.development.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Development"
+    },
+    {
+      "name": "rtc.environment.environment",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig"
+    },
+    {
+      "name": "rtc.environment.environment-settings.amount-limit",
+      "type": "java.lang.Double",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "rtc.environment.environment-settings.api-version",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "rtc.environment.environment-settings.certificate-path",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "rtc.environment.environment-settings.encryption-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "rtc.environment.environment-settings.endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "rtc.environment.environment-settings.log-level",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "rtc.environment.environment-settings.mock-endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "rtc.environment.environment-settings.mock-mode",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "rtc.environment.environment-settings.processing-window-end",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "rtc.environment.environment-settings.processing-window-start",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "rtc.environment.environment-settings.retry-attempts",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "rtc.environment.environment-settings.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "rtc.environment.locale",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig"
+    },
+    {
+      "name": "rtc.environment.log-level",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig"
+    },
+    {
+      "name": "rtc.environment.metrics-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig"
+    },
+    {
+      "name": "rtc.environment.production.amount-limit",
+      "type": "java.lang.Double",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Production"
+    },
+    {
+      "name": "rtc.environment.production.api-version",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Production"
+    },
+    {
+      "name": "rtc.environment.production.certificate-path",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Production"
+    },
+    {
+      "name": "rtc.environment.production.encryption-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Production"
+    },
+    {
+      "name": "rtc.environment.production.endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Production"
+    },
+    {
+      "name": "rtc.environment.production.log-level",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Production"
+    },
+    {
+      "name": "rtc.environment.production.mock-endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Production"
+    },
+    {
+      "name": "rtc.environment.production.mock-mode",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Production"
+    },
+    {
+      "name": "rtc.environment.production.processing-window-end",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Production"
+    },
+    {
+      "name": "rtc.environment.production.processing-window-start",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Production"
+    },
+    {
+      "name": "rtc.environment.production.retry-attempts",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Production"
+    },
+    {
+      "name": "rtc.environment.production.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Production"
+    },
+    {
+      "name": "rtc.environment.region",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig"
+    },
+    {
+      "name": "rtc.environment.staging.amount-limit",
+      "type": "java.lang.Double",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Staging"
+    },
+    {
+      "name": "rtc.environment.staging.api-version",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Staging"
+    },
+    {
+      "name": "rtc.environment.staging.certificate-path",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Staging"
+    },
+    {
+      "name": "rtc.environment.staging.encryption-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Staging"
+    },
+    {
+      "name": "rtc.environment.staging.endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Staging"
+    },
+    {
+      "name": "rtc.environment.staging.log-level",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Staging"
+    },
+    {
+      "name": "rtc.environment.staging.mock-endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Staging"
+    },
+    {
+      "name": "rtc.environment.staging.mock-mode",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Staging"
+    },
+    {
+      "name": "rtc.environment.staging.processing-window-end",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Staging"
+    },
+    {
+      "name": "rtc.environment.staging.processing-window-start",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Staging"
+    },
+    {
+      "name": "rtc.environment.staging.retry-attempts",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Staging"
+    },
+    {
+      "name": "rtc.environment.staging.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig$Staging"
+    },
+    {
+      "name": "rtc.environment.timezone",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig"
+    },
+    {
+      "name": "rtc.environment.tracing-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.rtcadapter.config.RtcEnvironmentConfig"
+    }
+  ],
+  "hints": []
+}

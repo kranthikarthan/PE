@@ -5,8 +5,8 @@ import com.payments.domain.clearing.ClearingNetwork;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.ClearingMessageId;
 import com.payments.domain.shared.ClearingRouteId;
-import com.payments.domain.shared.TenantContext;
 import com.payments.domain.shared.DomainEvent;
+import com.payments.domain.shared.TenantContext;
 import com.payments.samosadapter.exception.InvalidSamosAdapterException;
 import jakarta.persistence.*;
 import java.time.Instant;
@@ -152,7 +152,8 @@ public class SamosAdapter {
     this.updatedAt = Instant.now();
     this.updatedBy = updatedBy;
 
-    registerEvent(new SamosAdapterConfigurationUpdatedEvent(this.id, endpoint, apiVersion, Instant.now()));
+    registerEvent(
+        new SamosAdapterConfigurationUpdatedEvent(this.id, endpoint, apiVersion, Instant.now()));
   }
 
   public void activate(String activatedBy) {
@@ -221,7 +222,8 @@ public class SamosAdapter {
     this.messageLogs.add(log);
     this.updatedAt = Instant.now();
 
-    registerEvent(new SamosMessageLoggedEvent(this.id, direction, messageType, statusCode, Instant.now()));
+    registerEvent(
+        new SamosMessageLoggedEvent(this.id, direction, messageType, statusCode, Instant.now()));
   }
 
   public List<ClearingRoute> getRoutes() {

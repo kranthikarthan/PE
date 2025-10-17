@@ -6,9 +6,7 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-/**
- * Domain event for SAMOS adapter activation
- */
+/** Domain event for SAMOS adapter activation */
 @Value
 @AllArgsConstructor
 public class SamosAdapterActivatedEvent implements DomainEvent {

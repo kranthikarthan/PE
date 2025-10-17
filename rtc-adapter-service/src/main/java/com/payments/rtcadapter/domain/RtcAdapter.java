@@ -303,7 +303,8 @@ public class RtcAdapter {
     this.messageLogs.add(log);
     this.updatedAt = Instant.now();
 
-    registerEvent(new RtcMessageLoggedEvent(this.id, direction, messageType, statusCode, Instant.now()));
+    registerEvent(
+        new RtcMessageLoggedEvent(this.id, direction, messageType, statusCode, Instant.now()));
   }
 
   /** Get routes */

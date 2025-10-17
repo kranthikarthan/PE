@@ -8,9 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Clearing Route Entity for SAMOS Adapter
- */
+/** Clearing Route Entity for SAMOS Adapter */
 @Entity
 @Table(name = "samos_clearing_routes")
 @Data

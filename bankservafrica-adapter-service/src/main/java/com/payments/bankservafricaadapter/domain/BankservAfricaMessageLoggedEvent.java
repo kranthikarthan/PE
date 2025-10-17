@@ -6,9 +6,7 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-/**
- * Domain event for BankservAfrica message logging
- */
+/** Domain event for BankservAfrica message logging */
 @Value
 @AllArgsConstructor
 public class BankservAfricaMessageLoggedEvent implements DomainEvent {

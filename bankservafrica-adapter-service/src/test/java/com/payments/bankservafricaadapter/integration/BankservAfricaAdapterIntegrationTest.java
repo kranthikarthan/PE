@@ -1,11 +1,14 @@
 package com.payments.bankservafricaadapter.integration;
 
-import com.payments.domain.clearing.ClearingNetwork;
-import com.payments.domain.shared.ClearingAdapterId;
-import com.payments.domain.shared.TenantContext;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.payments.bankservafricaadapter.domain.BankservAfricaAdapter;
 import com.payments.bankservafricaadapter.repository.BankservAfricaAdapterRepository;
 import com.payments.bankservafricaadapter.service.BankservAfricaAdapterService;
+import com.payments.domain.clearing.ClearingNetwork;
+import com.payments.domain.shared.ClearingAdapterId;
+import com.payments.domain.shared.TenantContext;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +22,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.concurrent.CompletableFuture;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-/**
- * Integration tests for BankservAfrica adapter using Testcontainers
- */
+/** Integration tests for BankservAfrica adapter using Testcontainers */
 @SpringBootTest
 @Testcontainers
 @AutoConfigureWebMvc
@@ -34,10 +31,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BankservAfricaAdapterIntegrationTest {
 
   @Container
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
-      .withDatabaseName("bankservafrica_adapter_test")
-      .withUsername("test")
-      .withPassword("test");
+  static PostgreSQLContainer<?> postgres =
+      new PostgreSQLContainer<>("postgres:15-alpine")
+          .withDatabaseName("bankservafrica_adapter_test")
+          .withUsername("test")
+          .withPassword("test");
 
   @DynamicPropertySource
   static void configureProperties(DynamicPropertyRegistry registry) {
@@ -46,23 +44,17 @@ class BankservAfricaAdapterIntegrationTest {
     registry.add("spring.datasource.password", postgres::getPassword);
   }
 
-  @Autowired
-  private BankservAfricaAdapterService adapterService;
+  @Autowired private BankservAfricaAdapterService adapterService;
 
-  @Autowired
-  private BankservAfricaAdapterRepository adapterRepository;
+  @Autowired private BankservAfricaAdapterRepository adapterRepository;
 
   private TenantContext tenantContext;
   private ClearingAdapterId adapterId;
 
   @BeforeEach
   void setUp() {
-    tenantContext = TenantContext.of(
-        "tenant-123",
-        "Test Tenant",
-        "business-unit-456",
-        "Test Business Unit"
-    );
+    tenantContext =
+        TenantContext.of("tenant-123", "Test Tenant", "business-unit-456", "Test Business Unit");
     adapterId = ClearingAdapterId.generate();
   }
 
@@ -75,8 +67,9 @@ class BankservAfricaAdapterIntegrationTest {
     String createdBy = "test-user";
 
     // When
-    CompletableFuture<BankservAfricaAdapter> future = adapterService.createAdapter(
-        adapterId, tenantContext, adapterName, network, endpoint, createdBy);
+    CompletableFuture<BankservAfricaAdapter> future =
+        adapterService.createAdapter(
+            adapterId, tenantContext, adapterName, network, endpoint, createdBy);
     BankservAfricaAdapter adapter = future.get();
 
     // Then
@@ -97,8 +90,8 @@ class BankservAfricaAdapterIntegrationTest {
     String activatedBy = "admin-user";
 
     // When
-    CompletableFuture<BankservAfricaAdapter> future = adapterService.activateAdapter(
-        adapter.getId(), activatedBy);
+    CompletableFuture<BankservAfricaAdapter> future =
+        adapterService.activateAdapter(adapter.getId(), activatedBy);
     BankservAfricaAdapter activatedAdapter = future.get();
 
     // Then
@@ -115,8 +108,8 @@ class BankservAfricaAdapterIntegrationTest {
     String reason = "Maintenance";
 
     // When
-    CompletableFuture<BankservAfricaAdapter> future = adapterService.deactivateAdapter(
-        adapter.getId(), reason, deactivatedBy);
+    CompletableFuture<BankservAfricaAdapter> future =
+        adapterService.deactivateAdapter(adapter.getId(), reason, deactivatedBy);
     BankservAfricaAdapter deactivatedAdapter = future.get();
 
     // Then
@@ -138,16 +131,17 @@ class BankservAfricaAdapterIntegrationTest {
     String updatedBy = "admin-user";
 
     // When
-    CompletableFuture<BankservAfricaAdapter> future = adapterService.updateAdapterConfiguration(
-        adapter.getId(),
-        newEndpoint,
-        newApiVersion,
-        newTimeoutSeconds,
-        newRetryAttempts,
-        newEncryptionEnabled,
-        newCertificatePath,
-        newCertificatePassword,
-        updatedBy);
+    CompletableFuture<BankservAfricaAdapter> future =
+        adapterService.updateAdapterConfiguration(
+            adapter.getId(),
+            newEndpoint,
+            newApiVersion,
+            newTimeoutSeconds,
+            newRetryAttempts,
+            newEncryptionEnabled,
+            newCertificatePath,
+            newCertificatePassword,
+            updatedBy);
     BankservAfricaAdapter updatedAdapter = future.get();
 
     // Then
@@ -167,7 +161,8 @@ class BankservAfricaAdapterIntegrationTest {
     BankservAfricaAdapter expectedAdapter = createTestAdapter();
 
     // When
-    CompletableFuture<Optional<BankservAfricaAdapter>> future = adapterService.getAdapter(expectedAdapter.getId());
+    CompletableFuture<Optional<BankservAfricaAdapter>> future =
+        adapterService.getAdapter(expectedAdapter.getId());
     Optional<BankservAfricaAdapter> actualAdapter = future.get();
 
     // Then
@@ -182,13 +177,15 @@ class BankservAfricaAdapterIntegrationTest {
     createTestAdapterWithDifferentTenant();
 
     // When
-    CompletableFuture<List<BankservAfricaAdapter>> future = adapterService.getAdaptersByTenant(
-        tenantContext.getTenantId(), tenantContext.getBusinessUnitId());
+    CompletableFuture<List<BankservAfricaAdapter>> future =
+        adapterService.getAdaptersByTenant(
+            tenantContext.getTenantId(), tenantContext.getBusinessUnitId());
     List<BankservAfricaAdapter> adapters = future.get();
 
     // Then
     assertThat(adapters).hasSize(1);
-    assertThat(adapters.get(0).getTenantContext().getTenantId()).isEqualTo(tenantContext.getTenantId());
+    assertThat(adapters.get(0).getTenantContext().getTenantId())
+        .isEqualTo(tenantContext.getTenantId());
   }
 
   @Test
@@ -199,8 +196,8 @@ class BankservAfricaAdapterIntegrationTest {
     adapterService.activateAdapter(adapter1.getId(), "admin").get();
 
     // When
-    CompletableFuture<List<BankservAfricaAdapter>> future = adapterService.getActiveAdaptersByTenant(
-        tenantContext.getTenantId());
+    CompletableFuture<List<BankservAfricaAdapter>> future =
+        adapterService.getActiveAdaptersByTenant(tenantContext.getTenantId());
     List<BankservAfricaAdapter> activeAdapters = future.get();
 
     // Then
@@ -215,7 +212,8 @@ class BankservAfricaAdapterIntegrationTest {
     BankservAfricaAdapter adapter = createTestAdapter();
 
     // When
-    CompletableFuture<Boolean> future = adapterService.validateAdapterConfiguration(adapter.getId());
+    CompletableFuture<Boolean> future =
+        adapterService.validateAdapterConfiguration(adapter.getId());
     Boolean isValid = future.get();
 
     // Then
@@ -231,7 +229,8 @@ class BankservAfricaAdapterIntegrationTest {
     adapterService.deleteAdapter(adapter.getId());
 
     // Then
-    CompletableFuture<Optional<BankservAfricaAdapter>> future = adapterService.getAdapter(adapter.getId());
+    CompletableFuture<Optional<BankservAfricaAdapter>> future =
+        adapterService.getAdapter(adapter.getId());
     Optional<BankservAfricaAdapter> deletedAdapter = future.get();
     assertThat(deletedAdapter).isEmpty();
   }
@@ -242,26 +241,30 @@ class BankservAfricaAdapterIntegrationTest {
     String endpoint = "https://bankservafrica.test.com/api";
     String createdBy = "test-user";
 
-    CompletableFuture<BankservAfricaAdapter> future = adapterService.createAdapter(
-        ClearingAdapterId.generate(), tenantContext, adapterName, network, endpoint, createdBy);
+    CompletableFuture<BankservAfricaAdapter> future =
+        adapterService.createAdapter(
+            ClearingAdapterId.generate(), tenantContext, adapterName, network, endpoint, createdBy);
     return future.get();
   }
 
   private BankservAfricaAdapter createTestAdapterWithDifferentTenant() throws Exception {
-    TenantContext differentTenant = TenantContext.of(
-        "tenant-789",
-        "Different Tenant",
-        "business-unit-101",
-        "Different Business Unit"
-    );
+    TenantContext differentTenant =
+        TenantContext.of(
+            "tenant-789", "Different Tenant", "business-unit-101", "Different Business Unit");
 
     String adapterName = "Different Tenant Adapter";
     ClearingNetwork network = ClearingNetwork.BANKSERVAFRICA;
     String endpoint = "https://bankservafrica.different.com/api";
     String createdBy = "different-user";
 
-    CompletableFuture<BankservAfricaAdapter> future = adapterService.createAdapter(
-        ClearingAdapterId.generate(), differentTenant, adapterName, network, endpoint, createdBy);
+    CompletableFuture<BankservAfricaAdapter> future =
+        adapterService.createAdapter(
+            ClearingAdapterId.generate(),
+            differentTenant,
+            adapterName,
+            network,
+            endpoint,
+            createdBy);
     return future.get();
   }
 }

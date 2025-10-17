@@ -1,14 +1,11 @@
 package com.payments.rtcadapter.config;
 
 import com.payments.rtcadapter.repository.RtcAdapterRepository;
-import com.payments.domain.clearing.AdapterOperationalStatus;
 // import org.springframework.boot.actuator.health.Health;
 // import org.springframework.boot.actuator.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
-/**
- * Health indicator for RTC adapter
- */
+/** Health indicator for RTC adapter */
 @Component
 public class RtcAdapterHealthIndicator /* implements HealthIndicator */ {
 
@@ -24,7 +21,8 @@ public class RtcAdapterHealthIndicator /* implements HealthIndicator */ {
   //   try {
   //     long totalAdapters = rtcAdapterRepository.count();
   //     long activeAdapters = rtcAdapterRepository.countByStatus(AdapterOperationalStatus.ACTIVE);
-  //     long inactiveAdapters = rtcAdapterRepository.countByStatus(AdapterOperationalStatus.INACTIVE);
+  //     long inactiveAdapters =
+  // rtcAdapterRepository.countByStatus(AdapterOperationalStatus.INACTIVE);
 
   //     if (totalAdapters == 0) {
   //       return Health.down()

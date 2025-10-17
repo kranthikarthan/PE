@@ -14,7 +14,8 @@ import org.springframework.web.client.RestTemplate;
 /**
  * SAMOS Service Discovery Service
  *
- * <p>Service for discovering and managing clearing network services: - Service registry integration - Health checking - Load balancing - Service resolution
+ * <p>Service for discovering and managing clearing network services: - Service registry integration
+ * - Health checking - Load balancing - Service resolution
  */
 @Slf4j
 @Service
@@ -40,16 +41,20 @@ public class SamosServiceDiscoveryService {
    */
   public List<ServiceInstance> discoverSamosServices() {
     log.debug("Discovering SAMOS clearing network services");
-    
+
     try {
       List<ServiceInstance> instances = discoveryClient.getInstances(samosServiceName);
       log.info("Found {} SAMOS clearing network service instances", instances.size());
-      
+
       // Log service details
-      instances.forEach(instance -> 
-        log.debug("SAMOS service instance: {}:{} - URI: {}", 
-                 instance.getHost(), instance.getPort(), instance.getUri()));
-      
+      instances.forEach(
+          instance ->
+              log.debug(
+                  "SAMOS service instance: {}:{} - URI: {}",
+                  instance.getHost(),
+                  instance.getPort(),
+                  instance.getUri()));
+
       return instances;
     } catch (Exception e) {
       log.error("Failed to discover SAMOS clearing network services", e);
@@ -64,9 +69,9 @@ public class SamosServiceDiscoveryService {
    */
   public Optional<ServiceInstance> getBestSamosService() {
     log.debug("Getting best available SAMOS service instance");
-    
+
     List<ServiceInstance> instances = discoverSamosServices();
-    
+
     if (instances.isEmpty()) {
       log.warn("No SAMOS clearing network services available");
       return Optional.empty();
@@ -75,8 +80,10 @@ public class SamosServiceDiscoveryService {
     // Find healthy service instance
     for (ServiceInstance instance : instances) {
       if (isServiceHealthy(instance)) {
-        log.debug("Selected healthy SAMOS service instance: {}:{}", 
-                 instance.getHost(), instance.getPort());
+        log.debug(
+            "Selected healthy SAMOS service instance: {}:{}",
+            instance.getHost(),
+            instance.getPort());
         return Optional.of(instance);
       }
     }
@@ -95,14 +102,17 @@ public class SamosServiceDiscoveryService {
     try {
       String healthUrl = instance.getUri().toString() + healthCheckPath;
       log.debug("Checking health of SAMOS service: {}", healthUrl);
-      
+
       // This is a simplified health check
       // In a real implementation, you would make an HTTP call to the health endpoint
       return true; // Simplified for now
-      
+
     } catch (Exception e) {
-      log.warn("Health check failed for SAMOS service instance: {}:{}", 
-               instance.getHost(), instance.getPort(), e);
+      log.warn(
+          "Health check failed for SAMOS service instance: {}:{}",
+          instance.getHost(),
+          instance.getPort(),
+          e);
       return false;
     }
   }
@@ -113,9 +123,7 @@ public class SamosServiceDiscoveryService {
    * @return Service endpoint URL or null if not available
    */
   public String getSamosServiceEndpoint() {
-    return getBestSamosService()
-        .map(instance -> instance.getUri().toString())
-        .orElse(null);
+    return getBestSamosService().map(instance -> instance.getUri().toString()).orElse(null);
   }
 
   /**
@@ -125,13 +133,14 @@ public class SamosServiceDiscoveryService {
    */
   public Map<String, Object> getSamosServiceMetadata() {
     return getBestSamosService()
-        .map(instance -> Map.of(
-            "host", instance.getHost(),
-            "port", instance.getPort(),
-            "uri", instance.getUri().toString(),
-            "serviceId", instance.getServiceId(),
-            "metadata", instance.getMetadata()
-        ))
+        .map(
+            instance ->
+                Map.of(
+                    "host", instance.getHost(),
+                    "port", instance.getPort(),
+                    "uri", instance.getUri().toString(),
+                    "serviceId", instance.getServiceId(),
+                    "metadata", instance.getMetadata()))
         .orElse(Map.of());
   }
 
@@ -142,14 +151,15 @@ public class SamosServiceDiscoveryService {
    * @param servicePort Service port
    * @param metadata Service metadata
    */
-  public void registerSamosAdapter(String serviceName, int servicePort, Map<String, String> metadata) {
+  public void registerSamosAdapter(
+      String serviceName, int servicePort, Map<String, String> metadata) {
     log.info("Registering SAMOS adapter service: {}:{}", serviceName, servicePort);
-    
+
     try {
       // In a real implementation, this would register with the service registry
       // For now, we'll just log the registration
       log.info("SAMOS adapter service registered successfully with metadata: {}", metadata);
-      
+
     } catch (Exception e) {
       log.error("Failed to register SAMOS adapter service", e);
     }
@@ -162,11 +172,11 @@ public class SamosServiceDiscoveryService {
    */
   public void deregisterSamosAdapter(String serviceName) {
     log.info("Deregistering SAMOS adapter service: {}", serviceName);
-    
+
     try {
       // In a real implementation, this would deregister from the service registry
       log.info("SAMOS adapter service deregistered successfully");
-      
+
     } catch (Exception e) {
       log.error("Failed to deregister SAMOS adapter service", e);
     }
@@ -179,26 +189,29 @@ public class SamosServiceDiscoveryService {
    */
   public Map<String, List<ServiceInstance>> getAllClearingServices() {
     log.debug("Getting all available clearing network services");
-    
+
     try {
       List<String> services = discoveryClient.getServices();
       Map<String, List<ServiceInstance>> clearingServices = Map.of();
-      
+
       // Filter for clearing network services
       for (String service : services) {
-        if (service.contains("clearing") || service.contains("samos") || 
-            service.contains("bankservafrica") || service.contains("rtc") || 
-            service.contains("payshap") || service.contains("swift")) {
-          
+        if (service.contains("clearing")
+            || service.contains("samos")
+            || service.contains("bankservafrica")
+            || service.contains("rtc")
+            || service.contains("payshap")
+            || service.contains("swift")) {
+
           List<ServiceInstance> instances = discoveryClient.getInstances(service);
           clearingServices = Map.of(service, instances);
-          
+
           log.debug("Found clearing service: {} with {} instances", service, instances.size());
         }
       }
-      
+
       return clearingServices;
-      
+
     } catch (Exception e) {
       log.error("Failed to get clearing network services", e);
       return Map.of();

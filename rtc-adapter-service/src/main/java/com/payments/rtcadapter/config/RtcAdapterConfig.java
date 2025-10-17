@@ -20,6 +20,7 @@ public class RtcAdapterConfig {
 
   /** RTC endpoint configuration */
   private String endpoint;
+
   private String apiVersion;
   private Integer timeoutSeconds;
   private Integer retryAttempts;

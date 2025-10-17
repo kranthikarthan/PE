@@ -7,9 +7,7 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-/**
- * Domain event for RTC route addition
- */
+/** Domain event for RTC route addition */
 @Value
 @AllArgsConstructor
 public class RtcRouteAddedEvent implements DomainEvent {

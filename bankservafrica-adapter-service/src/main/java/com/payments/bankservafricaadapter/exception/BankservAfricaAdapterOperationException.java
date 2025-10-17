@@ -1,8 +1,6 @@
 package com.payments.bankservafricaadapter.exception;
 
-/**
- * Exception thrown when BankservAfrica adapter operation fails
- */
+/** Exception thrown when BankservAfrica adapter operation fails */
 public class BankservAfricaAdapterOperationException extends RuntimeException {
 
   public BankservAfricaAdapterOperationException(String message) {

@@ -14,7 +14,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 /**
  * Redis Configuration for SAMOS Adapter
  *
- * <p>Configuration for Redis caching: - Connection factory - Redis template - Serialization - Cache management
+ * <p>Configuration for Redis caching: - Connection factory - Redis template - Serialization - Cache
+ * management
  */
 @Slf4j
 @Configuration

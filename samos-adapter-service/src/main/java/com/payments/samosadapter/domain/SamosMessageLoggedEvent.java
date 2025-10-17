@@ -6,9 +6,7 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-/**
- * Domain event for SAMOS message logging
- */
+/** Domain event for SAMOS message logging */
 @Value
 @AllArgsConstructor
 public class SamosMessageLoggedEvent implements DomainEvent {

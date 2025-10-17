@@ -6,9 +6,7 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-/**
- * Domain event for RTC message logging
- */
+/** Domain event for RTC message logging */
 @Value
 @AllArgsConstructor
 public class RtcMessageLoggedEvent implements DomainEvent {

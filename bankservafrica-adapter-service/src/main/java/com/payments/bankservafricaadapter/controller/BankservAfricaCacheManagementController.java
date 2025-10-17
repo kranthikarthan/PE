@@ -16,13 +16,16 @@ import org.springframework.web.bind.annotation.*;
 /**
  * BankservAfrica Cache Management Controller
  *
- * <p>REST controller for BankservAfrica cache management operations: - Cache statistics - Cache clearing - Token management - Cache health
+ * <p>REST controller for BankservAfrica cache management operations: - Cache statistics - Cache
+ * clearing - Token management - Cache health
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/bankservafrica/cache")
 @RequiredArgsConstructor
-@Tag(name = "BankservAfrica Cache Management", description = "BankservAfrica cache management operations")
+@Tag(
+    name = "BankservAfrica Cache Management",
+    description = "BankservAfrica cache management operations")
 public class BankservAfricaCacheManagementController {
 
   private final BankservAfricaCacheService bankservAfricaCacheService;
@@ -44,7 +47,8 @@ public class BankservAfricaCacheManagementController {
       })
   public ResponseEntity<BankservAfricaCacheService.CacheStatistics> getCacheStatistics() {
     log.info("Getting BankservAfrica cache statistics");
-    BankservAfricaCacheService.CacheStatistics statistics = bankservAfricaCacheService.getCacheStatistics();
+    BankservAfricaCacheService.CacheStatistics statistics =
+        bankservAfricaCacheService.getCacheStatistics();
     return ResponseEntity.ok(statistics);
   }
 
@@ -56,7 +60,9 @@ public class BankservAfricaCacheManagementController {
    * @return Success response
    */
   @DeleteMapping("/adapters/{adapterId}")
-  @Operation(summary = "Clear BankservAfrica adapter cache", description = "Clear cache for specific BankservAfrica adapter")
+  @Operation(
+      summary = "Clear BankservAfrica adapter cache",
+      description = "Clear cache for specific BankservAfrica adapter")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Adapter cache cleared successfully"),
@@ -64,8 +70,7 @@ public class BankservAfricaCacheManagementController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<Map<String, Object>> clearAdapterCache(
-      @Parameter(description = "Adapter ID", required = true) @PathVariable
-          String adapterId,
+      @Parameter(description = "Adapter ID", required = true) @PathVariable String adapterId,
       @Parameter(description = "Tenant ID", required = true) @RequestHeader("X-Tenant-ID")
           String tenantId) {
 
@@ -91,7 +96,9 @@ public class BankservAfricaCacheManagementController {
    * @return Success response
    */
   @DeleteMapping("/tenants/{tenantId}")
-  @Operation(summary = "Clear BankservAfrica tenant cache", description = "Clear cache for specific tenant")
+  @Operation(
+      summary = "Clear BankservAfrica tenant cache",
+      description = "Clear cache for specific tenant")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Tenant cache cleared successfully"),
@@ -120,7 +127,9 @@ public class BankservAfricaCacheManagementController {
    * @return Success response
    */
   @DeleteMapping("/all")
-  @Operation(summary = "Clear all BankservAfrica cache", description = "Clear all BankservAfrica cache entries")
+  @Operation(
+      summary = "Clear all BankservAfrica cache",
+      description = "Clear all BankservAfrica cache entries")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "All cache cleared successfully"),
@@ -132,7 +141,10 @@ public class BankservAfricaCacheManagementController {
 
     return ResponseEntity.ok(
         Map.of(
-            "message", "All BankservAfrica cache cleared successfully", "timestamp", System.currentTimeMillis()));
+            "message",
+            "All BankservAfrica cache cleared successfully",
+            "timestamp",
+            System.currentTimeMillis()));
   }
 
   /**
@@ -141,7 +153,9 @@ public class BankservAfricaCacheManagementController {
    * @return Success response
    */
   @DeleteMapping("/tokens")
-  @Operation(summary = "Clear BankservAfrica OAuth2 token cache", description = "Clear BankservAfrica OAuth2 token cache")
+  @Operation(
+      summary = "Clear BankservAfrica OAuth2 token cache",
+      description = "Clear BankservAfrica OAuth2 token cache")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OAuth2 token cache cleared successfully"),
@@ -165,7 +179,9 @@ public class BankservAfricaCacheManagementController {
    * @return Success response
    */
   @PostMapping("/tokens/refresh")
-  @Operation(summary = "Refresh BankservAfrica OAuth2 token", description = "Refresh BankservAfrica OAuth2 access token")
+  @Operation(
+      summary = "Refresh BankservAfrica OAuth2 token",
+      description = "Refresh BankservAfrica OAuth2 access token")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OAuth2 token refreshed successfully"),
@@ -191,7 +207,9 @@ public class BankservAfricaCacheManagementController {
    * @return Token information
    */
   @GetMapping("/tokens/info")
-  @Operation(summary = "Get BankservAfrica OAuth2 token info", description = "Get BankservAfrica OAuth2 token information")
+  @Operation(
+      summary = "Get BankservAfrica OAuth2 token info",
+      description = "Get BankservAfrica OAuth2 token information")
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -201,7 +219,8 @@ public class BankservAfricaCacheManagementController {
       })
   public ResponseEntity<Map<String, Object>> getTokenInfo() {
     log.info("Getting BankservAfrica OAuth2 token info");
-    BankservAfricaOAuth2TokenService.TokenInfo tokenInfo = bankservAfricaOAuth2TokenService.getTokenInfo();
+    BankservAfricaOAuth2TokenService.TokenInfo tokenInfo =
+        bankservAfricaOAuth2TokenService.getTokenInfo();
 
     if (tokenInfo != null) {
       return ResponseEntity.ok(
@@ -229,7 +248,9 @@ public class BankservAfricaCacheManagementController {
    * @return Cache health status
    */
   @GetMapping("/health")
-  @Operation(summary = "Get BankservAfrica cache health", description = "Get BankservAfrica cache health status")
+  @Operation(
+      summary = "Get BankservAfrica cache health",
+      description = "Get BankservAfrica cache health status")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Cache health retrieved successfully"),
@@ -241,8 +262,11 @@ public class BankservAfricaCacheManagementController {
 
     return ResponseEntity.ok(
         Map.of(
-            "healthy", isHealthy,
-            "timestamp", System.currentTimeMillis(),
-            "service", "BankservAfrica Cache"));
+            "healthy",
+            isHealthy,
+            "timestamp",
+            System.currentTimeMillis(),
+            "service",
+            "BankservAfrica Cache"));
   }
 }

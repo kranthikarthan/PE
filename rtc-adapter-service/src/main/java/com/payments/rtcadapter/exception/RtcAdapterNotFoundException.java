@@ -2,9 +2,7 @@ package com.payments.rtcadapter.exception;
 
 import com.payments.domain.shared.ClearingAdapterId;
 
-/**
- * Exception thrown when RTC adapter is not found
- */
+/** Exception thrown when RTC adapter is not found */
 public class RtcAdapterNotFoundException extends RuntimeException {
 
   public RtcAdapterNotFoundException(String message) {

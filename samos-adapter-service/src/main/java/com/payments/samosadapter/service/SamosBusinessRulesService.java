@@ -1,21 +1,20 @@
 package com.payments.samosadapter.service;
 
-import com.payments.samosadapter.domain.SamosAdapter;
-import com.payments.samosadapter.dto.SamosAdapterValidationRequest;
-import com.payments.samosadapter.dto.SamosAdapterValidationResponse;
 import com.payments.domain.shared.TenantContext;
+import com.payments.samosadapter.domain.SamosAdapter;
+import com.payments.samosadapter.dto.SamosAdapterValidationResponse;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * SAMOS Business Rules Service
  *
- * <p>Service for executing business rules validation for SAMOS adapters: - Adapter configuration validation - Operational rules - Business logic constraints - Compliance checks
+ * <p>Service for executing business rules validation for SAMOS adapters: - Adapter configuration
+ * validation - Operational rules - Business logic constraints - Compliance checks
  */
 @Slf4j
 @Service
@@ -31,9 +30,11 @@ public class SamosBusinessRulesService {
    */
   public SamosAdapterValidationResponse validateAdapterConfiguration(
       SamosAdapter adapter, TenantContext tenantContext) {
-    
-    log.debug("Validating SAMOS adapter configuration: {} for tenant: {}", 
-              adapter.getId(), tenantContext.getTenantId());
+
+    log.debug(
+        "Validating SAMOS adapter configuration: {} for tenant: {}",
+        adapter.getId(),
+        tenantContext.getTenantId());
 
     List<String> appliedRules = new ArrayList<>();
     List<String> validationErrors = new ArrayList<>();
@@ -54,13 +55,18 @@ public class SamosBusinessRulesService {
       validateOperationalStatus(adapter, appliedRules, validationErrors, validationWarnings);
 
       // Rule 5: Tenant context validation
-      validateTenantContext(adapter, tenantContext, appliedRules, validationErrors, validationWarnings);
+      validateTenantContext(
+          adapter, tenantContext, appliedRules, validationErrors, validationWarnings);
 
       // Determine overall validation result
       isValid = validationErrors.isEmpty();
 
-      log.info("SAMOS adapter validation completed: {} - Applied rules: {}, Errors: {}, Warnings: {}", 
-               isValid ? "PASSED" : "FAILED", appliedRules.size(), validationErrors.size(), validationWarnings.size());
+      log.info(
+          "SAMOS adapter validation completed: {} - Applied rules: {}, Errors: {}, Warnings: {}",
+          isValid ? "PASSED" : "FAILED",
+          appliedRules.size(),
+          validationErrors.size(),
+          validationWarnings.size());
 
     } catch (Exception e) {
       log.error("Error during SAMOS adapter validation: {}", e.getMessage(), e);
@@ -81,13 +87,14 @@ public class SamosBusinessRulesService {
         .build();
   }
 
-  /**
-   * Validate adapter name
-   */
-  private void validateAdapterName(SamosAdapter adapter, List<String> appliedRules, 
-                                   List<String> validationErrors, List<String> validationWarnings) {
+  /** Validate adapter name */
+  private void validateAdapterName(
+      SamosAdapter adapter,
+      List<String> appliedRules,
+      List<String> validationErrors,
+      List<String> validationWarnings) {
     appliedRules.add("ADAPTER_NAME_VALIDATION");
-    
+
     if (adapter.getAdapterName() == null || adapter.getAdapterName().trim().isEmpty()) {
       validationErrors.add("Adapter name is required");
     } else if (adapter.getAdapterName().length() < 3) {
@@ -95,17 +102,19 @@ public class SamosBusinessRulesService {
     } else if (adapter.getAdapterName().length() > 50) {
       validationErrors.add("Adapter name must not exceed 50 characters");
     } else if (!adapter.getAdapterName().matches("^[a-zA-Z0-9_-]+$")) {
-      validationErrors.add("Adapter name must contain only alphanumeric characters, underscores, and hyphens");
+      validationErrors.add(
+          "Adapter name must contain only alphanumeric characters, underscores, and hyphens");
     }
   }
 
-  /**
-   * Validate endpoint configuration
-   */
-  private void validateEndpoint(SamosAdapter adapter, List<String> appliedRules, 
-                               List<String> validationErrors, List<String> validationWarnings) {
+  /** Validate endpoint configuration */
+  private void validateEndpoint(
+      SamosAdapter adapter,
+      List<String> appliedRules,
+      List<String> validationErrors,
+      List<String> validationWarnings) {
     appliedRules.add("ENDPOINT_VALIDATION");
-    
+
     if (adapter.getEndpoint() == null || adapter.getEndpoint().trim().isEmpty()) {
       validationErrors.add("Endpoint is required");
     } else if (!adapter.getEndpoint().startsWith("https://")) {
@@ -115,57 +124,61 @@ public class SamosBusinessRulesService {
     }
   }
 
-  /**
-   * Validate adapter configuration
-   */
-  private void validateConfiguration(SamosAdapter adapter, List<String> appliedRules, 
-                                    List<String> validationErrors, List<String> validationWarnings) {
+  /** Validate adapter configuration */
+  private void validateConfiguration(
+      SamosAdapter adapter,
+      List<String> appliedRules,
+      List<String> validationErrors,
+      List<String> validationWarnings) {
     appliedRules.add("CONFIGURATION_VALIDATION");
-    
+
     if (adapter.getTimeoutSeconds() <= 0) {
       validationErrors.add("Timeout must be greater than 0");
     } else if (adapter.getTimeoutSeconds() > 300) {
       validationWarnings.add("Timeout exceeds 5 minutes - consider optimization");
     }
-    
+
     if (adapter.getRetryAttempts() < 0) {
       validationErrors.add("Retry attempts cannot be negative");
     } else if (adapter.getRetryAttempts() > 10) {
       validationWarnings.add("Retry attempts exceed 10 - consider reducing for performance");
     }
-    
+
     if (adapter.getApiVersion() == null || adapter.getApiVersion().trim().isEmpty()) {
       validationErrors.add("API version is required");
     }
   }
 
-  /**
-   * Validate operational status
-   */
-  private void validateOperationalStatus(SamosAdapter adapter, List<String> appliedRules, 
-                                        List<String> validationErrors, List<String> validationWarnings) {
+  /** Validate operational status */
+  private void validateOperationalStatus(
+      SamosAdapter adapter,
+      List<String> appliedRules,
+      List<String> validationErrors,
+      List<String> validationWarnings) {
     appliedRules.add("OPERATIONAL_STATUS_VALIDATION");
-    
+
     if (adapter.getStatus() == null) {
       validationErrors.add("Operational status is required");
     }
   }
 
-  /**
-   * Validate tenant context
-   */
-  private void validateTenantContext(SamosAdapter adapter, TenantContext tenantContext, 
-                                    List<String> appliedRules, List<String> validationErrors, 
-                                    List<String> validationWarnings) {
+  /** Validate tenant context */
+  private void validateTenantContext(
+      SamosAdapter adapter,
+      TenantContext tenantContext,
+      List<String> appliedRules,
+      List<String> validationErrors,
+      List<String> validationWarnings) {
     appliedRules.add("TENANT_CONTEXT_VALIDATION");
-    
+
     if (tenantContext == null) {
       validationErrors.add("Tenant context is required");
     } else {
       if (tenantContext.getTenantId() == null || tenantContext.getTenantId().trim().isEmpty()) {
         validationErrors.add("Tenant ID is required");
       }
-      if (tenantContext.getBusinessUnitId() == null || tenantContext.getBusinessUnitId().trim().isEmpty()) {
+      if (tenantContext.getBusinessUnitId() == null
+          || tenantContext.getBusinessUnitId().trim().isEmpty()) {
         validationErrors.add("Business unit ID is required");
       }
     }

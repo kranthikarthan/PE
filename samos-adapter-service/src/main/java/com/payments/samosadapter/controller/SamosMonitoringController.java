@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -12,12 +13,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 /**
  * SAMOS Monitoring Controller
  *
- * <p>REST controller for SAMOS monitoring operations: - Dashboard metrics - Health monitoring - Performance monitoring - Custom metrics
+ * <p>REST controller for SAMOS monitoring operations: - Dashboard metrics - Health monitoring -
+ * Performance monitoring - Custom metrics
  */
 @Slf4j
 @RestController
@@ -39,7 +39,9 @@ public class SamosMonitoringController {
       description = "Retrieve comprehensive dashboard metrics for SAMOS adapter")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "200", description = "Dashboard metrics retrieved successfully"),
+        @ApiResponse(
+            responseCode = "200",
+            description = "Dashboard metrics retrieved successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<Map<String, Object>> getDashboardMetrics() {
@@ -79,7 +81,9 @@ public class SamosMonitoringController {
       description = "Retrieve performance metrics for SAMOS adapter")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "200", description = "Performance metrics retrieved successfully"),
+        @ApiResponse(
+            responseCode = "200",
+            description = "Performance metrics retrieved successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<Map<String, Object>> getPerformanceMetrics() {

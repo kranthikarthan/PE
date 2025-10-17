@@ -7,9 +7,7 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-/**
- * Domain event for SAMOS route addition
- */
+/** Domain event for SAMOS route addition */
 @Value
 @AllArgsConstructor
 public class SamosRouteAddedEvent implements DomainEvent {

@@ -8,9 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Clearing Message Log Entity for RTC Adapter
- */
+/** Clearing Message Log Entity for RTC Adapter */
 @Entity
 @Table(name = "rtc_clearing_message_logs")
 @Data

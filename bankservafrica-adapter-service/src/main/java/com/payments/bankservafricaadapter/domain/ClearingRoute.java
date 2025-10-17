@@ -8,9 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Clearing Route Entity for BankservAfrica Adapter
- */
+/** Clearing Route Entity for BankservAfrica Adapter */
 @Entity
 @Table(name = "bankservafrica_clearing_routes")
 @Data

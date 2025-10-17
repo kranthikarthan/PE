@@ -1,7 +1,6 @@
 package com.payments.samosadapter.client;
 
 import com.payments.samosadapter.dto.*;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +9,8 @@ import org.springframework.stereotype.Component;
 /**
  * SAMOS Clearing Network Fallback
  *
- * <p>Fallback implementation for SAMOS clearing network client: - Circuit breaker fallback - Error handling - Default responses - Logging
+ * <p>Fallback implementation for SAMOS clearing network client: - Circuit breaker fallback - Error
+ * handling - Default responses - Logging
  */
 @Slf4j
 @Component
@@ -18,7 +18,10 @@ public class SamosClearingNetworkFallback implements SamosClearingNetworkClient 
 
   @Override
   public SamosPaymentSubmissionResponse submitPayment(
-      SamosPaymentSubmissionRequest request, String authorization, String correlationId, String tenantId) {
+      SamosPaymentSubmissionRequest request,
+      String authorization,
+      String correlationId,
+      String tenantId) {
 
     log.warn(
         "SAMOS clearing network fallback triggered for payment submission: {} with correlation: {}",
@@ -41,7 +44,10 @@ public class SamosClearingNetworkFallback implements SamosClearingNetworkClient 
 
   @Override
   public SamosPaymentStatusResponse checkPaymentStatus(
-      SamosPaymentStatusRequest request, String authorization, String correlationId, String tenantId) {
+      SamosPaymentStatusRequest request,
+      String authorization,
+      String correlationId,
+      String tenantId) {
 
     log.warn(
         "SAMOS clearing network fallback triggered for payment status: {} with correlation: {}",
@@ -86,7 +92,10 @@ public class SamosClearingNetworkFallback implements SamosClearingNetworkClient 
 
   @Override
   public SamosIso20022ValidationResponse validateIso20022Message(
-      SamosIso20022ValidationRequest request, String authorization, String correlationId, String tenantId) {
+      SamosIso20022ValidationRequest request,
+      String authorization,
+      String correlationId,
+      String tenantId) {
 
     log.warn(
         "SAMOS clearing network fallback triggered for ISO 20022 validation: {} with correlation: {}",

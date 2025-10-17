@@ -43,12 +43,14 @@ public class RtcAdapterController {
             request.getBusinessUnitName());
 
     RtcAdapter adapter =
-        rtcAdapterService.createAdapter(
-            adapterId,
-            tenantContext,
-            request.getAdapterName(),
-            request.getEndpoint(),
-            request.getCreatedBy()).join();
+        rtcAdapterService
+            .createAdapter(
+                adapterId,
+                tenantContext,
+                request.getAdapterName(),
+                request.getEndpoint(),
+                request.getCreatedBy())
+            .join();
 
     return ResponseEntity.ok(adapter);
   }

@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.*;
 /**
  * RTC Cache Management Controller
  *
- * <p>REST controller for RTC cache management operations: - Cache statistics - Cache clearing - Token management - Cache health
+ * <p>REST controller for RTC cache management operations: - Cache statistics - Cache clearing -
+ * Token management - Cache health
  */
 @Slf4j
 @RestController
@@ -56,7 +57,9 @@ public class RtcCacheManagementController {
    * @return Success response
    */
   @DeleteMapping("/adapters/{adapterId}")
-  @Operation(summary = "Clear RTC adapter cache", description = "Clear cache for specific RTC adapter")
+  @Operation(
+      summary = "Clear RTC adapter cache",
+      description = "Clear cache for specific RTC adapter")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Adapter cache cleared successfully"),
@@ -64,8 +67,7 @@ public class RtcCacheManagementController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<Map<String, Object>> clearAdapterCache(
-      @Parameter(description = "Adapter ID", required = true) @PathVariable
-          String adapterId,
+      @Parameter(description = "Adapter ID", required = true) @PathVariable String adapterId,
       @Parameter(description = "Tenant ID", required = true) @RequestHeader("X-Tenant-ID")
           String tenantId) {
 
@@ -132,7 +134,10 @@ public class RtcCacheManagementController {
 
     return ResponseEntity.ok(
         Map.of(
-            "message", "All RTC cache cleared successfully", "timestamp", System.currentTimeMillis()));
+            "message",
+            "All RTC cache cleared successfully",
+            "timestamp",
+            System.currentTimeMillis()));
   }
 
   /**
@@ -191,7 +196,9 @@ public class RtcCacheManagementController {
    * @return Token information
    */
   @GetMapping("/tokens/info")
-  @Operation(summary = "Get RTC OAuth2 token info", description = "Get RTC OAuth2 token information")
+  @Operation(
+      summary = "Get RTC OAuth2 token info",
+      description = "Get RTC OAuth2 token information")
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -241,8 +248,6 @@ public class RtcCacheManagementController {
 
     return ResponseEntity.ok(
         Map.of(
-            "healthy", isHealthy,
-            "timestamp", System.currentTimeMillis(),
-            "service", "RTC Cache"));
+            "healthy", isHealthy, "timestamp", System.currentTimeMillis(), "service", "RTC Cache"));
   }
 }

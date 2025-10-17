@@ -7,7 +7,9 @@ import org.springframework.context.annotation.Configuration;
 /**
  * BankservAfrica Environment Configuration
  *
- * <p>Environment-specific configuration for BankservAfrica adapter: - Development environment settings - Staging environment settings - Production environment settings - Environment-specific endpoints and credentials
+ * <p>Environment-specific configuration for BankservAfrica adapter: - Development environment
+ * settings - Staging environment settings - Production environment settings - Environment-specific
+ * endpoints and credentials
  */
 @Data
 @Configuration
@@ -27,10 +29,10 @@ public class BankservAfricaEnvironmentConfig {
 
   // Development environment settings
   private Development development = new Development();
-  
+
   // Staging environment settings
   private Staging staging = new Staging();
-  
+
   // Production environment settings
   private Production production = new Production();
 
@@ -82,9 +84,7 @@ public class BankservAfricaEnvironmentConfig {
     private String processingWindowEnd;
   }
 
-  /**
-   * Get environment-specific configuration
-   */
+  /** Get environment-specific configuration */
   public EnvironmentSettings getEnvironmentSettings() {
     switch (environment.toLowerCase()) {
       case "development":

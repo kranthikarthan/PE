@@ -2,9 +2,7 @@ package com.payments.samosadapter.exception;
 
 import com.payments.domain.shared.ClearingAdapterId;
 
-/**
- * Exception thrown when SAMOS adapter is not found
- */
+/** Exception thrown when SAMOS adapter is not found */
 public class SamosAdapterNotFoundException extends RuntimeException {
 
   public SamosAdapterNotFoundException(String message) {

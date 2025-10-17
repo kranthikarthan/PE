@@ -1,0 +1,388 @@
+{
+  "groups": [
+    {
+      "name": "payshap.adapter",
+      "type": "com.payments.payshapadapter.config.PayShapAdapterConfig",
+      "sourceType": "com.payments.payshapadapter.config.PayShapAdapterConfig"
+    },
+    {
+      "name": "payshap.environment",
+      "type": "com.payments.payshapadapter.config.PayShapEnvironmentConfig",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+    },
+    {
+      "name": "payshap.environment.development",
+      "type": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+    },
+    {
+      "name": "payshap.environment.environment-settings",
+      "type": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig",
+      "sourceMethod": "getEnvironmentSettings()"
+    },
+    {
+      "name": "payshap.environment.production",
+      "type": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+    },
+    {
+      "name": "payshap.environment.staging",
+      "type": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+    }
+  ],
+  "properties": [
+    {
+      "name": "payshap.adapter.amount-limit",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.payshapadapter.config.PayShapAdapterConfig"
+    },
+    {
+      "name": "payshap.adapter.api-version",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapAdapterConfig"
+    },
+    {
+      "name": "payshap.adapter.encryption-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.payshapadapter.config.PayShapAdapterConfig"
+    },
+    {
+      "name": "payshap.adapter.endpoint",
+      "type": "java.lang.String",
+      "description": "PayShap endpoint configuration",
+      "sourceType": "com.payments.payshapadapter.config.PayShapAdapterConfig"
+    },
+    {
+      "name": "payshap.adapter.processing-window-end",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapAdapterConfig"
+    },
+    {
+      "name": "payshap.adapter.processing-window-start",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapAdapterConfig"
+    },
+    {
+      "name": "payshap.adapter.retry-attempts",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.payshapadapter.config.PayShapAdapterConfig"
+    },
+    {
+      "name": "payshap.adapter.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.payshapadapter.config.PayShapAdapterConfig"
+    },
+    {
+      "name": "payshap.environment.currency",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+    },
+    {
+      "name": "payshap.environment.data-center",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+    },
+    {
+      "name": "payshap.environment.debug-mode",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig",
+      "defaultValue": false
+    },
+    {
+      "name": "payshap.environment.development.amount-limit",
+      "type": "java.lang.Double",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development"
+    },
+    {
+      "name": "payshap.environment.development.api-version",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development"
+    },
+    {
+      "name": "payshap.environment.development.certificate-path",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development"
+    },
+    {
+      "name": "payshap.environment.development.encryption-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development",
+      "defaultValue": false
+    },
+    {
+      "name": "payshap.environment.development.endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development"
+    },
+    {
+      "name": "payshap.environment.development.log-level",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development"
+    },
+    {
+      "name": "payshap.environment.development.mock-endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development"
+    },
+    {
+      "name": "payshap.environment.development.mock-mode",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development",
+      "defaultValue": false
+    },
+    {
+      "name": "payshap.environment.development.processing-window-end",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development"
+    },
+    {
+      "name": "payshap.environment.development.processing-window-start",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development"
+    },
+    {
+      "name": "payshap.environment.development.retry-attempts",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development",
+      "defaultValue": 0
+    },
+    {
+      "name": "payshap.environment.development.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development",
+      "defaultValue": 0
+    },
+    {
+      "name": "payshap.environment.environment",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+    },
+    {
+      "name": "payshap.environment.environment-settings.amount-limit",
+      "type": "java.lang.Double",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "payshap.environment.environment-settings.api-version",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "payshap.environment.environment-settings.certificate-path",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "payshap.environment.environment-settings.encryption-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings",
+      "defaultValue": false
+    },
+    {
+      "name": "payshap.environment.environment-settings.endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "payshap.environment.environment-settings.log-level",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "payshap.environment.environment-settings.mock-endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "payshap.environment.environment-settings.mock-mode",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings",
+      "defaultValue": false
+    },
+    {
+      "name": "payshap.environment.environment-settings.processing-window-end",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "payshap.environment.environment-settings.processing-window-start",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings"
+    },
+    {
+      "name": "payshap.environment.environment-settings.retry-attempts",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings",
+      "defaultValue": 0
+    },
+    {
+      "name": "payshap.environment.environment-settings.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings",
+      "defaultValue": 0
+    },
+    {
+      "name": "payshap.environment.locale",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+    },
+    {
+      "name": "payshap.environment.log-level",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+    },
+    {
+      "name": "payshap.environment.metrics-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig",
+      "defaultValue": false
+    },
+    {
+      "name": "payshap.environment.production.amount-limit",
+      "type": "java.lang.Double",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production"
+    },
+    {
+      "name": "payshap.environment.production.api-version",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production"
+    },
+    {
+      "name": "payshap.environment.production.certificate-path",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production"
+    },
+    {
+      "name": "payshap.environment.production.encryption-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production",
+      "defaultValue": false
+    },
+    {
+      "name": "payshap.environment.production.endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production"
+    },
+    {
+      "name": "payshap.environment.production.log-level",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production"
+    },
+    {
+      "name": "payshap.environment.production.mock-endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production"
+    },
+    {
+      "name": "payshap.environment.production.mock-mode",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production",
+      "defaultValue": false
+    },
+    {
+      "name": "payshap.environment.production.processing-window-end",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production"
+    },
+    {
+      "name": "payshap.environment.production.processing-window-start",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production"
+    },
+    {
+      "name": "payshap.environment.production.retry-attempts",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production",
+      "defaultValue": 0
+    },
+    {
+      "name": "payshap.environment.production.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production",
+      "defaultValue": 0
+    },
+    {
+      "name": "payshap.environment.region",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+    },
+    {
+      "name": "payshap.environment.staging.amount-limit",
+      "type": "java.lang.Double",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging"
+    },
+    {
+      "name": "payshap.environment.staging.api-version",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging"
+    },
+    {
+      "name": "payshap.environment.staging.certificate-path",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging"
+    },
+    {
+      "name": "payshap.environment.staging.encryption-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging",
+      "defaultValue": false
+    },
+    {
+      "name": "payshap.environment.staging.endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging"
+    },
+    {
+      "name": "payshap.environment.staging.log-level",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging"
+    },
+    {
+      "name": "payshap.environment.staging.mock-endpoint",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging"
+    },
+    {
+      "name": "payshap.environment.staging.mock-mode",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging",
+      "defaultValue": false
+    },
+    {
+      "name": "payshap.environment.staging.processing-window-end",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging"
+    },
+    {
+      "name": "payshap.environment.staging.processing-window-start",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging"
+    },
+    {
+      "name": "payshap.environment.staging.retry-attempts",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging",
+      "defaultValue": 0
+    },
+    {
+      "name": "payshap.environment.staging.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging",
+      "defaultValue": 0
+    },
+    {
+      "name": "payshap.environment.timezone",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+    },
+    {
+      "name": "payshap.environment.tracing-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig",
+      "defaultValue": false
+    }
+  ],
+  "hints": []
+}

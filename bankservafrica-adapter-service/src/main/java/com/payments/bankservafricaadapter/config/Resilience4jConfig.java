@@ -9,40 +9,38 @@ import java.time.Duration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Resilience4j configuration for BankservAfrica adapter
- */
+/** Resilience4j configuration for BankservAfrica adapter */
 @Configuration
 public class Resilience4jConfig {
 
   @Bean
   public CircuitBreaker bankservafricaAdapterCircuitBreaker() {
-    CircuitBreakerConfig config = CircuitBreakerConfig.custom()
-        .failureRateThreshold(50)
-        .waitDurationInOpenState(Duration.ofSeconds(30))
-        .slidingWindowSize(10)
-        .minimumNumberOfCalls(5)
-        .permittedNumberOfCallsInHalfOpenState(3)
-        .build();
+    CircuitBreakerConfig config =
+        CircuitBreakerConfig.custom()
+            .failureRateThreshold(50)
+            .waitDurationInOpenState(Duration.ofSeconds(30))
+            .slidingWindowSize(10)
+            .minimumNumberOfCalls(5)
+            .permittedNumberOfCallsInHalfOpenState(3)
+            .build();
 
     return CircuitBreaker.of("bankservafrica-adapter", config);
   }
 
   @Bean
   public Retry bankservafricaAdapterRetry() {
-    RetryConfig config = RetryConfig.custom()
-        .maxAttempts(3)
-        .waitDuration(Duration.ofSeconds(1))
-        .retryOnException(throwable -> true)
-        .build();
+    RetryConfig config =
+        RetryConfig.custom()
+            .maxAttempts(3)
+            .waitDuration(Duration.ofSeconds(1))
+            .retryOnException(throwable -> true)
+            .build();
 
     return Retry.of("bankservafrica-adapter", config);
   }
 
   @Bean
   public TimeLimiterConfig bankservafricaAdapterTimeLimiter() {
-    return TimeLimiterConfig.custom()
-        .timeoutDuration(Duration.ofSeconds(30))
-        .build();
+    return TimeLimiterConfig.custom().timeoutDuration(Duration.ofSeconds(30)).build();
   }
 }
