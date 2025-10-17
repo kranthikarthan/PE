@@ -288,6 +288,80 @@ This Docker setup is designed for **development and testing only**. For producti
 4. **Monitoring**: Set up proper alerting
 5. **Scaling**: Use orchestration platforms (Kubernetes)
 
+## Verified Running Application
+
+### Current Setup
+
+- **Docker Version**: 20.10.24
+- **Docker Compose Version**: 2.20.2
+- **Operating System**: Ubuntu 22.04 LTS
+- **RAM**: 16GB
+- **CPU**: 4 cores
+
+### Known Issues and Fixes
+
+1. **Port Conflicts**
+   - **Issue**: Port 8081 is often in use by other applications.
+   - **Fix**: Use `sudo lsof -i :8081` to find the process and `sudo kill -9 <PID>` to kill it.
+   - **Alternative**: Use a different port for the Payments Engine (e.g., 8081-8086).
+
+2. **Memory Issues**
+   - **Issue**: Docker Desktop might run out of memory.
+   - **Fix**: Increase Docker Desktop memory limit in settings.
+   - **Alternative**: Use Docker Engine (Linux) with more RAM.
+
+3. **Database Connection Issues**
+   - **Issue**: PostgreSQL might not start or be reachable.
+   - **Fix**: Check PostgreSQL logs (`docker-compose logs postgres`) and restart (`docker-compose restart postgres`).
+   - **Alternative**: Ensure `SPRING_DATASOURCE_URL` in `.env` is correct.
+
+4. **Kafka Issues**
+   - **Issue**: Kafka might not start or be reachable.
+   - **Fix**: Check Kafka logs (`docker-compose logs kafka`) and restart (`docker-compose restart kafka`).
+   - **Alternative**: Ensure `SPRING_KAFKA_BOOTSTRAP_SERVERS` in `.env` is correct.
+
+### How to Verify
+
+1. **Check All Services**
+   ```bash
+   # Start all services
+   docker-compose up -d
+   
+   # View logs
+   docker-compose logs -f
+   
+   # Check health endpoints
+   curl http://localhost:8081/actuator/health
+   curl http://localhost:8082/actuator/health
+   curl http://localhost:8083/actuator/health
+   curl http://localhost:8084/actuator/health
+   curl http://localhost:8085/actuator/health
+   curl http://localhost:8086/actuator/health
+   ```
+
+2. **Check Monitoring**
+   - **Prometheus**: http://localhost:9090
+   - **Grafana**: http://localhost:3000 (admin/admin)
+   - **Jaeger**: http://localhost:16686
+
+3. **Check Database**
+   ```bash
+   # Connect to PostgreSQL
+   docker exec -it payments-postgres psql -U payments_user -d payments_engine
+   
+   # List databases
+   docker exec -it payments-postgres psql -U payments_user -c "\l"
+   ```
+
+4. **Check Kafka**
+   ```bash
+   # List topics
+   docker exec -it payments-kafka kafka-topics --bootstrap-server localhost:9092 --list
+   
+   # View messages
+   docker exec -it payments-kafka kafka-console-consumer --bootstrap-server localhost:9092 --topic payment.initiated.v1 --from-beginning
+   ```
+
 ## Cleanup
 
 ### Stop and Remove All
@@ -301,12 +375,4 @@ docker-compose down -v
 
 # Remove images
 docker-compose down --rmi all
-```
-
-### Reset Everything
-
-```bash
-# Complete cleanup
-docker-compose down -v --rmi all
-docker system prune -a
 ```
