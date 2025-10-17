@@ -166,7 +166,9 @@ public class SagaEntity {
       return null;
     }
     try {
-      return OBJECT_MAPPER.readValue(sagaDataJson, Map.class);
+      return OBJECT_MAPPER.readValue(
+          sagaDataJson,
+          new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
     } catch (Exception e) {
       throw new SagaSerializationException("Failed to convert JSON to saga data", e);
     }
