@@ -1,23 +1,55 @@
-# Payments Engine - Domain Models
+# Payments Engine
 
-A multi-module Maven project implementing a payments engine with domain-driven design principles, JPA entity mappings, and comprehensive test coverage.
+A comprehensive payments processing platform implementing domain-driven design principles, microservices architecture, and event-driven patterns for modern financial systems.
+
+## Architecture Overview
+
+The Payments Engine consists of domain models, microservices, and supporting infrastructure:
+
+### Domain Models
+- **Shared**: Common value objects and types
+- **Tenant Management**: Multi-tenant support and isolation
+- **Payment Initiation**: Payment request processing
+- **Transaction Processing**: Double-entry bookkeeping and ledger management
+- **Validation**: Business rules and compliance validation
+- **Clearing Adapter**: External clearing system integration
+- **Account Adapter**: Core banking system integration
+- **Saga Orchestrator**: Distributed transaction coordination
+
+### Microservices
+- **Payment Initiation Service**: Payment request creation and validation
+- **Validation Service**: Business rules and compliance enforcement
+- **Account Adapter Service**: Core banking system integration
+- **Routing Service**: Intelligent payment routing decisions
+- **Transaction Processing Service**: Double-entry bookkeeping and ledger management
+- **Saga Orchestrator Service**: Distributed transaction coordination
 
 ## Project Structure
 
 ```
 payments-engine/
-├── domain-models/           # Domain model modules
-│   ├── shared/             # Shared value objects and types
-│   ├── tenant-management/  # Tenant aggregate and related entities
-│   ├── payment-initiation/ # Payment aggregate and events
-│   ├── transaction-processing/ # Transaction aggregate and ledger entries
-│   ├── validation/         # Payment validation rules
-│   ├── clearing-adapter/   # Clearing system integration
-│   ├── account-adapter/    # Account system integration
-│   └── saga-orchestrator/  # Saga orchestration
-├── schema-verification/    # Flyway migration validation
-├── jpa-verification/       # JPA entity mapping validation
-└── database-migrations/    # Flyway SQL migration scripts
+├── domain-models/                    # Domain model modules
+│   ├── shared/                      # Shared value objects and types
+│   ├── tenant-management/           # Tenant aggregate and related entities
+│   ├── payment-initiation/          # Payment aggregate and events
+│   ├── transaction-processing/      # Transaction aggregate and ledger entries
+│   ├── validation/                  # Payment validation rules
+│   ├── clearing-adapter/            # Clearing system integration
+│   ├── account-adapter/             # Account system integration
+│   └── saga-orchestrator/           # Saga orchestration
+├── payment-initiation-service/       # Payment initiation microservice
+├── validation-service/              # Validation microservice
+├── account-adapter-service/        # Account adapter microservice
+├── routing-service/                # Routing microservice
+├── transaction-processing-service/  # Transaction processing microservice
+├── saga-orchestrator/              # Saga orchestrator microservice
+├── shared-config/                  # Shared configuration
+├── shared-telemetry/               # Shared observability
+├── contracts/                      # API contracts and DTOs
+├── schema-verification/            # Flyway migration validation
+├── jpa-verification/               # JPA entity mapping validation
+├── database-migrations/            # Flyway SQL migration scripts
+└── docker/                         # Docker configuration and deployment
 ```
 
 ## Prerequisites
@@ -27,6 +59,34 @@ payments-engine/
 - **Docker** (for schema and JPA verification tests)
 
 ## Quick Start
+
+### Running Microservices
+
+The Payments Engine can be run as a complete microservices platform using Docker Compose:
+
+```bash
+# Start all services
+docker-compose up -d
+
+# Check service health
+curl http://localhost:8081/payment-initiation/actuator/health
+curl http://localhost:8082/validation/actuator/health
+curl http://localhost:8083/account-adapter-service/actuator/health
+curl http://localhost:8084/routing-service/actuator/health
+curl http://localhost:8085/transaction-processing/actuator/health
+curl http://localhost:8086/saga-orchestrator/actuator/health
+```
+
+### Service Ports
+
+| Service | Port | Health Check |
+|---------|------|--------------|
+| Payment Initiation | 8081 | `/payment-initiation/actuator/health` |
+| Validation | 8082 | `/validation/actuator/health` |
+| Account Adapter | 8083 | `/account-adapter-service/actuator/health` |
+| Routing | 8084 | `/routing-service/actuator/health` |
+| Transaction Processing | 8085 | `/transaction-processing/actuator/health` |
+| Saga Orchestrator | 8086 | `/saga-orchestrator/actuator/health` |
 
 ### Local Development (without Docker)
 
