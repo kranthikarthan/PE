@@ -3,6 +3,10 @@ package com.payments.bankservafricaadapter.service;
 import com.payments.bankservafricaadapter.domain.BankservAfricaAdapter;
 import com.payments.bankservafricaadapter.domain.ClearingRoute;
 import com.payments.bankservafricaadapter.domain.ClearingMessageLog;
+import com.payments.bankservafricaadapter.dto.BankservAfricaFraudDetectionRequest;
+import com.payments.bankservafricaadapter.dto.BankservAfricaFraudDetectionResponse;
+import com.payments.bankservafricaadapter.dto.BankservAfricaRiskAssessmentRequest;
+import com.payments.bankservafricaadapter.dto.BankservAfricaRiskAssessmentResponse;
 import com.payments.bankservafricaadapter.exception.BankservAfricaAdapterNotFoundException;
 import com.payments.bankservafricaadapter.exception.BankservAfricaAdapterAlreadyExistsException;
 import com.payments.bankservafricaadapter.exception.BankservAfricaAdapterOperationException;
@@ -36,6 +40,8 @@ public class BankservAfricaAdapterService {
     
     private final BankservAfricaAdapterRepository adapterRepository;
     private final TracingService tracingService;
+    private final BankservAfricaFraudDetectionService bankservAfricaFraudDetectionService;
+    private final BankservAfricaRiskAssessmentService bankservAfricaRiskAssessmentService;
     
     /**
      * Create a new BankservAfrica adapter
@@ -450,5 +456,59 @@ public class BankservAfricaAdapterService {
                 log.debug("Getting active adapter count");
                 return adapterRepository.countByStatus(com.payments.domain.clearing.AdapterOperationalStatus.ACTIVE);
             });
+    }
+
+    /**
+     * Execute fraud detection rules for BankservAfrica clearing network
+     * 
+     * @param adapterId The adapter ID
+     * @param request Fraud detection request
+     * @param tenantContext Tenant context
+     * @return Fraud detection response
+     */
+    public BankservAfricaFraudDetectionResponse executeFraudDetectionRules(
+            ClearingAdapterId adapterId, BankservAfricaFraudDetectionRequest request, TenantContext tenantContext) {
+        
+        return tracingService.executeInSpan("bankservafrica.adapter.executeFraudDetectionRules", Map.of(
+            "adapter.id", adapterId.toString(),
+            "payment.id", request.getPaymentId(),
+            "tenant.id", tenantContext.getTenantId(),
+            "business.unit.id", tenantContext.getBusinessUnitId()
+        ), () -> {
+            log.info("Executing BankservAfrica fraud detection rules for adapter: {} and payment: {}", 
+                     adapterId, request.getPaymentId());
+            
+            BankservAfricaAdapter adapter = adapterRepository.findById(adapterId)
+                .orElseThrow(() -> new BankservAfricaAdapterNotFoundException(adapterId.toString()));
+            
+            return bankservAfricaFraudDetectionService.executeFraudDetectionRules(adapter, request, tenantContext);
+        });
+    }
+
+    /**
+     * Execute risk assessment rules for BankservAfrica clearing network
+     * 
+     * @param adapterId The adapter ID
+     * @param request Risk assessment request
+     * @param tenantContext Tenant context
+     * @return Risk assessment response
+     */
+    public BankservAfricaRiskAssessmentResponse executeRiskAssessmentRules(
+            ClearingAdapterId adapterId, BankservAfricaRiskAssessmentRequest request, TenantContext tenantContext) {
+        
+        return tracingService.executeInSpan("bankservafrica.adapter.executeRiskAssessmentRules", Map.of(
+            "adapter.id", adapterId.toString(),
+            "payment.id", request.getPaymentId(),
+            "tenant.id", tenantContext.getTenantId(),
+            "business.unit.id", tenantContext.getBusinessUnitId()
+        ), () -> {
+            log.info("Executing BankservAfrica risk assessment rules for adapter: {} and payment: {}", 
+                     adapterId, request.getPaymentId());
+            
+            BankservAfricaAdapter adapter = adapterRepository.findById(adapterId)
+                .orElseThrow(() -> new BankservAfricaAdapterNotFoundException(adapterId.toString()));
+            
+            return bankservAfricaRiskAssessmentService.executeRiskAssessmentRules(adapter, request, tenantContext);
+        });
     }
 }

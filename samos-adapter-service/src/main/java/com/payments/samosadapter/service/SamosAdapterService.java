@@ -10,6 +10,10 @@ import com.payments.samosadapter.domain.ClearingMessageLog;
 import com.payments.samosadapter.dto.SamosAdapterValidationResponse;
 import com.payments.samosadapter.dto.SamosComplianceRequest;
 import com.payments.samosadapter.dto.SamosComplianceResponse;
+import com.payments.samosadapter.dto.SamosFraudDetectionRequest;
+import com.payments.samosadapter.dto.SamosFraudDetectionResponse;
+import com.payments.samosadapter.dto.SamosRiskAssessmentRequest;
+import com.payments.samosadapter.dto.SamosRiskAssessmentResponse;
 import com.payments.samosadapter.exception.SamosAdapterNotFoundException;
 import com.payments.samosadapter.exception.SamosAdapterAlreadyExistsException;
 import com.payments.samosadapter.exception.SamosAdapterConfigurationException;
@@ -54,6 +58,8 @@ public class SamosAdapterService {
   private final SamosOAuth2TokenService samosOAuth2TokenService;
   private final SamosServiceDiscoveryService samosServiceDiscoveryService;
   private final SamosComplianceService samosComplianceService;
+  private final SamosFraudDetectionService samosFraudDetectionService;
+  private final SamosRiskAssessmentService samosRiskAssessmentService;
   private final Counter samosAdapterCreatedCounter;
   private final Counter samosAdapterActivatedCounter;
   private final Counter samosAdapterDeactivatedCounter;
@@ -691,6 +697,60 @@ public class SamosAdapterService {
           .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId.toString()));
       
       return samosComplianceService.executeComplianceRules(adapter, request, tenantContext);
+    });
+  }
+
+  /**
+   * Execute fraud detection rules for SAMOS clearing network
+   * 
+   * @param adapterId The adapter ID
+   * @param request Fraud detection request
+   * @param tenantContext Tenant context
+   * @return Fraud detection response
+   */
+  public SamosFraudDetectionResponse executeFraudDetectionRules(
+      ClearingAdapterId adapterId, SamosFraudDetectionRequest request, TenantContext tenantContext) {
+    
+    return tracingService.executeInSpan("samos.adapter.executeFraudDetectionRules", Map.of(
+        "adapter.id", adapterId.toString(),
+        "payment.id", request.getPaymentId(),
+        "tenant.id", tenantContext.getTenantId(),
+        "business.unit.id", tenantContext.getBusinessUnitId()
+    ), () -> {
+      log.info("Executing SAMOS fraud detection rules for adapter: {} and payment: {}", 
+               adapterId, request.getPaymentId());
+      
+      SamosAdapter adapter = samosAdapterRepository.findById(adapterId)
+          .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId.toString()));
+      
+      return samosFraudDetectionService.executeFraudDetectionRules(adapter, request, tenantContext);
+    });
+  }
+
+  /**
+   * Execute risk assessment rules for SAMOS clearing network
+   * 
+   * @param adapterId The adapter ID
+   * @param request Risk assessment request
+   * @param tenantContext Tenant context
+   * @return Risk assessment response
+   */
+  public SamosRiskAssessmentResponse executeRiskAssessmentRules(
+      ClearingAdapterId adapterId, SamosRiskAssessmentRequest request, TenantContext tenantContext) {
+    
+    return tracingService.executeInSpan("samos.adapter.executeRiskAssessmentRules", Map.of(
+        "adapter.id", adapterId.toString(),
+        "payment.id", request.getPaymentId(),
+        "tenant.id", tenantContext.getTenantId(),
+        "business.unit.id", tenantContext.getBusinessUnitId()
+    ), () -> {
+      log.info("Executing SAMOS risk assessment rules for adapter: {} and payment: {}", 
+               adapterId, request.getPaymentId());
+      
+      SamosAdapter adapter = samosAdapterRepository.findById(adapterId)
+          .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId.toString()));
+      
+      return samosRiskAssessmentService.executeRiskAssessmentRules(adapter, request, tenantContext);
     });
   }
 }

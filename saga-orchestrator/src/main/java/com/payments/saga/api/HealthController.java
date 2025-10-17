@@ -65,7 +65,19 @@ public class HealthController implements HealthIndicator {
       Map<String, Object> metrics = getPerformanceMetrics();
       details.put("metrics", metrics);
 
-      boolean overallHealthy = dbHealthy && kafkaHealthy;
+      // Get saga step health
+      Map<String, Object> stepHealth = getSagaStepHealth();
+      details.put("sagaSteps", stepHealth);
+
+      // Get saga event health
+      Map<String, Object> eventHealth = getSagaEventHealth();
+      details.put("sagaEvents", eventHealth);
+
+      // Overall health includes all components
+      boolean stepServiceHealthy = "UP".equals(stepHealth.getOrDefault("serviceStatus", "DOWN"));
+      boolean eventServiceHealthy = "UP".equals(eventHealth.getOrDefault("serviceStatus", "DOWN"));
+      boolean overallHealthy =
+          dbHealthy && kafkaHealthy && stepServiceHealthy && eventServiceHealthy;
 
       return overallHealthy
           ? Health.up().withDetails(details).build()
@@ -129,6 +141,14 @@ public class HealthController implements HealthIndicator {
       // Get detailed component status
       Map<String, Object> components = getDetailedComponentStatus();
       health.put("components", components);
+
+      // Get saga step health
+      Map<String, Object> stepHealth = getSagaStepHealth();
+      health.put("sagaSteps", stepHealth);
+
+      // Get saga event health
+      Map<String, Object> eventHealth = getSagaEventHealth();
+      health.put("sagaEvents", eventHealth);
 
       return ResponseEntity.ok(health);
 
@@ -280,6 +300,10 @@ public class HealthController implements HealthIndicator {
               "activeSagas", sagaService.getActiveSagas().size(),
               "timestamp", System.currentTimeMillis()));
 
+      // Get Micrometer metrics
+      Map<String, Object> micrometerMetrics = getMicrometerMetrics();
+      metrics.put("micrometer", micrometerMetrics);
+
     } catch (Exception e) {
       log.warn("Failed to get performance metrics: {}", e.getMessage());
       metrics.put("error", "Unable to retrieve metrics");
@@ -331,5 +355,97 @@ public class HealthController implements HealthIndicator {
   private long getStartTime() {
     // This would typically be stored as a class field when the application starts
     return applicationStartTime;
+  }
+
+  private Map<String, Object> getMicrometerMetrics() {
+    Map<String, Object> micrometerMetrics = new HashMap<>();
+
+    try {
+      // Get counter metrics
+      Map<String, Object> counters = new HashMap<>();
+      meterRegistry.getMeters().stream()
+          .filter(meter -> meter.getId().getType().name().equals("COUNTER"))
+          .forEach(
+              meter -> {
+                String name = meter.getId().getName();
+                Object value = meter.measure().iterator().next().getValue();
+                counters.put(name, value);
+              });
+      micrometerMetrics.put("counters", counters);
+
+      // Get gauge metrics
+      Map<String, Object> gauges = new HashMap<>();
+      meterRegistry.getMeters().stream()
+          .filter(meter -> meter.getId().getType().name().equals("GAUGE"))
+          .forEach(
+              meter -> {
+                String name = meter.getId().getName();
+                Object value = meter.measure().iterator().next().getValue();
+                gauges.put(name, value);
+              });
+      micrometerMetrics.put("gauges", gauges);
+
+      // Get timer metrics
+      Map<String, Object> timers = new HashMap<>();
+      meterRegistry.getMeters().stream()
+          .filter(meter -> meter.getId().getType().name().equals("TIMER"))
+          .forEach(
+              meter -> {
+                String name = meter.getId().getName();
+                Object value = meter.measure().iterator().next().getValue();
+                timers.put(name, value);
+              });
+      micrometerMetrics.put("timers", timers);
+
+    } catch (Exception e) {
+      log.warn("Failed to get Micrometer metrics: {}", e.getMessage());
+      micrometerMetrics.put("error", "Unable to retrieve Micrometer metrics");
+    }
+
+    return micrometerMetrics;
+  }
+
+  private Map<String, Object> getSagaStepHealth() {
+    Map<String, Object> stepHealth = new HashMap<>();
+
+    try {
+      // Check if step service is available (basic null check)
+      boolean stepServiceHealthy = sagaStepService != null;
+      stepHealth.put("serviceStatus", stepServiceHealthy ? "UP" : "DOWN");
+
+      if (stepServiceHealthy) {
+        stepHealth.put("serviceName", "SagaStepService");
+        stepHealth.put("status", "Available");
+      }
+
+    } catch (Exception e) {
+      log.warn("Failed to get saga step health: {}", e.getMessage());
+      stepHealth.put("serviceStatus", "DOWN");
+      stepHealth.put("error", e.getMessage());
+    }
+
+    return stepHealth;
+  }
+
+  private Map<String, Object> getSagaEventHealth() {
+    Map<String, Object> eventHealth = new HashMap<>();
+
+    try {
+      // Check if event service is available (basic null check)
+      boolean eventServiceHealthy = sagaEventService != null;
+      eventHealth.put("serviceStatus", eventServiceHealthy ? "UP" : "DOWN");
+
+      if (eventServiceHealthy) {
+        eventHealth.put("serviceName", "SagaEventService");
+        eventHealth.put("status", "Available");
+      }
+
+    } catch (Exception e) {
+      log.warn("Failed to get saga event health: {}", e.getMessage());
+      eventHealth.put("serviceStatus", "DOWN");
+      eventHealth.put("error", e.getMessage());
+    }
+
+    return eventHealth;
   }
 }

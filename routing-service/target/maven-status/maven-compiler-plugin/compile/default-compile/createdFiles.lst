@@ -1,3 +1,4 @@
+com\payments\routing\api\HealthController.class
 com\payments\routing\api\GlobalExceptionHandler.class
 com\payments\routing\engine\ConditionEvaluator$1.class
 com\payments\routing\validator\RoutingRuleValidator.class

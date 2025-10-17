@@ -25,6 +25,10 @@ C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankse
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\domain\BankservAfricaTransactionLoggedEvent.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\domain\ClearingMessageLog.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\domain\ClearingRoute.java
+C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\dto\BankservAfricaFraudDetectionRequest.java
+C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\dto\BankservAfricaFraudDetectionResponse.java
+C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\dto\BankservAfricaRiskAssessmentRequest.java
+C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\dto\BankservAfricaRiskAssessmentResponse.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\exception\BankservAfricaAdapterAlreadyExistsException.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\exception\BankservAfricaAdapterNotFoundException.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\exception\BankservAfricaAdapterOperationException.java
@@ -41,4 +45,7 @@ C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankse
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\service\BankservAfricaAchProcessingService.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\service\BankservAfricaAdapterService.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\service\BankservAfricaEftProcessingService.java
+C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\service\BankservAfricaFraudDetectionService.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\service\BankservAfricaIso8583ProcessingService.java
+C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\service\BankservAfricaOAuth2TokenService.java
+C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\service\BankservAfricaRiskAssessmentService.java

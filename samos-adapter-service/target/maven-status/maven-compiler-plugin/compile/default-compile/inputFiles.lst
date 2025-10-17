@@ -1,5 +1,6 @@
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosIso20022ValidationRequest.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\domain\SamosAdapterCreatedEvent.java
+C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\service\SamosSecretManagementService.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosSettlementRequest.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\domain\SamosRouteAddedEvent.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\SamosAdapterApplication.java
@@ -8,8 +9,11 @@ C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\ex
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\exception\SamosAdapterConfigurationException.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosAdapterValidationRequest.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\domain\SamosMessageLoggedEvent.java
+C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosRiskAssessmentResponse.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosAdapterValidationResponse.java
+C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\service\SamosFraudDetectionService.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\service\SamosOAuth2TokenService.java
+C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosFraudDetectionResponse.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\client\SamosClearingNetworkClientConfig.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\domain\SamosAdapterActivatedEvent.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\config\SamosRedisConfig.java
@@ -39,13 +43,17 @@ C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\co
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosSettlementResponse.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosPaymentStatusResponse.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\repository\SamosPaymentMessageRepository.java
+C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\service\SamosRiskAssessmentService.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosPaymentStatusRequest.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\domain\SamosSettlementRecord.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\service\SamosComplianceService.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosIso20022ValidationResponse.java
+C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosFraudDetectionRequest.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\controller\SamosConfigurationController.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\exception\SamosAdapterNotFoundException.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\repository\SamosAdapterRepository.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\exception\SamosAdapterOperationException.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\service\SamosIso20022Service.java
+C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosRiskAssessmentRequest.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\service\SamosCacheService.java
+C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\controller\SamosCacheManagementController.java

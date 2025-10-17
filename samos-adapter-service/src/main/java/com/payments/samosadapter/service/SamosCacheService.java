@@ -322,6 +322,22 @@ public class SamosCacheService {
     }
   }
 
+  /**
+   * Check if cache is healthy
+   *
+   * @return True if cache is healthy
+   */
+  public boolean isCacheHealthy() {
+    try {
+      // Simple health check - ping Redis
+      String pingResult = redisTemplate.getConnectionFactory().getConnection().ping();
+      return "PONG".equals(pingResult);
+    } catch (Exception e) {
+      log.warn("SAMOS cache health check failed", e);
+      return false;
+    }
+  }
+
   /** Cache Statistics */
   @lombok.Builder
   @lombok.Data
