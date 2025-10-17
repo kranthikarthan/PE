@@ -240,11 +240,11 @@ services:
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
       MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8084/transaction-processing-service/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://transaction-processing-service:8084/transaction-processing/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 90s
     networks:
       - payments-network
 
@@ -274,11 +274,11 @@ services:
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
       MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8086/saga-orchestrator/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://saga-orchestrator:8086/saga-orchestrator/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 90s
     networks:
       - payments-network
 
