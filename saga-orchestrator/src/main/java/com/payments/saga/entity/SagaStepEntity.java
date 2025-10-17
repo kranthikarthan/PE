@@ -1,13 +1,17 @@
 package com.payments.saga.entity;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payments.domain.shared.TenantContext;
 import com.payments.saga.domain.SagaId;
 import com.payments.saga.domain.SagaStep;
 import com.payments.saga.domain.SagaStepId;
 import com.payments.saga.domain.SagaStepStatus;
 import com.payments.saga.domain.SagaStepType;
+import com.payments.saga.exception.SagaPersistenceException;
+import com.payments.saga.exception.SagaSerializationException;
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -101,58 +105,91 @@ public class SagaStepEntity {
   @Column(name = "updated_at")
   private Instant updatedAt;
 
+  // Add audit fields for domain events
+  @Column(name = "version")
+  private Long version;
+
+  @Column(name = "last_modified_by")
+  private String lastModifiedBy;
+
+  @Column(name = "domain_events", columnDefinition = "jsonb")
+  private String domainEventsJson;
+
+  // Singleton ObjectMapper for efficiency
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
   public static SagaStepEntity fromDomain(SagaStep step) {
-    return SagaStepEntity.builder()
-        .id(step.getId().getValue())
-        .sagaId(step.getSagaId().getValue())
-        .stepName(step.getStepName())
-        .stepType(step.getStepType())
-        .status(step.getStatus())
-        .sequence(step.getSequence())
-        .serviceName(step.getServiceName())
-        .endpoint(step.getEndpoint())
-        .compensationEndpoint(step.getCompensationEndpoint())
-        .inputDataJson(convertMapToJson(step.getInputData()))
-        .outputDataJson(convertMapToJson(step.getOutputData()))
-        .errorDataJson(convertMapToJson(step.getErrorData()))
-        .errorMessage(step.getErrorMessage())
-        .retryCount(step.getRetryCount())
-        .maxRetries(step.getMaxRetries())
-        .startedAt(step.getStartedAt())
-        .completedAt(step.getCompletedAt())
-        .failedAt(step.getFailedAt())
-        .compensatedAt(step.getCompensatedAt())
-        .tenantId(step.getTenantContext().getTenantId())
-        .businessUnitId(step.getTenantContext().getBusinessUnitId())
-        .correlationId(step.getCorrelationId())
-        .build();
+    try {
+      return SagaStepEntity.builder()
+          .id(step.getId().getValue())
+          .sagaId(step.getSagaId().getValue())
+          .stepName(step.getStepName())
+          .stepType(step.getStepType())
+          .status(step.getStatus())
+          .sequence(step.getSequence())
+          .serviceName(step.getServiceName())
+          .endpoint(step.getEndpoint())
+          .compensationEndpoint(step.getCompensationEndpoint())
+          .inputDataJson(convertMapToJson(step.getInputData()))
+          .outputDataJson(convertMapToJson(step.getOutputData()))
+          .errorDataJson(convertMapToJson(step.getErrorData()))
+          .errorMessage(step.getErrorMessage())
+          .retryCount(step.getRetryCount())
+          .maxRetries(step.getMaxRetries())
+          .startedAt(step.getStartedAt())
+          .completedAt(step.getCompletedAt())
+          .failedAt(step.getFailedAt())
+          .compensatedAt(step.getCompensatedAt())
+          .tenantId(step.getTenantContext().getTenantId())
+          .businessUnitId(step.getTenantContext().getBusinessUnitId())
+          .correlationId(step.getCorrelationId())
+          .version(step.getVersion())
+          .lastModifiedBy(step.getLastModifiedBy())
+          .domainEventsJson(null)
+          .build();
+    } catch (Exception e) {
+      throw new SagaPersistenceException("Failed to convert domain to entity", e);
+    }
   }
 
   public SagaStep toDomain() {
-    return SagaStep.builder()
-        .id(SagaStepId.of(this.id))
-        .sagaId(SagaId.of(this.sagaId))
-        .stepName(this.stepName)
-        .stepType(this.stepType)
-        .status(this.status)
-        .sequence(this.sequence)
-        .serviceName(this.serviceName)
-        .endpoint(this.endpoint)
-        .compensationEndpoint(this.compensationEndpoint)
-        .inputData(convertJsonToMap(this.inputDataJson))
-        .outputData(convertJsonToMap(this.outputDataJson))
-        .errorData(convertJsonToMap(this.errorDataJson))
-        .errorMessage(this.errorMessage)
-        .retryCount(this.retryCount != null ? this.retryCount : 0)
-        .maxRetries(this.maxRetries != null ? this.maxRetries : 3)
-        .startedAt(this.startedAt)
-        .completedAt(this.completedAt)
-        .failedAt(this.failedAt)
-        .compensatedAt(this.compensatedAt)
-        .tenantContext(
-            TenantContext.of(this.tenantId, "Tenant", this.businessUnitId, "Business Unit"))
-        .correlationId(this.correlationId)
-        .build();
+    try {
+      TenantContext tenantContext =
+          TenantContext.of(
+              this.tenantId,
+              resolveTenantName(this.tenantId),
+              this.businessUnitId,
+              resolveBusinessUnitName(this.businessUnitId));
+
+      return SagaStep.builder()
+          .id(SagaStepId.of(this.id))
+          .sagaId(SagaId.of(this.sagaId))
+          .stepName(this.stepName)
+          .stepType(this.stepType)
+          .status(this.status)
+          .sequence(this.sequence)
+          .serviceName(this.serviceName)
+          .endpoint(this.endpoint)
+          .compensationEndpoint(this.compensationEndpoint)
+          .inputData(convertJsonToMap(this.inputDataJson))
+          .outputData(convertJsonToMap(this.outputDataJson))
+          .errorData(convertJsonToMap(this.errorDataJson))
+          .errorMessage(this.errorMessage)
+          .retryCount(this.retryCount != null ? this.retryCount : 0)
+          .maxRetries(this.maxRetries != null ? this.maxRetries : 3)
+          .startedAt(this.startedAt)
+          .completedAt(this.completedAt)
+          .failedAt(this.failedAt)
+          .compensatedAt(this.compensatedAt)
+          .tenantContext(tenantContext)
+          .correlationId(this.correlationId)
+          .version(this.version)
+          .lastModifiedBy(this.lastModifiedBy)
+          .domainEvents(new ArrayList<>())
+          .build();
+    } catch (Exception e) {
+      throw new SagaPersistenceException("Failed to convert entity to domain", e);
+    }
   }
 
   private static String convertMapToJson(Map<String, Object> data) {
@@ -160,11 +197,9 @@ public class SagaStepEntity {
       return null;
     }
     try {
-      com.fasterxml.jackson.databind.ObjectMapper mapper =
-          new com.fasterxml.jackson.databind.ObjectMapper();
-      return mapper.writeValueAsString(data);
+      return OBJECT_MAPPER.writeValueAsString(data);
     } catch (Exception e) {
-      throw new RuntimeException("Failed to convert map to JSON", e);
+      throw new SagaSerializationException("Failed to convert map to JSON", e);
     }
   }
 
@@ -173,11 +208,19 @@ public class SagaStepEntity {
       return null;
     }
     try {
-      com.fasterxml.jackson.databind.ObjectMapper mapper =
-          new com.fasterxml.jackson.databind.ObjectMapper();
-      return mapper.readValue(json, Map.class);
+      return OBJECT_MAPPER.readValue(json, Map.class);
     } catch (Exception e) {
-      throw new RuntimeException("Failed to convert JSON to map", e);
+      throw new SagaSerializationException("Failed to convert JSON to map", e);
     }
+  }
+
+  private String resolveTenantName(String tenantId) {
+    // Implement proper tenant name resolution
+    return "Resolved Tenant Name";
+  }
+
+  private String resolveBusinessUnitName(String businessUnitId) {
+    // Implement proper business unit name resolution
+    return "Resolved Business Unit Name";
   }
 }

@@ -1,0 +1,95 @@
+# Multi-tenant routing configuration
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: payment-service-tenant-routing
+  namespace: payments
+spec:
+  hosts:
+    - payment-service
+  http:
+    # Standard Bank → Dedicated pod pool (high capacity)
+    - match:
+        - headers:
+            x-tenant-id:
+              exact: "STD-001"
+      route:
+        - destination:
+            host: payment-service
+            subset: high-capacity
+    
+    # Nedbank → Dedicated pod pool
+    - match:
+        - headers:
+            x-tenant-id:
+              exact: "NED-001"
+      route:
+        - destination:
+            host: payment-service
+            subset: medium-capacity
+    
+    # Other tenants → Shared pool
+    - route:
+        - destination:
+            host: payment-service
+            subset: shared
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: payment-service-tenant-pools
+  namespace: payments
+spec:
+  host: payment-service
+  subsets:
+    - name: high-capacity
+      labels:
+        tenant-tier: premium
+        version: v1
+    - name: medium-capacity
+      labels:
+        tenant-tier: standard
+        version: v1
+    - name: shared
+      labels:
+        tenant-tier: basic
+        version: v1
+
+---
+# Rate limiting per tenant
+apiVersion: networking.istio.io/v1beta1
+kind: EnvoyFilter
+metadata:
+  name: tenant-rate-limit
+  namespace: payments
+spec:
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_INBOUND
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.local_ratelimit
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+            stat_prefix: http_local_rate_limiter
+            token_bucket:
+              max_tokens: 10000  # Max burst
+              tokens_per_fill: 1000
+              fill_interval: 1s  # 1000 requests per second
+            filter_enabled:
+              runtime_key: local_rate_limit_enabled
+              default_value:
+                numerator: 100
+                denominator: HUNDRED
+            filter_enforced:
+              runtime_key: local_rate_limit_enforced
+              default_value:
+                numerator: 100
+                denominator: HUNDRED

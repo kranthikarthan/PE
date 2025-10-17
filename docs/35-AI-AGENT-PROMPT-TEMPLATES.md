@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides **detailed prompt templates** for each of the **52 features** (40 original + 12 Phase 7), ensuring each AI agent has sufficient context to complete:
+This document provides **detailed prompt templates** for each of the **50 features** across **8 phases** (Phase 0-7), ensuring each AI agent has sufficient context to complete:
 
 1. **HLD (High-Level Design)** - Architecture overview
 2. **LLD (Low-Level Design)** - Detailed design, class diagrams
@@ -11,6 +11,8 @@ This document provides **detailed prompt templates** for each of the **52 featur
 5. **Documentation** - README, API docs, setup guide
 
 **Purpose**: Enable any AI coding agent to independently build a feature with minimal clarification needed.
+
+> **📋 PRIMARY REFERENCE**: This document is aligned with the **Enhanced Feature Breakdown Tree** (`docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`). For complete phase details, dependencies, and AI agent assignments, refer to the Enhanced Tree.
 
 ---
 

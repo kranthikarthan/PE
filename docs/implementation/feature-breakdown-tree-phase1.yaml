@@ -1,0 +1,273 @@
+# Phase 1: Core Services - YAML Export
+# Source: docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md
+
+phases:
+  - id: "phase-1"
+    name: "Core Services"
+    type: "parallel"
+    description: "Can be built in PARALLEL after Phase 0"
+    estimated_duration_days: "5-7"
+    parallelization_strategy: "6 agents working simultaneously"
+    features:
+      - id: "1.1"
+        name: "Payment Initiation Service"
+        agent: "Payment Initiation Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-11-payment-initiation-service"
+        complexity: "medium"
+        estimation_days: "3-5"
+        nominal_days: 4
+        ai_factors:
+          - "Retry 2x on REST API errors"
+          - "Hallucination risk: LOW"
+        spring_boot_guidance:
+          - "Use @Transactional for ACID guarantees"
+          - "Implement transactional outbox pattern for events"
+          - "Use Spring Boot Actuator for health checks"
+        mocks_required:
+          - name: "WireMock"
+            purpose: "Mock external fraud API (not needed in Phase 1)"
+          - name: "Testcontainers"
+            purpose: "PostgreSQL integration tests"
+          - name: "EmbeddedRedis"
+            purpose: "Idempotency testing"
+        input:
+          - "Domain models (Payment, PaymentId)"
+          - "Event schemas (PaymentInitiatedEvent)"
+          - "Database schema (payments table)"
+          - "Shared libraries"
+        output:
+          - "REST API (3 endpoints)"
+          - "Payment creation logic"
+          - "Event publishing"
+          - "Dockerized service"
+          - "Kubernetes deployment"
+        kpis:
+          - metric: "API response time"
+            target: "< 500ms (p95)"
+          - metric: "Event publishing latency"
+            target: "< 50ms (p95)"
+          - metric: "Idempotency cache hit rate"
+            target: "> 30% (production)"
+        dod:
+          - "All 3 REST endpoints functional"
+          - "Idempotency working (Redis)"
+          - "Event published to Azure Service Bus"
+          - "Unit test coverage > 80%"
+          - "Integration tests pass"
+          - "Swagger UI accessible"
+          - "Service deploys to AKS"
+        fallback_plan: "If agent fails → Human developer reviews code, fixes bugs"
+        dependencies: ["phase-0"]
+      
+      - id: "1.2"
+        name: "Validation Service"
+        agent: "Validation Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-12-validation-service"
+        complexity: "medium"
+        estimation_days: "3-4"
+        nominal_days: 3
+        ai_factors:
+          - "Retry 2x on Drools rule syntax errors"
+          - "Hallucination risk: MEDIUM (Drools DRL syntax)"
+          - "Feedback loop: Validate rules with KIE server"
+        spring_boot_guidance:
+          - "Use Drools for business rules"
+          - "Hot reload from Git functional"
+          - "Event consumption working"
+        mocks_required:
+          - name: "Testcontainers"
+            purpose: "PostgreSQL"
+          - name: "EmbeddedKafka"
+            purpose: "Event testing"
+        input:
+          - "Payment domain model"
+          - "Drools rules (10+ rules)"
+          - "Event schemas (PaymentValidatedEvent, PaymentRejectedEvent)"
+        output:
+          - "Drools rules engine (KIE server)"
+          - "10+ validation rules"
+          - "Event consumer (Azure Service Bus trigger)"
+          - "Event publisher (validation result)"
+        kpis:
+          - metric: "Rule execution time"
+            target: "< 200ms per payment"
+          - metric: "Rule cache hit rate"
+            target: "> 80% (Redis)"
+          - metric: "Validation throughput"
+            target: "> 100 payments/second"
+        dod:
+          - "All 10+ Drools rules working"
+          - "Hot reload from Git functional"
+          - "Event consumption working"
+          - "Event publishing working"
+          - "Unit test per rule (10+ tests)"
+        fallback_plan: "If Drools syntax errors → Use online Drools validator, fix syntax"
+        dependencies: ["phase-0"]
+      
+      - id: "1.3"
+        name: "Account Adapter Service"
+        agent: "Account Adapter Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-13-account-adapter-service"
+        complexity: "high"
+        estimation_days: "4-6"
+        nominal_days: 5
+        ai_factors:
+          - "Retry 3x on REST client configuration errors"
+          - "Hallucination risk: HIGH (Resilience4j config)"
+          - "Feedback loop: Test circuit breaker manually with failures"
+        spring_boot_guidance:
+          - "Use Spring Cloud OpenFeign for REST clients"
+          - "Configure Resilience4j for circuit breaking"
+          - "Implement OAuth 2.0 token management"
+        mocks_required:
+          - name: "WireMock"
+            purpose: "5 external core banking systems"
+            ports: [8091, 8092, 8093, 8094, 8095]
+        input:
+          - "External core banking API specs"
+          - "OAuth 2.0 configuration"
+          - "Resilience4j config"
+        output:
+          - "5 REST clients (Feign) for external systems"
+          - "Circuit breaker, retry, bulkhead, timeout configured"
+          - "OAuth 2.0 token management (cached in Redis)"
+          - "Balance cache (Redis, 60s TTL)"
+        kpis:
+          - metric: "External API call latency"
+            target: "< 2 seconds (p95)"
+          - metric: "Circuit breaker state transition time"
+            target: "< 100ms"
+          - metric: "Cache hit rate"
+            target: "> 80% (balance queries)"
+          - metric: "OAuth token refresh success rate"
+            target: "> 99%"
+        dod:
+          - "All 5 REST clients functional"
+          - "Circuit breaker tested (opens after 5 failures)"
+          - "Retry tested (exponential backoff 1s, 2s, 4s)"
+          - "OAuth 2.0 token cached in Redis"
+          - "Balance cache working (60s TTL)"
+        fallback_plan: "If circuit breaker fails → Manually test with 10 consecutive 500 errors"
+        dependencies: ["phase-0"]
+      
+      - id: "1.4"
+        name: "Routing Service"
+        agent: "Routing Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-14-routing-service"
+        complexity: "medium"
+        estimation_days: "2-3"
+        nominal_days: 3
+        ai_factors:
+          - "Retry 2x on routing logic errors"
+          - "Hallucination risk: LOW"
+        spring_boot_guidance:
+          - "Implement routing logic"
+          - "Use Redis for caching"
+          - "Handle routing events"
+        mocks_required:
+          - name: "Testcontainers"
+            purpose: "PostgreSQL"
+          - name: "EmbeddedRedis"
+            purpose: "Caching tests"
+        input:
+          - "Routing rules"
+          - "Account information"
+          - "Payment data"
+        output:
+          - "Payment routing logic"
+          - "Decision engine"
+          - "Event handling"
+          - "Redis caching"
+        kpis:
+          - metric: "Routing decision time"
+            target: "< 100ms"
+          - metric: "Cache hit rate"
+            target: "> 80%"
+        dod:
+          - "Routing decisions working"
+          - "Cache hit rate > 80%"
+          - "Response time < 100ms"
+        fallback_plan: "If routing fails → Use simple routing rules"
+        dependencies: ["phase-0"]
+      
+      - id: "1.5"
+        name: "Transaction Processing Service"
+        agent: "Transaction Processing Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-15-transaction-processing-service"
+        complexity: "medium"
+        estimation_days: "4-5"
+        nominal_days: 5
+        ai_factors:
+          - "Retry 2x on transaction processing errors"
+          - "Hallucination risk: MEDIUM"
+        spring_boot_guidance:
+          - "Implement transaction processing"
+          - "Handle state transitions"
+          - "Process events"
+        mocks_required:
+          - name: "Testcontainers"
+            purpose: "PostgreSQL"
+        input:
+          - "Transaction domain model"
+          - "State machine rules"
+          - "Event schemas"
+        output:
+          - "Transaction processing logic"
+          - "State management"
+          - "Event handling"
+          - "Database integration"
+        kpis:
+          - metric: "Transaction processing time"
+            target: "< 500ms"
+          - metric: "State transition accuracy"
+            target: "100%"
+        dod:
+          - "Transaction processing working"
+          - "State transitions correct"
+          - "Event handling functional"
+          - "Performance requirements met"
+        fallback_plan: "If processing fails → Use simple state machine"
+        dependencies: ["phase-0"]
+      
+      - id: "1.6"
+        name: "Saga Orchestrator Service"
+        agent: "Saga Orchestrator Agent"
+        template_ref: "docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-16-saga-orchestrator-service"
+        complexity: "high"
+        estimation_days: "5-7"
+        nominal_days: 6
+        ai_factors:
+          - "Retry 3x on saga orchestration errors"
+          - "Hallucination risk: HIGH (complex orchestration)"
+          - "Feedback loop: Test saga completion manually"
+        spring_boot_guidance:
+          - "Implement saga orchestration"
+          - "Handle state machine"
+          - "Process compensation"
+          - "Coordinate events"
+        mocks_required:
+          - name: "Testcontainers"
+            purpose: "PostgreSQL"
+          - name: "WireMock"
+            purpose: "External service calls"
+        input:
+          - "Saga domain model"
+          - "State machine rules"
+          - "Compensation logic"
+        output:
+          - "Saga orchestration logic"
+          - "State machine implementation"
+          - "Compensation handling"
+          - "Event coordination"
+        kpis:
+          - metric: "Saga completion time"
+            target: "< 2 seconds"
+          - metric: "Compensation success rate"
+            target: "> 99%"
+        dod:
+          - "Saga orchestration working"
+          - "State machine functional"
+          - "Compensation handling correct"
+          - "Event coordination successful"
+        fallback_plan: "If saga fails → Use simple orchestration"
+        dependencies: ["phase-0"]

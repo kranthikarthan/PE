@@ -1,0 +1,380 @@
+package com.payments.payshapadapter.service;
+
+import com.payments.domain.clearing.AdapterOperationalStatus;
+import com.payments.domain.shared.ClearingAdapterId;
+import com.payments.domain.shared.ClearingMessageId;
+import com.payments.domain.shared.ClearingRouteId;
+import com.payments.domain.shared.TenantContext;
+import com.payments.payshapadapter.domain.PayShapAdapter;
+import com.payments.payshapadapter.domain.ClearingRoute;
+import com.payments.payshapadapter.domain.ClearingMessageLog;
+import com.payments.payshapadapter.exception.PayShapAdapterNotFoundException;
+import com.payments.payshapadapter.exception.PayShapAdapterOperationException;
+import com.payments.telemetry.TracingService;
+import com.payments.payshapadapter.repository.PayShapAdapterRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/** Service for managing PayShap adapter configurations */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class PayShapAdapterService {
+
+  private final PayShapAdapterRepository payShapAdapterRepository;
+  private final TracingService tracingService;
+
+  /** Create a new PayShap adapter */
+  @CircuitBreaker(name = "payshap-adapter", fallbackMethod = "createAdapterFallback")
+  @Retry(name = "payshap-adapter")
+  @TimeLimiter(name = "payshap-adapter")
+  @Transactional
+  public CompletableFuture<PayShapAdapter> createAdapter(
+      ClearingAdapterId adapterId,
+      TenantContext tenantContext,
+      String adapterName,
+      String endpoint,
+      String createdBy) {
+    return CompletableFuture.supplyAsync(() -> {
+      return tracingService.executeInSpan("payshap.adapter.create", Map.of(
+          "adapter.name", adapterName,
+          "tenant.id", tenantContext.getTenantId(),
+          "business.unit.id", tenantContext.getBusinessUnitId()
+      ), () -> {
+        log.info(
+            "Creating PayShap adapter: {} for tenant: {}", adapterName, tenantContext.getTenantId());
+
+    PayShapAdapter adapter =
+        PayShapAdapter.create(adapterId, tenantContext, adapterName, endpoint, createdBy);
+    PayShapAdapter savedAdapter = payShapAdapterRepository.save(adapter);
+
+    // Publish domain events
+    savedAdapter.getDomainEvents().forEach(event -> {
+      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), savedAdapter.getId());
+      // TODO: Publish to event bus (Kafka/Azure Service Bus)
+    });
+    savedAdapter.clearDomainEvents();
+
+    return savedAdapter;
+      });
+    });
+  }
+
+  /** Get adapter by ID */
+  public Optional<PayShapAdapter> getAdapter(ClearingAdapterId adapterId) {
+    return payShapAdapterRepository.findById(adapterId);
+  }
+
+  /** Find adapter by ID */
+  public Optional<PayShapAdapter> findById(ClearingAdapterId adapterId) {
+    return payShapAdapterRepository.findById(adapterId);
+  }
+
+  /** Update adapter configuration */
+  @Transactional
+  public PayShapAdapter updateAdapterConfiguration(
+      ClearingAdapterId adapterId,
+      String endpoint,
+      String apiVersion,
+      Integer timeoutSeconds,
+      Integer retryAttempts,
+      Boolean encryptionEnabled,
+      Integer batchSize,
+      String processingWindowStart,
+      String processingWindowEnd,
+      String updatedBy) {
+    log.info("Updating PayShap adapter configuration: {}", adapterId);
+
+    PayShapAdapter adapter =
+        payShapAdapterRepository
+            .findById(adapterId)
+            .orElseThrow(
+                () -> new IllegalArgumentException("PayShap adapter not found: " + adapterId));
+
+    adapter.updateConfiguration(
+        endpoint,
+        apiVersion,
+        timeoutSeconds,
+        retryAttempts,
+        encryptionEnabled,
+        batchSize,
+        processingWindowStart,
+        processingWindowEnd,
+        updatedBy);
+
+    PayShapAdapter updatedAdapter = payShapAdapterRepository.save(adapter);
+
+    // Apply configuration changes to resilience patterns
+    applyConfigurationToResiliencePatterns(updatedAdapter);
+
+    // Publish domain events
+    updatedAdapter.getDomainEvents().forEach(event -> {
+      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), updatedAdapter.getId());
+      // TODO: Publish to event bus (Kafka/Azure Service Bus)
+    });
+    updatedAdapter.clearDomainEvents();
+
+    log.info("PayShap adapter configuration updated successfully: {} with timeout: {}s, retries: {}, encryption: {}, api: {}", 
+             adapterId, updatedAdapter.getTimeoutSeconds(), updatedAdapter.getRetryAttempts(), 
+             updatedAdapter.getEncryptionEnabled(), updatedAdapter.getApiVersion());
+    return updatedAdapter;
+  }
+
+  /**
+   * Add a route to the PayShap adapter
+   * 
+   * @param adapterId The adapter ID
+   * @param routeName The route name
+   * @param source The source endpoint
+   * @param destination The destination endpoint
+   * @param priority The route priority
+   * @param addedBy The user adding the route
+   * @return The updated adapter
+   */
+  @Transactional
+  public PayShapAdapter addRoute(
+      ClearingAdapterId adapterId,
+      String routeName,
+      String source,
+      String destination,
+      Integer priority,
+      String addedBy) {
+    
+    return tracingService.executeInSpan("payshap.adapter.addRoute", Map.of(
+        "adapter.id", adapterId.toString(),
+        "route.name", routeName,
+        "source", source,
+        "destination", destination,
+        "priority", priority != null ? priority.toString() : "null",
+        "added.by", addedBy
+    ), () -> {
+      log.info("Adding route to PayShap adapter: {} - route: {} from {} to {}", 
+               adapterId, routeName, source, destination);
+    
+    PayShapAdapter adapter = payShapAdapterRepository.findById(adapterId)
+        .orElseThrow(() -> new PayShapAdapterNotFoundException(adapterId));
+    
+    adapter.addRoute(
+        ClearingRouteId.generate(),
+        routeName,
+        source,
+        destination,
+        priority,
+        addedBy);
+    
+    PayShapAdapter updatedAdapter = payShapAdapterRepository.save(adapter);
+    
+    // Publish domain events
+    updatedAdapter.getDomainEvents().forEach(event -> {
+      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), updatedAdapter.getId());
+      // TODO: Publish to event bus (Kafka/Azure Service Bus)
+    });
+    updatedAdapter.clearDomainEvents();
+    
+    log.info("Successfully added route to PayShap adapter: {} - route: {}", adapterId, routeName);
+    return updatedAdapter;
+    });
+  }
+  
+  /**
+   * Get all routes for the PayShap adapter
+   * 
+   * @param adapterId The adapter ID
+   * @return List of routes
+   */
+  public List<ClearingRoute> getRoutes(ClearingAdapterId adapterId) {
+    log.info("Getting routes for PayShap adapter: {}", adapterId);
+    
+    PayShapAdapter adapter = payShapAdapterRepository.findById(adapterId)
+        .orElseThrow(() -> new PayShapAdapterNotFoundException(adapterId));
+    
+    List<ClearingRoute> routes = adapter.getRoutes();
+    log.info("Found {} routes for PayShap adapter: {}", routes.size(), adapterId);
+    
+    return routes;
+  }
+  
+  /**
+   * Log a message for the PayShap adapter
+   * 
+   * @param adapterId The adapter ID
+   * @param direction The message direction (INBOUND/OUTBOUND)
+   * @param messageType The message type (e.g., instant payment, proxy lookup)
+   * @param payloadHash The payload hash
+   * @param statusCode The status code
+   * @return The updated adapter
+   */
+  @Transactional
+  public PayShapAdapter logMessage(
+      ClearingAdapterId adapterId,
+      String direction,
+      String messageType,
+      String payloadHash,
+      Integer statusCode) {
+    
+    return tracingService.executeInSpan("payshap.adapter.logMessage", Map.of(
+        "adapter.id", adapterId.toString(),
+        "direction", direction,
+        "message.type", messageType,
+        "payload.hash", payloadHash != null ? payloadHash : "null",
+        "status.code", statusCode != null ? statusCode.toString() : "null"
+    ), () -> {
+      log.info("Logging message for PayShap adapter: {} - direction: {}, type: {}, status: {}", 
+               adapterId, direction, messageType, statusCode);
+    
+    PayShapAdapter adapter = payShapAdapterRepository.findById(adapterId)
+        .orElseThrow(() -> new PayShapAdapterNotFoundException(adapterId));
+    
+    adapter.logMessage(
+        ClearingMessageId.generate(),
+        direction,
+        messageType,
+        payloadHash,
+        statusCode);
+    
+    PayShapAdapter updatedAdapter = payShapAdapterRepository.save(adapter);
+    
+    // Publish domain events
+    updatedAdapter.getDomainEvents().forEach(event -> {
+      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), updatedAdapter.getId());
+      // TODO: Publish to event bus (Kafka/Azure Service Bus)
+    });
+    updatedAdapter.clearDomainEvents();
+    
+    log.info("Successfully logged message for PayShap adapter: {} - direction: {}, type: {}", 
+             adapterId, direction, messageType);
+    return updatedAdapter;
+    });
+  }
+  
+  /**
+   * Get all message logs for the PayShap adapter
+   * 
+   * @param adapterId The adapter ID
+   * @return List of message logs
+   */
+  public List<ClearingMessageLog> getMessageLogs(ClearingAdapterId adapterId) {
+    log.info("Getting message logs for PayShap adapter: {}", adapterId);
+    
+    PayShapAdapter adapter = payShapAdapterRepository.findById(adapterId)
+        .orElseThrow(() -> new PayShapAdapterNotFoundException(adapterId));
+    
+    List<ClearingMessageLog> messageLogs = adapter.getMessageLogs();
+    log.info("Found {} message logs for PayShap adapter: {}", messageLogs.size(), adapterId);
+    
+    return messageLogs;
+  }
+
+  /**
+   * Apply adapter configuration to resilience patterns
+   * 
+   * @param adapter The adapter with updated configuration
+   */
+  private void applyConfigurationToResiliencePatterns(PayShapAdapter adapter) {
+    log.info("Applying configuration to resilience patterns for adapter: {} - timeout: {}s, retries: {}, encryption: {}", 
+             adapter.getId(), adapter.getTimeoutSeconds(), adapter.getRetryAttempts(), adapter.getEncryptionEnabled());
+    
+    // Log configuration changes for monitoring
+    if (adapter.getEncryptionEnabled()) {
+      log.info("Encryption enabled for PayShap adapter: {} - API version: {}", adapter.getId(), adapter.getApiVersion());
+    } else {
+      log.warn("Encryption disabled for PayShap adapter: {} - API version: {}", adapter.getId(), adapter.getApiVersion());
+    }
+    
+    // Log instant payment configuration
+    log.info("Instant payment configuration for adapter: {} - batch size: {}, window: {} to {}", 
+             adapter.getId(), adapter.getBatchSize(), adapter.getProcessingWindowStart(), adapter.getProcessingWindowEnd());
+  }
+
+  /** Activate adapter */
+  @Transactional
+  public PayShapAdapter activateAdapter(ClearingAdapterId adapterId, String activatedBy) {
+    log.info("Activating PayShap adapter: {}", adapterId);
+
+    PayShapAdapter adapter =
+        payShapAdapterRepository
+            .findById(adapterId)
+            .orElseThrow(
+                () -> new IllegalArgumentException("PayShap adapter not found: " + adapterId));
+
+    adapter.activate(activatedBy);
+    PayShapAdapter activatedAdapter = payShapAdapterRepository.save(adapter);
+
+    // Publish domain events
+    activatedAdapter.getDomainEvents().forEach(event -> {
+      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), activatedAdapter.getId());
+      // TODO: Publish to event bus (Kafka/Azure Service Bus)
+    });
+    activatedAdapter.clearDomainEvents();
+
+    return activatedAdapter;
+  }
+
+  /** Deactivate adapter */
+  @Transactional
+  public PayShapAdapter deactivateAdapter(
+      ClearingAdapterId adapterId, String reason, String deactivatedBy) {
+    log.info("Deactivating PayShap adapter: {} - Reason: {}", adapterId, reason);
+
+    PayShapAdapter adapter =
+        payShapAdapterRepository
+            .findById(adapterId)
+            .orElseThrow(
+                () -> new IllegalArgumentException("PayShap adapter not found: " + adapterId));
+
+    adapter.deactivate(reason, deactivatedBy);
+    PayShapAdapter deactivatedAdapter = payShapAdapterRepository.save(adapter);
+
+    // Publish domain events
+    deactivatedAdapter.getDomainEvents().forEach(event -> {
+      log.info("Publishing domain event: {} for adapter: {}", event.getEventType(), deactivatedAdapter.getId());
+      // TODO: Publish to event bus (Kafka/Azure Service Bus)
+    });
+    deactivatedAdapter.clearDomainEvents();
+
+    return deactivatedAdapter;
+  }
+
+  /** Check if adapter is active */
+  public boolean isAdapterActive(ClearingAdapterId adapterId) {
+    return payShapAdapterRepository.findById(adapterId).map(PayShapAdapter::isActive).orElse(false);
+  }
+
+  /** Validate adapter configuration */
+  public boolean validateAdapterConfiguration(ClearingAdapterId adapterId) {
+    return payShapAdapterRepository
+        .findById(adapterId)
+        .map(PayShapAdapter::isConfigurationValid)
+        .orElse(false);
+  }
+
+  /** Get adapters by tenant */
+  public List<PayShapAdapter> getAdaptersByTenant(String tenantId, String businessUnitId) {
+    return payShapAdapterRepository.findByTenantIdAndBusinessUnitId(tenantId, businessUnitId);
+  }
+
+  /** Get active adapters by tenant */
+  public List<PayShapAdapter> getActiveAdaptersByTenant(String tenantId) {
+    return payShapAdapterRepository.findByTenantIdAndStatus(
+        tenantId, AdapterOperationalStatus.ACTIVE);
+  }
+
+  /** Get all adapters */
+  public List<PayShapAdapter> getAllAdapters() {
+    return payShapAdapterRepository.findAll();
+  }
+
+  /** Get adapters by status */
+  public List<PayShapAdapter> getAdaptersByStatus(AdapterOperationalStatus status) {
+    return payShapAdapterRepository.findByStatus(status);
+  }
+}

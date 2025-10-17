@@ -1,0 +1,94 @@
+# Authorization policies for service-to-service communication
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: payment-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: payment-service
+  rules:
+    # Allow payment service to call other services
+    - to:
+        - operation:
+            methods: ["GET", "POST", "PUT"]
+            paths: ["/api/v1/*"]
+    # Allow external access to payment service
+    - from:
+        - source:
+            namespaces: ["istio-system"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/v1/payments/*"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: account-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: account-service
+  rules:
+    # Only allow specific services to call account service
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/payment-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/validation-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/v1/accounts/*"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: validation-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: validation-service
+  rules:
+    # Allow payment service to call validation service
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/payment-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
+      to:
+        - operation:
+            methods: ["POST"]
+            paths: ["/api/v1/validation/*"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: saga-orchestrator-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: saga-orchestrator
+  rules:
+    # Allow multiple services to call saga orchestrator
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/payment-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/validation-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT"]
+            paths: ["/api/v1/saga/*"]

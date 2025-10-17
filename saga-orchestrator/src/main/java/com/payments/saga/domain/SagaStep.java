@@ -2,6 +2,8 @@ package com.payments.saga.domain;
 
 import com.payments.domain.shared.TenantContext;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +37,15 @@ public class SagaStep {
   private Instant compensatedAt;
   private TenantContext tenantContext;
   private String correlationId;
+
+  // Add domain events
+  @Builder.Default private List<Object> domainEvents = new ArrayList<>();
+
+  // Add version for optimistic locking
+  private Long version;
+
+  // Add last modified by for audit
+  private String lastModifiedBy;
 
   public boolean isCompleted() {
     return status == SagaStepStatus.COMPLETED;

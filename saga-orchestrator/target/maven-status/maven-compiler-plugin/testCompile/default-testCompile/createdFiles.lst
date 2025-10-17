@@ -1,0 +1,7 @@
+com\payments\saga\integration\SagaOrchestratorIntegrationTest.class
+com\payments\saga\config\TestConfig.class
+com\payments\saga\integration\SagaEventIntegrationTest.class
+com\payments\saga\service\SagaOrchestratorTest.class
+com\payments\saga\service\SagaExecutionEngineTest.class
+com\payments\saga\event\SagaEventPublisherTest.class
+com\payments\saga\service\SagaCompensationEngineTest.class

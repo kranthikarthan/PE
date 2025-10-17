@@ -4,7 +4,7 @@
 
 This document outlines a **highly modular, AI-agent-buildable payments engine** designed for South Africa's financial ecosystem with international payment capabilities. The architecture follows modern patterns including microservices, event-driven architecture, hexagonal architecture, and Saga patterns to ensure each component can be developed independently by AI agents.
 
-**System Scope**: 22 microservices covering domestic (SA), international (SWIFT), real-time, batch payment processing, and operations management.
+**System Scope**: 22 microservices across 8 phases (Phase 0-7) covering domestic (SA), international (SWIFT), real-time, batch payment processing, and operations management. **Total Features**: 50 features with 50 specialized AI agents.
 
 ## Core Design Principles
 
@@ -46,6 +46,24 @@ This document outlines a **highly modular, AI-agent-buildable payments engine** 
 - **Orchestration-Based**: Centralized saga orchestrator
 - **Compensation**: Each step has a compensating transaction
 - **State Machine**: Clear state transitions for payment flows
+
+## 8-Phase Implementation Strategy
+
+The Payments Engine follows a **systematic 8-phase build approach** designed for AI agent orchestration:
+
+### Phase Overview
+- **Phase 0**: Foundation (Sequential) - 5 features, 5 agents
+- **Phase 1**: Core Services (Parallel) - 6 features, 6 agents  
+- **Phase 2**: Clearing Adapters (Parallel) - 5 features, 5 agents
+- **Phase 3**: Platform Services (Parallel) - 5 features, 5 agents
+- **Phase 4**: Advanced Features (Parallel) - 7 features, 7 agents
+- **Phase 5**: Infrastructure (Parallel) - 7 features, 7 agents
+- **Phase 6**: Integration & Testing (Sequential) - 5 features, 5 agents
+- **Phase 7**: Operations & Channel Management (Parallel) - 12 features, 12 agents
+
+**Total**: 50 features, 50 agents, 25-40 days with parallelization
+
+> **Reference**: See `docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md` for complete phase details and AI agent assignments.
 
 ## System Architecture
 

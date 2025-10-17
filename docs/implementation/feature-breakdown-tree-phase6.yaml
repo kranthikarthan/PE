@@ -1,0 +1,37 @@
+# Phase 6: Integration & Testing - YAML Export
+# Source: docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md
+
+phases:
+  - id: "phase-6"
+    name: "Integration & Testing"
+    type: "sequential"
+    description: "Must be completed SEQUENTIALLY after all above"
+    estimated_duration_days: "15-20"
+    features:
+      - id: "6.1"
+        name: "End-to-End Testing"
+        agent: "E2E Testing Agent"
+        estimation_days: "4-5"
+        complexity: "high"
+      - id: "6.2"
+        name: "Load Testing"
+        agent: "Load Testing Agent"
+        estimation_days: "3-4"
+        complexity: "medium"
+      - id: "6.3"
+        name: "Security Testing"
+        agent: "Security Testing Agent"
+        estimation_days: "3-4"
+        complexity: "medium"
+      - id: "6.4"
+        name: "Compliance Testing"
+        agent: "Compliance Testing Agent"
+        estimation_days: "3-4"
+        complexity: "medium"
+      - id: "6.5"
+        name: "Production Readiness"
+        agent: "Production Readiness Agent"
+        estimation_days: "2-3"
+        complexity: "medium"
+
+

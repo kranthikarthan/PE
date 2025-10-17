@@ -1,120 +1,31 @@
 package com.payments.saga.event;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.payments.saga.domain.*;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
-import org.springframework.stereotype.Component;
+import com.payments.saga.domain.SagaCompensatedEvent;
+import com.payments.saga.domain.SagaCompensationStartedEvent;
+import com.payments.saga.domain.SagaCompletedEvent;
+import com.payments.saga.domain.SagaFailedEvent;
+import com.payments.saga.domain.SagaStartedEvent;
+import com.payments.saga.domain.SagaStepCompletedEvent;
+import com.payments.saga.domain.SagaStepFailedEvent;
+import com.payments.saga.domain.SagaStepStartedEvent;
 
-/** Publisher for saga events to Kafka */
-@Component
-@RequiredArgsConstructor
-@Slf4j
-public class SagaEventPublisher {
+/** Interface for publishing saga events */
+public interface SagaEventPublisher {
+  void publishSagaStarted(SagaStartedEvent event);
 
-  private final KafkaTemplate<String, String> kafkaTemplate;
-  private final ObjectMapper objectMapper;
+  void publishSagaCompleted(SagaCompletedEvent event);
 
-  // Kafka Topics for saga events
-  private static final String SAGA_STARTED_TOPIC = "saga.started";
-  private static final String SAGA_STEP_STARTED_TOPIC = "saga.step.started";
-  private static final String SAGA_STEP_COMPLETED_TOPIC = "saga.step.completed";
-  private static final String SAGA_STEP_FAILED_TOPIC = "saga.step.failed";
-  private static final String SAGA_COMPLETED_TOPIC = "saga.completed";
-  private static final String SAGA_COMPENSATION_STARTED_TOPIC = "saga.compensation.started";
-  private static final String SAGA_COMPENSATED_TOPIC = "saga.compensated";
+  void publishSagaFailed(SagaFailedEvent event);
 
-  /** Publish saga started event */
-  public void publishSagaStarted(SagaStartedEvent event) {
-    publishEvent(SAGA_STARTED_TOPIC, event.getSagaId().getValue(), event, event.getEventData());
-  }
+  void publishSagaCompensationStarted(SagaCompensationStartedEvent event);
 
-  /** Publish saga step started event */
-  public void publishSagaStepStarted(SagaStepStartedEvent event) {
-    publishEvent(
-        SAGA_STEP_STARTED_TOPIC, event.getSagaId().getValue(), event, event.getEventData());
-  }
+  void publishSagaCompensated(SagaCompensatedEvent event);
 
-  /** Publish saga step completed event */
-  public void publishSagaStepCompleted(SagaStepCompletedEvent event) {
-    publishEvent(
-        SAGA_STEP_COMPLETED_TOPIC, event.getSagaId().getValue(), event, event.getEventData());
-  }
+  void publishSagaStepStarted(SagaStepStartedEvent event);
 
-  /** Publish saga step failed event */
-  public void publishSagaStepFailed(SagaStepFailedEvent event) {
-    publishEvent(SAGA_STEP_FAILED_TOPIC, event.getSagaId().getValue(), event, event.getEventData());
-  }
+  void publishSagaStepCompleted(SagaStepCompletedEvent event);
 
-  /** Publish saga completed event */
-  public void publishSagaCompleted(SagaCompletedEvent event) {
-    publishEvent(SAGA_COMPLETED_TOPIC, event.getSagaId().getValue(), event, event.getEventData());
-  }
+  void publishSagaStepFailed(SagaStepFailedEvent event);
 
-  /** Publish saga compensation started event */
-  public void publishSagaCompensationStarted(SagaCompensationStartedEvent event) {
-    publishEvent(
-        SAGA_COMPENSATION_STARTED_TOPIC, event.getSagaId().getValue(), event, event.getEventData());
-  }
-
-  /** Publish saga compensated event */
-  public void publishSagaCompensated(SagaCompensatedEvent event) {
-    publishEvent(SAGA_COMPENSATED_TOPIC, event.getSagaId().getValue(), event, event.getEventData());
-  }
-
-  /** Generic method to publish saga events */
-  private void publishEvent(
-      String topic, String sagaId, SagaEvent event, Map<String, Object> eventData) {
-    try {
-      // Create the message payload
-      Map<String, Object> message =
-          Map.of(
-              "eventId", event.getEventId(),
-              "sagaId", sagaId,
-              "eventType", event.getEventType(),
-              "tenantId", event.getTenantContext().getTenantId(),
-              "businessUnitId", event.getTenantContext().getBusinessUnitId(),
-              "correlationId", event.getCorrelationId(),
-              "occurredAt", event.getOccurredAt().toString(),
-              "eventData", eventData);
-
-      String messageJson = objectMapper.writeValueAsString(message);
-
-      // Send to Kafka
-      CompletableFuture<SendResult<String, String>> future =
-          kafkaTemplate.send(topic, sagaId, messageJson);
-
-      future.whenComplete(
-          (result, ex) -> {
-            if (ex == null) {
-              log.debug(
-                  "Successfully published {} event for saga {} to topic {}: offset={}",
-                  event.getEventType(),
-                  sagaId,
-                  topic,
-                  result.getRecordMetadata().offset());
-            } else {
-              log.error(
-                  "Failed to publish {} event for saga {} to topic {}: {}",
-                  event.getEventType(),
-                  sagaId,
-                  topic,
-                  ex.getMessage(),
-                  ex);
-            }
-          });
-
-    } catch (Exception e) {
-      log.error(
-          "Error publishing {} event for saga {}: {}",
-          event.getEventType(),
-          sagaId,
-          e.getMessage(),
-          e);
-    }
-  }
+  void publishToDeadLetterQueue(String topic, String key, String message, Exception error);
 }

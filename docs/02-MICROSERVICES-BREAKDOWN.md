@@ -3,28 +3,57 @@
 ## Purpose
 This document provides detailed specifications for each microservice, including responsibilities, APIs, dependencies, and database schemas. Each service is designed to be built independently by AI agents.
 
+> **📋 PRIMARY REFERENCE**: This document is aligned with the **Enhanced Feature Breakdown Tree** (`docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`). For complete phase details, AI agent assignments, and implementation strategy, refer to the Enhanced Tree.
+
 ---
 
-## Service Matrix Overview
+## Service Matrix Overview (22 Services)
 
-| # | Service Name | Lines of Code | AI Agent Time | Database | Dependencies |
-|---|--------------|---------------|---------------|----------|--------------|
-| 1 | Payment Initiation | 400 | 3h | PostgreSQL | Validation Service |
-| 2 | Validation Service | 450 | 3h | PostgreSQL + Redis | Account Service, Fraud API |
-| 3 | Account Service | 350 | 2h | PostgreSQL | - |
-| 4 | Routing Service | 300 | 2h | Redis | - |
-| 5 | Transaction Processing | 500 | 4h | PostgreSQL | Settlement Service |
-| 6 | Clearing Adapter (SAMOS) | 400 | 3h | PostgreSQL | - |
-| 7 | Clearing Adapter (Bankserv) | 400 | 3h | PostgreSQL | - |
-| 8 | Clearing Adapter (RTC) | 400 | 3h | PostgreSQL | - |
-| 9 | Settlement Service | 450 | 3h | PostgreSQL | - |
-| 10 | Reconciliation Service | 400 | 3h | PostgreSQL | - |
-| 11 | Notification Service | 250 | 2h | PostgreSQL | - |
-| 12 | Reporting Service | 350 | 3h | PostgreSQL + Synapse | - |
-| 13 | Saga Orchestrator | 500 | 4h | PostgreSQL | All Core Services |
-| 14 | API Gateway | 300 | 2h | Redis | - |
-| 15 | IAM Service | 400 | 3h | PostgreSQL + Azure AD | - |
-| 16 | Audit Service | 300 | 2h | CosmosDB | - |
+> **⚠️ IMPORTANT**: This document is aligned with the **Enhanced Feature Breakdown Tree** (`docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`). The system follows an **8-phase implementation strategy** with **50 features** and **50 AI agents**.
+
+### Core Services (Phase 1)
+| # | Service Name | Phase | Lines of Code | AI Agent Time | Database | Dependencies |
+|---|--------------|-------|---------------|---------------|----------|--------------|
+| 1 | Payment Initiation | Phase 1 | 400 | 3-5 days | PostgreSQL | Validation Service |
+| 2 | Validation Service | Phase 1 | 450 | 3-4 days | PostgreSQL + Redis | Account Service, Fraud API |
+| 3 | Account Adapter | Phase 1 | 350 | 4-6 days | PostgreSQL | - |
+| 4 | Routing Service | Phase 1 | 300 | 2-3 days | Redis | - |
+| 5 | Transaction Processing | Phase 1 | 500 | 4-5 days | PostgreSQL | Settlement Service |
+| 6 | Saga Orchestrator | Phase 1 | 500 | 5-7 days | PostgreSQL | All Core Services |
+
+### Clearing Adapters (Phase 2)
+| # | Service Name | Phase | Lines of Code | AI Agent Time | Database | Dependencies |
+|---|--------------|-------|---------------|---------------|----------|--------------|
+| 7 | SAMOS Adapter | Phase 2 | 400 | 4-6 days | PostgreSQL | - |
+| 8 | BankservAfrica Adapter | Phase 2 | 400 | 4-6 days | PostgreSQL | - |
+| 9 | RTC Adapter | Phase 2 | 400 | 3-5 days | PostgreSQL | - |
+| 10 | PayShap Adapter | Phase 2 | 400 | 3-5 days | PostgreSQL | - |
+| 11 | SWIFT Adapter | Phase 2 | 400 | 5-7 days | PostgreSQL | - |
+
+### Platform Services (Phase 3)
+| # | Service Name | Phase | Lines of Code | AI Agent Time | Database | Dependencies |
+|---|--------------|-------|---------------|---------------|----------|--------------|
+| 12 | Tenant Management | Phase 3 | 350 | 3-4 days | PostgreSQL | - |
+| 13 | IAM Service | Phase 3 | 400 | 4-5 days | PostgreSQL + Azure AD | - |
+| 14 | Audit Service | Phase 3 | 300 | 2-3 days | CosmosDB | - |
+| 15 | Notification Service | Phase 3 | 250 | 3-4 days | PostgreSQL | - |
+| 16 | Reporting Service | Phase 3 | 350 | 4-5 days | PostgreSQL + Synapse | - |
+
+### Advanced Features (Phase 4)
+| # | Service Name | Phase | Lines of Code | AI Agent Time | Database | Dependencies |
+|---|--------------|-------|---------------|---------------|----------|--------------|
+| 17 | Batch Processing | Phase 4 | 500 | 5-7 days | PostgreSQL | - |
+| 18 | Settlement Service | Phase 4 | 450 | 4-5 days | PostgreSQL | - |
+| 19 | Reconciliation Service | Phase 4 | 400 | 4-5 days | PostgreSQL | - |
+| 20 | Internal API Gateway | Phase 4 | 300 | 3-4 days | Redis | - |
+
+### Operations & Channel Management (Phase 7) 🆕
+| # | Service Name | Phase | Lines of Code | AI Agent Time | Database | Dependencies |
+|---|--------------|-------|---------------|---------------|----------|--------------|
+| 21 | Operations Management | Phase 7 | 600 | 5-7 days | PostgreSQL | All Services |
+| 22 | Metrics Aggregation | Phase 7 | 500 | 4-6 days | PostgreSQL + Redis | All Services |
+
+**Total**: 22 services across 8 phases, 50 features, 50 AI agents, 25-40 days with parallelization
 
 ---
 

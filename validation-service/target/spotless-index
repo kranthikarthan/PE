@@ -35,8 +35,9 @@ src\main\java\com\payments\validation\service\ValidationRuleEngine.java 2025-10-
 src\main\java\com\payments\validation\util\HeaderExtractor.java 2025-10-16T11:48:14.340464800Z
 src\main\java\com\payments\validation\ValidationServiceApplication.java 2025-10-16T11:48:14.353855900Z
 src\test\java\com\payments\validation\config\TestConfig.java 2025-10-16T11:48:14.388548Z
-src\test\java\com\payments\validation\integration\ValidationServiceIntegrationTest.java 2025-10-16T16:59:23.783707800Z
-src\test\java\com\payments\validation\service\ComplianceRuleEngineTest.java 2025-10-16T17:04:11.569631500Z
-src\test\java\com\payments\validation\service\FraudDetectionRuleEngineTest.java 2025-10-16T17:10:17.115766800Z
-src\test\java\com\payments\validation\service\RiskAssessmentRuleEngineTest.java 2025-10-16T17:11:14.056418100Z
+src\test\java\com\payments\validation\integration\ValidationServiceIntegrationTest.java 2025-10-17T05:09:36.760194700Z
+src\test\java\com\payments\validation\service\BusinessRuleEngineTest.java 2025-10-17T05:09:36.828565300Z
+src\test\java\com\payments\validation\service\ComplianceRuleEngineTest.java 2025-10-17T05:09:36.873645Z
+src\test\java\com\payments\validation\service\FraudDetectionRuleEngineTest.java 2025-10-17T05:09:36.913658100Z
+src\test\java\com\payments\validation\service\RiskAssessmentRuleEngineTest.java 2025-10-17T05:09:36.954974100Z
 src\test\java\com\payments\validation\service\ValidationResultServiceTest.java 2025-10-16T17:18:44.243931700Z

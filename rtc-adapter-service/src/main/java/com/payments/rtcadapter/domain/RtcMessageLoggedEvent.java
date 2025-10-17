@@ -1,0 +1,30 @@
+package com.payments.rtcadapter.domain;
+
+import com.payments.domain.shared.ClearingAdapterId;
+import com.payments.domain.shared.DomainEvent;
+import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Value;
+
+/**
+ * Domain event for RTC message logging
+ */
+@Value
+@AllArgsConstructor
+public class RtcMessageLoggedEvent implements DomainEvent {
+  ClearingAdapterId adapterId;
+  String direction;
+  String messageType;
+  Integer statusCode;
+  Instant occurredAt;
+
+  @Override
+  public String getEventType() {
+    return "RtcMessageLogged";
+  }
+
+  @Override
+  public Instant getOccurredAt() {
+    return occurredAt;
+  }
+}

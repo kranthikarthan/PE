@@ -3,26 +3,41 @@
 ## Overview
 This document contains complete database schemas for all microservices. Each service owns its database (database-per-service pattern).
 
+> **📋 PRIMARY REFERENCE**: This document is aligned with the **Enhanced Feature Breakdown Tree** (`docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`). The system follows an **8-phase implementation strategy** with **22 microservices** and **50 features**.
+
 ---
 
-## Database Technology Mapping
+## Database Technology Mapping (22 Services)
 
-| Service | Database | Reason |
-|---------|----------|--------|
-| **Tenant Management** | **PostgreSQL** | **Multi-tenancy, hierarchy, configs** |
-| Payment Initiation | PostgreSQL | ACID compliance, complex queries |
-| Validation | PostgreSQL + Redis | Structured data + caching rules |
-| Account | PostgreSQL | ACID compliance, financial data |
-| Routing | Redis | Fast lookups, caching |
-| Transaction Processing | PostgreSQL | Event sourcing, ledger |
-| Clearing Adapters | PostgreSQL | Message tracking, audit trail |
-| Settlement | PostgreSQL | Financial calculations, batching |
-| Reconciliation | PostgreSQL | Complex matching queries |
-| Notification | PostgreSQL | Delivery tracking |
-| Reporting | PostgreSQL + Synapse | OLTP + OLAP |
-| Saga Orchestrator | PostgreSQL | State machine, consistency |
-| IAM | PostgreSQL + Azure AD | User data + identity |
-| Audit | CosmosDB | High write throughput, append-only |
+| # | Service Name | Phase | Database | Reason |
+|---|--------------|-------|----------|--------|
+| **Core Services (Phase 1)** |
+| 1 | Payment Initiation | Phase 1 | PostgreSQL | ACID compliance, complex queries |
+| 2 | Validation Service | Phase 1 | PostgreSQL + Redis | Structured data + caching rules |
+| 3 | Account Adapter | Phase 1 | PostgreSQL | ACID compliance, financial data |
+| 4 | Routing Service | Phase 1 | Redis | Fast lookups, caching |
+| 5 | Transaction Processing | Phase 1 | PostgreSQL | Event sourcing, ledger |
+| 6 | Saga Orchestrator | Phase 1 | PostgreSQL | State machine, consistency |
+| **Clearing Adapters (Phase 2)** |
+| 7 | SAMOS Adapter | Phase 2 | PostgreSQL | Message tracking, audit trail |
+| 8 | BankservAfrica Adapter | Phase 2 | PostgreSQL | Message tracking, audit trail |
+| 9 | RTC Adapter | Phase 2 | PostgreSQL | Message tracking, audit trail |
+| 10 | PayShap Adapter | Phase 2 | PostgreSQL | Message tracking, audit trail |
+| 11 | SWIFT Adapter | Phase 2 | PostgreSQL | Message tracking, audit trail |
+| **Platform Services (Phase 3)** |
+| 12 | Tenant Management | Phase 3 | PostgreSQL | Multi-tenancy, hierarchy, configs |
+| 13 | IAM Service | Phase 3 | PostgreSQL + Azure AD | User data + identity |
+| 14 | Audit Service | Phase 3 | CosmosDB | High write throughput, append-only |
+| 15 | Notification Service | Phase 3 | PostgreSQL | Delivery tracking |
+| 16 | Reporting Service | Phase 3 | PostgreSQL + Synapse | OLTP + OLAP |
+| **Advanced Features (Phase 4)** |
+| 17 | Batch Processing | Phase 4 | PostgreSQL | Financial calculations, batching |
+| 18 | Settlement Service | Phase 4 | PostgreSQL | Financial calculations, batching |
+| 19 | Reconciliation Service | Phase 4 | PostgreSQL | Complex matching queries |
+| 20 | Internal API Gateway | Phase 4 | Redis | Fast lookups, caching |
+| **Operations & Channel Management (Phase 7)** |
+| 21 | Operations Management | Phase 7 | PostgreSQL | Service monitoring, circuit breakers |
+| 22 | Metrics Aggregation | Phase 7 | PostgreSQL + Redis | Metrics storage + caching |
 
 ---
 

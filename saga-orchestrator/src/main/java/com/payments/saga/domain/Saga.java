@@ -32,6 +32,15 @@ public class Saga {
   private Instant compensatedAt;
   private int currentStepIndex;
 
+  // Add domain events
+  @Builder.Default private List<Object> domainEvents = new ArrayList<>();
+
+  // Add version for optimistic locking
+  private Long version;
+
+  // Add last modified by for audit
+  private String lastModifiedBy;
+
   public static Saga create(
       String sagaName, TenantContext tenantContext, String correlationId, String paymentId) {
     return Saga.builder()
@@ -135,6 +144,9 @@ public class Saga {
     }
     this.status = SagaStatus.RUNNING;
     this.startedAt = Instant.now();
+
+    // Publish domain event
+    domainEvents.add(new SagaStartedEvent(this.id, this.tenantContext, this.correlationId));
   }
 
   public void complete() {
@@ -143,12 +155,19 @@ public class Saga {
     }
     this.status = SagaStatus.COMPLETED;
     this.completedAt = Instant.now();
+
+    // Publish domain event
+    domainEvents.add(new SagaCompletedEvent(this.id, this.tenantContext, this.correlationId));
   }
 
   public void fail(String errorMessage) {
     this.status = SagaStatus.FAILED;
     this.errorMessage = errorMessage;
     this.failedAt = Instant.now();
+
+    // Publish domain event
+    domainEvents.add(
+        new SagaFailedEvent(this.id, this.tenantContext, this.correlationId, errorMessage));
   }
 
   public void startCompensation() {
@@ -157,6 +176,10 @@ public class Saga {
           "Saga can only start compensation from RUNNING or FAILED status");
     }
     this.status = SagaStatus.COMPENSATING;
+
+    // Publish domain event
+    domainEvents.add(
+        new SagaCompensationStartedEvent(this.id, this.tenantContext, this.correlationId));
   }
 
   public void completeCompensation() {
@@ -166,6 +189,9 @@ public class Saga {
     }
     this.status = SagaStatus.COMPENSATED;
     this.compensatedAt = Instant.now();
+
+    // Publish domain event
+    domainEvents.add(new SagaCompensatedEvent(this.id, this.tenantContext, this.correlationId));
   }
 
   public void moveToNextStep() {
@@ -202,5 +228,23 @@ public class Saga {
       return 0.0;
     }
     return (double) getCompletedStepsCount() / steps.size() * 100.0;
+  }
+
+  // Add domain validation
+  public void validate() {
+    if (sagaName == null || sagaName.trim().isEmpty()) {
+      throw new IllegalArgumentException("Saga name cannot be null or empty");
+    }
+    if (tenantContext == null) {
+      throw new IllegalArgumentException("Tenant context cannot be null");
+    }
+    if (correlationId == null || correlationId.trim().isEmpty()) {
+      throw new IllegalArgumentException("Correlation ID cannot be null or empty");
+    }
+  }
+
+  // Clear domain events after publishing
+  public void clearDomainEvents() {
+    this.domainEvents.clear();
   }
 }

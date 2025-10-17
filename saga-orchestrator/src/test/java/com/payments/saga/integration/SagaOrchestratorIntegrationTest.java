@@ -1,12 +1,11 @@
 package com.payments.saga.integration;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+// import static org.mockito.ArgumentMatchers.*;
+// import static org.mockito.Mockito.*;
 
 import com.payments.domain.shared.TenantContext;
 import com.payments.saga.domain.*;
-import com.payments.saga.service.SagaEventService;
 import com.payments.saga.service.SagaLookupService;
 import com.payments.saga.service.SagaOrchestrator;
 import com.payments.saga.service.SagaService;
@@ -25,7 +24,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.containers.RedisContainer;
+// import org.testcontainers.containers.RedisContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -36,13 +35,14 @@ import org.testcontainers.utility.DockerImageName;
 class SagaOrchestratorIntegrationTest {
 
   @Container
+  @SuppressWarnings("resource")
   static PostgreSQLContainer<?> postgres =
       new PostgreSQLContainer<>("postgres:15-alpine")
           .withDatabaseName("saga_test")
           .withUsername("test")
           .withPassword("test");
 
-  @Container static RedisContainer redis = new RedisContainer("redis:7-alpine");
+  // @Container static RedisContainer redis = new RedisContainer("redis:7-alpine");
 
   @Container
   static KafkaContainer kafka =
@@ -53,8 +53,8 @@ class SagaOrchestratorIntegrationTest {
     registry.add("spring.datasource.url", postgres::getJdbcUrl);
     registry.add("spring.datasource.username", postgres::getUsername);
     registry.add("spring.datasource.password", postgres::getPassword);
-    registry.add("spring.redis.host", redis::getHost);
-    registry.add("spring.redis.port", redis::getFirstMappedPort);
+    // registry.add("spring.redis.host", redis::getHost);
+    // registry.add("spring.redis.port", redis::getFirstMappedPort);
     registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
   }
 
@@ -64,7 +64,7 @@ class SagaOrchestratorIntegrationTest {
 
   @Autowired private SagaStepService sagaStepService;
 
-  @Autowired private SagaEventService sagaEventService;
+  // @Autowired private SagaEventService sagaEventService;
 
   @Autowired private SagaTemplateService sagaTemplateService;
 

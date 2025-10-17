@@ -1,0 +1,37 @@
+# Phase 5: Infrastructure - YAML Export
+# Source: docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md
+
+phases:
+  - id: "phase-5"
+    name: "Infrastructure"
+    type: "parallel"
+    description: "Can be built in PARALLEL throughout project"
+    estimated_duration_days: "7"
+    features:
+      - id: "5.1"
+        name: "Service Mesh (Istio)"
+        agent: "Service Mesh Agent"
+        estimation_days: "3-4"
+        complexity: "medium"
+      - id: "5.2"
+        name: "Monitoring Stack"
+        agent: "Monitoring Agent"
+        estimation_days: "3-4"
+        complexity: "medium"
+      - id: "5.3"
+        name: "GitOps (ArgoCD)"
+        agent: "GitOps Agent"
+        estimation_days: "2-3"
+        complexity: "medium"
+      - id: "5.4"
+        name: "Feature Flags (Unleash)"
+        agent: "Feature Flags Agent"
+        estimation_days: "2-3"
+        complexity: "medium"
+      - id: "5.5"
+        name: "Kubernetes Operators"
+        agent: "K8s Operators Agent"
+        estimation_days: "5-7"
+        complexity: "high"
+
+

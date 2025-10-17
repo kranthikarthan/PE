@@ -1,0 +1,37 @@
+# Phase 2: Clearing Adapters - YAML Export
+# Source: docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md
+
+phases:
+  - id: "phase-2"
+    name: "Clearing Adapters"
+    type: "parallel"
+    description: "Can be built in PARALLEL after Phase 0"
+    estimated_duration_days: "5-7"
+    features:
+      - id: "2.1"
+        name: "SAMOS Adapter"
+        agent: "SAMOS Adapter Agent"
+        estimation_days: "4-6"
+        complexity: "medium"
+      - id: "2.2"
+        name: "BankservAfrica Adapter"
+        agent: "BankservAfrica Adapter Agent"
+        estimation_days: "4-6"
+        complexity: "medium"
+      - id: "2.3"
+        name: "RTC Adapter"
+        agent: "RTC Adapter Agent"
+        estimation_days: "3-5"
+        complexity: "medium"
+      - id: "2.4"
+        name: "PayShap Adapter"
+        agent: "PayShap Adapter Agent"
+        estimation_days: "3-5"
+        complexity: "medium"
+      - id: "2.5"
+        name: "SWIFT Adapter"
+        agent: "SWIFT Adapter Agent"
+        estimation_days: "5-7"
+        complexity: "high"
+
+

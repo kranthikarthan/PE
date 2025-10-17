@@ -17,6 +17,11 @@
         <module>saga-orchestrator</module>
         <module>schema-verification</module>
         <module>jpa-verification</module>
+        <module>samos-adapter-service</module>
+        <module>bankservafrica-adapter-service</module>
+        <module>rtc-adapter-service</module>
+        <module>payshap-adapter-service</module>
+        <module>swift-adapter-service</module>
     </modules>
 
   <properties>

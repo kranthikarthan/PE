@@ -3,9 +3,40 @@
 ## Document Purpose
 This document lists ALL assumptions made during the architecture design. Review each assumption and modify as needed to adjust the design accordingly.
 
+> **📋 PRIMARY REFERENCE**: This document is aligned with the **Enhanced Feature Breakdown Tree** (`docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`). For complete phase details, AI agent assignments, and implementation strategy, refer to the Enhanced Tree.
+
 ---
 
-## 1. Business Context Assumptions
+## 1. Implementation Strategy Assumptions
+
+### 1.1 8-Phase Build Strategy
+- **ASSUMPTION**: System follows an **8-phase implementation strategy** (Phase 0-7)
+- **ASSUMPTION**: **50 features** across all phases with **50 specialized AI agents**
+- **ASSUMPTION**: **22 microservices** total (20 original + 2 new in Phase 7)
+- **ASSUMPTION**: **25-40 days** total build time with maximum parallelization
+- **ASSUMPTION**: Phase 0 (Foundation) and Phase 6 (Testing) are **sequential**
+- **ASSUMPTION**: Phases 1-5 and Phase 7 are **parallel** where possible
+- **RATIONALE**: Enables systematic, AI-agent-driven development with clear dependencies
+
+### 1.2 AI Agent Orchestration
+- **ASSUMPTION**: Each feature has a **dedicated AI agent** with specialized prompts
+- **ASSUMPTION**: **Coordinator Agent** monitors all 50 tasks and manages dependencies
+- **ASSUMPTION**: **Fallback plans** exist for each feature if AI agents fail
+- **ASSUMPTION**: **Feedback loops** in Phase 6 refine prompt templates based on performance
+- **ASSUMPTION**: **Parallel execution** maximizes throughput (up to 12 agents simultaneously in Phase 7)
+- **RATIONALE**: Enables autonomous development with minimal human intervention
+
+### 1.3 Phase Dependencies
+- **ASSUMPTION**: **Phase 0** must complete before any other phase (foundation)
+- **ASSUMPTION**: **Phase 1** (Core Services) can start after Phase 0
+- **ASSUMPTION**: **Phase 2-5** can run in parallel after Phase 0
+- **ASSUMPTION**: **Phase 6** (Testing) requires all previous phases complete
+- **ASSUMPTION**: **Phase 7** (Operations) can start after Phase 6
+- **RATIONALE**: Ensures proper build order and dependency management
+
+---
+
+## 2. Business Context Assumptions
 
 ### 1.1 Organization
 - **ASSUMPTION**: Building for a licensed financial institution in South Africa

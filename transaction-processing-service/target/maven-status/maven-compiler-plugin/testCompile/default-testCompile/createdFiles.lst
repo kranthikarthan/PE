@@ -1,0 +1,5 @@
+com\payments\transactionprocessing\integration\TransactionProcessingIntegrationTest.class
+com\payments\transactionprocessing\service\BalanceValidationServiceTest.class
+com\payments\transactionprocessing\service\TransactionEventPublisherTest.class
+com\payments\transactionprocessing\service\TransactionServiceTest.class
+com\payments\transactionprocessing\config\TestConfig.class

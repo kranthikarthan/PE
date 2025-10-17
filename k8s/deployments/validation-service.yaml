@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: validation-service
+  namespace: payments
+  labels:
+    app: validation-service
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: validation-service
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: validation-service
+        version: v1
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+      - name: validation-service
+        image: payments/validation-service:latest
+        ports:
+        - containerPort: 8082
+          name: http
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "k8s"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres:5432/validation"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "payments_user"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "payments_password"
+        - name: SPRING_REDIS_HOST
+          value: "redis"
+        - name: SPRING_REDIS_PORT
+          value: "6379"
+        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka:29092"
+        - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+          value: "health,info,metrics,prometheus"
+        - name: MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS
+          value: "always"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8082
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8082
+          initialDelaySeconds: 30
+          periodSeconds: 10
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: validation-service
+  namespace: payments
+  labels:
+    app: validation-service
+spec:
+  selector:
+    app: validation-service
+  ports:
+  - name: http
+    port: 8082
+    targetPort: 8082
+  type: ClusterIP

@@ -1,0 +1,37 @@
+# Phase 3: Platform Services - YAML Export
+# Source: docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md
+
+phases:
+  - id: "phase-3"
+    name: "Platform Services"
+    type: "parallel"
+    description: "Can be built in PARALLEL after Phase 0"
+    estimated_duration_days: "4-5"
+    features:
+      - id: "3.1"
+        name: "Tenant Management Service"
+        agent: "Tenant Management Agent"
+        estimation_days: "3-4"
+        complexity: "medium"
+      - id: "3.2"
+        name: "IAM Service"
+        agent: "IAM Agent"
+        estimation_days: "4-5"
+        complexity: "high"
+      - id: "3.3"
+        name: "Audit Service"
+        agent: "Audit Agent"
+        estimation_days: "2-3"
+        complexity: "low"
+      - id: "3.4"
+        name: "Notification Service"
+        agent: "Notification Agent"
+        estimation_days: "3-4"
+        complexity: "medium"
+      - id: "3.5"
+        name: "Reporting Service"
+        agent: "Reporting Agent"
+        estimation_days: "4-5"
+        complexity: "medium"
+
+

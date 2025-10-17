@@ -1,1607 +1,637 @@
 # AI Agent Task Breakdown & Orchestration Plan
 
 ## Overview
-This document provides a detailed breakdown of tasks for AI coding agents to build the payments engine in a modular, parallelizable manner. Each task is designed to be completed independently with minimal context.
+This document provides a detailed breakdown of tasks for AI coding agents to build the payments engine following the **Enhanced Feature Breakdown Tree** (`docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`). The implementation follows an **8-phase strategy** with **50 features** and **50 AI agents**.
+
+---
+
+## 🎯 Enhanced Feature Breakdown Tree Alignment
+
+**PRIMARY REFERENCE**: `docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`
+
+### Key Metrics
+- **Total Phases**: 8 (Phase 0-7)
+- **Total Features**: 50
+- **Total Agents**: 50
+- **Estimated Duration**: 25-40 days (with parallelization)
+- **Parallelization**: Up to 12 agents working simultaneously
 
 ---
 
 ## AI Agent Development Philosophy
 
 ### Core Principles
-1. **Single Responsibility**: Each agent builds ONE microservice
-2. **Clear Contracts**: All interfaces defined upfront (OpenAPI/AsyncAPI)
-3. **Mock Dependencies**: Agents use mocks for external dependencies
-4. **Self-Validation**: Each agent includes unit tests (80%+ coverage)
-5. **Documentation**: Each agent creates README with setup instructions
+1. **Phase-Aware Implementation**: Always verify phase dependencies before starting
+2. **Single Responsibility**: Each agent builds ONE feature/microservice
+3. **Clear Contracts**: All interfaces defined upfront (OpenAPI/AsyncAPI)
+4. **Mock Dependencies**: Agents use mocks for external dependencies
+5. **Self-Validation**: Each agent includes unit tests (80%+ coverage)
+6. **Documentation**: Each agent creates README with setup instructions
 
 ### Agent Constraints
 - **Max Context**: 500 lines of core business logic per service
 - **Build Time**: 2-4 hours per service
 - **Dependencies**: Only interfaces, no actual implementations
 - **Testing**: Comprehensive unit tests, basic integration tests
+- **Phase Validation**: Must verify phase dependencies before implementation
 
 ---
 
-## Development Phases
+## 8-Phase Implementation Strategy
 
-### Phase 0: Foundation Setup (Master Agent)
-**Duration**: 2 hours  
-**Dependencies**: None
+### Phase 0: Foundation (Sequential - Must be done first)
+**Duration**: 10-12 days  
+**Dependencies**: None  
+**Agents**: 5 agents working sequentially/parallel
 
-#### Task 0.1: Initialize Project Structure
-```bash
-payments-engine/
-├── .github/
-│   └── workflows/
-│       └── ci-cd.yml
-├── infrastructure/
-│   ├── terraform/
-│   └── kubernetes/
-├── shared/
-│   ├── common-lib/
-│   ├── event-contracts/
-│   └── api-contracts/
-├── services/
-│   ├── payment-initiation/
-│   ├── validation/
-│   └── [... other services]
-├── frontend/
-│   └── web-portal/
-├── docs/
-├── docker-compose.yml
-└── README.md
-```
+#### 0.1: Database Schemas (3-5 days)
+**Agent**: Schema Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-01-database-schemas`
 
 **Deliverables**:
-- Project structure created
-- Maven/Gradle parent POM
-- Common dependencies configured
-- CI/CD pipeline skeleton
+- PostgreSQL migration scripts (Flyway)
+- All 20+ tables created
+- Indexes defined (50+ indexes)
+- Row-level security (RLS) configured per tenant
 
 **AI Agent Instructions**:
 ```yaml
-task: "Initialize multi-module Spring Boot project"
-structure:
-  - Create parent pom.xml with Spring Boot 3.x
-  - Define common dependencies (Spring Web, JPA, Actuator, etc.)
-  - Setup Maven modules structure
-  - Create .gitignore for Java/Maven projects
-  - Create docker-compose.yml for local development
+task: "Generate PostgreSQL migration scripts for 20+ tables"
+requirements:
+  - Use Flyway for migrations
+  - Enable Row-Level Security (RLS)
+  - Create all tables for 22 microservices
+  - Define indexes for performance
+  - Configure tenant isolation
 validation:
-  - mvn clean install should succeed
-  - All modules should compile
+  - All migrations should succeed
+  - RLS policies tested (100% tenant isolation)
+  - Query performance < 50ms (p95)
 ```
 
----
-
-#### Task 0.2: Create Common Libraries
-**Assigned to**: Agent Foundation-1
+#### 0.2: Event Schemas (1-2 days)
+**Agent**: Event Schema Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-02-event-schemas`
 
 **Deliverables**:
+- AsyncAPI 2.0 specifications
+- Event payload definitions (JSON Schema)
+- Java event classes (POJOs)
+
+**AI Agent Instructions**:
+```yaml
+task: "Create AsyncAPI 2.0 event schemas"
+requirements:
+  - Use Spring Cloud Stream for event publishing
+  - Include correlation ID in message headers
+  - Create 25+ event definitions
+  - Generate Java classes from schemas
+validation:
+  - JSON Schema validation passes
+  - Event size < 10 KB (compressed)
+  - Event schema validation time < 100ms
+```
+
+#### 0.3: Domain Models (2-4 days)
+**Agent**: Domain Model Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-03-domain-models`
+
+**Deliverables**:
+- Java domain entities (JPA annotated)
+- Value objects (immutable)
+- Aggregates (with business logic)
+- Domain events (POJOs)
+
+**AI Agent Instructions**:
+```yaml
+task: "Create Java domain entities with JPA annotations"
+requirements:
+  - Use Spring Data JPA for domain entities
+  - Make value objects immutable (records)
+  - Add business logic in domain model
+  - Follow DDD patterns
+validation:
+  - All domain classes compile
+  - Unit test coverage > 90%
+  - Value object immutability: 100%
+```
+
+#### 0.4: Shared Libraries (2-3 days)
+**Agent**: Library Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-04-shared-libraries`
+
+**Deliverables**:
+- Shared utility libraries (Maven modules)
+- Event publishing library (Azure Service Bus client)
+- API client library (RestTemplate wrapper with circuit breakers)
 - Error handling framework
-- Logging framework
-- Event publishing utilities
-- API response wrappers
-- Common DTOs
-
-**Code to Generate**:
-
-1. **Error Handling** (`common-lib/src/main/java/com/payments/common/exception/`)
-```java
-// GlobalExceptionHandler.java
-// PaymentException.java
-// ErrorResponse.java
-// ErrorCode.java enum
-```
-
-2. **Event Publishing** (`common-lib/src/main/java/com/payments/common/events/`)
-```java
-// EventPublisher.java interface
-// AzureServiceBusEventPublisher.java implementation
-// EventMetadata.java
-// Event.java base class
-```
-
-3. **API Response** (`common-lib/src/main/java/com/payments/common/api/`)
-```java
-// ApiResponse.java
-// PagedResponse.java
-// ErrorResponse.java
-```
 
 **AI Agent Instructions**:
 ```yaml
-task: "Create common utilities library"
+task: "Create shared utility libraries"
 requirements:
-  - Spring Boot 3.x compatible
-  - Include GlobalExceptionHandler with @ControllerAdvice
-  - Include EventPublisher interface with Azure Service Bus implementation
-  - Include standard API response wrappers
-  - Add comprehensive JavaDoc
-  - Minimum 80% test coverage
-dependencies:
-  - Spring Boot Starter
-  - Azure Service Bus SDK
-  - Lombok
-testing:
-  - Unit tests for all utilities
-  - Mock Azure Service Bus in tests
-```
-
----
-
-#### Task 0.3: Define Event Contracts
-**Assigned to**: Agent Foundation-2
-
-**Deliverables**:
-- Event POJOs for all events (from 03-EVENT-SCHEMAS.md)
-- Jackson serialization configuration
-- Event builders
-- Event validation
-
-**Code to Generate** (`event-contracts/src/main/java/com/payments/events/`):
-```java
-// payment/PaymentInitiatedEvent.java
-// payment/PaymentValidatedEvent.java
-// payment/PaymentCompletedEvent.java
-// [... all other events]
-// EventMetadata.java
-// EventType.java enum
-```
-
-**AI Agent Instructions**:
-```yaml
-task: "Generate event contract classes from AsyncAPI spec"
-input: "docs/03-EVENT-SCHEMAS.md"
-requirements:
-  - Create POJO for each event in AsyncAPI
-  - Use Lombok @Data, @Builder annotations
-  - Add Jackson annotations for JSON serialization
-  - Add JSR-303 validation annotations
-  - Include EventMetadata in all events
-testing:
-  - Test JSON serialization/deserialization
-  - Test validation constraints
-```
-
----
-
-#### Task 0.4: Define API Contracts
-**Assigned to**: Agent Foundation-3
-
-**Deliverables**:
-- OpenAPI 3.0 specifications for all services
-- Generated API clients (OpenAPI Generator)
-- Request/Response DTOs
-
-**AI Agent Instructions**:
-```yaml
-task: "Create OpenAPI specifications and generate clients"
-requirements:
-  - OpenAPI 3.0 spec for each service
-  - Use openapi-generator-maven-plugin
-  - Generate Java client stubs
-  - Include request/response DTOs
-  - Add JSR-303 validation
+  - Idempotency Handler (Redis-backed)
+  - Correlation ID Filter (MDC)
+  - Tenant Context Holder (ThreadLocal)
+  - Event Publisher with Azure Service Bus
 validation:
-  - Specs validate with swagger-cli
-  - Generated code compiles
-  - Include example requests/responses
+  - All libraries compile
+  - Unit test coverage > 80%
+  - Event publishing latency < 50ms
 ```
 
----
-
-#### Task 0.5: Setup Infrastructure as Code
-**Assigned to**: Agent Foundation-4
+#### 0.5: Infrastructure Setup (4-6 days)
+**Agent**: Infrastructure Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-05-infrastructure-setup`
 
 **Deliverables**:
-- Terraform scripts for Azure resources
-- Kubernetes manifests for services
-- Helm charts
-
-**Azure Resources to Create**:
-- AKS cluster
-- Azure Service Bus namespace (topics/subscriptions)
-- Azure PostgreSQL Flexible Servers
+- AKS cluster provisioned (3-node minimum)
+- Azure PostgreSQL Flexible Server
 - Azure Cache for Redis
-- Azure Key Vault
-- Azure Application Insights
+- Azure Service Bus (Premium tier)
+- Virtual Network and subnets configured
 
 **AI Agent Instructions**:
 ```yaml
-task: "Create Terraform and Kubernetes configurations"
+task: "Provision Azure infrastructure using Terraform"
 requirements:
-  - Terraform for Azure resource provisioning
-  - Kubernetes manifests for each microservice
-  - Helm chart for entire application
-  - Use variables for environment-specific values
-  - Include README with deployment instructions
-outputs:
-  - infrastructure/terraform/main.tf
-  - infrastructure/kubernetes/deployments/
-  - infrastructure/helm/payments-engine/
+  - AKS cluster with 3+ nodes
+  - PostgreSQL Flexible Server
+  - Redis Cache (Standard tier)
+  - Service Bus (Premium tier)
+  - VNet and NSGs configured
+validation:
+  - All resources accessible
+  - Database connection successful
+  - Infrastructure provisioning time < 30 minutes
 ```
 
 ---
 
-### Phase 1: Independent Services (Parallel Execution)
-**Duration**: 2-4 hours per agent  
-**Dependencies**: Phase 0 complete
-
-These services have NO dependencies on other services and can be built completely in parallel.
-
----
-
-#### Task 1.1: Account Adapter Service
-**Assigned to**: Agent Service-1  
-**Priority**: High  
-**Estimated Time**: 3 hours
-
-**Service Specification**:
-- **Purpose**: Orchestrate calls to external core banking systems (Current, Savings, Investment, Cards, Loans, etc.)
-- **Database**: PostgreSQL (account_routing, backend_systems, api_call_log tables) + Redis (caching)
-- **API Endpoints**: 7 REST endpoints (proxy to backend systems)
-- **Events Published**: FundsReservedEvent, InsufficientFundsEvent
-- **Events Consumed**: None
-- **Key Responsibility**: Acts as an adapter/orchestrator, NOT a system of record
-
-**Folder Structure**:
-```
-services/account-service/
-├── src/
-│   ├── main/
-│   │   ├── java/com/payments/account/
-│   │   │   ├── AccountServiceApplication.java
-│   │   │   ├── controller/
-│   │   │   │   └── AccountController.java
-│   │   │   ├── service/
-│   │   │   │   ├── AccountService.java
-│   │   │   │   └── AccountServiceImpl.java
-│   │   │   ├── repository/
-│   │   │   │   ├── AccountRepository.java
-│   │   │   │   └── AccountHoldRepository.java
-│   │   │   ├── model/
-│   │   │   │   ├── Account.java
-│   │   │   │   └── AccountHold.java
-│   │   │   ├── dto/
-│   │   │   │   ├── AccountDTO.java
-│   │   │   │   ├── CreateHoldRequest.java
-│   │   │   │   └── VerifyAccountRequest.java
-│   │   │   └── config/
-│   │   │       └── DatabaseConfig.java
-│   │   └── resources/
-│   │       ├── application.yml
-│   │       └── db/migration/
-│   │           └── V1__init_schema.sql
-│   └── test/
-│       └── java/com/payments/account/
-│           ├── AccountServiceTest.java
-│           ├── AccountControllerTest.java
-│           └── AccountRepositoryTest.java
-├── Dockerfile
-├── pom.xml
-└── README.md
-```
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-1"
-task: "Build Account Adapter Service microservice"
-reference_documents:
-  - docs/02-MICROSERVICES-BREAKDOWN.md (Section 3)
-  - docs/01-ASSUMPTIONS.md (Section 1.5 - External Core Banking Systems)
-
-requirements:
-  service_name: "account-adapter-service"
-  port: 8081
-  database: 
-    type: "PostgreSQL + Redis"
-    tables: ["account_routing", "backend_systems", "account_cache", "api_call_log", "circuit_breaker_state"]
-  
-  external_systems:
-    - Current Accounts System (CURRENT, CHEQUE)
-    - Savings System (SAVINGS, MONEY_MARKET)
-    - Investment System (INVESTMENT, UNIT_TRUST)
-    - Card System (CREDIT_CARD, DEBIT_CARD)
-    - Home Loan System (HOME_LOAN, MORTGAGE)
-    - Car Loan System (CAR_LOAN, VEHICLE_FINANCE)
-    - Personal Loan System (PERSONAL_LOAN)
-    - Business Banking (BUSINESS_CURRENT, BUSINESS_SAVINGS)
-  
-  api_endpoints:
-    - "GET /api/v1/accounts/{accountNumber}" (proxy to backend)
-    - "POST /api/v1/accounts/{accountNumber}/debit" (proxy to backend)
-    - "POST /api/v1/accounts/{accountNumber}/credit" (proxy to backend)
-    - "POST /api/v1/accounts/{accountNumber}/holds" (proxy to backend)
-    - "DELETE /api/v1/accounts/holds/{holdId}" (proxy to backend)
-    - "POST /api/v1/accounts/verify" (proxy to backend)
-    - "GET /api/v1/accounts/route/{accountNumber}" (routing info)
-  
-  business_logic:
-    - Route account requests to appropriate backend system based on account routing table
-    - Handle circuit breaking for backend system failures
-    - Cache account data to reduce backend calls (TTL: 30 seconds)
-    - Log all API calls to external systems for audit
-    - Support idempotency for debit/credit operations
-    - Aggregate responses from multiple backend systems if needed
-    - **IMPORTANT**: DO NOT store account balances or transaction data
-  
-  backend_integration:
-    - Use RestTemplate with OAuth 2.0 client credentials
-    - Configure circuit breaker with Resilience4j
-    - Add retry logic (3 attempts, exponential backoff)
-    - Timeout: 5 seconds for backend calls
-    - Add idempotency headers (Idempotency-Key)
-  
-  events_to_publish:
-    - "FundsReservedEvent" (when hold placed via backend)
-    - "InsufficientFundsEvent" (when backend returns insufficient funds)
-  
-  technology_stack:
-    - Spring Boot 3.x
-    - Spring Cloud (Circuit Breaker, Resilience4j)
-    - Spring Data JPA (for routing metadata)
-    - PostgreSQL driver
-    - Redis (Spring Cache)
-    - RestTemplate / WebClient
-    - OAuth 2.0 Client
-    - Flyway (database migrations)
-    - Azure Service Bus SDK (event publishing)
-    - Spring Boot Actuator
-    - Spring Boot Test
-    - WireMock (mock backend systems in tests)
-  
-  validation_rules:
-    - Account number: 10-20 digits
-    - Amount: positive, max 999999999.99
-    - Backend system must be active and healthy
-  
-  caching:
-    - Cache account data (TTL: 30 seconds)
-    - Cache routing metadata (TTL: 5 minutes)
-    - Use Redis for distributed cache
-  
-  error_handling:
-    - AccountNotFoundException
-    - BackendSystemUnavailableException
-    - CircuitBreakerOpenException
-    - BackendTimeoutException
-    - InvalidRoutingException
-  
-  circuit_breaker_config:
-    - Failure threshold: 5 failures
-    - Wait duration: 60 seconds
-    - Ring buffer size: 10
-    - Fallback: return cached data if available
-  
-  testing_requirements:
-    - Unit tests for service layer (all business logic)
-    - Mock backend system calls using WireMock
-    - Test circuit breaker behavior
-    - Test retry logic
-    - Test caching
-    - Controller tests (MockMvc)
-    - Minimum 80% code coverage
-    - Test scenarios:
-      - Successful backend call (debit/credit)
-      - Backend system timeout
-      - Backend system returns error
-      - Circuit breaker open (fallback to cache)
-      - Idempotency (duplicate request)
-      - Routing to correct backend system
-  
-  documentation:
-    - README.md with:
-      - Service description (emphasize adapter role)
-      - List of external backend systems
-      - API endpoints (brief)
-      - How to run locally
-      - How to configure backend systems
-      - How to run tests
-      - Environment variables required
-    - OpenAPI spec generation (springdoc-openapi)
-    - Inline JavaDoc for public methods
-
-deliverables:
-  - Complete Spring Boot microservice
-  - Database migration scripts (Flyway)
-  - REST client configurations for each backend system
-  - Circuit breaker configuration
-  - Unit and integration tests (with WireMock mocks)
-  - Dockerfile
-  - README.md
-  - OpenAPI specification (auto-generated)
-
-validation_checklist:
-  - "mvn clean install" succeeds
-  - All tests pass
-  - Service starts without errors
-  - Health endpoint accessible: GET /actuator/health
-  - OpenAPI UI accessible: GET /swagger-ui.html
-  - Can route requests to mock backend systems
-  - Circuit breaker opens after failures
-  - Caching works correctly
-  - Idempotency prevents duplicate backend calls
-
-estimated_time: "3 hours"
-complexity: "MEDIUM"
-```
-
-**Sample Data for Testing**:
-```sql
--- Backend system configuration
-INSERT INTO backend_systems (system_id, system_name, base_url, auth_type, timeout_ms, is_active, health_status)
-VALUES 
-  ('CURRENT_ACCOUNTS', 'Current Accounts System', 'https://current-accounts.bank.internal/api/v1', 'OAUTH2', 5000, TRUE, 'HEALTHY'),
-  ('SAVINGS', 'Savings System', 'https://savings.bank.internal/api/v1', 'OAUTH2', 5000, TRUE, 'HEALTHY'),
-  ('INVESTMENTS', 'Investment System', 'https://investments.bank.internal/api/v1', 'OAUTH2', 5000, TRUE, 'HEALTHY');
-
--- Account routing
-INSERT INTO account_routing (account_number, backend_system, account_type, base_url, is_active)
-VALUES 
-  ('1234567890', 'CURRENT_ACCOUNTS', 'CURRENT', 'https://current-accounts.bank.internal/api/v1', TRUE),
-  ('0987654321', 'SAVINGS', 'SAVINGS', 'https://savings.bank.internal/api/v1', TRUE),
-  ('1122334455', 'INVESTMENTS', 'INVESTMENT', 'https://investments.bank.internal/api/v1', TRUE);
-```
-
-**WireMock Stub for Testing**:
-```java
-// Mock backend system response
-stubFor(get(urlEqualTo("/api/v1/accounts/1234567890"))
-    .willReturn(aResponse()
-        .withStatus(200)
-        .withHeader("Content-Type", "application/json")
-        .withBody("{\"accountNumber\":\"1234567890\",\"balance\":10000.00,\"status\":\"ACTIVE\"}")));
-```
-
----
-
-#### Task 1.2: Notification Service
-**Assigned to**: Agent Service-2  
-**Priority**: Medium  
-**Estimated Time**: 2 hours
-
-**Service Specification**:
-- **Purpose**: Send SMS, Email, Push notifications
-- **Database**: PostgreSQL (notifications, notification_templates)
-- **API Endpoints**: 3 REST endpoints
-- **Events Consumed**: PaymentCompletedEvent, PaymentFailedEvent
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-2"
-task: "Build Notification Service microservice"
-
-requirements:
-  service_name: "notification-service"
-  port: 8082
-  
-  notification_channels:
-    - SMS (mock Twilio API)
-    - Email (mock SendGrid API)
-    - Push (mock Azure Notification Hub)
-  
-  api_endpoints:
-    - "POST /api/v1/notifications/send"
-    - "GET /api/v1/notifications/{notificationId}"
-    - "GET /api/v1/notifications/templates"
-  
-  event_consumers:
-    - PaymentCompletedEvent → Send success notification
-    - PaymentFailedEvent → Send failure notification
-  
-  templates:
-    - PAYMENT_SUCCESS: "Your payment of R{amount} to {recipient} was successful. Ref: {paymentId}"
-    - PAYMENT_FAILED: "Your payment of R{amount} failed. Reason: {reason}. Ref: {paymentId}"
-  
-  business_logic:
-    - Template variable substitution
-    - Retry logic for failed notifications (3 attempts)
-    - Delivery status tracking
-    - Rate limiting per user (max 10 SMS per hour)
-  
-  testing:
-    - Mock external APIs (Twilio, SendGrid, Azure)
-    - Test template rendering
-    - Test event consumption
-    - Test retry logic
-
-deliverables:
-  - Complete Spring Boot microservice
-  - Event consumers
-  - Unit and integration tests
-  - Dockerfile
-  - README.md
-
-estimated_time: "2 hours"
-complexity: "LOW"
-```
-
----
-
-#### Task 1.3: Routing Service
-**Assigned to**: Agent Service-3  
-**Priority**: High  
-**Estimated Time**: 2 hours
-
-**Service Specification**:
-- **Purpose**: Determine payment routing (SAMOS/RTC/ACH)
-- **Database**: Redis (routing rules cache)
-- **API Endpoints**: 2 REST endpoints
-- **Events Consumed**: PaymentValidatedEvent
-- **Events Published**: RoutingDeterminedEvent
-
-**Routing Rules**:
-1. Amount > R5,000,000 → SAMOS (RTGS)
-2. Amount <= R5,000,000 AND High Priority → RTC
-3. Amount <= R5,000,000 AND Normal Priority → ACH/EFT
-4. After 15:30 CAT → RTC only
-5. Same bank → Internal transfer
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-3"
-task: "Build Routing Service microservice"
-
-requirements:
-  service_name: "routing-service"
-  port: 8083
-  
-  routing_engine:
-    - Rule-based engine (use Drools or custom)
-    - Rules loaded from database/configuration
-    - Rules cached in Redis
-  
-  api_endpoints:
-    - "POST /api/v1/routing/determine"
-    - "GET /api/v1/routing/rules"
-  
-  business_logic:
-    - Evaluate rules in priority order
-    - Consider amount, time, priority, destination bank
-    - Return routing decision with estimated completion time
-  
-  testing:
-    - Test all routing rules
-    - Test rule priority
-    - Test caching
-    - Test edge cases (boundary amounts, cutoff times)
-
-deliverables:
-  - Complete Spring Boot microservice
-  - Routing rules engine
-  - Unit and integration tests
-  - Dockerfile
-  - README.md
-
-estimated_time: "2 hours"
-complexity: "MEDIUM"
-```
-
----
-
-#### Task 1.4: Reporting Service
-**Assigned to**: Agent Service-4  
-**Priority**: Low  
-**Estimated Time**: 3 hours
-
-**Service Specification**:
-- **Purpose**: Generate transaction reports and analytics
-- **Database**: PostgreSQL + Azure Synapse (read from data warehouse)
-- **API Endpoints**: 4 REST endpoints
-- **Report Types**: Transaction Summary, Compliance Report, Analytics Dashboard
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-4"
-task: "Build Reporting Service microservice"
-
-requirements:
-  service_name: "reporting-service"
-  port: 8084
-  
-  report_types:
-    - TRANSACTION_SUMMARY: Daily/Weekly/Monthly transaction summary
-    - COMPLIANCE_REPORT: Regulatory reports (SARB, FICA)
-    - ANALYTICS_DASHBOARD: Real-time metrics
-  
-  export_formats:
-    - PDF (use JasperReports)
-    - Excel (use Apache POI)
-    - CSV
-  
-  business_logic:
-    - Asynchronous report generation
-    - Store reports in Azure Blob Storage
-    - Generate download links with expiry
-  
-  testing:
-    - Test report generation for all types
-    - Test export formats
-    - Mock data warehouse queries
-
-estimated_time: "3 hours"
-complexity: "MEDIUM"
-```
-
----
-
-### Phase 2: Core Payment Services (Sequential with some parallelism)
-**Duration**: 3-4 hours per agent  
-**Dependencies**: Phase 1 complete
-
----
-
-#### Task 2.1: Payment Initiation Service
-**Assigned to**: Agent Service-5  
-**Priority**: Critical  
-**Estimated Time**: 3 hours  
-**Dependencies**: Account Service (for balance checks)
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-5"
-task: "Build Payment Initiation Service microservice"
-
-requirements:
-  service_name: "payment-initiation-service"
-  port: 8085
-  
-  api_endpoints:
-    - "POST /api/v1/payments"
-    - "GET /api/v1/payments/{paymentId}"
-    - "GET /api/v1/payments" (list with pagination)
-  
-  business_logic:
-    - Generate unique payment ID (PAY-YYYY-XXXXXXXXXX)
-    - Idempotency using idempotencyKey
-    - Basic validation (field presence, format)
-    - Publish PaymentInitiatedEvent
-    - Store payment request in database
-  
-  validations:
-    - Source and destination accounts must be different
-    - Amount must be positive
-    - Currency must be ZAR
-    - Reference max 200 characters
-  
-  dependencies:
-    - Account Service: Mock for now (will integrate later)
-  
-  testing:
-    - Test payment creation
-    - Test idempotency (duplicate request)
-    - Test pagination
-    - Test event publishing
-    - Test validation errors
-
-deliverables:
-  - Complete Spring Boot microservice
-  - Database schema and migrations
-  - Unit and integration tests
-  - Dockerfile
-  - README.md
-
-estimated_time: "3 hours"
-complexity: "MEDIUM"
-```
-
----
-
-#### Task 2.2: Validation Service
-**Assigned to**: Agent Service-6  
-**Priority**: Critical  
-**Estimated Time**: 3 hours  
-**Dependencies**: Account Service
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-6"
-task: "Build Validation Service microservice"
-
-requirements:
-  service_name: "validation-service"
-  port: 8086
-  
-  validation_rules:
-    - Daily limit: R50,000 per account
-    - Single transaction: R5,000,000 max for RTC
-    - Account status: ACTIVE only
-    - KYC status: VERIFIED only
-    - FICA status: COMPLIANT only
-    - Fraud score: < 0.7
-    - Velocity check: Max 10 transactions/hour
-  
-  integrations:
-    - Account Service: Check account status
-    - Fraud API: Mock external fraud detection service
-  
-  business_logic:
-    - Evaluate all rules
-    - Calculate fraud score
-    - Determine risk level (LOW, MEDIUM, HIGH, CRITICAL)
-    - Publish PaymentValidatedEvent or ValidationFailedEvent
-  
-  caching:
-    - Cache validation rules in Redis (TTL: 5 minutes)
-  
-  testing:
-    - Test each validation rule
-    - Test fraud score calculation
-    - Test caching
-    - Test integration with Account Service (mock)
-
-estimated_time: "3 hours"
-complexity: "HIGH"
-```
-
----
-
-#### Task 2.3: Transaction Processing Service
-**Assigned to**: Agent Service-7  
-**Priority**: Critical  
-**Estimated Time**: 4 hours  
-**Dependencies**: Account Service, Settlement Service
-
-**Service Specification**:
-- **Purpose**: Create transactions, manage state machine, event sourcing
-- **Database**: PostgreSQL (transactions, transaction_events, ledger_entries)
-- **Pattern**: Event Sourcing + CQRS
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-7"
-task: "Build Transaction Processing Service microservice"
-
-requirements:
-  service_name: "transaction-processing-service"
-  port: 8087
-  
-  state_machine:
-    states: [CREATED, VALIDATED, PROCESSING, CLEARING, COMPLETED, FAILED, COMPENSATING, REVERSED]
-    transitions:
-      - CREATED → VALIDATED
-      - VALIDATED → PROCESSING
-      - PROCESSING → CLEARING
-      - CLEARING → COMPLETED
-      - Any → FAILED
-      - FAILED → COMPENSATING
-      - COMPENSATING → REVERSED
-  
-  event_sourcing:
-    - Store all state changes as events
-    - Rebuild state from events
-    - Support temporal queries
-  
-  double_entry_bookkeeping:
-    - Every transaction creates two ledger entries
-    - Debit entry: source account
-    - Credit entry: destination account
-    - Balance verification
-  
-  testing:
-    - Test state machine transitions
-    - Test event sourcing (replay events)
-    - Test double-entry bookkeeping
-    - Test compensation logic
-
-estimated_time: "4 hours"
-complexity: "HIGH"
-```
-
----
-
-### Phase 3: Clearing Adapters (Parallel)
-**Duration**: 3 hours per agent  
-**Dependencies**: Phase 2 complete
-
----
-
-#### Task 3.1: SAMOS Clearing Adapter
-**Assigned to**: Agent Service-8  
-**Priority**: High  
-**Estimated Time**: 3 hours
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-8"
-task: "Build SAMOS Clearing Adapter microservice"
-
-requirements:
-  service_name: "clearing-adapter-samos"
-  port: 8088
-  
-  message_format: "ISO 20022 (pacs.008, pacs.002)"
-  protocol: "SWIFT (mock for now)"
-  
-  business_logic:
-    - Convert transaction to ISO 20022 format
-    - Send to SAMOS (mock SWIFT connection)
-    - Wait for acknowledgment
-    - Parse response
-    - Publish ClearingSubmittedEvent, ClearingCompletedEvent
-  
-  operating_hours:
-    - 08:00-15:30 CAT
-    - Reject submissions outside hours
-  
-  testing:
-    - Test ISO 20022 message generation
-    - Test message parsing
-    - Test operating hours check
-    - Mock SWIFT connection
-
-estimated_time: "3 hours"
-complexity: "HIGH"
-```
-
----
-
-#### Task 3.2: BankservAfrica Clearing Adapter
-**Assigned to**: Agent Service-9  
-**Priority**: High  
-**Estimated Time**: 3 hours
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-9"
-task: "Build BankservAfrica Clearing Adapter microservice"
-
-requirements:
-  service_name: "clearing-adapter-bankserv"
-  port: 8089
-  
-  message_format: "ISO 8583 + Proprietary"
-  protocol: "TCP/IP (mock for now)"
-  
-  batch_cutoffs: ["08:00", "10:00", "12:00", "14:00"]
-  
-  business_logic:
-    - Convert transaction to BankservAfrica format
-    - Batch transactions until cutoff
-    - Send batch to BankservAfrica
-    - Handle batch acknowledgment
-  
-  testing:
-    - Test message formatting
-    - Test batch creation
-    - Test cutoff timing
-    - Mock TCP connection
-
-estimated_time: "3 hours"
-complexity: "HIGH"
-```
-
----
-
-#### Task 3.3: RTC Clearing Adapter
-**Assigned to**: Agent Service-10  
-**Priority**: High  
-**Estimated Time**: 3 hours
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-10"
-task: "Build RTC Clearing Adapter microservice"
-
-requirements:
-  service_name: "clearing-adapter-rtc"
-  port: 8090
-  
-  message_format: "ISO 20022"
-  protocol: "REST API (mock for now)"
-  availability: "24/7/365"
-  response_time: "< 10 seconds"
-  
-  business_logic:
-    - Convert transaction to ISO 20022
-    - Send to RTC API
-    - Wait for response (max 10 seconds)
-    - Handle timeout
-    - Publish events
-  
-  testing:
-    - Test ISO 20022 generation
-    - Test API call
-    - Test timeout handling
-    - Mock RTC API
-
-estimated_time: "3 hours"
-complexity: "MEDIUM"
-```
-
----
-
-### Phase 4: Supporting Services
-**Duration**: 3 hours per agent  
-**Dependencies**: Phase 3 complete
-
----
-
-#### Task 4.1: Settlement Service
-**Assigned to**: Agent Service-11  
-**Priority**: High  
-**Estimated Time**: 3 hours
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-11"
-task: "Build Settlement Service microservice"
-
-requirements:
-  service_name: "settlement-service"
-  port: 8091
-  
-  business_logic:
-    - Calculate net settlement positions
-    - Create settlement batches
-    - Generate settlement files
-    - Submit to clearing systems
-    - Track settlement status
-  
-  settlement_frequency:
-    - SAMOS: Real-time
-    - RTC: Real-time (T+0)
-    - ACH: Next day (T+1)
-  
-  testing:
-    - Test settlement calculation
-    - Test batch creation
-    - Test file generation
-
-estimated_time: "3 hours"
-complexity: "MEDIUM"
-```
-
----
-
-#### Task 4.2: Reconciliation Service
-**Assigned to**: Agent Service-12  
-**Priority**: Medium  
-**Estimated Time**: 3 hours
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-12"
-task: "Build Reconciliation Service microservice"
-
-requirements:
-  service_name: "reconciliation-service"
-  port: 8092
-  
-  business_logic:
-    - Match internal transactions with clearing responses
-    - Identify discrepancies (amount mismatch, missing transactions)
-    - Generate exception reports
-    - Support manual resolution
-  
-  reconciliation_types:
-    - Daily reconciliation (end of day)
-    - Real-time reconciliation (per transaction)
-    - Manual reconciliation (ad-hoc)
-  
-  testing:
-    - Test matching logic
-    - Test exception detection
-    - Test reconciliation reports
-
-estimated_time: "3 hours"
-complexity: "MEDIUM"
-```
-
----
-
-### Phase 5: Orchestration (Critical)
-**Duration**: 4 hours  
-**Dependencies**: All core services complete
-
----
-
-#### Task 5.1: Saga Orchestrator Service
-**Assigned to**: Agent Service-13  
-**Priority**: Critical  
-**Estimated Time**: 4 hours  
-**Dependencies**: ALL Phase 2 and Phase 3 services
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-13"
-task: "Build Saga Orchestrator Service microservice"
-
-requirements:
-  service_name: "saga-orchestrator-service"
-  port: 8093
-  
-  saga_pattern: "Orchestration-based (not choreography)"
-  
-  saga_definition:
-    name: "PaymentSaga"
-    steps:
-      1. ValidatePayment (ValidationService)
-      2. ReserveFunds (AccountService)
-      3. DetermineRouting (RoutingService)
-      4. CreateTransaction (TransactionProcessingService)
-      5. SubmitToClearing (ClearingAdapterService)
-      6. ProcessSettlement (SettlementService)
-      7. SendNotification (NotificationService)
-    
-    compensations:
-      7. None
-      6. ReverseSettlement
-      5. CancelClearing
-      4. CancelTransaction
-      3. None
-      2. ReleaseFunds
-      1. None
-  
-  state_management:
-    - Store saga state in PostgreSQL
-    - Track current step
-    - Store step results
-    - Handle timeouts (30 seconds per step)
-  
-  business_logic:
-    - Execute steps sequentially
-    - On failure, trigger compensation (reverse order)
-    - Publish saga events
-    - Handle retries (3 attempts per step)
-  
-  testing:
-    - Test happy path (all steps succeed)
-    - Test failure scenarios (each step fails)
-    - Test compensation logic
-    - Test timeouts
-    - Test concurrent sagas
-
-deliverables:
-  - Complete Spring Boot microservice
-  - Saga state machine implementation
-  - Compensation logic
-  - Unit and integration tests
-  - Dockerfile
-  - README.md
-
-estimated_time: "4 hours"
-complexity: "VERY HIGH"
-```
-
----
-
-### Phase 6: Gateway & Security
-**Duration**: 3 hours per agent  
-**Dependencies**: All services complete
-
----
-
-#### Task 6.1: API Gateway Service
-**Assigned to**: Agent Service-14  
-**Priority**: High  
-**Estimated Time**: 3 hours
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-14"
-task: "Build API Gateway using Spring Cloud Gateway"
-
-requirements:
-  service_name: "api-gateway"
-  port: 8080
-  
-  features:
-    - Request routing to microservices
-    - Authentication (OAuth2 JWT)
-    - Rate limiting (100 req/min per user)
-    - Request/response logging
-    - CORS configuration
-    - Circuit breaker pattern
-  
-  routes:
-    - /api/v1/payments/** → payment-initiation-service
-    - /api/v1/accounts/** → account-service
-    - /api/v1/transactions/** → transaction-processing-service
-    - [... all other services]
-  
-  security:
-    - Validate JWT tokens
-    - Extract user info from token
-    - Add user context to requests
-  
-  testing:
-    - Test routing
-    - Test rate limiting
-    - Test authentication
-    - Test circuit breaker
-
-estimated_time: "3 hours"
-complexity: "MEDIUM"
-```
-
----
-
-#### Task 6.2: IAM Service
-**Assigned to**: Agent Service-15  
-**Priority**: High  
-**Estimated Time**: 3 hours
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-15"
-task: "Build IAM Service for authentication and authorization"
-
-requirements:
-  service_name: "iam-service"
-  port: 8094
-  
-  features:
-    - User registration
-    - User login (OAuth2 password grant)
-    - Token refresh
-    - User profile management
-    - Role-based access control (RBAC)
-  
-  integration:
-    - Azure AD B2C for identity provider
-    - JWT tokens (15-minute expiry)
-    - Refresh tokens (7-day expiry)
-  
-  roles:
-    - USER: Initiate payments, view own transactions
-    - ADMIN: View all transactions, generate reports
-    - OPERATOR: Handle exceptions, manual reconciliation
-  
-  testing:
-    - Test registration and login
-    - Test token generation and validation
-    - Test RBAC
-    - Mock Azure AD B2C
-
-estimated_time: "3 hours"
-complexity: "MEDIUM"
-```
-
----
-
-#### Task 6.3: Audit Service
-**Assigned to**: Agent Service-16  
-**Priority**: Medium  
-**Estimated Time**: 2 hours
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Service-16"
-task: "Build Audit Service for compliance and logging"
-
-requirements:
-  service_name: "audit-service"
-  port: 8095
-  database: "Azure CosmosDB"
-  
-  audit_events:
-    - API_CALL: All API requests/responses
-    - STATE_CHANGE: Entity state changes
-    - SECURITY_EVENT: Login, logout, auth failures
-    - BUSINESS_EVENT: Payment created, completed, failed
-  
-  business_logic:
-    - Consume all events from event bus
-    - Store in CosmosDB (append-only)
-    - Provide query API for audit trail
-  
-  retention: "7 years (regulatory requirement)"
-  
-  testing:
-    - Test event consumption
-    - Test CosmosDB storage
-    - Test query API
-
-estimated_time: "2 hours"
-complexity: "LOW"
-```
-
----
-
-### Phase 7: Frontend (Parallel)
-**Duration**: 4-6 hours per agent  
-**Dependencies**: API Gateway complete
-
----
-
-#### Task 7.1: Payment Initiation UI
-**Assigned to**: Agent Frontend-1  
-**Priority**: High  
-**Estimated Time**: 4 hours
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Frontend-1"
-task: "Build Payment Initiation UI component"
-
-requirements:
-  framework: "React 18 + TypeScript"
-  ui_library: "Material-UI (MUI)"
-  
-  pages:
-    - Payment Form: Create new payment
-      - Fields: Source account, Destination account, Amount, Reference, Payment type
-      - Validation: Client-side validation
-      - Submit button
-    
-    - Payment Confirmation: Review before submit
-      - Display all details
-      - Confirm/Cancel buttons
-    
-    - Payment Success: Success message
-      - Payment ID
-      - Transaction details
-      - Download receipt button
-  
-  state_management: "Redux Toolkit"
-  api_integration: "RTK Query"
-  
-  features:
-    - Form validation (React Hook Form + Zod)
-    - Account lookup (autocomplete)
-    - Amount formatting (currency)
-    - Error handling (display API errors)
-  
-  testing:
-    - Unit tests (React Testing Library)
-    - Integration tests (MSW for API mocking)
-    - E2E tests (Playwright)
-
-deliverables:
-  - React components
-  - Redux slices
-  - API hooks (RTK Query)
-  - Tests
-  - Storybook stories
-
-estimated_time: "4 hours"
-complexity: "MEDIUM"
-```
-
----
-
-#### Task 7.2: Transaction History UI
-**Assigned to**: Agent Frontend-2  
-**Priority**: High  
-**Estimated Time**: 3 hours
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Frontend-2"
-task: "Build Transaction History UI component"
-
-requirements:
-  pages:
-    - Transaction List: Paginated list of transactions
-      - Filters: Date range, Status, Amount range
-      - Sort: By date, amount
-      - Search: By reference, payment ID
-    
-    - Transaction Details: View single transaction
-      - All transaction fields
-      - Status history (timeline)
-      - Download receipt
-  
-  features:
-    - Pagination (Material-UI DataGrid)
-    - Real-time updates (WebSocket)
-    - Export to CSV/PDF
-  
-  testing:
-    - Test filtering and sorting
-    - Test pagination
-    - Test real-time updates
-
-estimated_time: "3 hours"
-complexity: "MEDIUM"
-```
-
----
-
-#### Task 7.3: Reporting Dashboard UI
-**Assigned to**: Agent Frontend-3  
-**Priority**: Medium  
-**Estimated Time**: 5 hours
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Frontend-3"
-task: "Build Reporting Dashboard UI"
-
-requirements:
-  pages:
-    - Dashboard: Overview metrics
-      - Total transactions (today, week, month)
-      - Total volume (amount)
-      - Success rate
-      - Charts: Transaction volume over time
-    
-    - Report Generator: Create custom reports
-      - Select report type
-      - Date range
-      - Export format
-      - Download report
-  
-  charts: "Recharts or Apache ECharts"
-  
-  features:
-    - Real-time metrics
-    - Interactive charts
-    - Report scheduling (future)
-  
-  testing:
-    - Test chart rendering
-    - Test report generation
-
-estimated_time: "5 hours"
-complexity: "MEDIUM"
-```
-
----
-
-#### Task 7.4: Admin Console UI
-**Assigned to**: Agent Frontend-4  
-**Priority**: Low  
-**Estimated Time**: 6 hours
-
-**AI Agent Instructions**:
-```yaml
-agent_id: "Agent Frontend-4"
-task: "Build Admin Console UI"
-
-requirements:
-  pages:
-    - User Management: CRUD users
-    - Role Management: Assign roles
-    - Validation Rules: Configure rules
-    - Routing Rules: Configure routing
-    - Reconciliation: Handle exceptions
-    - System Health: Monitor services
-  
-  features:
-    - Role-based access control
-    - Audit trail viewer
-    - System metrics
-  
-  testing:
-    - Test CRUD operations
-    - Test RBAC
-    - Test metrics display
-
-estimated_time: "6 hours"
-complexity: "HIGH"
-```
-
----
-
-### Phase 8: Integration & Consolidation (Master Agent)
-**Duration**: 8-16 hours  
-**Dependencies**: All phases complete
-
----
-
-#### Task 8.1: Integration Testing
-**Assigned to**: Master Agent  
-**Priority**: Critical  
-**Estimated Time**: 6 hours
-
-**Tasks**:
-1. **End-to-End Testing**
-   - Test complete payment flow (initiation to completion)
-   - Test failure scenarios
-   - Test compensation logic
-   - Test concurrent payments
-
-2. **Performance Testing**
-   - Load test with 10,000 TPS
-   - Stress test to find breaking points
-   - Soak test (24 hours)
-
-3. **Security Testing**
-   - OWASP ZAP scan
-   - Penetration testing
-   - SQL injection tests
-   - XSS tests
-
-4. **Compatibility Testing**
-   - Browser compatibility (Chrome, Firefox, Safari, Edge)
-   - Mobile responsiveness
-   - API versioning
+### Phase 1: Core Services (Parallel - Independent)
+**Duration**: 5-7 days  
+**Dependencies**: Phase 0 complete  
+**Agents**: 6 agents working in parallel
+
+#### 1.1: Payment Initiation Service (3-5 days)
+**Agent**: Payment Initiation Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-11-payment-initiation-service`
 
 **Deliverables**:
-- Test reports
-- Performance benchmarks
-- Security audit report
+- REST API (3 endpoints)
+- Payment creation logic
+- Event publishing (transactional outbox)
+- Dockerized service
+- Kubernetes deployment manifests
 
----
+**AI Agent Instructions**:
+```yaml
+task: "Build Payment Initiation Service with REST API"
+requirements:
+  - Use @Transactional for ACID guarantees
+  - Implement transactional outbox pattern
+  - Use Spring Boot Actuator for health checks
+  - Follow existing domain patterns
+validation:
+  - All 3 REST endpoints functional
+  - Idempotency working (Redis)
+  - Event published to Azure Service Bus
+  - Unit test coverage > 80%
+  - API response time < 500ms (p95)
+```
 
-#### Task 8.2: Consolidation & Documentation
-**Assigned to**: Master Agent  
-**Priority**: Critical  
-**Estimated Time**: 4 hours
-
-**Tasks**:
-1. **Code Review**
-   - Review all microservices
-   - Ensure coding standards
-   - Check test coverage
-   - Verify documentation
-
-2. **Integration Fixes**
-   - Fix integration issues
-   - Resolve dependency conflicts
-   - Align API contracts
-
-3. **Documentation Consolidation**
-   - Update architecture diagrams
-   - Create deployment guide
-   - Create user manual
-   - Create API documentation portal
-
-4. **DevOps Setup**
-   - Configure CI/CD pipelines
-   - Setup monitoring and alerting
-   - Configure log aggregation
-   - Setup automated backups
+#### 1.2: Validation Service (3-4 days)
+**Agent**: Validation Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-12-validation-service`
 
 **Deliverables**:
-- Consolidated codebase
-- Complete documentation
-- Deployment scripts
-- Runbooks
+- Drools rules engine (KIE server)
+- 10+ validation rules
+- Event consumer (Azure Service Bus trigger)
+- Event publisher (validation result)
 
----
+**AI Agent Instructions**:
+```yaml
+task: "Build Validation Service with Drools rules"
+requirements:
+  - Use Drools for business rules
+  - Hot reload from Git functional
+  - Event consumption working
+  - Event publishing working
+validation:
+  - All 10+ Drools rules working
+  - Rule execution time < 200ms
+  - Validation throughput > 100 payments/second
+```
 
-#### Task 8.3: Deployment
-**Assigned to**: Master Agent  
-**Priority**: Critical  
-**Estimated Time**: 6 hours
-
-**Tasks**:
-1. **Infrastructure Provisioning**
-   - Run Terraform scripts
-   - Provision Azure resources
-   - Configure networking
-
-2. **Application Deployment**
-   - Build Docker images
-   - Push to container registry
-   - Deploy to AKS
-   - Configure ingress
-
-3. **Data Migration**
-   - Create production databases
-   - Run Flyway migrations
-   - Load initial data
-
-4. **Smoke Testing**
-   - Test all services are running
-   - Test health endpoints
-   - Test critical paths
-   - Verify monitoring
+#### 1.3: Account Adapter Service (4-6 days)
+**Agent**: Account Adapter Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-13-account-adapter-service`
 
 **Deliverables**:
-- Production environment
-- Deployment logs
-- Smoke test results
+- 5 REST clients (Feign) for external systems
+- Circuit breaker, retry, bulkhead, timeout configured
+- OAuth 2.0 token management (cached in Redis)
+- Balance cache (Redis, 60s TTL)
 
----
-
-## AI Agent Communication Protocol
-
-### Agent Input Format
-Each agent receives:
-```json
-{
-  "agentId": "Agent Service-1",
-  "taskId": "1.1",
-  "taskDescription": "Build Account Service microservice",
-  "referenceDocuments": [
-    "docs/02-MICROSERVICES-BREAKDOWN.md",
-    "docs/01-ASSUMPTIONS.md"
-  ],
-  "dependencies": {
-    "libraries": ["common-lib", "event-contracts"],
-    "services": []
-  },
-  "requirements": { ... },
-  "deliverables": [ ... ],
-  "estimatedTime": "2 hours"
-}
+**AI Agent Instructions**:
+```yaml
+task: "Build Account Adapter Service with external integrations"
+requirements:
+  - Use Spring Cloud OpenFeign for REST clients
+  - Configure Resilience4j for circuit breaking
+  - Implement OAuth 2.0 token management
+  - Use Redis for caching
+validation:
+  - All 5 REST clients functional
+  - Circuit breaker tested
+  - OAuth token cached in Redis
+  - External API call latency < 2 seconds
 ```
 
-### Agent Output Format
-Each agent produces:
-```json
-{
-  "agentId": "Agent Service-1",
-  "taskId": "1.1",
-  "status": "COMPLETED",
-  "artifacts": [
-    "services/account-service/",
-    "services/account-service/README.md",
-    "services/account-service/Dockerfile"
-  ],
-  "testResults": {
-    "unitTests": { "total": 45, "passed": 45, "coverage": 85.5 },
-    "integrationTests": { "total": 12, "passed": 12, "coverage": 72.3 }
-  },
-  "apiSpec": "services/account-service/openapi.yaml",
-  "issues": [],
-  "completedAt": "2025-10-11T14:30:00Z",
-  "actualTime": "1.5 hours"
-}
+#### 1.4: Routing Service (2-3 days)
+**Agent**: Routing Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-14-routing-service`
+
+**Deliverables**:
+- Payment routing logic
+- Decision engine
+- Event handling
+- Redis caching
+
+**AI Agent Instructions**:
+```yaml
+task: "Build Routing Service for payment routing decisions"
+requirements:
+  - Implement routing logic
+  - Use Redis for caching
+  - Handle routing events
+  - Follow existing patterns
+validation:
+  - Routing decisions working
+  - Cache hit rate > 80%
+  - Response time < 100ms
 ```
 
----
+#### 1.5: Transaction Processing Service (4-5 days)
+**Agent**: Transaction Processing Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-15-transaction-processing-service`
 
-## Dependency Graph
+**Deliverables**:
+- Transaction processing logic
+- State management
+- Event handling
+- Database integration
 
+**AI Agent Instructions**:
+```yaml
+task: "Build Transaction Processing Service"
+requirements:
+  - Implement transaction processing
+  - Handle state transitions
+  - Process events
+  - Use existing domain patterns
+validation:
+  - Transaction processing working
+  - State transitions correct
+  - Event handling functional
+  - Performance requirements met
 ```
-Phase 0 (Foundation)
-  ├─ 0.1 → 0.2, 0.3, 0.4, 0.5
-  └─ 0.2, 0.3 → All Phase 1 tasks
 
-Phase 1 (Independent Services) - Parallel
-  ├─ 1.1 Account Service
-  ├─ 1.2 Notification Service
-  ├─ 1.3 Routing Service
-  └─ 1.4 Reporting Service
+#### 1.6: Saga Orchestrator Service (5-7 days)
+**Agent**: Saga Orchestrator Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-16-saga-orchestrator-service`
 
-Phase 2 (Core Payment Services)
-  ├─ 2.1 Payment Initiation (depends on 1.1)
-  ├─ 2.2 Validation Service (depends on 1.1)
-  └─ 2.3 Transaction Processing (depends on 1.1, 4.1)
+**Deliverables**:
+- Saga orchestration logic
+- State machine implementation
+- Compensation handling
+- Event coordination
 
-Phase 3 (Clearing Adapters) - Parallel
-  ├─ 3.1 SAMOS Adapter (depends on 2.3)
-  ├─ 3.2 Bankserv Adapter (depends on 2.3)
-  └─ 3.3 RTC Adapter (depends on 2.3)
-
-Phase 4 (Supporting Services)
-  ├─ 4.1 Settlement Service (depends on Phase 3)
-  └─ 4.2 Reconciliation Service (depends on Phase 3)
-
-Phase 5 (Orchestration)
-  └─ 5.1 Saga Orchestrator (depends on Phase 2, 3, 4)
-
-Phase 6 (Gateway & Security) - Parallel
-  ├─ 6.1 API Gateway (depends on Phase 5)
-  ├─ 6.2 IAM Service
-  └─ 6.3 Audit Service
-
-Phase 7 (Frontend) - Parallel
-  ├─ 7.1 Payment Initiation UI (depends on 6.1)
-  ├─ 7.2 Transaction History UI (depends on 6.1)
-  ├─ 7.3 Reporting Dashboard UI (depends on 6.1)
-  └─ 7.4 Admin Console UI (depends on 6.1)
-
-Phase 8 (Consolidation)
-  └─ 8.1, 8.2, 8.3 (depends on all phases)
+**AI Agent Instructions**:
+```yaml
+task: "Build Saga Orchestrator Service"
+requirements:
+  - Implement saga orchestration
+  - Handle state machine
+  - Process compensation
+  - Coordinate events
+validation:
+  - Saga orchestration working
+  - State machine functional
+  - Compensation handling correct
+  - Event coordination successful
 ```
 
 ---
 
-## Summary
+### Phase 2: Clearing Adapters (Parallel - Independent)
+**Duration**: 5-7 days  
+**Dependencies**: Phase 0 complete  
+**Agents**: 5 agents working in parallel
 
-| Phase | Services | Agents | Total Time | Can Parallelize |
-|-------|----------|--------|------------|-----------------|
-| 0 | Foundation | 4 | 8h | Partial (2-4, 2-5 parallel) |
-| 1 | Independent | 4 | 10h | Yes (all parallel) |
-| 2 | Core Payment | 3 | 10h | Partial (2.1, 2.2 parallel) |
-| 3 | Clearing | 3 | 9h | Yes (all parallel) |
-| 4 | Supporting | 2 | 6h | Yes (both parallel) |
-| 5 | Orchestration | 1 | 4h | No |
-| 6 | Gateway | 3 | 8h | Yes (all parallel) |
-| 7 | Frontend | 4 | 18h | Yes (all parallel) |
-| 8 | Consolidation | 1 | 16h | No |
-| **Total** | **23 services** | **25 agents** | **89h** | **~40h with parallelism** |
+#### 2.1: SAMOS Adapter (4-6 days)
+**Agent**: SAMOS Adapter Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-21-samos-adapter`
 
-**With maximum parallelization: ~40-50 agent-hours**
+**Deliverables**:
+- SAMOS integration
+- Message transformation
+- Error handling
+- Monitoring
+
+#### 2.2: BankservAfrica Adapter (4-6 days)
+**Agent**: BankservAfrica Adapter Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-22-bankservafrica-adapter`
+
+**Deliverables**:
+- BankservAfrica integration
+- Message transformation
+- Error handling
+- Monitoring
+
+#### 2.3: RTC Adapter (3-5 days)
+**Agent**: RTC Adapter Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-23-rtc-adapter`
+
+**Deliverables**:
+- RTC integration
+- Message transformation
+- Error handling
+- Monitoring
+
+#### 2.4: PayShap Adapter (3-5 days)
+**Agent**: PayShap Adapter Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-24-payshap-adapter`
+
+**Deliverables**:
+- PayShap integration
+- Message transformation
+- Error handling
+- Monitoring
+
+#### 2.5: SWIFT Adapter (5-7 days)
+**Agent**: SWIFT Adapter Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-25-swift-adapter`
+
+**Deliverables**:
+- SWIFT integration
+- Message transformation
+- Error handling
+- Monitoring
 
 ---
 
-**Next**: See `05-DATABASE-SCHEMAS.md` for complete database designs
-**Next**: See `06-SOUTH-AFRICA-CLEARING.md` for clearing system details
+### Phase 3: Platform Services (Parallel - Independent)
+**Duration**: 4-5 days  
+**Dependencies**: Phase 0 complete  
+**Agents**: 5 agents working in parallel
+
+#### 3.1: Tenant Management Service (3-4 days)
+**Agent**: Tenant Management Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-31-tenant-management-service`
+
+#### 3.2: IAM Service (4-5 days)
+**Agent**: IAM Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-32-iam-service`
+
+#### 3.3: Audit Service (2-3 days)
+**Agent**: Audit Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-33-audit-service`
+
+#### 3.4: Notification Service (3-4 days)
+**Agent**: Notification Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-34-notification-service`
+
+#### 3.5: Reporting Service (4-5 days)
+**Agent**: Reporting Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-35-reporting-service`
+
+---
+
+### Phase 4: Advanced Features (Parallel - Independent)
+**Duration**: 6 days  
+**Dependencies**: Phase 1 complete  
+**Agents**: 7 agents working in parallel
+
+#### 4.1: Batch Processing Service (5-7 days)
+**Agent**: Batch Processing Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-41-batch-processing-service`
+
+#### 4.2: Settlement Service (4-5 days)
+**Agent**: Settlement Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-42-settlement-service`
+
+#### 4.3: Reconciliation Service (4-5 days)
+**Agent**: Reconciliation Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-43-reconciliation-service`
+
+#### 4.4: Internal API Gateway Service (3-4 days)
+**Agent**: API Gateway Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-44-internal-api-gateway-service`
+
+#### 4.5: Web BFF - GraphQL (2 days)
+**Agent**: Web BFF Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-45-web-bff`
+
+#### 4.6: Mobile BFF - REST lightweight (1.5 days)
+**Agent**: Mobile BFF Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-46-mobile-bff`
+
+#### 4.7: Partner BFF - REST comprehensive (1.5 days)
+**Agent**: Partner BFF Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-47-partner-bff`
+
+---
+
+### Phase 5: Infrastructure (Parallel - Independent)
+**Duration**: 7 days  
+**Dependencies**: Phase 0 complete  
+**Agents**: 7 agents working in parallel
+
+#### 5.1: Service Mesh (Istio) (3-4 days)
+**Agent**: Service Mesh Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-51-service-mesh-istio`
+
+#### 5.2: Monitoring Stack (3-4 days)
+**Agent**: Monitoring Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-52-monitoring-stack`
+
+#### 5.3: GitOps (ArgoCD) (2-3 days)
+**Agent**: GitOps Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-53-gitops-argocd`
+
+#### 5.4: Feature Flags (Unleash) (2-3 days)
+**Agent**: Feature Flags Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-54-feature-flags-unleash`
+
+#### 5.5: Kubernetes Operators (5-7 days)
+**Agent**: K8s Operators Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-55-kubernetes-operators`
+
+---
+
+### Phase 6: Integration & Testing (Sequential - After all above)
+**Duration**: 15-20 days  
+**Dependencies**: All previous phases complete  
+**Agents**: 5 agents working mostly sequential
+
+#### 6.1: End-to-End Testing (4-5 days)
+**Agent**: E2E Testing Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-61-end-to-end-testing`
+
+#### 6.2: Load Testing (3-4 days)
+**Agent**: Load Testing Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-62-load-testing`
+
+#### 6.3: Security Testing (3-4 days)
+**Agent**: Security Testing Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-63-security-testing`
+
+#### 6.4: Compliance Testing (3-4 days)
+**Agent**: Compliance Testing Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-64-compliance-testing`
+
+#### 6.5: Production Readiness (2-3 days)
+**Agent**: Production Readiness Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-65-production-readiness`
+
+---
+
+### Phase 7: Operations & Channel Management (Parallel - After Phase 6)
+**Duration**: 6-9 days  
+**Dependencies**: Phase 6 complete  
+**Agents**: 12 agents working in parallel
+
+#### 7.1: Operations Management Service (5-7 days)
+**Agent**: Operations Management Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-71-operations-management-service`
+
+#### 7.2: Metrics Aggregation Service (4-6 days)
+**Agent**: Metrics Aggregation Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-72-metrics-aggregation-service`
+
+#### 7.3: Payment Repair APIs (3-4 days)
+**Agent**: Payment Repair Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-73-payment-repair-apis`
+
+#### 7.4: Saga Management APIs (2-3 days)
+**Agent**: Saga Management Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-74-saga-management-apis`
+
+#### 7.5: Transaction Search APIs (3-4 days)
+**Agent**: Transaction Search Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-75-transaction-search-apis`
+
+#### 7.6: Reconciliation Management APIs (2-3 days)
+**Agent**: Reconciliation Management Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-76-reconciliation-management-apis`
+
+#### 7.7: React Ops Portal - Service Management UI (4-5 days)
+**Agent**: React Service Management Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-77-react-ops-service-management-ui`
+
+#### 7.8: React Ops Portal - Payment Repair UI (5-6 days)
+**Agent**: React Payment Repair Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-78-react-ops-payment-repair-ui`
+
+#### 7.9: React Ops Portal - Transaction Enquiries UI (4-5 days)
+**Agent**: React Transaction Enquiries Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-79-react-ops-transaction-enquiries-ui`
+
+#### 7.10: React Ops Portal - Reconciliation & Monitoring UI (4-5 days)
+**Agent**: React Reconciliation Monitoring Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-710-react-ops-reconciliation-monitoring-ui`
+
+#### 7.11: Channel Onboarding UI (3-4 days)
+**Agent**: Channel Onboarding Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-711-channel-onboarding-ui`
+
+#### 7.12: Clearing System Onboarding UI (5-7 days)
+**Agent**: Clearing System Onboarding Agent  
+**Template**: `docs/35-AI-AGENT-PROMPT-TEMPLATES.md#feature-712-clearing-system-onboarding-ui`
+
+---
+
+## AI Agent Orchestration Strategy
+
+### Coordinator Agent
+**Role**: Build Coordinator  
+**Responsibilities**:
+- Monitor all 50 agent tasks in real-time
+- Detect failures and trigger fallback plans automatically
+- Aggregate build status and report progress
+- Manage dependency resolution
+- Collect metrics (actual duration vs. estimated, hallucination frequency, fallback usage)
+
+### Agent Assignment Strategy
+- **Phase 0**: 5 agents working sequentially/parallel
+- **Phase 1**: 6 agents working in parallel
+- **Phase 2**: 5 agents working in parallel
+- **Phase 3**: 5 agents working in parallel
+- **Phase 4**: 7 agents working in parallel
+- **Phase 5**: 7 agents working in parallel
+- **Phase 6**: 5 agents working mostly sequential
+- **Phase 7**: 12 agents working in parallel
+
+### Maximum Parallelization
+- **Week 2-3 (Peak)**: Up to 23 agents working simultaneously
+- **Week 5-6 (Phase 7)**: Up to 12 agents working simultaneously
+
+---
+
+## Quality Gates
+
+### Before Implementation
+- [ ] **Enhanced Feature Breakdown Tree reviewed**
+- [ ] **Phase dependencies verified**
+- [ ] Context fully loaded and understood
+- [ ] Patterns identified and studied
+- [ ] Existing DTOs checked
+- [ ] Implementation plan created
+
+### During Implementation
+- [ ] Follow established patterns
+- [ ] Maintain naming consistency
+- [ ] Use existing DTOs when possible
+- [ ] Implement proper error handling
+- [ ] **Ensure phase-specific requirements are met**
+- [ ] **Follow AI agent orchestration patterns**
+
+### After Implementation
+- [ ] Test integration points
+- [ ] Verify event flow
+- [ ] Check saga patterns
+- [ ] Validate against existing code
+- [ ] **Validate against phase-specific KPIs**
+- [ ] **Ensure AI agent orchestration requirements satisfied**
+
+---
+
+## Reference Points
+
+### Phase & Feature Questions
+- **PRIMARY**: Check `docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`
+- Review the 8-phase implementation strategy
+- Check phase dependencies and requirements
+
+### Architecture Questions
+- Check `docs/architecture/` for system design
+- Study `docs/architecture/FINAL-ARCHITECTURE-OVERVIEW.md`
+
+### Implementation Patterns
+- Study existing services in each microservice directory
+- Follow patterns in `domain-models/`
+- Use contracts in `contracts/`
+
+### AI Agent Orchestration
+- Review the Enhanced Feature Breakdown Tree for agent assignments
+- Check phase-specific AI agent requirements
+
+---
+
+## Remember
+
+**Context First, Phase-Aware Implementation Second**. Always understand the existing patterns and phase dependencies before creating new ones. This will save hours of iterations and ensure consistency across the entire project.
+
+**PRIMARY REFERENCE**: `docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md` - This is the single source of truth for all implementation decisions.

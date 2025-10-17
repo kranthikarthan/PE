@@ -1,0 +1,60 @@
+# Fault injection for chaos testing and resilience validation
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: account-service-fault-injection
+  namespace: payments
+spec:
+  hosts:
+    - account-service
+  http:
+    # Inject 2-second delay for 50% of requests (testing resilience)
+    - fault:
+        delay:
+          percentage:
+            value: 50.0
+          fixedDelay: 2s
+      route:
+        - destination:
+            host: account-service
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: validation-service-fault-injection
+  namespace: payments
+spec:
+  hosts:
+    - validation-service
+  http:
+    # Inject 1-second delay for 30% of requests
+    - fault:
+        delay:
+          percentage:
+            value: 30.0
+          fixedDelay: 1s
+      route:
+        - destination:
+            host: validation-service
+
+---
+# Example of error injection (uncomment to enable)
+# apiVersion: networking.istio.io/v1beta1
+# kind: VirtualService
+# metadata:
+#   name: payment-service-error-injection
+#   namespace: payments
+# spec:
+#   hosts:
+#     - payment-service
+#   http:
+#     # Inject 500 errors for 10% of requests
+#     - fault:
+#         abort:
+#           percentage:
+#             value: 10.0
+#           httpStatus: 500
+#       route:
+#         - destination:
+#             host: payment-service

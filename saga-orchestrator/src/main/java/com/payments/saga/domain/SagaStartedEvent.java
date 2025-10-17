@@ -7,30 +7,34 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-/** Event published when a saga starts */
+/** Domain event for saga started */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class SagaStartedEvent extends SagaEvent {
   private String sagaName;
-  private String paymentId;
+  private String sagaType;
+  private Map<String, Object> sagaData;
 
   public SagaStartedEvent(
       SagaId sagaId,
       TenantContext tenantContext,
       String correlationId,
       String sagaName,
-      String paymentId) {
+      String sagaType,
+      Map<String, Object> sagaData) {
     super(sagaId, tenantContext, correlationId, "SagaStarted");
     this.sagaName = sagaName;
-    this.paymentId = paymentId;
+    this.sagaType = sagaType;
+    this.sagaData = sagaData;
   }
 
   @Override
   public Map<String, Object> getEventData() {
     return Map.of(
         "sagaName", sagaName,
-        "paymentId", paymentId);
+        "sagaType", sagaType,
+        "sagaData", sagaData != null ? sagaData : Map.of());
   }
 }

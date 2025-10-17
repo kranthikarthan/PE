@@ -1,0 +1,9 @@
+# Enable mTLS for all services in the payments namespace
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: payments
+spec:
+  mtls:
+    mode: STRICT  # Enforce mTLS for all service-to-service communication

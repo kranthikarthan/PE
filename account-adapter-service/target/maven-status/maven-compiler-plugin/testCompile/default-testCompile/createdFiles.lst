@@ -1,0 +1,5 @@
+com\payments\accountadapter\integration\AccountAdapterWireMockIntegrationTest.class
+com\payments\accountadapter\service\AccountAdapterServiceTest.class
+com\payments\accountadapter\config\TestConfig.class
+com\payments\accountadapter\integration\AccountAdapterTestcontainersIntegrationTest.class
+com\payments\accountadapter\integration\CircuitBreakerIntegrationTest.class
