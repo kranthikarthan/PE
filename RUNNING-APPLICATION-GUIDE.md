@@ -29,12 +29,12 @@ docker-compose down
 - ✅ **Zookeeper** (port 2181) - Kafka coordination
 
 #### Payment Engine Microservices (6 containers)
-- ✅ **Payment Initiation Service** (port 8081) - Health: http://localhost:8081/actuator/health
-- ✅ **Validation Service** (port 8082) - Health: http://localhost:8082/actuator/health
-- ✅ **Account Adapter Service** (port 8083) - Health: http://localhost:8083/actuator/health
-- ✅ **Routing Service** (port 8084) - Health: http://localhost:8084/actuator/health
-- ✅ **Transaction Processing Service** (port 8085) - Health: http://localhost:8085/actuator/health
-- ✅ **Saga Orchestrator Service** (port 8086) - Health: http://localhost:8086/actuator/health
+- ✅ **Payment Initiation Service** (port 8081) - Health: http://localhost:8081/payment-initiation/actuator/health
+- ✅ **Validation Service** (port 8082) - Health: http://localhost:8082/validation-service/actuator/health
+- ✅ **Account Adapter Service** (port 8083) - Health: http://localhost:8083/account-adapter-service/actuator/health
+- ✅ **Routing Service** (port 8084) - Health: http://localhost:8084/routing-service/actuator/health
+- ✅ **Transaction Processing Service** (port 8085) - Health: http://localhost:8085/transaction-processing-service/actuator/health
+- ✅ **Saga Orchestrator Service** (port 8086) - Health: http://localhost:8086/saga-orchestrator/actuator/health
 
 #### Monitoring & Observability Services (3 containers)
 - ✅ **Prometheus** (port 9090) - Metrics: http://localhost:9090
@@ -57,7 +57,7 @@ validation-service healthcheck:
 
 # After:
 validation-service healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+  test: ["CMD", "curl", "-f", "http://localhost:8082/validation-service/actuator/health"]
 
 # Before:
 transaction-processing-service healthcheck:
@@ -65,11 +65,16 @@ transaction-processing-service healthcheck:
 
 # After:
 transaction-processing-service healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+  test: ["CMD", "curl", "-f", "http://localhost:8084/transaction-processing-service/actuator/health"]
 ```
 
-**File Modified**: `docker-compose.yml` (lines 141 and 243)
-**Impact**: Ensures proper health checks during container startup and monitoring
+**File Modified**: `docker-compose.yml` (lines 107, 141, 175, 209, 243, 277)
+**Impact**: 
+- Services now correctly report health status during startup
+- Health checks properly validate service readiness
+- Services transition to "healthy" state when fully initialized
+
+**Root Cause**: Each service defines a `server.servlet.context-path` in its `application.yml` configuration. The health endpoint path must include this context path when called from docker-compose health checks.
 
 ### 2. Swift Adapter POM Configuration
 
