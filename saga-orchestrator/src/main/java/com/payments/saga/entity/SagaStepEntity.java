@@ -208,7 +208,8 @@ public class SagaStepEntity {
       return null;
     }
     try {
-      return OBJECT_MAPPER.readValue(json, Map.class);
+      return OBJECT_MAPPER.readValue(
+          json, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
     } catch (Exception e) {
       throw new SagaSerializationException("Failed to convert JSON to map", e);
     }
