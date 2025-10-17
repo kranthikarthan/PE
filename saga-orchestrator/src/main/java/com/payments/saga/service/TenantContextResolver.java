@@ -21,7 +21,7 @@ public class TenantContextResolver {
       String tenantName = resolveTenantName(tenantId);
 
       // Resolve business unit name
-      String businessUnitName = resolveBusinessUnitName(businessUnitId);
+      String businessUnitName = resolveBusinessUnitName(tenantId, businessUnitId);
 
       return TenantContext.of(tenantId, tenantName, businessUnitId, businessUnitName);
 
@@ -48,7 +48,7 @@ public class TenantContextResolver {
     }
   }
 
-  private String resolveBusinessUnitName(String businessUnitId) {
+  private String resolveBusinessUnitName(String tenantId, String businessUnitId) {
     if (businessUnitId == null || businessUnitId.equals("default-bu")) {
       return "Default Business Unit";
     }

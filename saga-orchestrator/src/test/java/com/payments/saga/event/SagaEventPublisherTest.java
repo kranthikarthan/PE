@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payments.domain.shared.TenantContext;
 import com.payments.saga.domain.*;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +30,7 @@ class SagaEventPublisherTest {
 
   @BeforeEach
   void setUp() {
-    sagaEventPublisher = new SagaEventPublisher(kafkaTemplate, objectMapper);
+    sagaEventPublisher = new SagaEventPublisherImpl(kafkaTemplate, objectMapper);
     tenantContext = TenantContext.of("tenant-1", "Test Tenant", "bu-1", "Test Business Unit");
   }
 
@@ -37,15 +38,14 @@ class SagaEventPublisherTest {
   void testPublishSagaStarted() throws Exception {
     // Given
     SagaId sagaId = SagaId.generate();
-    // Note: Constructor signature may not match the current implementation
-    // SagaStartedEvent event =
-    //     new SagaStartedEvent(
-    //         sagaId,
-    //         tenantContext,
-    //         "corr-123",
-    //         "TestSaga",
-    //         Map.of("paymentId", "pay-456", "amount", 1000.0));
-    SagaStartedEvent event = null; // Placeholder for compilation
+    SagaStartedEvent event =
+        new SagaStartedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "TestSaga",
+            "PaymentSaga",
+            Map.of("paymentId", "pay-456", "amount", 1000.0));
 
     String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
     @SuppressWarnings("unchecked")
@@ -133,19 +133,19 @@ class SagaEventPublisherTest {
   void testPublishSagaStepFailed() throws Exception {
     // Given
     SagaId sagaId = SagaId.generate();
-    // Note: Constructor signature may not match the current implementation
-    // SagaStepFailedEvent event =
-    //     new SagaStepFailedEvent(
-    //         sagaId,
-    //         tenantContext,
-    //         "corr-123",
-    //         "ValidatePayment",
-    //         SagaStepType.VALIDATION,
-    //         1,
-    //         "validation-service",
-    //         "Validation failed",
-    //         Map.of("error", "invalid_data"));
-    SagaStepFailedEvent event = null; // Placeholder for compilation
+    SagaStepFailedEvent event =
+        new SagaStepFailedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "ValidatePayment",
+            SagaStepType.VALIDATION,
+            1,
+            "validation-service",
+            "Validation failed",
+            Map.of("error", "invalid_data"),
+            1,
+            3);
 
     String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
     @SuppressWarnings("unchecked")
@@ -168,15 +168,16 @@ class SagaEventPublisherTest {
   void testPublishSagaCompleted() throws Exception {
     // Given
     SagaId sagaId = SagaId.generate();
-    // Note: Constructor signature may not match the current implementation
-    // SagaCompletedEvent event =
-    //     new SagaCompletedEvent(
-    //         sagaId,
-    //         tenantContext,
-    //         "corr-123",
-    //         "TestSaga",
-    //         Map.of("totalSteps", 5, "duration", 1200));
-    SagaCompletedEvent event = null; // Placeholder for compilation
+    SagaCompletedEvent event =
+        new SagaCompletedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "TestSaga",
+            Instant.parse("2024-01-01T02:00:00Z"),
+            5,
+            5,
+            Map.of("totalSteps", 5, "duration", 1200));
 
     String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
     @SuppressWarnings("unchecked")
@@ -199,16 +200,15 @@ class SagaEventPublisherTest {
   void testPublishSagaCompensationStarted() throws Exception {
     // Given
     SagaId sagaId = SagaId.generate();
-    // Note: Constructor signature may not match the current implementation
-    // SagaCompensationStartedEvent event =
-    //     new SagaCompensationStartedEvent(
-    //         sagaId,
-    //         tenantContext,
-    //         "corr-123",
-    //         "TestSaga",
-    //         "Step failed",
-    //         Map.of("failedStep", "ValidatePayment"));
-    SagaCompensationStartedEvent event = null; // Placeholder for compilation
+    SagaCompensationStartedEvent event =
+        new SagaCompensationStartedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "TestSaga",
+            Instant.parse("2024-01-01T00:00:00Z"),
+            "Step failed",
+            Map.of("failedStep", "ValidatePayment"));
 
     String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
     @SuppressWarnings("unchecked")
@@ -233,15 +233,15 @@ class SagaEventPublisherTest {
   void testPublishSagaCompensated() throws Exception {
     // Given
     SagaId sagaId = SagaId.generate();
-    // Note: Constructor signature may not match the current implementation
-    // SagaCompensatedEvent event =
-    //     new SagaCompensatedEvent(
-    //         sagaId,
-    //         tenantContext,
-    //         "corr-123",
-    //         "TestSaga",
-    //         Map.of("compensatedSteps", 3, "compensationDuration", 800));
-    SagaCompensatedEvent event = null; // Placeholder for compilation
+    SagaCompensatedEvent event =
+        new SagaCompensatedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "TestSaga",
+            Instant.parse("2024-01-01T01:00:00Z"),
+            3,
+            Map.of("compensationDuration", 800));
 
     String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
     @SuppressWarnings("unchecked")
@@ -263,12 +263,15 @@ class SagaEventPublisherTest {
   @Test
   void testPublishEvent_SerializationError() throws Exception {
     // Given
-    // SagaId sagaId = SagaId.generate();
-    // Note: Constructor signature may not match the current implementation
-    // SagaStartedEvent event =
-    //     new SagaStartedEvent(
-    //         sagaId, tenantContext, "corr-123", "TestSaga", Map.of("paymentId", "pay-456"));
-    SagaStartedEvent event = null; // Placeholder for compilation
+    SagaId sagaId = SagaId.generate();
+    SagaStartedEvent event =
+        new SagaStartedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "TestSaga",
+            "PaymentSaga",
+            Map.of("paymentId", "pay-456"));
 
     when(objectMapper.writeValueAsString(any(Map.class)))
         .thenThrow(new RuntimeException("Serialization failed"));
@@ -277,7 +280,7 @@ class SagaEventPublisherTest {
     sagaEventPublisher.publishSagaStarted(event);
 
     // Then
-    verify(objectMapper).writeValueAsString(any(Map.class));
+    verify(objectMapper, times(2)).writeValueAsString(any(Map.class));
     verify(kafkaTemplate, never()).send(anyString(), anyString(), anyString());
   }
 
@@ -285,11 +288,14 @@ class SagaEventPublisherTest {
   void testPublishEvent_KafkaError() throws Exception {
     // Given
     SagaId sagaId = SagaId.generate();
-    // Note: Constructor signature may not match the current implementation
-    // SagaStartedEvent event =
-    //     new SagaStartedEvent(
-    //         sagaId, tenantContext, "corr-123", "TestSaga", Map.of("paymentId", "pay-456"));
-    SagaStartedEvent event = null; // Placeholder for compilation
+    SagaStartedEvent event =
+        new SagaStartedEvent(
+            sagaId,
+            tenantContext,
+            "corr-123",
+            "TestSaga",
+            "PaymentSaga",
+            Map.of("paymentId", "pay-456"));
 
     String expectedMessage = "{\"eventId\":\"event-123\",\"sagaId\":\"" + sagaId.getValue() + "\"}";
     CompletableFuture<SendResult<String, String>> future = new CompletableFuture<>();
@@ -303,7 +309,7 @@ class SagaEventPublisherTest {
     sagaEventPublisher.publishSagaStarted(event);
 
     // Then
-    verify(objectMapper).writeValueAsString(any(Map.class));
+    verify(objectMapper, times(2)).writeValueAsString(any(Map.class));
     verify(kafkaTemplate).send(eq("saga.started"), eq(sagaId.getValue()), eq(expectedMessage));
   }
 }

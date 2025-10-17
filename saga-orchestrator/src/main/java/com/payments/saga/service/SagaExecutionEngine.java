@@ -205,17 +205,11 @@ public class SagaExecutionEngine {
 
   /** Build service URL */
   private String buildServiceUrl(String serviceName, String endpoint) {
-    // In a real implementation, this would use service discovery
-    String baseUrl =
-        switch (serviceName) {
-          case "validation-service" -> "http://localhost:8081";
-          case "routing-service" -> "http://localhost:8082";
-          case "account-adapter-service" -> "http://localhost:8083";
-          case "transaction-processing-service" -> "http://localhost:8084";
-          case "notification-service" -> "http://localhost:8086";
-          default -> "http://localhost:8080";
-        };
+    if (serviceName == null || serviceName.isBlank()) {
+      return "http://localhost:8080" + endpoint;
+    }
 
-    return baseUrl + endpoint;
+    String normalizedEndpoint = endpoint != null ? endpoint : "";
+    return "http://" + serviceName + normalizedEndpoint;
   }
 }

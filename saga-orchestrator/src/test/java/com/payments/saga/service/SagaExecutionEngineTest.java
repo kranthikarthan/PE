@@ -52,7 +52,7 @@ class SagaExecutionEngineTest {
     assertEquals(mockResponse, step.getOutputData());
 
     verify(restTemplate).postForObject(contains("validation-service"), any(), eq(Map.class));
-    verify(sagaStepService).saveStep(step);
+    verify(sagaStepService, times(2)).saveStep(step);
     verify(sagaEventService).publishStepStartedEvent(step);
     verify(sagaEventService).publishStepCompletedEvent(eq(step), eq(mockResponse));
   }
@@ -187,6 +187,16 @@ class SagaExecutionEngineTest {
   }
 
   private SagaStep createTestStep(SagaStepType stepType, String endpoint) {
+    String serviceName =
+        switch (stepType) {
+          case VALIDATION -> "validation-service";
+          case ROUTING -> "routing-service";
+          case ACCOUNT_ADAPTER -> "account-adapter-service";
+          case TRANSACTION_PROCESSING -> "transaction-processing-service";
+          case NOTIFICATION -> "notification-service";
+          case COMPENSATION -> "compensation-service";
+        };
+
     return SagaStep.builder()
         .id(SagaStepId.generate())
         .sagaId(SagaId.generate())
@@ -194,7 +204,7 @@ class SagaExecutionEngineTest {
         .stepType(stepType)
         .status(SagaStepStatus.PENDING)
         .sequence(1)
-        .serviceName("test-service")
+        .serviceName(serviceName)
         .endpoint(endpoint)
         .maxRetries(3)
         .tenantContext(tenantContext)

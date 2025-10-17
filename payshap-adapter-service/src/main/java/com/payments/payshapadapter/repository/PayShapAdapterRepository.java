@@ -40,4 +40,8 @@ public interface PayShapAdapterRepository extends JpaRepository<PayShapAdapter, 
       "SELECT COUNT(a) > 0 FROM PayShapAdapter a WHERE a.tenantContext.tenantId = :tenantId AND a.adapterName = :adapterName")
   boolean existsByTenantIdAndAdapterName(
       @Param("tenantId") String tenantId, @Param("adapterName") String adapterName);
+
+  /** Count adapters by status */
+  @Query("SELECT COUNT(a) FROM PayShapAdapter a WHERE a.status = :status")
+  long countByStatus(@Param("status") AdapterOperationalStatus status);
 }

@@ -4,6 +4,7 @@ com\payments\rtcadapter\domain\RtcPaymentMessage$RtcPaymentMessageBuilder.class
 com\payments\rtcadapter\repository\RtcSettlementRecordRepository.class
 com\payments\rtcadapter\domain\RtcAdapterCreatedEvent.class
 com\payments\rtcadapter\controller\RtcAdapterController$ValidationResponse.class
+META-INF\spring-configuration-metadata.json
 com\payments\rtcadapter\controller\RtcAdapterController$DeactivateRtcAdapterRequest.class
 com\payments\rtcadapter\domain\RtcTransactionLog.class
 com\payments\rtcadapter\domain\RtcPaymentMessageAddedEvent.class
@@ -24,6 +25,7 @@ com\payments\rtcadapter\domain\RtcMessageLoggedEvent.class
 com\payments\rtcadapter\domain\RtcAdapterActivatedEvent.class
 com\payments\rtcadapter\domain\RtcSettlementRecordAddedEvent.class
 com\payments\rtcadapter\domain\RtcTransactionLoggedEvent.class
+com\payments\rtcadapter\controller\RtcConfigurationController.class
 com\payments\rtcadapter\domain\RtcTransactionLog$RtcTransactionLogBuilder.class
 com\payments\rtcadapter\exception\RtcAdapterOperationException.class
 com\payments\rtcadapter\config\RtcAdapterHealthIndicator.class

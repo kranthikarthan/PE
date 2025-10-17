@@ -4,6 +4,7 @@ C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankse
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\config\MetricsConfig.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\config\Resilience4jConfig.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\controller\BankservAfricaAdapterController.java
+C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\controller\BankservAfricaConfigurationController.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\controller\BankservAfricaEftProcessingController.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\domain\BankservAfricaAchTransaction.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\domain\BankservAfricaAchTransactionAddedEvent.java

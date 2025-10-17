@@ -1,0 +1,53 @@
+{
+  "groups": [
+    {
+      "name": "bankservafrica.adapter",
+      "type": "com.payments.bankservafricaadapter.config.BankservAfricaAdapterConfig",
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaAdapterConfig"
+    }
+  ],
+  "properties": [
+    {
+      "name": "bankservafrica.adapter.api-version",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaAdapterConfig"
+    },
+    {
+      "name": "bankservafrica.adapter.batch-size",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaAdapterConfig"
+    },
+    {
+      "name": "bankservafrica.adapter.encryption-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaAdapterConfig"
+    },
+    {
+      "name": "bankservafrica.adapter.endpoint",
+      "type": "java.lang.String",
+      "description": "BankservAfrica endpoint configuration",
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaAdapterConfig"
+    },
+    {
+      "name": "bankservafrica.adapter.processing-window-end",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaAdapterConfig"
+    },
+    {
+      "name": "bankservafrica.adapter.processing-window-start",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaAdapterConfig"
+    },
+    {
+      "name": "bankservafrica.adapter.retry-attempts",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaAdapterConfig"
+    },
+    {
+      "name": "bankservafrica.adapter.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaAdapterConfig"
+    }
+  ],
+  "hints": []
+}

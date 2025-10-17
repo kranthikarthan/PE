@@ -58,6 +58,37 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.payments</groupId>
+            <artifactId>shared-config</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Redis for caching -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!-- OpenFeign for external service integration -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
+        <!-- Validation Service for Business Rules Engine -->
+        <dependency>
+            <groupId>com.payments</groupId>
+            <artifactId>validation-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Spring Cloud Discovery Client for Service Discovery -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+
         <!-- Spring Boot Starters -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

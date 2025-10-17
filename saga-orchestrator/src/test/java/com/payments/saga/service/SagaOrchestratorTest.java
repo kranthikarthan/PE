@@ -75,9 +75,9 @@ class SagaOrchestratorTest {
     assertEquals(SagaStatus.PENDING, result.getStatus());
     assertTrue(result.getTotalSteps() > 0);
 
-    verify(sagaTemplateService).getTemplate(templateName);
-    verify(sagaService).saveSaga(any(Saga.class));
-    verify(sagaEventService).publishEvent(any(SagaStartedEvent.class));
+      verify(sagaTemplateService).getTemplate(templateName);
+      verify(sagaService).saveSaga(any(Saga.class));
+      verify(sagaEventService).publishEvent(any(SagaStartedEvent.class));
     verify(sagaExecutionEngine).executeSaga(result.getId());
   }
 
@@ -104,8 +104,6 @@ class SagaOrchestratorTest {
     saga.addStep(currentStep);
 
     when(sagaService.getSaga(sagaId)).thenReturn(Optional.of(saga));
-    when(sagaStepService.saveStep(any(SagaStep.class)))
-        .thenAnswer(invocation -> invocation.getArgument(0));
 
     // When
     sagaOrchestrator.executeNextStep(sagaId);
@@ -130,10 +128,14 @@ class SagaOrchestratorTest {
     SagaId sagaId = SagaId.generate();
     SagaStepId stepId = SagaStepId.generate();
     SagaStep step = createTestStep(sagaId, 0);
+    step.markAsRunning();
     Map<String, Object> outputData = Map.of("result", "success");
+    Saga saga = createTestSaga(sagaId);
+    saga.addStep(step);
+    saga.start();
 
     when(sagaStepService.getStep(stepId)).thenReturn(Optional.of(step));
-    when(sagaService.getSaga(sagaId)).thenReturn(Optional.of(createTestSaga(sagaId)));
+    when(sagaService.getSaga(sagaId)).thenReturn(Optional.of(saga));
     when(sagaStepService.saveStep(any(SagaStep.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
     when(sagaService.saveSaga(any(Saga.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -144,7 +146,7 @@ class SagaOrchestratorTest {
     // Then
     verify(sagaStepService).saveStep(any(SagaStep.class));
     verify(sagaEventService).publishEvent(any(SagaStepCompletedEvent.class));
-    verify(sagaService).saveSaga(any(Saga.class));
+    verify(sagaService, times(2)).saveSaga(any(Saga.class));
   }
 
   @Test
@@ -153,12 +155,18 @@ class SagaOrchestratorTest {
     SagaId sagaId = SagaId.generate();
     SagaStepId stepId = SagaStepId.generate();
     SagaStep step = createTestStep(sagaId, 0);
+    step.setMaxRetries(0);
     String errorMessage = "Validation failed";
     Map<String, Object> errorData = Map.of("error", "validation_error");
+    Saga saga = createTestSaga(sagaId);
+    saga.addStep(step);
+    saga.start();
 
     when(sagaStepService.getStep(stepId)).thenReturn(Optional.of(step));
     when(sagaStepService.saveStep(any(SagaStep.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
+    when(sagaService.getSaga(sagaId)).thenReturn(Optional.of(saga));
+    when(sagaService.saveSaga(any(Saga.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     // When
     sagaOrchestrator.handleStepFailure(stepId, errorMessage, errorData);
@@ -173,6 +181,7 @@ class SagaOrchestratorTest {
     // Given
     SagaId sagaId = SagaId.generate();
     Saga saga = createTestSaga(sagaId);
+    saga.start();
     String reason = "Step failed";
 
     when(sagaService.getSaga(sagaId)).thenReturn(Optional.of(saga));
@@ -210,6 +219,7 @@ class SagaOrchestratorTest {
     // Given
     SagaId sagaId = SagaId.generate();
     Saga saga = createTestSaga(sagaId);
+    saga.start();
     saga.startCompensation(); // Set to COMPENSATING status
 
     when(sagaService.getSaga(sagaId)).thenReturn(Optional.of(saga));

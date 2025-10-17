@@ -377,4 +377,26 @@ public class PayShapAdapterService {
   public List<PayShapAdapter> getAdaptersByStatus(AdapterOperationalStatus status) {
     return payShapAdapterRepository.findByStatus(status);
   }
+
+  /** Get total adapter count */
+  public long getAdapterCount() {
+    return tracingService.executeInSpan(
+        "payshap.adapter.getAdapterCount",
+        Map.of("operation", "getAdapterCount"),
+        () -> {
+          log.debug("Getting total adapter count");
+          return payShapAdapterRepository.count();
+        });
+  }
+
+  /** Get active adapter count */
+  public long getActiveAdapterCount() {
+    return tracingService.executeInSpan(
+        "payshap.adapter.getActiveAdapterCount",
+        Map.of("operation", "getActiveAdapterCount"),
+        () -> {
+          log.debug("Getting active adapter count");
+          return payShapAdapterRepository.countByStatus(AdapterOperationalStatus.ACTIVE);
+        });
+  }
 }

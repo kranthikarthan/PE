@@ -429,4 +429,26 @@ public class BankservAfricaAdapterService {
     public List<BankservAfricaAdapter> findByStatus(String status) {
         return adapterRepository.findByStatus(status);
     }
+
+    /** Get total adapter count */
+    public long getAdapterCount() {
+        return tracingService.executeInSpan(
+            "bankservafrica.adapter.getAdapterCount",
+            Map.of("operation", "getAdapterCount"),
+            () -> {
+                log.debug("Getting total adapter count");
+                return adapterRepository.count();
+            });
+    }
+
+    /** Get active adapter count */
+    public long getActiveAdapterCount() {
+        return tracingService.executeInSpan(
+            "bankservafrica.adapter.getActiveAdapterCount",
+            Map.of("operation", "getActiveAdapterCount"),
+            () -> {
+                log.debug("Getting active adapter count");
+                return adapterRepository.countByStatus(com.payments.domain.clearing.AdapterOperationalStatus.ACTIVE);
+            });
+    }
 }

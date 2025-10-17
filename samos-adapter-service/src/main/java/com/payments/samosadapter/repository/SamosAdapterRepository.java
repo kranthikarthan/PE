@@ -49,4 +49,8 @@ public interface SamosAdapterRepository extends JpaRepository<SamosAdapter, Clea
   @Query(
       "SELECT COUNT(sa) FROM SamosAdapter sa WHERE sa.tenantContext.tenantId = :tenantId AND sa.status = 'ACTIVE'")
   long countActiveByTenantId(@Param("tenantId") String tenantId);
+
+  /** Count adapters by status */
+  @Query("SELECT COUNT(sa) FROM SamosAdapter sa WHERE sa.status = :status")
+  long countByStatus(@Param("status") com.payments.domain.clearing.AdapterOperationalStatus status);
 }

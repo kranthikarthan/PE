@@ -1,6 +1,7 @@
 com\payments\payshapadapter\domain\PayShapAdapter.class
 com\payments\payshapadapter\config\MetricsConfig.class
 com\payments\payshapadapter\controller\PayShapAdapterController$CreatePayShapAdapterRequest.class
+META-INF\spring-configuration-metadata.json
 com\payments\payshapadapter\controller\PayShapPaymentProcessingController.class
 com\payments\payshapadapter\domain\PayShapMessageLoggedEvent.class
 com\payments\payshapadapter\domain\PayShapAdapterConfigurationUpdatedEvent.class
@@ -12,6 +13,7 @@ com\payments\payshapadapter\service\PayShapPaymentProcessingService.class
 com\payments\payshapadapter\service\PayShapIso20022Service$PayShapPaymentResponse$PayShapPaymentResponseBuilder.class
 com\payments\payshapadapter\controller\PayShapAdapterController$UpdatePayShapAdapterConfigurationRequest.class
 com\payments\payshapadapter\controller\PayShapAdapterController$ActivatePayShapAdapterRequest.class
+com\payments\payshapadapter\controller\PayShapConfigurationController.class
 com\payments\payshapadapter\controller\PayShapPaymentProcessingController$ProcessPayShapPaymentResponseRequest.class
 com\payments\payshapadapter\config\PayShapAdapterHealthIndicator.class
 com\payments\payshapadapter\controller\PayShapAdapterController$ValidationResponse.class

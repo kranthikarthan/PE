@@ -56,4 +56,8 @@ public interface BankservAfricaAdapterRepository extends JpaRepository<BankservA
      */
     @Query("SELECT a FROM BankservAfricaAdapter a WHERE a.status = :status")
     List<BankservAfricaAdapter> findByStatus(@Param("status") String status);
+
+    /** Count adapters by status */
+    @Query("SELECT COUNT(a) FROM BankservAfricaAdapter a WHERE a.status = :status")
+    long countByStatus(@Param("status") com.payments.domain.clearing.AdapterOperationalStatus status);
 }

@@ -391,4 +391,26 @@ public class SwiftAdapterService {
     swiftAdapterRepository.deleteById(adapterId);
     log.info("SWIFT adapter deleted successfully: {}", adapterId);
   }
+
+  /** Get total adapter count */
+  public long getAdapterCount() {
+    return tracingService.executeInSpan(
+        "swift.adapter.getAdapterCount",
+        Map.of("operation", "getAdapterCount"),
+        () -> {
+          log.debug("Getting total adapter count");
+          return swiftAdapterRepository.count();
+        });
+  }
+
+  /** Get active adapter count */
+  public long getActiveAdapterCount() {
+    return tracingService.executeInSpan(
+        "swift.adapter.getActiveAdapterCount",
+        Map.of("operation", "getActiveAdapterCount"),
+        () -> {
+          log.debug("Getting active adapter count");
+          return swiftAdapterRepository.countByStatus(AdapterOperationalStatus.ACTIVE);
+        });
+  }
 }

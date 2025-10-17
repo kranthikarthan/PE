@@ -3,6 +3,7 @@ C:\git\clone\PE\swift-adapter-service\src\main\java\com\payments\swiftadapter\co
 C:\git\clone\PE\swift-adapter-service\src\main\java\com\payments\swiftadapter\config\SwiftAdapterConfig.java
 C:\git\clone\PE\swift-adapter-service\src\main\java\com\payments\swiftadapter\config\SwiftAdapterHealthIndicator.java
 C:\git\clone\PE\swift-adapter-service\src\main\java\com\payments\swiftadapter\controller\SwiftAdapterController.java
+C:\git\clone\PE\swift-adapter-service\src\main\java\com\payments\swiftadapter\controller\SwiftConfigurationController.java
 C:\git\clone\PE\swift-adapter-service\src\main\java\com\payments\swiftadapter\controller\SwiftPaymentProcessingController.java
 C:\git\clone\PE\swift-adapter-service\src\main\java\com\payments\swiftadapter\domain\ClearingMessageLog.java
 C:\git\clone\PE\swift-adapter-service\src\main\java\com\payments\swiftadapter\domain\ClearingRoute.java

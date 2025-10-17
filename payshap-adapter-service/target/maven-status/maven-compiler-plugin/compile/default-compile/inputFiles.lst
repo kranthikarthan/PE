@@ -3,6 +3,7 @@ C:\git\clone\PE\payshap-adapter-service\src\main\java\com\payments\payshapadapte
 C:\git\clone\PE\payshap-adapter-service\src\main\java\com\payments\payshapadapter\config\PayShapAdapterHealthIndicator.java
 C:\git\clone\PE\payshap-adapter-service\src\main\java\com\payments\payshapadapter\config\Resilience4jConfig.java
 C:\git\clone\PE\payshap-adapter-service\src\main\java\com\payments\payshapadapter\controller\PayShapAdapterController.java
+C:\git\clone\PE\payshap-adapter-service\src\main\java\com\payments\payshapadapter\controller\PayShapConfigurationController.java
 C:\git\clone\PE\payshap-adapter-service\src\main\java\com\payments\payshapadapter\controller\PayShapPaymentProcessingController.java
 C:\git\clone\PE\payshap-adapter-service\src\main\java\com\payments\payshapadapter\domain\ClearingMessageLog.java
 C:\git\clone\PE\payshap-adapter-service\src\main\java\com\payments\payshapadapter\domain\ClearingRoute.java

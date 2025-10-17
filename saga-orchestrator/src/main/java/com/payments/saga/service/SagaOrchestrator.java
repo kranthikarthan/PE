@@ -62,9 +62,20 @@ public class SagaOrchestrator {
     saga = sagaService.saveSaga(saga);
 
     // Publish saga started event
+    Map<String, Object> eventData = new java.util.HashMap<>();
+    eventData.put("paymentId", paymentId);
+    eventData.put("template", templateName);
+    if (sagaData != null) {
+      eventData.putAll(sagaData);
+    }
     SagaStartedEvent startedEvent =
         new SagaStartedEvent(
-            saga.getId(), tenantContext, correlationId, saga.getSagaName(), paymentId);
+            saga.getId(),
+            tenantContext,
+            correlationId,
+            saga.getSagaName(),
+            templateName,
+            eventData);
     sagaEventService.publishEvent(startedEvent);
 
     // Start execution
@@ -113,7 +124,7 @@ public class SagaOrchestrator {
     } catch (Exception e) {
       log.error(
           "Failed to execute step {} for saga {}", step.getId().getValue(), sagaId.getValue(), e);
-      handleStepFailure(step, e);
+      handleStepFailure(step, e, Map.of("error", e.getMessage()));
     }
   }
 
@@ -171,12 +182,18 @@ public class SagaOrchestrator {
             .orElseThrow(
                 () -> new IllegalArgumentException("Step not found: " + stepId.getValue()));
 
-    handleStepFailure(step, new RuntimeException(errorMessage));
+    handleStepFailure(step, new RuntimeException(errorMessage), errorData);
   }
 
-  private void handleStepFailure(SagaStep step, Exception error) {
+  private void handleStepFailure(
+      SagaStep step, Exception error, Map<String, Object> providedErrorData) {
     // Mark step as failed
-    step.markAsFailed(error.getMessage(), Map.of("exception", error.getClass().getSimpleName()));
+    Map<String, Object> errorDetails =
+        new java.util.HashMap<>(
+            providedErrorData != null ? providedErrorData : Map.of("error", error.getMessage()));
+    errorDetails.putIfAbsent("exception", error.getClass().getSimpleName());
+
+    step.markAsFailed(error.getMessage(), errorDetails);
     sagaStepService.saveStep(step);
 
     // Publish step failed event
@@ -241,9 +258,12 @@ public class SagaOrchestrator {
             saga.getTenantContext(),
             saga.getCorrelationId(),
             saga.getSagaName(),
-            saga.getPaymentId(),
+            java.time.Instant.now(),
             reason,
-            saga.getCompletedStepsCount());
+            Map.of(
+                "paymentId", saga.getPaymentId(),
+                "completedSteps", saga.getCompletedStepsCount(),
+                "failedSteps", saga.getFailedStepsCount()));
     sagaEventService.publishEvent(compensationStartedEvent);
 
     // Start compensation process
@@ -265,9 +285,12 @@ public class SagaOrchestrator {
             saga.getTenantContext(),
             saga.getCorrelationId(),
             saga.getSagaName(),
-            saga.getPaymentId(),
+            java.time.Instant.now(),
             saga.getTotalSteps(),
-            saga.getCompletedStepsCount());
+            saga.getCompletedStepsCount(),
+            Map.of(
+                "paymentId", saga.getPaymentId(),
+                "sagaData", saga.getSagaData() != null ? saga.getSagaData() : Map.of()));
     sagaEventService.publishEvent(completedEvent);
   }
 
@@ -292,9 +315,12 @@ public class SagaOrchestrator {
             saga.getTenantContext(),
             saga.getCorrelationId(),
             saga.getSagaName(),
-            saga.getPaymentId(),
-            "Compensation completed",
-            saga.getCompensatedSteps().size());
+            java.time.Instant.now(),
+            saga.getCompensatedSteps().size(),
+            Map.of(
+                "paymentId", saga.getPaymentId(),
+                "failedSteps", saga.getFailedStepsCount(),
+                "compensatedSteps", saga.getCompensatedSteps().size()));
     sagaEventService.publishEvent(compensatedEvent);
   }
 

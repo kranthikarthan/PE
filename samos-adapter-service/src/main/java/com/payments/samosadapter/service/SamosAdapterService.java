@@ -7,12 +7,16 @@ import com.payments.domain.shared.TenantContext;
 import com.payments.samosadapter.domain.SamosAdapter;
 import com.payments.samosadapter.domain.ClearingRoute;
 import com.payments.samosadapter.domain.ClearingMessageLog;
+import com.payments.samosadapter.dto.SamosAdapterValidationResponse;
+import com.payments.samosadapter.dto.SamosComplianceRequest;
+import com.payments.samosadapter.dto.SamosComplianceResponse;
 import com.payments.samosadapter.exception.SamosAdapterNotFoundException;
 import com.payments.samosadapter.exception.SamosAdapterAlreadyExistsException;
 import com.payments.samosadapter.exception.SamosAdapterConfigurationException;
 import com.payments.samosadapter.exception.SamosAdapterOperationException;
 import com.payments.telemetry.TracingService;
 import com.payments.samosadapter.repository.SamosAdapterRepository;
+import com.payments.samosadapter.service.SamosCacheService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
@@ -25,6 +29,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +49,11 @@ public class SamosAdapterService {
 
   private final SamosAdapterRepository samosAdapterRepository;
   private final TracingService tracingService;
+  private final SamosCacheService samosCacheService;
+  private final SamosBusinessRulesService samosBusinessRulesService;
+  private final SamosOAuth2TokenService samosOAuth2TokenService;
+  private final SamosServiceDiscoveryService samosServiceDiscoveryService;
+  private final SamosComplianceService samosComplianceService;
   private final Counter samosAdapterCreatedCounter;
   private final Counter samosAdapterActivatedCounter;
   private final Counter samosAdapterDeactivatedCounter;
@@ -55,6 +67,7 @@ public class SamosAdapterService {
   @CircuitBreaker(name = "samos-adapter", fallbackMethod = "createAdapterFallback")
   @Retry(name = "samos-adapter")
   @TimeLimiter(name = "samos-adapter")
+  @CacheEvict(value = "samos-adapter-count", allEntries = true)
   public CompletableFuture<SamosAdapter> createAdapter(
       ClearingAdapterId adapterId,
       TenantContext tenantContext,
@@ -520,5 +533,164 @@ public class SamosAdapterService {
                   && adapter.getRetryAttempts() >= 0;
             })
         .orElse(false);
+  }
+
+  /** Get total adapter count */
+  @Cacheable(value = "samos-adapter-count", key = "'total'")
+  public long getAdapterCount() {
+    return tracingService.executeInSpan(
+        "samos.adapter.getAdapterCount",
+        Map.of("operation", "getAdapterCount"),
+        () -> {
+          log.debug("Getting total adapter count");
+          return samosAdapterRepository.count();
+        });
+  }
+
+  /** Get active adapter count */
+  @Cacheable(value = "samos-adapter-count", key = "'active'")
+  public long getActiveAdapterCount() {
+    return tracingService.executeInSpan(
+        "samos.adapter.getActiveAdapterCount",
+        Map.of("operation", "getActiveAdapterCount"),
+        () -> {
+          log.debug("Getting active adapter count");
+          return samosAdapterRepository.countByStatus(com.payments.domain.clearing.AdapterOperationalStatus.ACTIVE);
+        });
+  }
+
+  /**
+   * Validate SAMOS adapter using business rules
+   * 
+   * @param adapterId The adapter ID
+   * @param tenantContext Tenant context
+   * @return Validation response
+   */
+  public SamosAdapterValidationResponse validateAdapter(
+      ClearingAdapterId adapterId, TenantContext tenantContext) {
+    
+    return tracingService.executeInSpan("samos.adapter.validate", Map.of(
+        "adapter.id", adapterId.toString(),
+        "tenant.id", tenantContext.getTenantId(),
+        "business.unit.id", tenantContext.getBusinessUnitId()
+    ), () -> {
+      log.info("Validating SAMOS adapter: {} for tenant: {}", adapterId, tenantContext.getTenantId());
+      
+      SamosAdapter adapter = samosAdapterRepository.findById(adapterId)
+          .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId.toString()));
+      
+      return samosBusinessRulesService.validateAdapterConfiguration(adapter, tenantContext);
+    });
+  }
+
+  /**
+   * Get OAuth2 authorization header for SAMOS clearing network
+   * 
+   * @return Authorization header value
+   */
+  public String getAuthorizationHeader() {
+    return tracingService.executeInSpan("samos.adapter.getAuthorizationHeader", Map.of(
+        "operation", "getAuthorizationHeader"
+    ), () -> {
+      log.debug("Getting SAMOS OAuth2 authorization header");
+      return samosOAuth2TokenService.getAuthorizationHeader();
+    });
+  }
+
+  /**
+   * Check if OAuth2 token is valid for SAMOS clearing network
+   * 
+   * @return True if token is valid
+   */
+  public boolean isTokenValid() {
+    return tracingService.executeInSpan("samos.adapter.isTokenValid", Map.of(
+        "operation", "isTokenValid"
+    ), () -> {
+      log.debug("Checking SAMOS OAuth2 token validity");
+      return samosOAuth2TokenService.isTokenValid();
+    });
+  }
+
+  /**
+   * Refresh OAuth2 token for SAMOS clearing network
+   * 
+   * @return New authorization header
+   */
+  public String refreshToken() {
+    return tracingService.executeInSpan("samos.adapter.refreshToken", Map.of(
+        "operation", "refreshToken"
+    ), () -> {
+      log.info("Refreshing SAMOS OAuth2 token");
+      return samosOAuth2TokenService.refreshAccessToken();
+    });
+  }
+
+  /**
+   * Discover available SAMOS clearing network services
+   * 
+   * @return List of service instances
+   */
+  public List<org.springframework.cloud.client.ServiceInstance> discoverClearingServices() {
+    return tracingService.executeInSpan("samos.adapter.discoverServices", Map.of(
+        "operation", "discoverClearingServices"
+    ), () -> {
+      log.debug("Discovering SAMOS clearing network services");
+      return samosServiceDiscoveryService.discoverSamosServices();
+    });
+  }
+
+  /**
+   * Get the best available SAMOS service endpoint
+   * 
+   * @return Service endpoint URL or null
+   */
+  public String getClearingServiceEndpoint() {
+    return tracingService.executeInSpan("samos.adapter.getServiceEndpoint", Map.of(
+        "operation", "getClearingServiceEndpoint"
+    ), () -> {
+      log.debug("Getting SAMOS clearing network service endpoint");
+      return samosServiceDiscoveryService.getSamosServiceEndpoint();
+    });
+  }
+
+  /**
+   * Check if service discovery is healthy
+   * 
+   * @return True if service discovery is working
+   */
+  public boolean isServiceDiscoveryHealthy() {
+    return tracingService.executeInSpan("samos.adapter.isServiceDiscoveryHealthy", Map.of(
+        "operation", "isServiceDiscoveryHealthy"
+    ), () -> {
+      log.debug("Checking SAMOS service discovery health");
+      return samosServiceDiscoveryService.isServiceDiscoveryHealthy();
+    });
+  }
+
+  /**
+   * Execute compliance rules for SAMOS clearing network
+   * 
+   * @param adapterId The adapter ID
+   * @param request Compliance request
+   * @param tenantContext Tenant context
+   * @return Compliance response
+   */
+  public SamosComplianceResponse executeComplianceRules(
+      ClearingAdapterId adapterId, SamosComplianceRequest request, TenantContext tenantContext) {
+    
+    return tracingService.executeInSpan("samos.adapter.executeComplianceRules", Map.of(
+        "adapter.id", adapterId.toString(),
+        "payment.id", request.getPaymentId(),
+        "tenant.id", tenantContext.getTenantId(),
+        "business.unit.id", tenantContext.getBusinessUnitId()
+    ), () -> {
+      log.info("Executing SAMOS compliance rules for adapter: {} and payment: {}", 
+               adapterId, request.getPaymentId());
+      
+      SamosAdapter adapter = samosAdapterRepository.findById(adapterId)
+          .orElseThrow(() -> new SamosAdapterNotFoundException(adapterId.toString()));
+      
+      return samosComplianceService.executeComplianceRules(adapter, request, tenantContext);
+    });
   }
 }

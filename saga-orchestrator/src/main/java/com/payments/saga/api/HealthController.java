@@ -15,8 +15,9 @@ import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.actuator.health.Health;
-import org.springframework.boot.actuator.health.HealthIndicator;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,6 +40,7 @@ public class HealthController implements HealthIndicator {
   private final KafkaTemplate<String, String> kafkaTemplate;
   private final CircuitBreakerRegistry circuitBreakerRegistry;
   private final MeterRegistry meterRegistry;
+  private final long applicationStartTime = System.currentTimeMillis();
 
   @Override
   public Health health() {
@@ -87,7 +89,7 @@ public class HealthController implements HealthIndicator {
     Map<String, Object> response = new HashMap<>(health.getDetails());
     response.put("status", health.getStatus().getCode());
 
-    return health.getStatus().equals(org.springframework.boot.actuator.health.Status.UP)
+    return health.getStatus().equals(Status.UP)
         ? ResponseEntity.ok(response)
         : ResponseEntity.status(503).body(response);
   }
@@ -246,9 +248,9 @@ public class HealthController implements HealthIndicator {
       circuitBreakerRegistry
           .getAllCircuitBreakers()
           .forEach(
-              (name, circuitBreaker) -> {
+              circuitBreaker -> {
                 CircuitBreaker.State state = circuitBreaker.getState();
-                status.put(name, state.name());
+                status.put(circuitBreaker.getName(), state.name());
               });
     } catch (Exception e) {
       log.warn("Failed to get circuit breaker status: {}", e.getMessage());
@@ -328,6 +330,6 @@ public class HealthController implements HealthIndicator {
 
   private long getStartTime() {
     // This would typically be stored as a class field when the application starts
-    return System.currentTimeMillis() - 3600000; // Placeholder: 1 hour ago
+    return applicationStartTime;
   }
 }

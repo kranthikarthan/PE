@@ -5,3 +5,4 @@ com\payments\saga\service\SagaOrchestratorTest.class
 com\payments\saga\service\SagaExecutionEngineTest.class
 com\payments\saga\event\SagaEventPublisherTest.class
 com\payments\saga\service\SagaCompensationEngineTest.class
+com\payments\saga\service\SagaExecutionEngineTest$1.class

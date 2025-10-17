@@ -3,6 +3,7 @@ C:\git\clone\PE\rtc-adapter-service\src\main\java\com\payments\rtcadapter\config
 C:\git\clone\PE\rtc-adapter-service\src\main\java\com\payments\rtcadapter\config\RtcAdapterConfig.java
 C:\git\clone\PE\rtc-adapter-service\src\main\java\com\payments\rtcadapter\config\RtcAdapterHealthIndicator.java
 C:\git\clone\PE\rtc-adapter-service\src\main\java\com\payments\rtcadapter\controller\RtcAdapterController.java
+C:\git\clone\PE\rtc-adapter-service\src\main\java\com\payments\rtcadapter\controller\RtcConfigurationController.java
 C:\git\clone\PE\rtc-adapter-service\src\main\java\com\payments\rtcadapter\controller\RtcPaymentProcessingController.java
 C:\git\clone\PE\rtc-adapter-service\src\main\java\com\payments\rtcadapter\domain\ClearingMessageLog.java
 C:\git\clone\PE\rtc-adapter-service\src\main\java\com\payments\rtcadapter\domain\ClearingRoute.java

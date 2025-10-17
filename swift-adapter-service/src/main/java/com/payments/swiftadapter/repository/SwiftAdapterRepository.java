@@ -96,4 +96,8 @@ public interface SwiftAdapterRepository extends JpaRepository<SwiftAdapter, Clea
       "SELECT sa FROM SwiftAdapter sa WHERE sa.tenantContext.tenantId = :tenantId AND sa.status = :status")
   List<SwiftAdapter> findByTenantIdAndStatus(
       @Param("tenantId") String tenantId, @Param("status") AdapterOperationalStatus status);
+
+  /** Count adapters by status */
+  @Query("SELECT COUNT(sa) FROM SwiftAdapter sa WHERE sa.status = :status")
+  long countByStatus(@Param("status") AdapterOperationalStatus status);
 }

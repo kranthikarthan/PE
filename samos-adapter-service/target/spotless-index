@@ -4,7 +4,7 @@ src\main\java\com\payments\samosadapter\controller\SamosPaymentController.java 2
 src\main\java\com\payments\samosadapter\domain\SamosPaymentMessage.java 2025-10-17T09:27:17.473828800Z
 src\main\java\com\payments\samosadapter\domain\SamosSettlementRecord.java 2025-10-17T09:27:17.504890400Z
 src\main\java\com\payments\samosadapter\domain\SamosTransactionLog.java 2025-10-17T09:27:17.529722800Z
-src\main\java\com\payments\samosadapter\repository\SamosAdapterRepository.java 2025-10-17T09:27:17.547562100Z
+src\main\java\com\payments\samosadapter\repository\SamosAdapterRepository.java 2025-10-17T13:50:53.842166700Z
 src\main\java\com\payments\samosadapter\repository\SamosPaymentMessageRepository.java 2025-10-17T09:27:17.559649400Z
 src\main\java\com\payments\samosadapter\SamosAdapterApplication.java 2025-10-17T09:27:17.584478500Z
 src\main\java\com\payments\samosadapter\service\SamosIso20022Service.java 2025-10-17T09:27:17.679429300Z

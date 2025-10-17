@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -98,19 +99,27 @@ public class Saga {
   }
 
   public Optional<SagaStep> getStepByType(SagaStepType stepType) {
-    return steps.stream().filter(step -> step.getStepType() == stepType).findFirst();
+    return steps != null
+        ? steps.stream().filter(step -> step.getStepType() == stepType).findFirst()
+        : Optional.empty();
   }
 
   public List<SagaStep> getCompletedSteps() {
-    return steps.stream().filter(SagaStep::isCompleted).toList();
+    return steps != null
+        ? steps.stream().filter(SagaStep::isCompleted).collect(Collectors.toList())
+        : List.of();
   }
 
   public List<SagaStep> getFailedSteps() {
-    return steps.stream().filter(SagaStep::isFailed).toList();
+    return steps != null
+        ? steps.stream().filter(SagaStep::isFailed).collect(Collectors.toList())
+        : List.of();
   }
 
   public List<SagaStep> getCompensatedSteps() {
-    return steps.stream().filter(SagaStep::isCompensated).toList();
+    return steps != null
+        ? steps.stream().filter(SagaStep::isCompensated).collect(Collectors.toList())
+        : List.of();
   }
 
   public boolean isCompleted() {
@@ -134,8 +143,9 @@ public class Saga {
   }
 
   public boolean allStepsCompleted() {
-    return steps.stream()
-        .allMatch(step -> step.isCompleted() || step.getStatus() == SagaStepStatus.SKIPPED);
+    return steps != null
+        && steps.stream()
+            .allMatch(step -> step.isCompleted() || step.getStatus() == SagaStepStatus.SKIPPED);
   }
 
   public void start() {
@@ -146,7 +156,14 @@ public class Saga {
     this.startedAt = Instant.now();
 
     // Publish domain event
-    domainEvents.add(new SagaStartedEvent(this.id, this.tenantContext, this.correlationId));
+    domainEvents.add(
+        new SagaStartedEvent(
+            this.id,
+            this.tenantContext,
+            this.correlationId,
+            this.sagaName,
+            this.sagaName,
+            this.sagaData != null ? this.sagaData : Map.of()));
   }
 
   public void complete() {
@@ -157,7 +174,18 @@ public class Saga {
     this.completedAt = Instant.now();
 
     // Publish domain event
-    domainEvents.add(new SagaCompletedEvent(this.id, this.tenantContext, this.correlationId));
+    domainEvents.add(
+        new SagaCompletedEvent(
+            this.id,
+            this.tenantContext,
+            this.correlationId,
+            this.sagaName,
+            this.completedAt,
+            getTotalSteps(),
+            getCompletedStepsCount(),
+            Map.of(
+                "completedSteps", getCompletedStepsCount(),
+                "failedSteps", getFailedStepsCount())));
   }
 
   public void fail(String errorMessage) {
@@ -167,7 +195,16 @@ public class Saga {
 
     // Publish domain event
     domainEvents.add(
-        new SagaFailedEvent(this.id, this.tenantContext, this.correlationId, errorMessage));
+        new SagaFailedEvent(
+            this.id,
+            this.tenantContext,
+            this.correlationId,
+            this.sagaName,
+            this.failedAt,
+            errorMessage,
+            Map.of(
+                "currentStepIndex", currentStepIndex,
+                "failedSteps", getFailedStepsCount())));
   }
 
   public void startCompensation() {
@@ -179,7 +216,14 @@ public class Saga {
 
     // Publish domain event
     domainEvents.add(
-        new SagaCompensationStartedEvent(this.id, this.tenantContext, this.correlationId));
+        new SagaCompensationStartedEvent(
+            this.id,
+            this.tenantContext,
+            this.correlationId,
+            this.sagaName,
+            Instant.now(),
+            "Compensation started",
+            Map.of("failedSteps", getFailedStepsCount())));
   }
 
   public void completeCompensation() {
@@ -191,7 +235,15 @@ public class Saga {
     this.compensatedAt = Instant.now();
 
     // Publish domain event
-    domainEvents.add(new SagaCompensatedEvent(this.id, this.tenantContext, this.correlationId));
+    domainEvents.add(
+        new SagaCompensatedEvent(
+            this.id,
+            this.tenantContext,
+            this.correlationId,
+            this.sagaName,
+            this.compensatedAt,
+            getCompensatedSteps().size(),
+            Map.of("compensatedSteps", getCompensatedSteps().size())));
   }
 
   public void moveToNextStep() {

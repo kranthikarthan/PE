@@ -1,0 +1,48 @@
+{
+  "groups": [
+    {
+      "name": "swift.adapter",
+      "type": "com.payments.swiftadapter.config.SwiftAdapterConfig",
+      "sourceType": "com.payments.swiftadapter.config.SwiftAdapterConfig"
+    }
+  ],
+  "properties": [
+    {
+      "name": "swift.adapter.api-version",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.swiftadapter.config.SwiftAdapterConfig"
+    },
+    {
+      "name": "swift.adapter.encryption-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.swiftadapter.config.SwiftAdapterConfig"
+    },
+    {
+      "name": "swift.adapter.endpoint",
+      "type": "java.lang.String",
+      "description": "SWIFT endpoint configuration",
+      "sourceType": "com.payments.swiftadapter.config.SwiftAdapterConfig"
+    },
+    {
+      "name": "swift.adapter.processing-window-end",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.swiftadapter.config.SwiftAdapterConfig"
+    },
+    {
+      "name": "swift.adapter.processing-window-start",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.swiftadapter.config.SwiftAdapterConfig"
+    },
+    {
+      "name": "swift.adapter.retry-attempts",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.swiftadapter.config.SwiftAdapterConfig"
+    },
+    {
+      "name": "swift.adapter.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.swiftadapter.config.SwiftAdapterConfig"
+    }
+  ],
+  "hints": []
+}

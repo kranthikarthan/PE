@@ -1,0 +1,53 @@
+{
+  "groups": [
+    {
+      "name": "rtc.adapter",
+      "type": "com.payments.rtcadapter.config.RtcAdapterConfig",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    }
+  ],
+  "properties": [
+    {
+      "name": "rtc.adapter.amount-limit",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.api-version",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.encryption-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.endpoint",
+      "type": "java.lang.String",
+      "description": "RTC endpoint configuration",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.processing-window-end",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.processing-window-start",
+      "type": "java.lang.String",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.retry-attempts",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    },
+    {
+      "name": "rtc.adapter.timeout-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "com.payments.rtcadapter.config.RtcAdapterConfig"
+    }
+  ],
+  "hints": []
+}

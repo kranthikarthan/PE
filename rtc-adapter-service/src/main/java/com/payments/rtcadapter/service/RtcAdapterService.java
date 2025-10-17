@@ -396,4 +396,15 @@ public class RtcAdapterService {
   public long getAdapterCountByTenant(String tenantId) {
     return rtcAdapterRepository.countByTenant(tenantId);
   }
+
+  /** Get active adapter count */
+  public long getActiveAdapterCount() {
+    return tracingService.executeInSpan(
+        "rtc.adapter.getActiveAdapterCount",
+        Map.of("operation", "getActiveAdapterCount"),
+        () -> {
+          log.debug("Getting active adapter count");
+          return rtcAdapterRepository.countByStatus(AdapterOperationalStatus.ACTIVE);
+        });
+  }
 }

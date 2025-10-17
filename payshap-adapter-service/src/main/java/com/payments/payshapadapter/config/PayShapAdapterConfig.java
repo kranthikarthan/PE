@@ -7,12 +7,26 @@ import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.timelimiter.TimeLimiter;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import java.time.Duration;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /** Configuration for PayShap Adapter */
 @Configuration
+@ConfigurationProperties(prefix = "payshap.adapter")
+@Data
 public class PayShapAdapterConfig {
+
+  /** PayShap endpoint configuration */
+  private String endpoint;
+  private String apiVersion;
+  private Integer timeoutSeconds;
+  private Integer retryAttempts;
+  private Boolean encryptionEnabled;
+  private Integer amountLimit;
+  private String processingWindowStart;
+  private String processingWindowEnd;
 
   /** Circuit breaker configuration for PayShap operations */
   @Bean

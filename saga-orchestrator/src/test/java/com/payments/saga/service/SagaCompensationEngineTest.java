@@ -194,6 +194,7 @@ class SagaCompensationEngineTest {
   private SagaStep createTestStep() {
     return SagaStep.builder()
         .id(SagaStepId.generate())
+        .sagaId(SagaId.generate())
         .stepName("TestStep")
         .stepType(SagaStepType.VALIDATION)
         .status(SagaStepStatus.PENDING)

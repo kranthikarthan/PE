@@ -3,6 +3,7 @@ package com.payments.saga.service;
 import com.payments.saga.domain.Saga;
 import com.payments.saga.domain.SagaStep;
 import com.payments.saga.domain.SagaStepStatus;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,9 @@ public class SagaCompensationEngine {
   public void startCompensation(Saga saga) {
     log.info("Starting compensation for saga {}", saga.getId().getValue());
 
-    // Get completed steps in reverse order (LIFO)
-    List<SagaStep> completedSteps = saga.getCompletedSteps();
+    // Get completed steps from persistence to ensure latest state
+    List<SagaStep> completedSteps =
+        new ArrayList<>(sagaStepService.getCompletedStepsBySagaId(saga.getId()));
     completedSteps.sort((s1, s2) -> Integer.compare(s2.getSequence(), s1.getSequence()));
 
     log.info("Found {} completed steps to compensate", completedSteps.size());
@@ -68,7 +70,6 @@ public class SagaCompensationEngine {
     try {
       // Mark step as compensating
       step.markAsCompensating();
-      sagaStepService.saveStep(step);
 
       // Publish compensation started event
       sagaEventService.publishStepCompensationStartedEvent(step);
@@ -76,7 +77,7 @@ public class SagaCompensationEngine {
       // Execute compensation
       Map<String, Object> compensationResult = executeCompensation(step);
 
-      // Mark step as compensated
+      // Mark step as compensated and persist
       step.markAsCompensated();
       sagaStepService.saveStep(step);
 
@@ -88,7 +89,7 @@ public class SagaCompensationEngine {
     } catch (Exception e) {
       log.error("Compensation failed for step {}: {}", step.getId().getValue(), e.getMessage(), e);
 
-      // Mark step as failed compensation
+      // Mark step as failed compensation and persist
       step.markAsFailed(
           "Compensation failed: " + e.getMessage(), Map.of("compensationError", e.getMessage()));
       sagaStepService.saveStep(step);
