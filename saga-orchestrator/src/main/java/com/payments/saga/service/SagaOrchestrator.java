@@ -289,8 +289,10 @@ public class SagaOrchestrator {
             saga.getTotalSteps(),
             saga.getCompletedStepsCount(),
             Map.of(
-                "paymentId", saga.getPaymentId(),
-                "sagaData", saga.getSagaData() != null ? saga.getSagaData() : Map.of()));
+                "paymentId",
+                saga.getPaymentId(),
+                "sagaData",
+                saga.getSagaData() != null ? saga.getSagaData() : Map.of()));
     sagaEventService.publishEvent(completedEvent);
   }
 

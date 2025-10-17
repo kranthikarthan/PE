@@ -75,9 +75,9 @@ class SagaOrchestratorTest {
     assertEquals(SagaStatus.PENDING, result.getStatus());
     assertTrue(result.getTotalSteps() > 0);
 
-      verify(sagaTemplateService).getTemplate(templateName);
-      verify(sagaService).saveSaga(any(Saga.class));
-      verify(sagaEventService).publishEvent(any(SagaStartedEvent.class));
+    verify(sagaTemplateService).getTemplate(templateName);
+    verify(sagaService).saveSaga(any(Saga.class));
+    verify(sagaEventService).publishEvent(any(SagaStartedEvent.class));
     verify(sagaExecutionEngine).executeSaga(result.getId());
   }
 

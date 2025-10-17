@@ -5,8 +5,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -202,9 +202,7 @@ public class Saga {
             this.sagaName,
             this.failedAt,
             errorMessage,
-            Map.of(
-                "currentStepIndex", currentStepIndex,
-                "failedSteps", getFailedStepsCount())));
+            Map.of("currentStepIndex", currentStepIndex, "failedSteps", getFailedStepsCount())));
   }
 
   public void startCompensation() {
