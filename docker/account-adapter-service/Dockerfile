@@ -19,8 +19,15 @@ COPY shared-telemetry/ shared-telemetry/
 COPY shared-config/ shared-config/
 COPY account-adapter-service/ account-adapter-service/
 
-# Build the application together with dependent modules
-RUN mvn -pl account-adapter-service -am clean package -DskipTests -Dspotless.skip=true
+# Pre-build shared modules into local Maven repository to satisfy dependencies
+RUN mvn -N -f pom.xml install -DskipTests -Dspotless.skip=true -Dmaven.test.skip=true \
+    && mvn -N -f domain-models/pom.xml install -DskipTests -Dspotless.skip=true -Dmaven.test.skip=true \
+    && mvn -f domain-models/shared/pom.xml clean install -DskipTests -Dspotless.skip=true -Dmaven.test.skip=true \
+    && mvn -f domain-models/account-adapter/pom.xml clean install -DskipTests -Dspotless.skip=true -Dmaven.test.skip=true \
+    && mvn -f contracts/pom.xml clean install -DskipTests -Dspotless.skip=true -Dmaven.test.skip=true \
+    && mvn -f shared-telemetry/pom.xml clean install -DskipTests -Dspotless.skip=true -Dmaven.test.skip=true \
+    && mvn -f shared-config/pom.xml clean install -DskipTests -Dspotless.skip=true -Dmaven.test.skip=true \
+    && mvn -f account-adapter-service/pom.xml clean package spring-boot:repackage -DskipTests -Dspotless.skip=true
 
 # Runtime stage
 FROM eclipse-temurin:17-jre

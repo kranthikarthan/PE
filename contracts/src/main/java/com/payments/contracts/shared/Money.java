@@ -3,19 +3,18 @@ package com.payments.contracts.shared;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.util.Currency;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-import java.util.Currency;
-
 /**
  * Money Value Object
  *
- * <p>Represents monetary amounts with currency: - Amount value - Currency code - Validation
- * rules - Immutable value object
+ * <p>Represents monetary amounts with currency: - Amount value - Currency code - Validation rules -
+ * Immutable value object
  */
 @Data
 @Builder

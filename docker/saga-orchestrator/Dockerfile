@@ -19,8 +19,18 @@ COPY shared-telemetry/ shared-telemetry/
 COPY shared-config/ shared-config/
 COPY saga-orchestrator/ saga-orchestrator/
 
-# Build the application together with dependent modules
-RUN mvn -pl saga-orchestrator -am clean package -DskipTests -Dspotless.skip=true
+# Pre-build shared modules into local Maven repository to satisfy dependencies
+RUN mvn -N -f pom.xml install -DskipTests -Dspotless.skip=true  \
+    && mvn -N -f domain-models/pom.xml install -DskipTests -Dspotless.skip=true  \
+    && mvn -f domain-models/shared/pom.xml clean install -DskipTests -Dspotless.skip=true  \
+    && mvn -f domain-models/validation/pom.xml clean install -DskipTests -Dspotless.skip=true  \
+    && mvn -f domain-models/payment-initiation/pom.xml clean install -DskipTests -Dspotless.skip=true  \
+    && mvn -f domain-models/transaction-processing/pom.xml clean install -DskipTests -Dspotless.skip=true  \
+    && mvn -f domain-models/saga-orchestrator/pom.xml clean install -DskipTests -Dspotless.skip=true  \
+    && mvn -f contracts/pom.xml clean install -DskipTests -Dspotless.skip=true  \
+    && mvn -f shared-telemetry/pom.xml clean install -DskipTests -Dspotless.skip=true  \
+    && mvn -f shared-config/pom.xml clean install -DskipTests -Dspotless.skip=true  \
+    && mvn -f saga-orchestrator/pom.xml clean package spring-boot:repackage -DskipTests -Dspotless.skip=true -Dmaven.test.skip=true
 
 # Runtime stage
 FROM eclipse-temurin:17-jre

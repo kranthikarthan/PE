@@ -1,0 +1,197 @@
+# Docker Development Profile Configuration
+spring:
+  profiles:
+    active: docker
+  datasource:
+    url: jdbc:postgresql://postgres:5432/payment_initiation
+    username: payments_user
+    password: payments_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: 
+      database: 0
+      timeout: 2000
+  kafka:
+    bootstrap-servers: kafka:29092
+    consumer:
+      group-id: payments-engine-docker
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+    producer:
+      acks: all
+      retries: 3
+      batch-size: 16384
+      linger-ms: 1
+      buffer-memory: 33554432
+
+# Payments Engine Docker Configuration
+payments:
+  # Docker Database Configuration
+  database:
+    url: jdbc:postgresql://postgres:5432/payment_initiation
+    username: payments_user
+    password: payments_password
+    maximumPoolSize: 10
+    minimumIdle: 2
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+
+  # Docker Cache Configuration
+  cache:
+    host: redis
+    port: 6379
+    password: 
+    database: 0
+    timeout: 2000
+    maxTotal: 4
+    maxIdle: 4
+    minIdle: 0
+
+  # Docker Messaging Configuration
+  messaging:
+    kafka:
+      bootstrapServers: kafka:29092
+      groupId: payments-engine-docker
+      clientId: payments-engine-docker-client
+      sessionTimeoutMs: 30000
+      heartbeatIntervalMs: 10000
+      maxPollRecords: 100
+      autoOffsetReset: earliest
+      enableAutoCommit: false
+      enableIdempotence: true
+
+  # Docker Security Configuration
+  security:
+    jwt:
+      secret: docker-secret-key
+      expiration: 86400000
+      issuer: payments-engine-docker
+      audience: payments-engine-docker
+    oauth2:
+      clientId: payments-engine-docker
+      clientSecret: docker-oauth2-secret
+      tokenUri: http://localhost:8080/oauth/token
+      authorizationUri: http://localhost:8080/oauth/authorize
+      userInfoUri: http://localhost:8080/oauth/userinfo
+    encryption:
+      enabled: false
+      algorithm: AES
+      key: docker-encryption-key
+      salt: docker-salt
+
+  # Docker Telemetry Configuration
+  telemetry:
+    tracing:
+      enabled: true
+      exporter: jaeger
+      service:
+        name: payments-engine-docker
+        version: 0.1.0-docker
+      jaeger:
+        endpoint: http://jaeger:14250
+        serviceName: payments-engine-docker
+    metrics:
+      enabled: true
+      prometheus:
+        enabled: true
+        endpoint: /actuator/prometheus
+    logging:
+      enabled: true
+      structured: true
+      level: INFO
+      file:
+        path: logs/payments-engine-docker.log
+        maxSize: 50MB
+        maxHistory: 7
+
+  # Docker Service Configuration
+  services:
+    paymentInitiation:
+      baseUrl: http://payment-initiation-service:8080
+      timeout: 30000
+      retryAttempts: 3
+      retryDelay: 1000
+    validation:
+      baseUrl: http://validation-service:8080
+      timeout: 30000
+      retryAttempts: 3
+      retryDelay: 1000
+    accountAdapter:
+      baseUrl: http://account-adapter-service:8080
+      timeout: 30000
+      retryAttempts: 3
+      retryDelay: 1000
+    routing:
+      baseUrl: http://routing-service:8080
+      timeout: 30000
+      retryAttempts: 3
+      retryDelay: 1000
+    transactionProcessing:
+      baseUrl: http://transaction-processing-service:8080
+      timeout: 30000
+      retryAttempts: 3
+      retryDelay: 1000
+    sagaOrchestrator:
+      baseUrl: http://saga-orchestrator:8080
+      timeout: 30000
+      retryAttempts: 3
+      retryDelay: 1000
+
+  # Docker Profile Configuration
+  profiles:
+    active: docker
+    environments:
+      docker:
+        name: docker
+        host: localhost
+        environment: docker
+
+# Docker Management Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    configprops:
+      show-values: always
+    env:
+      show-values: always
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    build:
+      enabled: true
+
+# Docker Logging Configuration
+logging:
+  level:
+    com.payments: INFO
+    org.springframework: INFO
+    org.hibernate: WARN
+    org.apache.kafka: INFO
+    io.opentelemetry: WARN
+    io.micrometer: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId}] [%X{tenantId}] [%X{paymentId}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId}] [%X{tenantId}] [%X{paymentId}] %logger{36} - %msg%n"

@@ -1,18 +1,18 @@
 package com.payments.contracts.account;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-
 /**
  * Account Balance Response DTO
  *
- * <p>Response for account balance: - Account balance - Currency - Account status - Response metadata
+ * <p>Response for account balance: - Account balance - Currency - Account status - Response
+ * metadata
  */
 @Data
 @Builder

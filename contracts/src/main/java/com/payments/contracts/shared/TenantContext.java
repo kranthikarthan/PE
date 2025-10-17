@@ -45,10 +45,7 @@ public class TenantContext {
    * @return TenantContext instance
    */
   public static TenantContext of(String tenantId, String businessUnitId) {
-    return TenantContext.builder()
-        .tenantId(tenantId)
-        .businessUnitId(businessUnitId)
-        .build();
+    return TenantContext.builder().tenantId(tenantId).businessUnitId(businessUnitId).build();
   }
 
   /**

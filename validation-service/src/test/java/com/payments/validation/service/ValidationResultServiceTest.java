@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.payments.domain.payment.PaymentId;
+import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
 import com.payments.domain.validation.RiskLevel;
 import com.payments.domain.validation.ValidationResult;
@@ -12,6 +12,7 @@ import com.payments.domain.validation.ValidationStatus;
 import com.payments.validation.entity.ValidationResultEntity;
 import com.payments.validation.mapper.ValidationResultMapper;
 import com.payments.validation.repository.ValidationResultRepository;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +45,7 @@ class ValidationResultServiceTest {
     validResult =
         ValidationResult.builder()
             .validationId("validation-123")
-            .paymentId(PaymentId.builder().value("payment-123").build())
+            .paymentId(PaymentId.of("payment-123"))
             .tenantContext(
                 TenantContext.builder()
                     .tenantId("tenant-1")
@@ -52,8 +53,8 @@ class ValidationResultServiceTest {
                     .build())
             .status(ValidationStatus.PASSED)
             .riskLevel(RiskLevel.LOW)
-            .fraudScore(0)
-            .riskScore(0)
+            .fraudScore(BigDecimal.ZERO)
+            .riskScore(BigDecimal.ZERO)
             .appliedRules(List.of("RULE_001", "RULE_002"))
             .failedRules(List.of())
             .validationMetadata("{\"test\": \"data\"}")
@@ -70,9 +71,9 @@ class ValidationResultServiceTest {
             .businessUnitId("business-unit-1")
             .status(ValidationResultEntity.ValidationStatus.PASSED)
             .riskLevel(ValidationResultEntity.RiskLevel.LOW)
-            .fraudScore(0)
-            .riskScore(0)
-            .appliedRules(List.of("RULE_001", "RULE_002"))
+            .fraudScore(BigDecimal.ZERO)
+            .riskScore(BigDecimal.ZERO)
+            .appliedRules("RULE_001,RULE_002")
             .validatedAt(Instant.now())
             .correlationId("correlation-123")
             .createdBy("validation-service")

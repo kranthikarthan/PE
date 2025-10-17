@@ -2,19 +2,17 @@ package com.payments.contracts.saga;
 
 import com.payments.contracts.events.BaseEvent;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.Map;
-
 /**
  * Saga Step Completed Event
  *
- * <p>Event published when a saga step completes: - Step identification - Step result -
- * Step metadata - Next step information
+ * <p>Event published when a saga step completes: - Step identification - Step result - Step
+ * metadata - Next step information
  */
 @Data
 @NoArgsConstructor

@@ -1,5 +1,6 @@
 C:\git\clone\PE\transaction-processing-service\src\main\java\com\payments\transactionprocessing\api\BalanceController.java
 C:\git\clone\PE\transaction-processing-service\src\main\java\com\payments\transactionprocessing\api\TransactionController.java
+C:\git\clone\PE\transaction-processing-service\src\main\java\com\payments\transactionprocessing\config\RedisConfig.java
 C:\git\clone\PE\transaction-processing-service\src\main\java\com\payments\transactionprocessing\dto\CreateTransactionRequest.java
 C:\git\clone\PE\transaction-processing-service\src\main\java\com\payments\transactionprocessing\dto\FailTransactionRequest.java
 C:\git\clone\PE\transaction-processing-service\src\main\java\com\payments\transactionprocessing\dto\LedgerEntryResponse.java

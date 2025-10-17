@@ -5,12 +5,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.payments.contracts.events.PaymentInitiatedEvent;
 import com.payments.contracts.events.PaymentValidatedEvent;
 import com.payments.contracts.events.ValidationFailedEvent;
-import com.payments.contracts.payment.Money;
-import com.payments.contracts.payment.PaymentId;
-import com.payments.contracts.payment.TenantContext;
+import com.payments.domain.shared.Money;
+import com.payments.domain.shared.PaymentId;
+import com.payments.domain.shared.TenantContext;
 import com.payments.validation.service.ValidationOrchestrator;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Currency;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +54,9 @@ class ValidationServiceIntegrationTest {
   private PaymentValidatedEvent receivedValidatedEvent;
   private ValidationFailedEvent receivedFailedEvent;
 
+  private static final UUID TEST_CORRELATION_ID =
+      UUID.nameUUIDFromBytes("validation-test-correlation".getBytes());
+
   @BeforeEach
   void setUp() {
     validationResultLatch = new CountDownLatch(1);
@@ -68,7 +72,7 @@ class ValidationServiceIntegrationTest {
 
     // When
     validationOrchestrator.validatePayment(
-        event, "test-correlation-id", "tenant-1", "business-unit-1");
+        event, TEST_CORRELATION_ID.toString(), "tenant-1", "business-unit-1");
 
     // Then
     boolean resultReceived = validationResultLatch.await(10, TimeUnit.SECONDS);
@@ -77,7 +81,7 @@ class ValidationServiceIntegrationTest {
     assertThat(receivedValidatedEvent.getPaymentId().getValue()).isEqualTo("payment-123");
     assertThat(receivedValidatedEvent.getTenantId()).isEqualTo("tenant-1");
     assertThat(receivedValidatedEvent.getBusinessUnitId()).isEqualTo("business-unit-1");
-    assertThat(receivedValidatedEvent.getCorrelationId()).isEqualTo("test-correlation-id");
+    assertThat(receivedValidatedEvent.getCorrelationId()).isEqualTo(TEST_CORRELATION_ID);
   }
 
   @Test
@@ -87,7 +91,7 @@ class ValidationServiceIntegrationTest {
 
     // When
     validationOrchestrator.validatePayment(
-        event, "test-correlation-id", "tenant-1", "business-unit-1");
+        event, TEST_CORRELATION_ID.toString(), "tenant-1", "business-unit-1");
 
     // Then
     boolean resultReceived = validationFailedLatch.await(10, TimeUnit.SECONDS);
@@ -96,7 +100,7 @@ class ValidationServiceIntegrationTest {
     assertThat(receivedFailedEvent.getPaymentId().getValue()).isEqualTo("payment-456");
     assertThat(receivedFailedEvent.getTenantId()).isEqualTo("tenant-1");
     assertThat(receivedFailedEvent.getBusinessUnitId()).isEqualTo("business-unit-1");
-    assertThat(receivedFailedEvent.getCorrelationId()).isEqualTo("test-correlation-id");
+    assertThat(receivedFailedEvent.getCorrelationId()).isEqualTo(TEST_CORRELATION_ID);
     assertThat(receivedFailedEvent.getFailedRules()).isNotEmpty();
   }
 
@@ -107,7 +111,7 @@ class ValidationServiceIntegrationTest {
 
     // When
     validationOrchestrator.validatePayment(
-        event, "test-correlation-id", "tenant-1", "business-unit-1");
+        event, TEST_CORRELATION_ID.toString(), "tenant-1", "business-unit-1");
 
     // Then
     boolean resultReceived = validationFailedLatch.await(10, TimeUnit.SECONDS);
@@ -116,7 +120,7 @@ class ValidationServiceIntegrationTest {
     assertThat(receivedFailedEvent.getPaymentId().getValue()).isEqualTo("payment-789");
     assertThat(receivedFailedEvent.getTenantId()).isEqualTo("tenant-1");
     assertThat(receivedFailedEvent.getBusinessUnitId()).isEqualTo("business-unit-1");
-    assertThat(receivedFailedEvent.getCorrelationId()).isEqualTo("test-correlation-id");
+    assertThat(receivedFailedEvent.getCorrelationId()).isEqualTo(TEST_CORRELATION_ID);
     assertThat(receivedFailedEvent.getFailedRules()).isNotEmpty();
   }
 
@@ -133,62 +137,45 @@ class ValidationServiceIntegrationTest {
   }
 
   private PaymentInitiatedEvent createValidPaymentEvent() {
-    return PaymentInitiatedEvent.builder()
-        .eventId(UUID.randomUUID().toString())
-        .eventType("PaymentInitiated")
-        .timestamp(Instant.now())
-        .correlationId("test-correlation-id")
-        .source("payment-initiation-service")
-        .version("1.0.0")
-        .tenantId("tenant-1")
-        .businessUnitId("business-unit-1")
-        .paymentId(PaymentId.builder().value("payment-123").build())
-        .tenantContext(
-            TenantContext.builder().tenantId("tenant-1").businessUnitId("business-unit-1").build())
-        .amount(Money.builder().amount(new BigDecimal("1000.00")).currency("ZAR").build())
-        .sourceAccount("1234567890")
-        .destinationAccount("0987654321")
-        .reference("Test Payment")
-        .build();
+    PaymentInitiatedEvent event = new PaymentInitiatedEvent();
+    event.setEventId(UUID.randomUUID());
+    event.setEventType("PaymentInitiated");
+    event.setTimestamp(Instant.now());
+    event.setCorrelationId(TEST_CORRELATION_ID);
+    event.setSource("payment-initiation-service");
+    event.setVersion("1.0.0");
+    event.setTenantId("tenant-1");
+    event.setBusinessUnitId("business-unit-1");
+    event.setPaymentId(PaymentId.of("payment-123"));
+    event.setTenantContext(
+        TenantContext.builder().tenantId("tenant-1").businessUnitId("business-unit-1").build());
+    event.setAmount(Money.of(new BigDecimal("1000.00"), Currency.getInstance("ZAR")));
+    event.setSourceAccount("1234567890");
+    event.setDestinationAccount("0987654321");
+    event.setReference("Test Payment");
+    event.setPaymentType(com.payments.contracts.payment.PaymentType.EFT);
+    event.setPriority(com.payments.contracts.payment.Priority.NORMAL);
+    event.setInitiatedBy("user@example.com");
+    event.setInitiatedAt(Instant.now());
+    return event;
   }
 
   private PaymentInitiatedEvent createInvalidPaymentEvent() {
-    return PaymentInitiatedEvent.builder()
-        .eventId(UUID.randomUUID().toString())
-        .eventType("PaymentInitiated")
-        .timestamp(Instant.now())
-        .correlationId("test-correlation-id")
-        .source("payment-initiation-service")
-        .version("1.0.0")
-        .tenantId("tenant-1")
-        .businessUnitId("business-unit-1")
-        .paymentId(PaymentId.builder().value("payment-456").build())
-        .tenantContext(
-            TenantContext.builder().tenantId("tenant-1").businessUnitId("business-unit-1").build())
-        .amount(Money.builder().amount(new BigDecimal("150000.00")).currency("ZAR").build())
-        .sourceAccount("1234567890")
-        .destinationAccount("1234567890") // Same as source - should fail
-        .reference("") // Empty reference - should fail
-        .build();
+    PaymentInitiatedEvent event = createValidPaymentEvent();
+    event.setPaymentId(PaymentId.of("payment-456"));
+    event.setAmount(Money.of(new BigDecimal("150000.00"), Currency.getInstance("ZAR")));
+    event.setDestinationAccount("1234567890");
+    event.setReference("");
+    return event;
   }
 
   private PaymentInitiatedEvent createHighRiskPaymentEvent() {
-    return PaymentInitiatedEvent.builder()
-        .eventId(UUID.randomUUID().toString())
-        .eventType("PaymentInitiated")
-        .timestamp(Instant.now())
-        .correlationId("test-correlation-id")
-        .source("payment-initiation-service")
-        .version("1.0.0")
-        .tenantId("tenant-1")
-        .businessUnitId("business-unit-1")
-        .paymentId(PaymentId.builder().value("payment-789").build())
-        .tenantContext(
-            TenantContext.builder().tenantId("tenant-1").businessUnitId("business-unit-1").build())
-        .amount(Money.builder().amount(new BigDecimal("250000.00")).currency("USD").build())
-        .sourceAccount("9991234567") // Suspicious account
-        .destinationAccount("RISK1234567") // High-risk counterparty
-        .reference("High Risk Payment")
-        .build();
+    PaymentInitiatedEvent event = createValidPaymentEvent();
+    event.setPaymentId(PaymentId.of("payment-789"));
+    event.setAmount(Money.of(new BigDecimal("250000.00"), Currency.getInstance("USD")));
+    event.setSourceAccount("9991234567");
+    event.setDestinationAccount("RISK1234567");
+    event.setReference("High Risk Payment");
+    return event;
   }
 }

@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class TransactionEventPublisher {
 
   private final KafkaTemplate<String, Object> kafkaTemplate;
-  private final TransactionEventService transactionEventService;
 
   // Kafka topics for different event types
   private static final String TRANSACTION_CREATED_TOPIC = "transaction.created";
@@ -26,7 +25,6 @@ public class TransactionEventPublisher {
   private static final String TRANSACTION_FAILED_TOPIC = "transaction.failed";
 
   /** Publishes all events for a transaction */
-  @Transactional
   public void publishTransactionEvents(Transaction transaction) {
     log.info("Publishing events for transaction {}", transaction.getId().getValue());
 

@@ -1,0 +1,45 @@
+-------------------------------------------------------------------------------
+Test set: com.payments.validation.service.BusinessRuleEngineTest
+-------------------------------------------------------------------------------
+Tests run: 5, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 2.295 s <<< FAILURE! -- in com.payments.validation.service.BusinessRuleEngineTest
+com.payments.validation.service.BusinessRuleEngineTest.executeRules_WithValidPayment_ShouldPass -- Time elapsed: 2.166 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  0L
+to be greater than:
+  0L
+
+	at com.payments.validation.service.BusinessRuleEngineTest.executeRules_WithValidPayment_ShouldPass(BusinessRuleEngineTest.java:55)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.validation.service.BusinessRuleEngineTest.executeRules_WithHighAmount_ShouldFail -- Time elapsed: 0.019 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: BUSINESS
+ but was: "BUSINESS"
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at com.payments.validation.service.BusinessRuleEngineTest.executeRules_WithHighAmount_ShouldFail(BusinessRuleEngineTest.java:76)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.validation.service.BusinessRuleEngineTest.executeRules_WithSameSourceAndDestination_ShouldFail -- Time elapsed: 0.003 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: BUSINESS
+ but was: "BUSINESS"
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at com.payments.validation.service.BusinessRuleEngineTest.executeRules_WithSameSourceAndDestination_ShouldFail(BusinessRuleEngineTest.java:99)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+

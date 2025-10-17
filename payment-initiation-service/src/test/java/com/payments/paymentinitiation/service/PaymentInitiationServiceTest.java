@@ -50,6 +50,23 @@ class PaymentInitiationServiceTest {
     paymentInitiationService =
         new PaymentInitiationService(
             paymentRepository, idempotencyService, paymentDomainService, eventPublisher);
+
+    lenient()
+        .doAnswer(
+            invocation -> {
+              Payment paymentArg = invocation.getArgument(0);
+              com.payments.domain.payment.PaymentStatus newStatus = invocation.getArgument(1);
+              String reason = invocation.getArgument(2);
+
+              paymentArg.setStatus(newStatus);
+              if (newStatus == com.payments.domain.payment.PaymentStatus.FAILED) {
+                paymentArg.setFailureReason(reason);
+                paymentArg.setFailedAt(Instant.now());
+              }
+              return null;
+            })
+        .when(paymentDomainService)
+        .processPaymentStatusChange(any(Payment.class), any(), anyString());
   }
 
   @Test
@@ -174,9 +191,6 @@ class PaymentInitiationServiceTest {
     doNothing()
         .when(paymentDomainService)
         .validatePaymentBusinessRules(any(Payment.class), any(TenantContext.class));
-    doNothing()
-        .when(paymentDomainService)
-        .processPaymentStatusChange(any(Payment.class), any(), anyString());
 
     // When
     PaymentInitiationResponse response =
@@ -206,9 +220,6 @@ class PaymentInitiationServiceTest {
     Payment mockPayment = createMockPayment();
     when(paymentRepository.findByIdAndTenantId(any(PaymentId.class), anyString()))
         .thenReturn(Optional.of(mockPayment));
-    doNothing()
-        .when(paymentDomainService)
-        .processPaymentStatusChange(any(Payment.class), any(), anyString());
 
     // When
     PaymentInitiationResponse response =
@@ -236,9 +247,6 @@ class PaymentInitiationServiceTest {
     Payment mockPayment = createMockPayment();
     when(paymentRepository.findByIdAndTenantId(any(PaymentId.class), anyString()))
         .thenReturn(Optional.of(mockPayment));
-    doNothing()
-        .when(paymentDomainService)
-        .processPaymentStatusChange(any(Payment.class), any(), anyString());
 
     // When
     PaymentInitiationResponse response =

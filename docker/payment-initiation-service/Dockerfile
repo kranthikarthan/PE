@@ -19,8 +19,16 @@ COPY shared-telemetry/ shared-telemetry/
 COPY shared-config/ shared-config/
 COPY payment-initiation-service/ payment-initiation-service/
 
-# Pre-build service together with its module dependencies in one go
-RUN mvn -pl payment-initiation-service -am clean package -DskipTests -Dspotless.skip=true
+# Pre-build shared modules into local Maven repository to satisfy dependencies
+RUN mvn -N -f pom.xml install -DskipTests -Dspotless.skip=true \
+    && mvn -N -f domain-models/pom.xml install -DskipTests -Dspotless.skip=true \
+    && mvn -f domain-models/shared/pom.xml clean install -DskipTests -Dspotless.skip=true \
+    && mvn -f domain-models/validation/pom.xml clean install -DskipTests -Dspotless.skip=true \
+    && mvn -f domain-models/payment-initiation/pom.xml clean install -DskipTests -Dspotless.skip=true \
+    && mvn -f contracts/pom.xml clean install -DskipTests -Dspotless.skip=true \
+    && mvn -f shared-telemetry/pom.xml clean install -DskipTests -Dspotless.skip=true \
+    && mvn -f shared-config/pom.xml clean install -DskipTests -Dspotless.skip=true \
+    && mvn -f payment-initiation-service/pom.xml clean package spring-boot:repackage -DskipTests -Dspotless.skip=true
 
 # Runtime stage
 FROM eclipse-temurin:17-jre

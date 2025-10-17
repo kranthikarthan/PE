@@ -12,6 +12,7 @@ com\payments\transactionprocessing\dto\MarkClearedRequest.class
 com\payments\transactionprocessing\dto\LedgerEntryResponse$LedgerEntryResponseBuilder.class
 com\payments\transactionprocessing\dto\MarkClearedRequest$MarkClearedRequestBuilder.class
 com\payments\transactionprocessing\repository\TransactionRepository.class
+com\payments\transactionprocessing\config\RedisConfig.class
 com\payments\transactionprocessing\entity\TransactionEntity.class
 com\payments\transactionprocessing\repository\TransactionEventRepository.class
 com\payments\transactionprocessing\dto\TransactionResponse$TransactionResponseBuilder.class

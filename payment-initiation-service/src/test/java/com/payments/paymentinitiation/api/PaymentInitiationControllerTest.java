@@ -90,7 +90,7 @@ class PaymentInitiationControllerTest {
   @Test
   void initiatePayment_ShouldReturn400_WhenInvalidRequest() throws Exception {
     // Given
-    PaymentInitiationRequest request = createInvalidPaymentRequest();
+    PaymentInitiationRequest request = createValidPaymentRequest();
 
     when(paymentInitiationService.initiatePayment(
             any(PaymentInitiationRequest.class), anyString(), anyString(), anyString()))

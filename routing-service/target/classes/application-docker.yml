@@ -1,0 +1,13 @@
+# Routing Service Docker Configuration
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/routing
+    username: payments_user
+    password: payments_password
+  jpa:
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true

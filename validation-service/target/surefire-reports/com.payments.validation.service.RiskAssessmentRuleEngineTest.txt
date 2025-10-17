@@ -1,0 +1,101 @@
+-------------------------------------------------------------------------------
+Test set: com.payments.validation.service.RiskAssessmentRuleEngineTest
+-------------------------------------------------------------------------------
+Tests run: 7, Failures: 7, Errors: 0, Skipped: 0, Time elapsed: 0.044 s <<< FAILURE! -- in com.payments.validation.service.RiskAssessmentRuleEngineTest
+com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithValidPayment_ShouldPass -- Time elapsed: 0.004 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting ArrayList:
+  ["RISK_RULE_001", "RISK_RULE_002", "RISK_RULE_003", "RISK_RULE_004"]
+to contain:
+  ["RISK_RULE_001",
+    "RISK_RULE_002",
+    "RISK_RULE_003",
+    "RISK_RULE_004",
+    "RISK_RULE_005"]
+but could not find the following element(s):
+  ["RISK_RULE_005"]
+
+	at com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithValidPayment_ShouldPass(RiskAssessmentRuleEngineTest.java:46)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithForeignCurrency_ShouldDetectRisk -- Time elapsed: 0.007 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be false but was true
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithForeignCurrency_ShouldDetectRisk(RiskAssessmentRuleEngineTest.java:91)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithHighCreditRisk_ShouldDetectRisk -- Time elapsed: 0.005 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be false but was true
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithHighCreditRisk_ShouldDetectRisk(RiskAssessmentRuleEngineTest.java:67)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithHighLiquidityRisk_ShouldDetectRisk -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be false but was true
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithHighLiquidityRisk_ShouldDetectRisk(RiskAssessmentRuleEngineTest.java:140)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithMultipleRisks_ShouldDetectMultipleRisks -- Time elapsed: 0.007 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be false but was true
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithMultipleRisks_ShouldDetectMultipleRisks(RiskAssessmentRuleEngineTest.java:188)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithHighOperationalRisk_ShouldDetectRisk -- Time elapsed: 0.003 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be false but was true
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithHighOperationalRisk_ShouldDetectRisk(RiskAssessmentRuleEngineTest.java:115)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithHighCounterpartyRisk_ShouldDetectRisk -- Time elapsed: 0.003 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+Expecting value to be false but was true
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at com.payments.validation.service.RiskAssessmentRuleEngineTest.executeRules_WithHighCounterpartyRisk_ShouldDetectRisk(RiskAssessmentRuleEngineTest.java:163)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+

@@ -32,15 +32,16 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     
-  redis:
-    host: ${redis.host:localhost}
-    port: ${redis.port:6379}
-    timeout: 2000ms
-    lettuce:
-      pool:
-        max-active: 8
-        max-idle: 8
-        min-idle: 0
+  data:
+    redis:
+      host: ${redis.host:localhost}
+      port: ${redis.port:6379}
+      timeout: 2000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
 
 # Routing Service Configuration
 routing:

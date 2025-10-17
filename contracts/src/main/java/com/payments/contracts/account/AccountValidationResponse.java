@@ -1,12 +1,11 @@
 package com.payments.contracts.account;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
 
 /**
  * Account Validation Response DTO

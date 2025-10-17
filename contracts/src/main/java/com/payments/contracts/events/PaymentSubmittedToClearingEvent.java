@@ -3,20 +3,17 @@ package com.payments.contracts.events;
 import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-import java.util.UUID;
-
 /**
  * Payment Submitted to Clearing Event
  *
- * <p>Event published when a payment is submitted to clearing: - Payment identification -
- * Clearing system reference - Submission timestamp - Clearing metadata
+ * <p>Event published when a payment is submitted to clearing: - Payment identification - Clearing
+ * system reference - Submission timestamp - Clearing metadata
  */
 @Data
 @NoArgsConstructor

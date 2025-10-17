@@ -5,8 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Saga Status Enum
  *
- * <p>Defines the possible statuses of a saga orchestration: - Started status - Running
- * status - Completed status - Failed status - Compensated status
+ * <p>Defines the possible statuses of a saga orchestration: - Started status - Running status -
+ * Completed status - Failed status - Compensated status
  */
 @Schema(description = "Saga status enumeration")
 public enum SagaStatus {

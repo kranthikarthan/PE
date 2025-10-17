@@ -2,20 +2,18 @@ package com.payments.contracts.saga;
 
 import com.payments.contracts.events.BaseEvent;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.Instant;
+import java.util.Map;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-import java.util.Map;
-
 /**
  * Saga Completed Event
  *
- * <p>Event published when a saga orchestration completes: - Saga identification - Completion
- * status - Final result - Saga summary
+ * <p>Event published when a saga orchestration completes: - Saga identification - Completion status
+ * - Final result - Saga summary
  */
 @Data
 @NoArgsConstructor

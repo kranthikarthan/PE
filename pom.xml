@@ -26,14 +26,14 @@
     <spring-boot.version>3.2.5</spring-boot.version>
     <lombok.version>1.18.32</lombok.version>
     <junit.jupiter.version>5.10.2</junit.jupiter.version>
-    <testcontainers.version>1.20.1</testcontainers.version>
+    <testcontainers.version>1.19.8</testcontainers.version>
     <hibernate.version>6.5.2.Final</hibernate.version>
     <spring-cloud.version>2023.0.0</spring-cloud.version>
     <resilience4j.version>2.2.0</resilience4j.version>
     <springdoc.version>2.3.0</springdoc.version>
     <flyway.version>10.8.1</flyway.version>
-    <wiremock.version>3.3.1</wiremock.version>
-    <testcontainers.redis.version>1.20.1</testcontainers.redis.version>
+    <wiremock.version>2.35.2</wiremock.version>
+    <testcontainers.redis.version>1.19.6</testcontainers.redis.version>
   </properties>
 
   <dependencyManagement>

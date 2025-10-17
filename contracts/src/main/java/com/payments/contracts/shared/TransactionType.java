@@ -5,8 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Transaction Type Enum
  *
- * <p>Defines the types of transactions supported: - Payment transactions - Transfer
- * transactions - Adjustment transactions - Reversal transactions
+ * <p>Defines the types of transactions supported: - Payment transactions - Transfer transactions -
+ * Adjustment transactions - Reversal transactions
  */
 @Schema(description = "Transaction type enumeration")
 public enum TransactionType {

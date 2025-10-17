@@ -5,21 +5,20 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.Map;
-
 /**
  * Routing Request DTO
  *
  * <p>Input for routing decision engine: - Payment attributes (amount, currency, type) - Tenant
- * context (tenant ID, business unit ID) - Account information (source, destination) -
- * Processing preferences (priority, mode) - Custom metadata
+ * context (tenant ID, business unit ID) - Account information (source, destination) - Processing
+ * preferences (priority, mode) - Custom metadata
  */
 @Data
 @Builder

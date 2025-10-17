@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.payments.validation.service.ValidationResultServiceTest
+-------------------------------------------------------------------------------
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.575 s -- in com.payments.validation.service.ValidationResultServiceTest

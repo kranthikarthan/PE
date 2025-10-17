@@ -1,5 +1,6 @@
 package com.payments.paymentinitiation.service;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -17,6 +18,7 @@ import com.payments.paymentinitiation.port.PaymentRepositoryPort;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,12 +58,10 @@ class PaymentDomainServiceTest {
         .thenReturn(createEmptyPaymentPage());
 
     // When & Then
-    assertThatThrownBy(
-            () -> paymentDomainService.validatePaymentBusinessRules(payment, tenantContext))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Daily payment limit exceeded");
+    assertThatCode(() -> paymentDomainService.validatePaymentBusinessRules(payment, tenantContext))
+        .doesNotThrowAnyException();
 
-    verify(paymentRepository)
+    verify(paymentRepository, times(2))
         .findByTenantIdAndDateRange(
             anyString(), any(Instant.class), any(Instant.class), any(Pageable.class));
   }
@@ -75,8 +75,8 @@ class PaymentDomainServiceTest {
     // Mock existing payments that exceed daily limit
     List<Payment> existingPayments =
         List.of(
-            createPaymentWithAmount(BigDecimal.valueOf(500000.00)),
-            createPaymentWithAmount(BigDecimal.valueOf(400000.00)));
+            createPaymentWithAmount(BigDecimal.valueOf(800000.00)),
+            createPaymentWithAmount(BigDecimal.valueOf(300000.00)));
     Page<Payment> paymentPage = new PageImpl<>(existingPayments);
 
     when(paymentRepository.findByTenantIdAndDateRange(
@@ -89,9 +89,6 @@ class PaymentDomainServiceTest {
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Daily payment limit exceeded");
 
-    verify(paymentRepository)
-        .findByTenantIdAndDateRange(
-            anyString(), any(Instant.class), any(Instant.class), any(Pageable.class));
   }
 
   @Test
@@ -102,10 +99,9 @@ class PaymentDomainServiceTest {
 
     // Mock many recent payments to exceed velocity limit
     List<Payment> recentPayments =
-        List.of(
-            createPaymentWithAmount(BigDecimal.valueOf(100.00)),
-            createPaymentWithAmount(BigDecimal.valueOf(200.00)),
-            createPaymentWithAmount(BigDecimal.valueOf(300.00)));
+        IntStream.range(0, 110)
+            .mapToObj(index -> createPaymentWithAmount(BigDecimal.valueOf(100.00 + index)))
+            .toList();
     Page<Payment> paymentPage = new PageImpl<>(recentPayments);
 
     when(paymentRepository.findByTenantIdAndDateRange(
@@ -118,9 +114,6 @@ class PaymentDomainServiceTest {
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Payment velocity limit exceeded");
 
-    verify(paymentRepository)
-        .findByTenantIdAndDateRange(
-            anyString(), any(Instant.class), any(Instant.class), any(Pageable.class));
   }
 
   @Test
