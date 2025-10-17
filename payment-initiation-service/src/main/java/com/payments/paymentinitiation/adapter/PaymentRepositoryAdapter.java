@@ -37,7 +37,9 @@ public class PaymentRepositoryAdapter implements PaymentRepositoryPort {
     log.debug("Saving payment: {}", payment.getId());
 
     PaymentEntity entity = paymentMapper.toEntity(payment);
-    jpaRepository.findById(payment.getId()).ifPresent(existing -> entity.setVersion(existing.getVersion()));
+    jpaRepository
+        .findById(payment.getId())
+        .ifPresent(existing -> entity.setVersion(existing.getVersion()));
     PaymentEntity savedEntity = jpaRepository.saveAndFlush(entity);
 
     log.debug("Payment saved successfully: {}", savedEntity.getPaymentId());

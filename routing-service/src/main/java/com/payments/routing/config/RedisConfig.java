@@ -29,7 +29,7 @@ public class RedisConfig {
   private int redisPort;
 
   @Value("${spring.redis.timeout:2000}")
-  private int redisTimeout;
+  private long redisTimeout;
 
   /** Redis Connection Factory */
   @Bean
@@ -39,7 +39,7 @@ public class RedisConfig {
     config.setPort(redisPort);
 
     LettuceConnectionFactory factory = new LettuceConnectionFactory(config);
-    factory.setTimeout(redisTimeout);
+    factory.setValidateConnection(true);
 
     log.info("Redis connection factory configured: {}:{}", redisHost, redisPort);
     return factory;
@@ -47,7 +47,8 @@ public class RedisConfig {
 
   /** Redis Template for Routing Decisions */
   @Bean
-  public RedisTemplate<String, RoutingDecision> redisTemplate(RedisConnectionFactory connectionFactory) {
+  public RedisTemplate<String, RoutingDecision> redisTemplate(
+      RedisConnectionFactory connectionFactory) {
     RedisTemplate<String, RoutingDecision> template = new RedisTemplate<>();
     template.setConnectionFactory(connectionFactory);
 
@@ -63,4 +64,3 @@ public class RedisConfig {
     return template;
   }
 }
-

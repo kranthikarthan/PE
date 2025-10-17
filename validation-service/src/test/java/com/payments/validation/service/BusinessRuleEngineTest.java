@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.payments.contracts.events.PaymentInitiatedEvent;
 import com.payments.domain.shared.Money;
-import com.payments.domain.shared.TenantContext;
 import com.payments.domain.shared.PaymentId;
+import com.payments.domain.shared.TenantContext;
 import com.payments.domain.validation.RuleType;
 import com.payments.validation.service.RuleExecutionFacade.ValidationContext;
 import java.math.BigDecimal;
@@ -139,7 +139,6 @@ class BusinessRuleEngineTest {
   }
 
   @Test
-
   private PaymentInitiatedEvent createValidPaymentEvent() {
     PaymentInitiatedEvent event = new PaymentInitiatedEvent();
     event.setEventId(UUID.randomUUID());

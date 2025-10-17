@@ -229,7 +229,7 @@ class BalanceValidationServiceTest {
             account1,
             account2,
             amount,
-            TransactionType.PAYMENT);
+            TransactionType.DEBIT);
     return transaction;
   }
 

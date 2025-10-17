@@ -88,7 +88,6 @@ class PaymentDomainServiceTest {
             () -> paymentDomainService.validatePaymentBusinessRules(payment, tenantContext))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Daily payment limit exceeded");
-
   }
 
   @Test
@@ -113,7 +112,6 @@ class PaymentDomainServiceTest {
             () -> paymentDomainService.validatePaymentBusinessRules(payment, tenantContext))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Payment velocity limit exceeded");
-
   }
 
   @Test

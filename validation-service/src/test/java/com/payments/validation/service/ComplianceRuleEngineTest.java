@@ -102,7 +102,6 @@ class ComplianceRuleEngineTest {
   }
 
   @Test
-
   private PaymentInitiatedEvent createValidPaymentEvent() {
     PaymentInitiatedEvent event = new PaymentInitiatedEvent();
     event.setEventId(UUID.randomUUID());
