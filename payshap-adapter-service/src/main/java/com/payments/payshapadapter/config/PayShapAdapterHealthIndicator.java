@@ -1,14 +1,11 @@
 package com.payments.payshapadapter.config;
 
 import com.payments.payshapadapter.repository.PayShapAdapterRepository;
-import com.payments.domain.clearing.AdapterOperationalStatus;
 // import org.springframework.boot.actuator.health.Health;
 // import org.springframework.boot.actuator.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
-/**
- * Health indicator for PayShap adapter
- */
+/** Health indicator for PayShap adapter */
 @Component
 public class PayShapAdapterHealthIndicator /* implements HealthIndicator */ {
 
@@ -23,8 +20,10 @@ public class PayShapAdapterHealthIndicator /* implements HealthIndicator */ {
   // public Health health() {
   //   try {
   //     long totalAdapters = payShapAdapterRepository.count();
-  //     long activeAdapters = payShapAdapterRepository.countByStatus(AdapterOperationalStatus.ACTIVE);
-  //     long inactiveAdapters = payShapAdapterRepository.countByStatus(AdapterOperationalStatus.INACTIVE);
+  //     long activeAdapters =
+  // payShapAdapterRepository.countByStatus(AdapterOperationalStatus.ACTIVE);
+  //     long inactiveAdapters =
+  // payShapAdapterRepository.countByStatus(AdapterOperationalStatus.INACTIVE);
 
   //     if (totalAdapters == 0) {
   //       return Health.down()

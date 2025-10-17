@@ -1,10 +1,13 @@
 package com.payments.payshapadapter.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.TenantContext;
 import com.payments.payshapadapter.domain.PayShapAdapter;
 import com.payments.payshapadapter.repository.PayShapAdapterRepository;
 import com.payments.payshapadapter.service.PayShapAdapterService;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +21,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.concurrent.CompletableFuture;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-/**
- * Integration tests for PayShap adapter using Testcontainers
- */
+/** Integration tests for PayShap adapter using Testcontainers */
 @SpringBootTest
 @Testcontainers
 @AutoConfigureWebMvc
@@ -33,10 +30,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PayShapAdapterIntegrationTest {
 
   @Container
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
-      .withDatabaseName("payshap_adapter_test")
-      .withUsername("test")
-      .withPassword("test");
+  static PostgreSQLContainer<?> postgres =
+      new PostgreSQLContainer<>("postgres:15-alpine")
+          .withDatabaseName("payshap_adapter_test")
+          .withUsername("test")
+          .withPassword("test");
 
   @DynamicPropertySource
   static void configureProperties(DynamicPropertyRegistry registry) {
@@ -45,23 +43,17 @@ class PayShapAdapterIntegrationTest {
     registry.add("spring.datasource.password", postgres::getPassword);
   }
 
-  @Autowired
-  private PayShapAdapterService payShapAdapterService;
+  @Autowired private PayShapAdapterService payShapAdapterService;
 
-  @Autowired
-  private PayShapAdapterRepository payShapAdapterRepository;
+  @Autowired private PayShapAdapterRepository payShapAdapterRepository;
 
   private TenantContext tenantContext;
   private ClearingAdapterId adapterId;
 
   @BeforeEach
   void setUp() {
-    tenantContext = TenantContext.of(
-        "tenant-123",
-        "Test Tenant",
-        "business-unit-456",
-        "Test Business Unit"
-    );
+    tenantContext =
+        TenantContext.of("tenant-123", "Test Tenant", "business-unit-456", "Test Business Unit");
     adapterId = ClearingAdapterId.generate();
   }
 
@@ -73,8 +65,9 @@ class PayShapAdapterIntegrationTest {
     String createdBy = "test-user";
 
     // When
-    CompletableFuture<PayShapAdapter> future = payShapAdapterService.createAdapter(
-        adapterId, tenantContext, adapterName, endpoint, createdBy);
+    CompletableFuture<PayShapAdapter> future =
+        payShapAdapterService.createAdapter(
+            adapterId, tenantContext, adapterName, endpoint, createdBy);
     PayShapAdapter adapter = future.get();
 
     // Then
@@ -94,8 +87,8 @@ class PayShapAdapterIntegrationTest {
     String activatedBy = "admin-user";
 
     // When
-    CompletableFuture<PayShapAdapter> future = payShapAdapterService.activateAdapter(
-        adapter.getId(), activatedBy);
+    CompletableFuture<PayShapAdapter> future =
+        payShapAdapterService.activateAdapter(adapter.getId(), activatedBy);
     PayShapAdapter activatedAdapter = future.get();
 
     // Then
@@ -112,8 +105,8 @@ class PayShapAdapterIntegrationTest {
     String reason = "Maintenance";
 
     // When
-    CompletableFuture<PayShapAdapter> future = payShapAdapterService.deactivateAdapter(
-        adapter.getId(), reason, deactivatedBy);
+    CompletableFuture<PayShapAdapter> future =
+        payShapAdapterService.deactivateAdapter(adapter.getId(), reason, deactivatedBy);
     PayShapAdapter deactivatedAdapter = future.get();
 
     // Then
@@ -135,16 +128,17 @@ class PayShapAdapterIntegrationTest {
     String updatedBy = "admin-user";
 
     // When
-    CompletableFuture<PayShapAdapter> future = payShapAdapterService.updateAdapterConfiguration(
-        adapter.getId(),
-        newEndpoint,
-        newApiVersion,
-        newTimeoutSeconds,
-        newRetryAttempts,
-        newEncryptionEnabled,
-        newCertificatePath,
-        newCertificatePassword,
-        updatedBy);
+    CompletableFuture<PayShapAdapter> future =
+        payShapAdapterService.updateAdapterConfiguration(
+            adapter.getId(),
+            newEndpoint,
+            newApiVersion,
+            newTimeoutSeconds,
+            newRetryAttempts,
+            newEncryptionEnabled,
+            newCertificatePath,
+            newCertificatePassword,
+            updatedBy);
     PayShapAdapter updatedAdapter = future.get();
 
     // Then
@@ -164,7 +158,8 @@ class PayShapAdapterIntegrationTest {
     PayShapAdapter expectedAdapter = createTestAdapter();
 
     // When
-    CompletableFuture<Optional<PayShapAdapter>> future = payShapAdapterService.getAdapter(expectedAdapter.getId());
+    CompletableFuture<Optional<PayShapAdapter>> future =
+        payShapAdapterService.getAdapter(expectedAdapter.getId());
     Optional<PayShapAdapter> actualAdapter = future.get();
 
     // Then
@@ -179,13 +174,15 @@ class PayShapAdapterIntegrationTest {
     createTestAdapterWithDifferentTenant();
 
     // When
-    CompletableFuture<List<PayShapAdapter>> future = payShapAdapterService.getAdaptersByTenant(
-        tenantContext.getTenantId(), tenantContext.getBusinessUnitId());
+    CompletableFuture<List<PayShapAdapter>> future =
+        payShapAdapterService.getAdaptersByTenant(
+            tenantContext.getTenantId(), tenantContext.getBusinessUnitId());
     List<PayShapAdapter> adapters = future.get();
 
     // Then
     assertThat(adapters).hasSize(1);
-    assertThat(adapters.get(0).getTenantContext().getTenantId()).isEqualTo(tenantContext.getTenantId());
+    assertThat(adapters.get(0).getTenantContext().getTenantId())
+        .isEqualTo(tenantContext.getTenantId());
   }
 
   @Test
@@ -196,8 +193,8 @@ class PayShapAdapterIntegrationTest {
     payShapAdapterService.activateAdapter(adapter1.getId(), "admin").get();
 
     // When
-    CompletableFuture<List<PayShapAdapter>> future = payShapAdapterService.getActiveAdaptersByTenant(
-        tenantContext.getTenantId());
+    CompletableFuture<List<PayShapAdapter>> future =
+        payShapAdapterService.getActiveAdaptersByTenant(tenantContext.getTenantId());
     List<PayShapAdapter> activeAdapters = future.get();
 
     // Then
@@ -212,7 +209,8 @@ class PayShapAdapterIntegrationTest {
     PayShapAdapter adapter = createTestAdapter();
 
     // When
-    CompletableFuture<Boolean> future = payShapAdapterService.validateAdapterConfiguration(adapter.getId());
+    CompletableFuture<Boolean> future =
+        payShapAdapterService.validateAdapterConfiguration(adapter.getId());
     Boolean isValid = future.get();
 
     // Then
@@ -228,7 +226,8 @@ class PayShapAdapterIntegrationTest {
     payShapAdapterService.deleteAdapter(adapter.getId());
 
     // Then
-    CompletableFuture<Optional<PayShapAdapter>> future = payShapAdapterService.getAdapter(adapter.getId());
+    CompletableFuture<Optional<PayShapAdapter>> future =
+        payShapAdapterService.getAdapter(adapter.getId());
     Optional<PayShapAdapter> deletedAdapter = future.get();
     assertThat(deletedAdapter).isEmpty();
   }
@@ -238,25 +237,24 @@ class PayShapAdapterIntegrationTest {
     String endpoint = "https://payshap.test.com/api";
     String createdBy = "test-user";
 
-    CompletableFuture<PayShapAdapter> future = payShapAdapterService.createAdapter(
-        ClearingAdapterId.generate(), tenantContext, adapterName, endpoint, createdBy);
+    CompletableFuture<PayShapAdapter> future =
+        payShapAdapterService.createAdapter(
+            ClearingAdapterId.generate(), tenantContext, adapterName, endpoint, createdBy);
     return future.get();
   }
 
   private PayShapAdapter createTestAdapterWithDifferentTenant() throws Exception {
-    TenantContext differentTenant = TenantContext.of(
-        "tenant-789",
-        "Different Tenant",
-        "business-unit-101",
-        "Different Business Unit"
-    );
+    TenantContext differentTenant =
+        TenantContext.of(
+            "tenant-789", "Different Tenant", "business-unit-101", "Different Business Unit");
 
     String adapterName = "Different Tenant Adapter";
     String endpoint = "https://payshap.different.com/api";
     String createdBy = "different-user";
 
-    CompletableFuture<PayShapAdapter> future = payShapAdapterService.createAdapter(
-        ClearingAdapterId.generate(), differentTenant, adapterName, endpoint, createdBy);
+    CompletableFuture<PayShapAdapter> future =
+        payShapAdapterService.createAdapter(
+            ClearingAdapterId.generate(), differentTenant, adapterName, endpoint, createdBy);
     return future.get();
   }
 }

@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 /**
  * SWIFT Transaction Log Entity
  *
- * <p>Logs all SWIFT payment transactions for audit and reconciliation purposes. Tracks
- * sanctions screening, FX conversion, and payment processing status.
+ * <p>Logs all SWIFT payment transactions for audit and reconciliation purposes. Tracks sanctions
+ * screening, FX conversion, and payment processing status.
  */
 @Entity
 @Table(name = "swift_transaction_logs")

@@ -2,9 +2,7 @@ package com.payments.swiftadapter.exception;
 
 import com.payments.domain.shared.ClearingAdapterId;
 
-/**
- * Exception thrown when SWIFT adapter is not found
- */
+/** Exception thrown when SWIFT adapter is not found */
 public class SwiftAdapterNotFoundException extends RuntimeException {
 
   public SwiftAdapterNotFoundException(String message) {

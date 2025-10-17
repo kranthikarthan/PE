@@ -7,9 +7,7 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-/**
- * Domain event for SWIFT route addition
- */
+/** Domain event for SWIFT route addition */
 @Value
 @AllArgsConstructor
 public class SwiftRouteAddedEvent implements DomainEvent {

@@ -1,8 +1,6 @@
 package com.payments.payshapadapter.exception;
 
-/**
- * Exception thrown when PayShap adapter operation fails
- */
+/** Exception thrown when PayShap adapter operation fails */
 public class PayShapAdapterOperationException extends RuntimeException {
 
   public PayShapAdapterOperationException(String message) {

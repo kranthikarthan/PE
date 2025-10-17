@@ -1,8 +1,6 @@
 package com.payments.swiftadapter.exception;
 
-/**
- * Exception thrown when SWIFT transaction log validation fails
- */
+/** Exception thrown when SWIFT transaction log validation fails */
 public class InvalidSwiftTransactionLogException extends RuntimeException {
 
   public InvalidSwiftTransactionLogException(String message) {

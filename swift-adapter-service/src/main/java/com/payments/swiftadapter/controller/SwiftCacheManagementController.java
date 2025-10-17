@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.*;
 /**
  * SWIFT Cache Management Controller
  *
- * <p>REST controller for SWIFT cache management operations: - Cache statistics - Cache clearing - Token management - Cache health
+ * <p>REST controller for SWIFT cache management operations: - Cache statistics - Cache clearing -
+ * Token management - Cache health
  */
 @Slf4j
 @RestController
@@ -56,7 +57,9 @@ public class SwiftCacheManagementController {
    * @return Success response
    */
   @DeleteMapping("/adapters/{adapterId}")
-  @Operation(summary = "Clear SWIFT adapter cache", description = "Clear cache for specific SWIFT adapter")
+  @Operation(
+      summary = "Clear SWIFT adapter cache",
+      description = "Clear cache for specific SWIFT adapter")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Adapter cache cleared successfully"),
@@ -64,8 +67,7 @@ public class SwiftCacheManagementController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<Map<String, Object>> clearAdapterCache(
-      @Parameter(description = "Adapter ID", required = true) @PathVariable
-          String adapterId,
+      @Parameter(description = "Adapter ID", required = true) @PathVariable String adapterId,
       @Parameter(description = "Tenant ID", required = true) @RequestHeader("X-Tenant-ID")
           String tenantId) {
 
@@ -132,7 +134,10 @@ public class SwiftCacheManagementController {
 
     return ResponseEntity.ok(
         Map.of(
-            "message", "All SWIFT cache cleared successfully", "timestamp", System.currentTimeMillis()));
+            "message",
+            "All SWIFT cache cleared successfully",
+            "timestamp",
+            System.currentTimeMillis()));
   }
 
   /**
@@ -141,7 +146,9 @@ public class SwiftCacheManagementController {
    * @return Success response
    */
   @DeleteMapping("/tokens")
-  @Operation(summary = "Clear SWIFT OAuth2 token cache", description = "Clear SWIFT OAuth2 token cache")
+  @Operation(
+      summary = "Clear SWIFT OAuth2 token cache",
+      description = "Clear SWIFT OAuth2 token cache")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OAuth2 token cache cleared successfully"),
@@ -165,7 +172,9 @@ public class SwiftCacheManagementController {
    * @return Success response
    */
   @PostMapping("/tokens/refresh")
-  @Operation(summary = "Refresh SWIFT OAuth2 token", description = "Refresh SWIFT OAuth2 access token")
+  @Operation(
+      summary = "Refresh SWIFT OAuth2 token",
+      description = "Refresh SWIFT OAuth2 access token")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OAuth2 token refreshed successfully"),
@@ -191,7 +200,9 @@ public class SwiftCacheManagementController {
    * @return Token information
    */
   @GetMapping("/tokens/info")
-  @Operation(summary = "Get SWIFT OAuth2 token info", description = "Get SWIFT OAuth2 token information")
+  @Operation(
+      summary = "Get SWIFT OAuth2 token info",
+      description = "Get SWIFT OAuth2 token information")
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -241,8 +252,11 @@ public class SwiftCacheManagementController {
 
     return ResponseEntity.ok(
         Map.of(
-            "healthy", isHealthy,
-            "timestamp", System.currentTimeMillis(),
-            "service", "SWIFT Cache"));
+            "healthy",
+            isHealthy,
+            "timestamp",
+            System.currentTimeMillis(),
+            "service",
+            "SWIFT Cache"));
   }
 }

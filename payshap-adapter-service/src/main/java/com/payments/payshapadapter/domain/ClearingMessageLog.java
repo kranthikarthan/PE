@@ -8,9 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Clearing Message Log Entity for PayShap Adapter
- */
+/** Clearing Message Log Entity for PayShap Adapter */
 @Entity
 @Table(name = "payshap_clearing_message_logs")
 @Data

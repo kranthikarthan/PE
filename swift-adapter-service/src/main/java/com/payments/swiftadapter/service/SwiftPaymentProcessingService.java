@@ -2,16 +2,14 @@ package com.payments.swiftadapter.service;
 
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.ClearingMessageId;
-import com.payments.domain.shared.TenantContext;
 import com.payments.swiftadapter.domain.SwiftPaymentMessage;
-import com.payments.swiftadapter.domain.SwiftTransactionLog;
 import com.payments.swiftadapter.domain.SwiftSettlementRecord;
-import com.payments.swiftadapter.repository.SwiftPaymentMessageRepository;
-import com.payments.swiftadapter.repository.SwiftTransactionLogRepository;
-import com.payments.swiftadapter.repository.SwiftSettlementRecordRepository;
+import com.payments.swiftadapter.domain.SwiftTransactionLog;
 import com.payments.swiftadapter.repository.SwiftAdapterRepository;
+import com.payments.swiftadapter.repository.SwiftPaymentMessageRepository;
+import com.payments.swiftadapter.repository.SwiftSettlementRecordRepository;
+import com.payments.swiftadapter.repository.SwiftTransactionLogRepository;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Service for processing SWIFT payments with sanctions screening and FX conversion
- */
+/** Service for processing SWIFT payments with sanctions screening and FX conversion */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -70,71 +66,76 @@ public class SwiftPaymentProcessingService {
     log.info("Processing SWIFT payment: {} for adapter: {}", transactionId, adapterId);
 
     // Validate adapter exists and is active
-    var adapter = swiftAdapterRepository.findById(adapterId)
-        .orElseThrow(() -> new IllegalArgumentException("SWIFT adapter not found: " + adapterId));
-    
+    var adapter =
+        swiftAdapterRepository
+            .findById(adapterId)
+            .orElseThrow(
+                () -> new IllegalArgumentException("SWIFT adapter not found: " + adapterId));
+
     if (!adapter.isActive()) {
       throw new IllegalStateException("SWIFT adapter is not active: " + adapterId);
     }
 
     // Create payment message
-    SwiftPaymentMessage paymentMessage = SwiftPaymentMessage.create(
-        adapterId.toString(),
-        transactionId,
-        messageType,
-        direction,
-        messageId,
-        instructionId,
-        endToEndId,
-        transactionType,
-        amount,
-        currency,
-        debtorName,
-        debtorAccount,
-        debtorBankCode,
-        debtorBankName,
-        debtorBankCountry,
-        debtorBankSwiftCode,
-        creditorName,
-        creditorAccount,
-        creditorBankCode,
-        creditorBankName,
-        creditorBankCountry,
-        creditorBankSwiftCode,
-        paymentPurpose,
-        reference,
-        correspondentBankCode,
-        correspondentBankName,
-        correspondentBankSwiftCode,
-        intermediaryBankCode,
-        intermediaryBankName,
-        intermediaryBankSwiftCode,
-        chargesBearer);
+    SwiftPaymentMessage paymentMessage =
+        SwiftPaymentMessage.create(
+            adapterId.toString(),
+            transactionId,
+            messageType,
+            direction,
+            messageId,
+            instructionId,
+            endToEndId,
+            transactionType,
+            amount,
+            currency,
+            debtorName,
+            debtorAccount,
+            debtorBankCode,
+            debtorBankName,
+            debtorBankCountry,
+            debtorBankSwiftCode,
+            creditorName,
+            creditorAccount,
+            creditorBankCode,
+            creditorBankName,
+            creditorBankCountry,
+            creditorBankSwiftCode,
+            paymentPurpose,
+            reference,
+            correspondentBankCode,
+            correspondentBankName,
+            correspondentBankSwiftCode,
+            intermediaryBankCode,
+            intermediaryBankName,
+            intermediaryBankSwiftCode,
+            chargesBearer);
 
     // Save payment message
     SwiftPaymentMessage savedMessage = swiftPaymentMessageRepository.save(paymentMessage);
 
     // Create transaction log
-    SwiftTransactionLog transactionLog = SwiftTransactionLog.create(
-        adapterId.toString(),
-        transactionId,
-        messageId,
-        instructionId,
-        endToEndId,
-        transactionType,
-        amount,
-        currency,
-        debtorName,
-        debtorAccount,
-        debtorBankSwiftCode,
-        creditorName,
-        creditorAccount,
-        creditorBankSwiftCode,
-        paymentPurpose,
-        reference,
-        correspondentBankSwiftCode,
-        intermediaryBankSwiftCode,
-        chargesBearer);
+    SwiftTransactionLog transactionLog =
+        SwiftTransactionLog.create(
+            adapterId.toString(),
+            transactionId,
+            messageId,
+            instructionId,
+            endToEndId,
+            transactionType,
+            amount,
+            currency,
+            debtorName,
+            debtorAccount,
+            debtorBankSwiftCode,
+            creditorName,
+            creditorAccount,
+            creditorBankSwiftCode,
+            paymentPurpose,
+            reference,
+            correspondentBankSwiftCode,
+            intermediaryBankSwiftCode,
+            chargesBearer);
 
     // Save transaction log
     SwiftTransactionLog savedLog = swiftTransactionLogRepository.save(transactionLog);
@@ -226,33 +227,34 @@ public class SwiftPaymentProcessingService {
 
     log.info("Creating SWIFT settlement record for transaction: {}", transactionId);
 
-    SwiftSettlementRecord settlementRecord = SwiftSettlementRecord.create(
-        adapterId.toString(),
-        transactionId,
-        messageId,
-        instructionId,
-        endToEndId,
-        settlementType,
-        amount,
-        currency,
-        originalAmount,
-        originalCurrency,
-        exchangeRate,
-        debtorBankSwiftCode,
-        creditorBankSwiftCode,
-        correspondentBankSwiftCode,
-        intermediaryBankSwiftCode,
-        settlementBankSwiftCode,
-        settlementBankName,
-        settlementBankCountry,
-        settlementAccount,
-        nostroAccount,
-        vostroAccount,
-        chargesAmount,
-        chargesCurrency,
-        chargesBearer,
-        commissionAmount,
-        commissionCurrency);
+    SwiftSettlementRecord settlementRecord =
+        SwiftSettlementRecord.create(
+            adapterId.toString(),
+            transactionId,
+            messageId,
+            instructionId,
+            endToEndId,
+            settlementType,
+            amount,
+            currency,
+            originalAmount,
+            originalCurrency,
+            exchangeRate,
+            debtorBankSwiftCode,
+            creditorBankSwiftCode,
+            correspondentBankSwiftCode,
+            intermediaryBankSwiftCode,
+            settlementBankSwiftCode,
+            settlementBankName,
+            settlementBankCountry,
+            settlementAccount,
+            nostroAccount,
+            vostroAccount,
+            chargesAmount,
+            chargesCurrency,
+            chargesBearer,
+            commissionAmount,
+            commissionCurrency);
 
     SwiftSettlementRecord savedRecord = swiftSettlementRecordRepository.save(settlementRecord);
 

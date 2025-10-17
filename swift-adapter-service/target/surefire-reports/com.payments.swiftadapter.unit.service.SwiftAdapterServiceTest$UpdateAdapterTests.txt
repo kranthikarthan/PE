@@ -1,0 +1,14 @@
+-------------------------------------------------------------------------------
+Test set: com.payments.swiftadapter.unit.service.SwiftAdapterServiceTest$UpdateAdapterTests
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.010 s <<< FAILURE! -- in com.payments.swiftadapter.unit.service.SwiftAdapterServiceTest$UpdateAdapterTests
+com.payments.swiftadapter.unit.service.SwiftAdapterServiceTest$UpdateAdapterTests.shouldUpdateAdapterConfigurationSuccessfully -- Time elapsed: 0.004 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Integer.intValue()" because "this.version" is null
+	at com.payments.swiftadapter.domain.SwiftAdapter.updateConfiguration(SwiftAdapter.java:241)
+	at com.payments.swiftadapter.service.SwiftAdapterService.updateAdapterConfiguration(SwiftAdapterService.java:113)
+	at com.payments.swiftadapter.unit.service.SwiftAdapterServiceTest$UpdateAdapterTests.shouldUpdateAdapterConfigurationSuccessfully(SwiftAdapterServiceTest.java:203)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+

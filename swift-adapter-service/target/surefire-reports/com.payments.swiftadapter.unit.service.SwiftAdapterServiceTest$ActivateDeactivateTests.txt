@@ -1,0 +1,24 @@
+-------------------------------------------------------------------------------
+Test set: com.payments.swiftadapter.unit.service.SwiftAdapterServiceTest$ActivateDeactivateTests
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 2, Skipped: 0, Time elapsed: 0.014 s <<< FAILURE! -- in com.payments.swiftadapter.unit.service.SwiftAdapterServiceTest$ActivateDeactivateTests
+com.payments.swiftadapter.unit.service.SwiftAdapterServiceTest$ActivateDeactivateTests.shouldActivateAdapterSuccessfully -- Time elapsed: 0.007 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Integer.intValue()" because "this.version" is null
+	at com.payments.swiftadapter.domain.SwiftAdapter.activate(SwiftAdapter.java:257)
+	at com.payments.swiftadapter.service.SwiftAdapterService.activateAdapter(SwiftAdapterService.java:380)
+	at com.payments.swiftadapter.unit.service.SwiftAdapterServiceTest$ActivateDeactivateTests.shouldActivateAdapterSuccessfully(SwiftAdapterServiceTest.java:264)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.swiftadapter.unit.service.SwiftAdapterServiceTest$ActivateDeactivateTests.shouldDeactivateAdapterSuccessfully -- Time elapsed: 0.005 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Integer.intValue()" because "this.version" is null
+	at com.payments.swiftadapter.domain.SwiftAdapter.deactivate(SwiftAdapter.java:273)
+	at com.payments.swiftadapter.service.SwiftAdapterService.deactivateAdapter(SwiftAdapterService.java:411)
+	at com.payments.swiftadapter.unit.service.SwiftAdapterServiceTest$ActivateDeactivateTests.shouldDeactivateAdapterSuccessfully(SwiftAdapterServiceTest.java:292)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+

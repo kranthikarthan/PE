@@ -41,12 +41,14 @@ public class PayShapAdapterController {
             request.getBusinessUnitId(), request.getBusinessUnitName());
 
     PayShapAdapter adapter =
-        payShapAdapterService.createAdapter(
-            adapterId,
-            tenantContext,
-            request.getAdapterName(),
-            request.getEndpoint(),
-            request.getCreatedBy()).join();
+        payShapAdapterService
+            .createAdapter(
+                adapterId,
+                tenantContext,
+                request.getAdapterName(),
+                request.getEndpoint(),
+                request.getCreatedBy())
+            .join();
 
     return ResponseEntity.ok(adapter);
   }

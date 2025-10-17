@@ -8,9 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Clearing Message Log Entity for SWIFT Adapter
- */
+/** Clearing Message Log Entity for SWIFT Adapter */
 @Entity
 @Table(name = "swift_clearing_message_logs")
 @Data

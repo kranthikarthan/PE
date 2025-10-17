@@ -33,8 +33,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PayShapAdapter {
 
-  @EmbeddedId
-  private ClearingAdapterId id;
+  @EmbeddedId private ClearingAdapterId id;
 
   @Embedded
   @AttributeOverrides({
@@ -232,7 +231,8 @@ public class PayShapAdapter {
     this.version++;
 
     registerEvent(
-        new PayShapAdapterActivatedEvent(this.id.toString(), this.tenantContext.getTenantId(), Instant.now()));
+        new PayShapAdapterActivatedEvent(
+            this.id.toString(), this.tenantContext.getTenantId(), Instant.now()));
   }
 
   /** Deactivate the adapter */
@@ -298,7 +298,8 @@ public class PayShapAdapter {
     this.messageLogs.add(log);
     this.updatedAt = Instant.now();
 
-    registerEvent(new PayShapMessageLoggedEvent(this.id, direction, messageType, statusCode, Instant.now()));
+    registerEvent(
+        new PayShapMessageLoggedEvent(this.id, direction, messageType, statusCode, Instant.now()));
   }
 
   /** Get routes */

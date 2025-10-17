@@ -1,6 +1,9 @@
 spring:
   application:
     name: swift-adapter-service-test
+  cloud:
+    config:
+      enabled: false
   datasource:
     url: jdbc:postgresql://localhost:5432/swift_adapter_test
     username: test

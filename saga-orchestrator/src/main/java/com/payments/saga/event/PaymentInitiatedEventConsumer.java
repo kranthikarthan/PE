@@ -108,7 +108,9 @@ public class PaymentInitiatedEventConsumer {
 
   private Map<String, Object> validateAndParseEvent(String message) {
     try {
-      Map<String, Object> eventData = objectMapper.readValue(message, Map.class);
+      Map<String, Object> eventData =
+          objectMapper.readValue(
+              message, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
 
       // Validate required fields
       if (!eventData.containsKey("paymentId")) {

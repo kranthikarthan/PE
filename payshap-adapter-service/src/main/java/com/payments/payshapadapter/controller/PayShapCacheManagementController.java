@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.*;
 /**
  * PayShap Cache Management Controller
  *
- * <p>REST controller for PayShap cache management operations: - Cache statistics - Cache clearing - Token management - Cache health
+ * <p>REST controller for PayShap cache management operations: - Cache statistics - Cache clearing -
+ * Token management - Cache health
  */
 @Slf4j
 @RestController
@@ -56,7 +57,9 @@ public class PayShapCacheManagementController {
    * @return Success response
    */
   @DeleteMapping("/adapters/{adapterId}")
-  @Operation(summary = "Clear PayShap adapter cache", description = "Clear cache for specific PayShap adapter")
+  @Operation(
+      summary = "Clear PayShap adapter cache",
+      description = "Clear cache for specific PayShap adapter")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Adapter cache cleared successfully"),
@@ -64,8 +67,7 @@ public class PayShapCacheManagementController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<Map<String, Object>> clearAdapterCache(
-      @Parameter(description = "Adapter ID", required = true) @PathVariable
-          String adapterId,
+      @Parameter(description = "Adapter ID", required = true) @PathVariable String adapterId,
       @Parameter(description = "Tenant ID", required = true) @RequestHeader("X-Tenant-ID")
           String tenantId) {
 
@@ -91,7 +93,9 @@ public class PayShapCacheManagementController {
    * @return Success response
    */
   @DeleteMapping("/tenants/{tenantId}")
-  @Operation(summary = "Clear PayShap tenant cache", description = "Clear cache for specific tenant")
+  @Operation(
+      summary = "Clear PayShap tenant cache",
+      description = "Clear cache for specific tenant")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "Tenant cache cleared successfully"),
@@ -132,7 +136,10 @@ public class PayShapCacheManagementController {
 
     return ResponseEntity.ok(
         Map.of(
-            "message", "All PayShap cache cleared successfully", "timestamp", System.currentTimeMillis()));
+            "message",
+            "All PayShap cache cleared successfully",
+            "timestamp",
+            System.currentTimeMillis()));
   }
 
   /**
@@ -141,7 +148,9 @@ public class PayShapCacheManagementController {
    * @return Success response
    */
   @DeleteMapping("/tokens")
-  @Operation(summary = "Clear PayShap OAuth2 token cache", description = "Clear PayShap OAuth2 token cache")
+  @Operation(
+      summary = "Clear PayShap OAuth2 token cache",
+      description = "Clear PayShap OAuth2 token cache")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OAuth2 token cache cleared successfully"),
@@ -165,7 +174,9 @@ public class PayShapCacheManagementController {
    * @return Success response
    */
   @PostMapping("/tokens/refresh")
-  @Operation(summary = "Refresh PayShap OAuth2 token", description = "Refresh PayShap OAuth2 access token")
+  @Operation(
+      summary = "Refresh PayShap OAuth2 token",
+      description = "Refresh PayShap OAuth2 access token")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OAuth2 token refreshed successfully"),
@@ -191,7 +202,9 @@ public class PayShapCacheManagementController {
    * @return Token information
    */
   @GetMapping("/tokens/info")
-  @Operation(summary = "Get PayShap OAuth2 token info", description = "Get PayShap OAuth2 token information")
+  @Operation(
+      summary = "Get PayShap OAuth2 token info",
+      description = "Get PayShap OAuth2 token information")
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -241,8 +254,11 @@ public class PayShapCacheManagementController {
 
     return ResponseEntity.ok(
         Map.of(
-            "healthy", isHealthy,
-            "timestamp", System.currentTimeMillis(),
-            "service", "PayShap Cache"));
+            "healthy",
+            isHealthy,
+            "timestamp",
+            System.currentTimeMillis(),
+            "service",
+            "PayShap Cache"));
   }
 }

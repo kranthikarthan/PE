@@ -2,9 +2,7 @@ package com.payments.payshapadapter.exception;
 
 import com.payments.domain.shared.ClearingAdapterId;
 
-/**
- * Exception thrown when PayShap adapter is not found
- */
+/** Exception thrown when PayShap adapter is not found */
 public class PayShapAdapterNotFoundException extends RuntimeException {
 
   public PayShapAdapterNotFoundException(String message) {

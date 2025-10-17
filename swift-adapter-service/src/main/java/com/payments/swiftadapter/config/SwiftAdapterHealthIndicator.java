@@ -1,14 +1,11 @@
 package com.payments.swiftadapter.config;
 
 import com.payments.swiftadapter.repository.SwiftAdapterRepository;
-import com.payments.domain.clearing.AdapterOperationalStatus;
 // import org.springframework.boot.actuator.health.Health;
 // import org.springframework.boot.actuator.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
-/**
- * Health indicator for SWIFT adapter
- */
+/** Health indicator for SWIFT adapter */
 @Component
 public class SwiftAdapterHealthIndicator /* implements HealthIndicator */ {
 
@@ -23,8 +20,10 @@ public class SwiftAdapterHealthIndicator /* implements HealthIndicator */ {
   // public Health health() {
   //   try {
   //     long totalAdapters = swiftAdapterRepository.count();
-  //     long activeAdapters = swiftAdapterRepository.countByStatus(AdapterOperationalStatus.ACTIVE);
-  //     long inactiveAdapters = swiftAdapterRepository.countByStatus(AdapterOperationalStatus.INACTIVE);
+  //     long activeAdapters =
+  // swiftAdapterRepository.countByStatus(AdapterOperationalStatus.ACTIVE);
+  //     long inactiveAdapters =
+  // swiftAdapterRepository.countByStatus(AdapterOperationalStatus.INACTIVE);
 
   //     if (totalAdapters == 0) {
   //       return Health.down()

@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 /**
  * SWIFT Settlement Record Entity
  *
- * <p>Records settlement information for SWIFT payments including correspondent bank
- * settlements, FX conversions, and final settlement amounts.
+ * <p>Records settlement information for SWIFT payments including correspondent bank settlements, FX
+ * conversions, and final settlement amounts.
  */
 @Entity
 @Table(name = "swift_settlement_records")

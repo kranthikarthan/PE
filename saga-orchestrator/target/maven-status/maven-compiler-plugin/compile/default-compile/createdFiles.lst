@@ -1,5 +1,6 @@
 com\payments\saga\repository\SagaRepository.class
 com\payments\saga\domain\SagaTemplate.class
+com\payments\saga\entity\SagaStepEntity$1.class
 com\payments\saga\service\SagaLookupService.class
 com\payments\saga\domain\SagaStepDefinition.class
 com\payments\saga\repository\SagaEventRepository.class
@@ -17,6 +18,7 @@ com\payments\saga\domain\SagaCompensationStartedEvent.class
 com\payments\saga\service\TenantServiceImpl.class
 com\payments\saga\domain\SagaStepCompletedEvent.class
 com\payments\saga\service\SagaStepService.class
+com\payments\saga\entity\SagaEntity$1.class
 com\payments\saga\domain\Saga.class
 com\payments\saga\api\StartSagaRequest.class
 com\payments\saga\domain\SagaStepStatus$1.class
@@ -59,6 +61,7 @@ com\payments\saga\event\TransactionCreatedEventConsumer.class
 com\payments\saga\domain\SagaStepId.class
 com\payments\saga\entity\SagaStepEntity$SagaStepEntityBuilder.class
 com\payments\saga\entity\SagaEventEntity$SagaEventEntityBuilder.class
+com\payments\saga\event\PaymentInitiatedEventConsumer$1.class
 com\payments\saga\domain\SagaEvent.class
 com\payments\saga\domain\SagaId.class
 com\payments\saga\event\PaymentValidatedEventConsumer.class

@@ -6,9 +6,7 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-/**
- * Domain event for PayShap message logging
- */
+/** Domain event for PayShap message logging */
 @Value
 @AllArgsConstructor
 public class PayShapMessageLoggedEvent implements DomainEvent {

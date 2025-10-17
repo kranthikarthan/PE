@@ -1,0 +1,24 @@
+-------------------------------------------------------------------------------
+Test set: com.payments.swiftadapter.unit.exception.ExceptionHandlingTest$DataIntegrityTests
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 2, Skipped: 0, Time elapsed: 1.252 s <<< FAILURE! -- in com.payments.swiftadapter.unit.exception.ExceptionHandlingTest$DataIntegrityTests
+com.payments.swiftadapter.unit.exception.ExceptionHandlingTest$DataIntegrityTests.shouldPreserveAdapterIdAfterUpdate -- Time elapsed: 1.239 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Integer.intValue()" because "this.version" is null
+	at com.payments.swiftadapter.domain.SwiftAdapter.updateConfiguration(SwiftAdapter.java:241)
+	at com.payments.swiftadapter.service.SwiftAdapterService.updateAdapterConfiguration(SwiftAdapterService.java:113)
+	at com.payments.swiftadapter.unit.exception.ExceptionHandlingTest$DataIntegrityTests.shouldPreserveAdapterIdAfterUpdate(ExceptionHandlingTest.java:428)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.swiftadapter.unit.exception.ExceptionHandlingTest$DataIntegrityTests.shouldNotLoseTenantContextAfterUpdate -- Time elapsed: 0.006 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Integer.intValue()" because "this.version" is null
+	at com.payments.swiftadapter.domain.SwiftAdapter.updateConfiguration(SwiftAdapter.java:241)
+	at com.payments.swiftadapter.service.SwiftAdapterService.updateAdapterConfiguration(SwiftAdapterService.java:113)
+	at com.payments.swiftadapter.unit.exception.ExceptionHandlingTest$DataIntegrityTests.shouldNotLoseTenantContextAfterUpdate(ExceptionHandlingTest.java:451)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+

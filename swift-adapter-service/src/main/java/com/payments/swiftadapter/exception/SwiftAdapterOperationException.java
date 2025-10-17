@@ -1,8 +1,6 @@
 package com.payments.swiftadapter.exception;
 
-/**
- * Exception thrown when SWIFT adapter operation fails
- */
+/** Exception thrown when SWIFT adapter operation fails */
 public class SwiftAdapterOperationException extends RuntimeException {
 
   public SwiftAdapterOperationException(String message) {

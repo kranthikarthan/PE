@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 /**
  * SWIFT Payment Message Entity
  *
- * <p>Represents a payment message for international transfers via SWIFT network. Supports
- * sanctions screening and FX conversion for cross-border payments.
+ * <p>Represents a payment message for international transfers via SWIFT network. Supports sanctions
+ * screening and FX conversion for cross-border payments.
  */
 @Entity
 @Table(name = "swift_payment_messages")

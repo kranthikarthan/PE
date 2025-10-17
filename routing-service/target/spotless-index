@@ -1,5 +1,6 @@
 CBEKIQQjZp2EOzqvHZoWz9ModQVFcMpsGvQ0oxwObZk=
 src\main\java\com\payments\routing\api\GlobalExceptionHandler.java 2025-10-16T11:48:15.575150500Z
+src\main\java\com\payments\routing\api\HealthController.java 2025-10-17T15:54:08.921646100Z
 src\main\java\com\payments\routing\api\RoutingController.java 2025-10-16T11:48:15.623961500Z
 src\main\java\com\payments\routing\config\RedisConfig.java 2025-10-17T05:11:56.812044Z
 src\main\java\com\payments\routing\domain\LogicalOperator.java 2025-10-16T11:48:15.633916900Z

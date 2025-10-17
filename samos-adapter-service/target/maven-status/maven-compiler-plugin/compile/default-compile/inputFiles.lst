@@ -7,6 +7,7 @@ C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\Sa
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\controller\SamosPaymentController.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\exception\InvalidSamosAdapterException.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\exception\SamosAdapterConfigurationException.java
+C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\config\SamosEnvironmentConfig.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosAdapterValidationRequest.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\domain\SamosMessageLoggedEvent.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosRiskAssessmentResponse.java
@@ -14,6 +15,8 @@ C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dt
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\service\SamosFraudDetectionService.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\service\SamosOAuth2TokenService.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosFraudDetectionResponse.java
+C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\performance\SamosPerformanceOptimizationService.java
+C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\monitoring\SamosMonitoringService.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\client\SamosClearingNetworkClientConfig.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\domain\SamosAdapterActivatedEvent.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\config\SamosRedisConfig.java
@@ -32,11 +35,13 @@ C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\se
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosPaymentSubmissionRequest.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\service\SamosPaymentService.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\domain\ClearingRoute.java
+C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\controller\SamosMonitoringController.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\exception\SamosAdapterAlreadyExistsException.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\service\SamosBusinessRulesService.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\client\SamosClearingNetworkClient.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\config\Resilience4jConfig.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\config\SamosAdapterConfig.java
+C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\controller\SamosPerformanceController.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\service\SamosAdapterService.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\dto\SamosComplianceResponse.java
 C:\git\clone\PE\samos-adapter-service\src\main\java\com\payments\samosadapter\controller\SamosAdapterController.java

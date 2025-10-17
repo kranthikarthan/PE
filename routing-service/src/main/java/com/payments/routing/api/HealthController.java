@@ -12,12 +12,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.actuate.health.Status;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 /** Health check controller for routing service */
 @RestController
@@ -113,9 +113,12 @@ public class HealthController implements HealthIndicator {
 
     Map<String, Object> response =
         Map.of(
-            "status", "ALIVE",
-            "timestamp", Instant.now().toString(),
-            "uptime", System.currentTimeMillis() - applicationStartTime);
+            "status",
+            "ALIVE",
+            "timestamp",
+            Instant.now().toString(),
+            "uptime",
+            System.currentTimeMillis() - applicationStartTime);
 
     return ResponseEntity.ok(response);
   }
@@ -186,4 +189,3 @@ public class HealthController implements HealthIndicator {
     return metrics;
   }
 }
-

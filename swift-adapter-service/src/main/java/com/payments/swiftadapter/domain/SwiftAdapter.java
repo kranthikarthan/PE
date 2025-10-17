@@ -32,8 +32,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SwiftAdapter {
 
-  @EmbeddedId
-  private ClearingAdapterId id;
+  @EmbeddedId private ClearingAdapterId id;
 
   @Embedded
   @AttributeOverrides({
@@ -258,7 +257,8 @@ public class SwiftAdapter {
     this.version++;
 
     registerEvent(
-        new SwiftAdapterActivatedEvent(this.id.toString(), this.tenantContext.getTenantId(), Instant.now()));
+        new SwiftAdapterActivatedEvent(
+            this.id.toString(), this.tenantContext.getTenantId(), Instant.now()));
   }
 
   /** Deactivate the adapter */
@@ -324,7 +324,8 @@ public class SwiftAdapter {
     this.messageLogs.add(log);
     this.updatedAt = Instant.now();
 
-    registerEvent(new SwiftMessageLoggedEvent(this.id, direction, messageType, statusCode, Instant.now()));
+    registerEvent(
+        new SwiftMessageLoggedEvent(this.id, direction, messageType, statusCode, Instant.now()));
   }
 
   /** Get routes */

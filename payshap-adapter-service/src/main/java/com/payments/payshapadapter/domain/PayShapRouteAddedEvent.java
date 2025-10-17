@@ -7,9 +7,7 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-/**
- * Domain event for PayShap route addition
- */
+/** Domain event for PayShap route addition */
 @Value
 @AllArgsConstructor
 public class PayShapRouteAddedEvent implements DomainEvent {

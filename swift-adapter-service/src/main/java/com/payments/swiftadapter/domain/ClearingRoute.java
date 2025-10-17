@@ -8,9 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Clearing Route Entity for SWIFT Adapter
- */
+/** Clearing Route Entity for SWIFT Adapter */
 @Entity
 @Table(name = "swift_clearing_routes")
 @Data

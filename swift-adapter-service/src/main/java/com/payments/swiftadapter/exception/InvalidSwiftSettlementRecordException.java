@@ -1,8 +1,6 @@
 package com.payments.swiftadapter.exception;
 
-/**
- * Exception thrown when SWIFT settlement record validation fails
- */
+/** Exception thrown when SWIFT settlement record validation fails */
 public class InvalidSwiftSettlementRecordException extends RuntimeException {
 
   public InvalidSwiftSettlementRecordException(String message) {
