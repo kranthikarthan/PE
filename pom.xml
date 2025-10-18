@@ -26,13 +26,11 @@
         <module>tenant-management-service</module>
         <module>iam-service</module>
         <module>audit-service</module>
-        <module>notification-service</module>
-        <module>reporting-service</module>
     </modules>
 
   <properties>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring-boot.version>3.2.5</spring-boot.version>
     <lombok.version>1.18.32</lombok.version>

@@ -29,6 +29,7 @@ C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankse
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\domain\BankservAfricaTransactionLoggedEvent.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\domain\ClearingMessageLog.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\domain\ClearingRoute.java
+C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\domain\SettlementStatus.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\dto\BankservAfricaFraudDetectionRequest.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\dto\BankservAfricaFraudDetectionResponse.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\dto\BankservAfricaRiskAssessmentRequest.java

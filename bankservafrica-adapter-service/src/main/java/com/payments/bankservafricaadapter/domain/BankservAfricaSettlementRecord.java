@@ -136,13 +136,15 @@ public class BankservAfricaSettlementRecord {
       throw new InvalidBankservAfricaSettlementRecordException("Transaction amount cannot be null");
     }
     if (amount.compareTo(BigDecimal.ZERO) < 0) {
-      throw new InvalidBankservAfricaSettlementRecordException("Transaction amount cannot be negative");
+      throw new InvalidBankservAfricaSettlementRecordException(
+          "Transaction amount cannot be negative");
     }
     try {
       this.transactionCount++;
       this.totalAmount = this.totalAmount.add(amount);
     } catch (ArithmeticException e) {
-      throw new InvalidBankservAfricaSettlementRecordException("Arithmetic overflow in transaction amount", e);
+      throw new InvalidBankservAfricaSettlementRecordException(
+          "Arithmetic overflow in transaction amount", e);
     }
   }
 

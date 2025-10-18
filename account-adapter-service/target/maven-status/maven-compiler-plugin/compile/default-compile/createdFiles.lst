@@ -1,4 +1,3 @@
-com\payments\accountadapter\config\RestTemplateConfig.class
 com\payments\accountadapter\dto\AccountBalanceRequest$AccountBalanceRequestBuilder.class
 com\payments\accountadapter\service\AccountOrchestrationService$ErrorInfo.class
 com\payments\accountadapter\dto\AccountValidationRequest.class
@@ -6,7 +5,6 @@ com\payments\accountadapter\dto\AccountValidationResponse.class
 com\payments\accountadapter\dto\AccountValidationResponse$AccountValidationResponseBuilder.class
 com\payments\accountadapter\service\ErrorMappingService.class
 com\payments\accountadapter\service\OAuth2TokenService.class
-com\payments\accountadapter\config\RedisConfig.class
 com\payments\accountadapter\service\AccountOrchestrationService$AccountValidationResult$AccountValidationResultBuilder.class
 com\payments\accountadapter\dto\AccountStatusRequest.class
 com\payments\accountadapter\service\AccountCacheService.class
@@ -30,11 +28,8 @@ com\payments\accountadapter\dto\AccountStatusResponse.class
 com\payments\accountadapter\service\AccountOrchestrationService$AccountValidationStatusPair.class
 com\payments\accountadapter\api\GlobalExceptionHandler.class
 com\payments\accountadapter\dto\AccountBalanceRequest.class
-com\payments\accountadapter\dto\AccountServiceError.class
 com\payments\accountadapter\service\AccountOrchestrationService$ComprehensiveAccountInfo$ComprehensiveAccountInfoBuilder.class
 com\payments\accountadapter\client\AccountServiceFallback.class
-com\payments\accountadapter\config\Resilience4jHealthIndicator.class
-com\payments\accountadapter\dto\AccountServiceError$AccountServiceErrorBuilder.class
 com\payments\accountadapter\dto\AccountStatusResponse$AccountStatusResponseBuilder.class
 com\payments\accountadapter\api\AccountAdapterController.class
 com\payments\accountadapter\service\OAuth2TokenService$TokenInfo.class
@@ -44,7 +39,6 @@ com\payments\accountadapter\service\ErrorMappingService$ErrorResponse.class
 com\payments\accountadapter\api\HealthMonitoringController.class
 com\payments\accountadapter\dto\AccountServiceException.class
 com\payments\accountadapter\dto\AccountBalanceResponse$AccountBalanceResponseBuilder.class
-com\payments\accountadapter\config\Resilience4jConfig.class
 com\payments\accountadapter\AccountAdapterServiceApplication.class
 com\payments\accountadapter\client\AccountServiceClientConfig$1.class
 com\payments\accountadapter\service\ErrorMappingService$ErrorResponse$ErrorResponseBuilder.class

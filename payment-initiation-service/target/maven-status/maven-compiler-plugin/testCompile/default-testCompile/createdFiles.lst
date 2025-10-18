@@ -1,9 +1,0 @@
-com\payments\paymentinitiation\config\TestConfig.class
-com\payments\paymentinitiation\service\PaymentInitiationServiceTest.class
-com\payments\paymentinitiation\integration\PaymentInitiationIntegrationTest.class
-com\payments\paymentinitiation\service\PaymentBusinessRulesServiceTest.class
-com\payments\paymentinitiation\contract\PaymentInitiationContractTest.class
-com\payments\paymentinitiation\service\PaymentDomainServiceTest.class
-com\payments\paymentinitiation\repository\PaymentRepositoryTest.class
-com\payments\paymentinitiation\mapper\PaymentMapperTest.class
-com\payments\paymentinitiation\api\PaymentInitiationControllerTest.class

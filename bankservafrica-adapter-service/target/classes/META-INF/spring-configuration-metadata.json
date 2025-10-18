@@ -14,25 +14,25 @@
       "name": "bankservafrica.environment.development",
       "type": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Development",
       "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig",
-      "sourceMethod": "getDevelopment()"
+      "sourceMethod": "public com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig.Development getDevelopment() "
     },
     {
       "name": "bankservafrica.environment.environment-settings",
       "type": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$EnvironmentSettings",
       "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig",
-      "sourceMethod": "getEnvironmentSettings()"
+      "sourceMethod": "public com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig.EnvironmentSettings getEnvironmentSettings() "
     },
     {
       "name": "bankservafrica.environment.production",
       "type": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Production",
       "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig",
-      "sourceMethod": "getProduction()"
+      "sourceMethod": "public com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig.Production getProduction() "
     },
     {
       "name": "bankservafrica.environment.staging",
       "type": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Staging",
       "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig",
-      "sourceMethod": "getStaging()"
+      "sourceMethod": "public com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig.Staging getStaging() "
     }
   ],
   "properties": [
@@ -90,8 +90,7 @@
     {
       "name": "bankservafrica.environment.debug-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig",
-      "defaultValue": false
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig"
     },
     {
       "name": "bankservafrica.environment.development.api-version",
@@ -101,8 +100,7 @@
     {
       "name": "bankservafrica.environment.development.batch-size",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Development",
-      "defaultValue": 0
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Development"
     },
     {
       "name": "bankservafrica.environment.development.certificate-path",
@@ -112,8 +110,7 @@
     {
       "name": "bankservafrica.environment.development.encryption-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Development",
-      "defaultValue": false
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Development"
     },
     {
       "name": "bankservafrica.environment.development.endpoint",
@@ -133,8 +130,7 @@
     {
       "name": "bankservafrica.environment.development.mock-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Development",
-      "defaultValue": false
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Development"
     },
     {
       "name": "bankservafrica.environment.development.processing-window-end",
@@ -149,14 +145,12 @@
     {
       "name": "bankservafrica.environment.development.retry-attempts",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Development",
-      "defaultValue": 0
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Development"
     },
     {
       "name": "bankservafrica.environment.development.timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Development",
-      "defaultValue": 0
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Development"
     },
     {
       "name": "bankservafrica.environment.environment",
@@ -171,8 +165,7 @@
     {
       "name": "bankservafrica.environment.environment-settings.batch-size",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$EnvironmentSettings",
-      "defaultValue": 0
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$EnvironmentSettings"
     },
     {
       "name": "bankservafrica.environment.environment-settings.certificate-path",
@@ -182,8 +175,7 @@
     {
       "name": "bankservafrica.environment.environment-settings.encryption-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$EnvironmentSettings",
-      "defaultValue": false
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$EnvironmentSettings"
     },
     {
       "name": "bankservafrica.environment.environment-settings.endpoint",
@@ -203,8 +195,7 @@
     {
       "name": "bankservafrica.environment.environment-settings.mock-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$EnvironmentSettings",
-      "defaultValue": false
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$EnvironmentSettings"
     },
     {
       "name": "bankservafrica.environment.environment-settings.processing-window-end",
@@ -219,14 +210,12 @@
     {
       "name": "bankservafrica.environment.environment-settings.retry-attempts",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$EnvironmentSettings",
-      "defaultValue": 0
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$EnvironmentSettings"
     },
     {
       "name": "bankservafrica.environment.environment-settings.timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$EnvironmentSettings",
-      "defaultValue": 0
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$EnvironmentSettings"
     },
     {
       "name": "bankservafrica.environment.locale",
@@ -241,8 +230,7 @@
     {
       "name": "bankservafrica.environment.metrics-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig",
-      "defaultValue": false
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig"
     },
     {
       "name": "bankservafrica.environment.production.api-version",
@@ -252,8 +240,7 @@
     {
       "name": "bankservafrica.environment.production.batch-size",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Production",
-      "defaultValue": 0
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Production"
     },
     {
       "name": "bankservafrica.environment.production.certificate-path",
@@ -263,8 +250,7 @@
     {
       "name": "bankservafrica.environment.production.encryption-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Production",
-      "defaultValue": false
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Production"
     },
     {
       "name": "bankservafrica.environment.production.endpoint",
@@ -284,8 +270,7 @@
     {
       "name": "bankservafrica.environment.production.mock-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Production",
-      "defaultValue": false
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Production"
     },
     {
       "name": "bankservafrica.environment.production.processing-window-end",
@@ -300,14 +285,12 @@
     {
       "name": "bankservafrica.environment.production.retry-attempts",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Production",
-      "defaultValue": 0
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Production"
     },
     {
       "name": "bankservafrica.environment.production.timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Production",
-      "defaultValue": 0
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Production"
     },
     {
       "name": "bankservafrica.environment.region",
@@ -322,8 +305,7 @@
     {
       "name": "bankservafrica.environment.staging.batch-size",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Staging",
-      "defaultValue": 0
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Staging"
     },
     {
       "name": "bankservafrica.environment.staging.certificate-path",
@@ -333,8 +315,7 @@
     {
       "name": "bankservafrica.environment.staging.encryption-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Staging",
-      "defaultValue": false
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Staging"
     },
     {
       "name": "bankservafrica.environment.staging.endpoint",
@@ -354,8 +335,7 @@
     {
       "name": "bankservafrica.environment.staging.mock-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Staging",
-      "defaultValue": false
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Staging"
     },
     {
       "name": "bankservafrica.environment.staging.processing-window-end",
@@ -370,14 +350,12 @@
     {
       "name": "bankservafrica.environment.staging.retry-attempts",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Staging",
-      "defaultValue": 0
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Staging"
     },
     {
       "name": "bankservafrica.environment.staging.timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Staging",
-      "defaultValue": 0
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig$Staging"
     },
     {
       "name": "bankservafrica.environment.timezone",
@@ -387,8 +365,7 @@
     {
       "name": "bankservafrica.environment.tracing-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig",
-      "defaultValue": false
+      "sourceType": "com.payments.bankservafricaadapter.config.BankservAfricaEnvironmentConfig"
     }
   ],
   "hints": []
