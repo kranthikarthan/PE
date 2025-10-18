@@ -189,3 +189,49 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+
+  adapter:
+    # Feature toggle: internal (default) or ibm-mq
+    type: internal  # Set to "ibm-mq" to enable IBM MQ strategy
+    
+    # IBM MQ specific configuration
+    ibm-mq:
+      enabled: false  # Set to true to enable MQ connectivity
+      
+      # Connection settings
+      host: localhost
+      port: 1414
+      channel: DEV.APP.SVRCONN
+      queue-manager: QM1
+      user: mqadmin
+      password: ${IBM_MQ_PASSWORD:}  # Set via environment variable
+      
+      # Queue configuration
+      queues:
+        notifications-outbound: notification.outbound
+        notifications-dlq: notification.dlq
+      
+      # Message settings
+      message:
+        ttl-seconds: 3600  # 1 hour
+        priority: 5  # 0-9, higher = more important
+        persistent: false  # Fire-and-forget
+        encoding: UTF-8
+      
+      # Connection pool
+      connection-pool:
+        initial-size: 5
+        max-size: 20
+        idle-timeout-ms: 600000  # 10 minutes
+      
+      # Retry configuration
+      retry:
+        max-attempts: 3
+        backoff-ms: 1000
+        multiplier: 2.0
+      
+      # Monitoring
+      monitoring:
+        enabled: true
+        metrics-prefix: ibm_mq_notification
+        health-check-interval-seconds: 30
