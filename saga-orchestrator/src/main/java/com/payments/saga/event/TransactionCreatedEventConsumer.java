@@ -1,6 +1,7 @@
 package com.payments.saga.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.payments.domain.shared.TenantContext;
 import com.payments.saga.service.SagaOrchestrator;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,8 @@ public class TransactionCreatedEventConsumer {
           offset);
 
       // Parse the event payload
-      Map<String, Object> eventData = objectMapper.readValue(message, Map.class);
+      Map<String, Object> eventData = objectMapper.readValue(message, 
+          objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class));
       String transactionId = (String) eventData.get("transactionId");
       String paymentId = (String) eventData.get("paymentId");
       String status = (String) eventData.get("status");
@@ -47,7 +49,17 @@ public class TransactionCreatedEventConsumer {
           paymentId,
           status);
 
-      // The saga orchestrator will automatically move to the next step
+      // Start a new payment processing saga
+      TenantContext tenantContext = TenantContext.builder()
+          .tenantId((String) eventData.get("tenantId"))
+          .build();
+      sagaOrchestrator.startSaga(
+          "PAYMENT_PROCESSING",
+          tenantContext,
+          correlationId,
+          paymentId,
+          eventData
+      );
       // based on the step execution flow
 
     } catch (Exception e) {

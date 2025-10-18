@@ -128,18 +128,6 @@
             <version>${shared-config.version}</version>
         </dependency>
 
-        <!-- Redis for caching -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-
-        <!-- OpenFeign for external service integration -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-        </dependency>
-
         <!-- Validation Service for Business Rules Engine -->
         <dependency>
             <groupId>com.payments</groupId>
@@ -158,20 +146,6 @@
             <groupId>com.payments</groupId>
             <artifactId>contracts</artifactId>
             <version>${contracts.version}</version>
-        </dependency>
-
-        <!-- Shared Config -->
-        <dependency>
-            <groupId>com.payments</groupId>
-            <artifactId>shared-config</artifactId>
-            <version>${shared-config.version}</version>
-        </dependency>
-
-        <!-- Shared Telemetry -->
-        <dependency>
-            <groupId>com.payments</groupId>
-            <artifactId>shared-telemetry</artifactId>
-            <version>${shared-telemetry.version}</version>
         </dependency>
 
         <!-- Testing -->

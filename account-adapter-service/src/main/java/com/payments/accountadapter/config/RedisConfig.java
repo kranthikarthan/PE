@@ -38,7 +38,7 @@ public class RedisConfig {
     config.setPort(redisPort);
 
     LettuceConnectionFactory factory = new LettuceConnectionFactory(config);
-    factory.setTimeout(redisTimeout);
+    factory.setConnectTimeout(Duration.ofMillis(redisTimeout));
 
     log.info("Redis connection factory configured: {}:{}", redisHost, redisPort);
     return factory;

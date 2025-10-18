@@ -5,9 +5,14 @@ import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.ClearingMessageId;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * BankservAfrica Settlement Record Entity
@@ -16,9 +21,15 @@ import lombok.*;
  * Transaction count monitoring - Settlement status management - Reference tracking
  */
 @Entity
-@Table(name = "bankservafrica_settlement_records")
+@Table(
+    name = "bankservafrica_settlement_records",
+    indexes = {
+        @Index(name = "idx_settlement_date", columnList = "settlement_date")
+    }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Data
+@Getter
+@Setter
 public class BankservAfricaSettlementRecord {
 
   @EmbeddedId private ClearingMessageId id;
@@ -37,8 +48,9 @@ public class BankservAfricaSettlementRecord {
   @Column(name = "transaction_count", nullable = false)
   private Integer transactionCount;
 
-  @Column(name = "status", nullable = false)
-  private String status;
+  @Column(name = "status", nullable = false, length = 20)
+  @Enumerated(EnumType.STRING)
+  private SettlementStatus status;
 
   @Column(name = "settlement_reference")
   private String settlementReference;
@@ -80,60 +92,91 @@ public class BankservAfricaSettlementRecord {
     record.totalAmount = totalAmount;
     record.currencyCode = currencyCode;
     record.transactionCount = transactionCount;
-    record.status = "PENDING";
-    record.createdAt = Instant.now();
-    record.updatedAt = Instant.now();
+    record.status = SettlementStatus.PENDING;
+    record.onCreate();
 
     return record;
   }
 
+  @PrePersist
+  protected void onCreate() {
+    createdAt = Instant.now();
+    updatedAt = Instant.now();
+  }
+
+  @PreUpdate
+  protected void onUpdate() {
+    updatedAt = Instant.now();
+  }
+
   /** Update settlement status */
-  public void updateStatus(String status, String settlementReference) {
+  public void updateStatus(SettlementStatus status, String settlementReference) {
     this.status = status;
     this.settlementReference = settlementReference;
-    this.updatedAt = Instant.now();
   }
 
   /** Mark as processing */
   public void markAsProcessing() {
-    updateStatus("PROCESSING", null);
+    updateStatus(SettlementStatus.PROCESSING, null);
   }
 
   /** Mark as completed */
   public void markAsCompleted(String settlementReference) {
-    updateStatus("COMPLETED", settlementReference);
+    updateStatus(SettlementStatus.COMPLETED, settlementReference);
   }
 
   /** Mark as failed */
   public void markAsFailed() {
-    updateStatus("FAILED", null);
+    updateStatus(SettlementStatus.FAILED, null);
   }
 
   /** Add transaction to count */
   public void addTransaction(BigDecimal amount) {
-    this.transactionCount++;
-    this.totalAmount = this.totalAmount.add(amount);
-    this.updatedAt = Instant.now();
+    if (amount == null) {
+      throw new InvalidBankservAfricaSettlementRecordException("Transaction amount cannot be null");
+    }
+    if (amount.compareTo(BigDecimal.ZERO) < 0) {
+      throw new InvalidBankservAfricaSettlementRecordException("Transaction amount cannot be negative");
+    }
+    try {
+      this.transactionCount++;
+      this.totalAmount = this.totalAmount.add(amount);
+    } catch (ArithmeticException e) {
+      throw new InvalidBankservAfricaSettlementRecordException("Arithmetic overflow in transaction amount", e);
+    }
   }
 
   /** Check if settlement is pending */
   public boolean isPending() {
-    return "PENDING".equals(this.status);
+    return SettlementStatus.PENDING.equals(this.status);
   }
 
   /** Check if settlement is processing */
   public boolean isProcessing() {
-    return "PROCESSING".equals(this.status);
+    return SettlementStatus.PROCESSING.equals(this.status);
   }
 
   /** Check if settlement is completed */
   public boolean isCompleted() {
-    return "COMPLETED".equals(this.status);
+    return SettlementStatus.COMPLETED.equals(this.status);
   }
 
   /** Check if settlement is failed */
   public boolean isFailed() {
-    return "FAILED".equals(this.status);
+    return SettlementStatus.FAILED.equals(this.status);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof BankservAfricaSettlementRecord)) return false;
+    BankservAfricaSettlementRecord that = (BankservAfricaSettlementRecord) o;
+    return id != null && id.equals(that.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
   }
 
   /** Check if settlement has transactions */
@@ -147,6 +190,6 @@ public class BankservAfricaSettlementRecord {
       return BigDecimal.ZERO;
     }
     return this.totalAmount.divide(
-        BigDecimal.valueOf(this.transactionCount), 2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal.valueOf(this.transactionCount), new MathContext(2, RoundingMode.HALF_UP));
   }
 }

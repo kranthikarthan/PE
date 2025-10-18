@@ -1,0 +1,52 @@
+-------------------------------------------------------------------------------
+Test set: com.payments.tenant.service.TenantServiceTest
+-------------------------------------------------------------------------------
+Tests run: 10, Failures: 0, Errors: 6, Skipped: 0, Time elapsed: 5.489 s <<< FAILURE! -- in com.payments.tenant.service.TenantServiceTest
+com.payments.tenant.service.TenantServiceTest.testSuspendActiveReturnsCorrectStatus -- Time elapsed: 5.101 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "com.payments.tenant.service.TenantEventPublisher.publishTenantSuspendedEvent(com.payments.tenant.entity.TenantEntity, String)" because "this.eventPublisher" is null
+	at com.payments.tenant.service.TenantService.suspendTenant(TenantService.java:227)
+	at com.payments.tenant.service.TenantServiceTest.testSuspendActiveReturnsCorrectStatus(TenantServiceTest.java:239)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.tenant.service.TenantServiceTest.testSuspendTenantSuccess -- Time elapsed: 0.033 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "com.payments.tenant.service.TenantEventPublisher.publishTenantSuspendedEvent(com.payments.tenant.entity.TenantEntity, String)" because "this.eventPublisher" is null
+	at com.payments.tenant.service.TenantService.suspendTenant(TenantService.java:227)
+	at com.payments.tenant.service.TenantServiceTest.testSuspendTenantSuccess(TenantServiceTest.java:159)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.tenant.service.TenantServiceTest.testUpdateTenantSuccess -- Time elapsed: 0.014 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "com.payments.tenant.service.TenantValidator.validateUpdateRequest(com.payments.tenant.entity.TenantEntity, com.payments.tenant.entity.TenantEntity)" because "this.validator" is null
+	at com.payments.tenant.service.TenantService.updateTenant(TenantService.java:282)
+	at com.payments.tenant.service.TenantServiceTest.testUpdateTenantSuccess(TenantServiceTest.java:214)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.tenant.service.TenantServiceTest.testActivateTenantSuccess -- Time elapsed: 0.008 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "com.payments.tenant.service.TenantEventPublisher.publishTenantActivatedEvent(com.payments.tenant.entity.TenantEntity, String)" because "this.eventPublisher" is null
+	at com.payments.tenant.service.TenantService.activateTenant(TenantService.java:198)
+	at com.payments.tenant.service.TenantServiceTest.testActivateTenantSuccess(TenantServiceTest.java:134)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.tenant.service.TenantServiceTest.testDeactivateTenantSuccess -- Time elapsed: 0.008 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "com.payments.tenant.service.TenantEventPublisher.publishTenantDeactivatedEvent(com.payments.tenant.entity.TenantEntity, String)" because "this.eventPublisher" is null
+	at com.payments.tenant.service.TenantService.deactivateTenant(TenantService.java:256)
+	at com.payments.tenant.service.TenantServiceTest.testDeactivateTenantSuccess(TenantServiceTest.java:184)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+com.payments.tenant.service.TenantServiceTest.testCreateTenantSuccess -- Time elapsed: 0.026 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "com.payments.tenant.service.TenantValidator.validateCreateRequest(com.payments.tenant.entity.TenantEntity)" because "this.validator" is null
+	at com.payments.tenant.service.TenantService.createTenant(TenantService.java:65)
+	at com.payments.tenant.service.TenantServiceTest.testCreateTenantSuccess(TenantServiceTest.java:62)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+

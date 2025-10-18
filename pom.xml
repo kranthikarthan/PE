@@ -22,6 +22,12 @@
         <module>rtc-adapter-service</module>
         <module>payshap-adapter-service</module>
         <module>swift-adapter-service</module>
+        <!-- Phase 3: Platform Services -->
+        <module>tenant-management-service</module>
+        <module>iam-service</module>
+        <module>audit-service</module>
+        <module>notification-service</module>
+        <module>reporting-service</module>
     </modules>
 
   <properties>
