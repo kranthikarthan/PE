@@ -13,20 +13,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = BatchController.class)
 @AutoConfigureMockMvc
-@TestPropertySource(
-    properties = {
-      "spring.cloud.config.fail-fast=false",
-      "spring.cloud.config.enabled=false",
-      "spring.cloud.bootstrap.enabled=false",
-      "spring.cloud.config.import-check.enabled=false",
-      "spring.cloud.consul.config.enabled=false",
-      "spring.cloud.discovery.enabled=false"
-    })
 class BatchControllerTest {
 
   @Autowired private MockMvc mockMvc;

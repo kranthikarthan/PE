@@ -1,10 +1,10 @@
 spring:
+  config:
+    import: "optional:configserver:,optional:consul:"
   cloud:
     config:
-      enabled: false
-  config:
-    import-check:
-      enabled: false
+      import-check:
+        enabled: false
   datasource:
     url: jdbc:tc:postgresql:15:///testdb
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
