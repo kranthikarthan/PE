@@ -1,8 +1,0 @@
-C:\git\clone\PE\settlement-service\src\main\java\com\payments\settlement\controller\SettlementController.java
-C:\git\clone\PE\settlement-service\src\main\java\com\payments\settlement\domain\SettlementBatch.java
-C:\git\clone\PE\settlement-service\src\main\java\com\payments\settlement\domain\SettlementTransaction.java
-C:\git\clone\PE\settlement-service\src\main\java\com\payments\settlement\event\InMemorySettlementEventPublisher.java
-C:\git\clone\PE\settlement-service\src\main\java\com\payments\settlement\event\SettlementEventPublisher.java
-C:\git\clone\PE\settlement-service\src\main\java\com\payments\settlement\event\SettlementEvents.java
-C:\git\clone\PE\settlement-service\src\main\java\com\payments\settlement\repository\SettlementBatchRepository.java
-C:\git\clone\PE\settlement-service\src\main\java\com\payments\settlement\SettlementServiceApplication.java
