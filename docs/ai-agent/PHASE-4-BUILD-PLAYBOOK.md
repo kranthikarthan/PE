@@ -9,12 +9,56 @@ References (authoritative):
 - `docs/03-EVENT-SCHEMAS.md`
 - `docs/14-DDD-IMPLEMENTATION.md`
 - `docs/28-BATCH-PROCESSING.md`
+- `docs/15-BFF-IMPLEMENTATION.md`
+- `docs/23-TESTING-ARCHITECTURE.md`
+- `docs/architecture/TESTING-ARCHITECTURE-SUMMARY.md`
+- `docs/32-GATEWAY-ARCHITECTURE-CLARIFICATION.md`
 - `docs/ai-agent/CURSOR-TESTING-AUTHORING-GUIDE.md`
 - `COPY-PASTE-PROMPT.md`
 
 Do not drift from these sources. If conflicts arise, prefer `34-FEATURE-BREAKDOWN-TREE-ENHANCED.md` for scope, then `02-MICROSERVICES-BREAKDOWN.md` for service-level details.
 
 ---
+
+### Document Index (Phase 4)
+
+- Core Phase 4 references
+  - `docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`
+  - `docs/02-MICROSERVICES-BREAKDOWN.md`
+  - `docs/00-ARCHITECTURE-OVERVIEW.md`
+  - `docs/03-EVENT-SCHEMAS.md`
+  - `docs/14-DDD-IMPLEMENTATION.md`
+  - `docs/ai-agent/PHASE-4-BUILD-PLAYBOOK.md`
+  - `docs/ai-agent/CURSOR-TESTING-AUTHORING-GUIDE.md`
+
+- Feature-specific references
+  - 4.1 Batch Processing
+    - `docs/28-BATCH-PROCESSING.md`
+    - `docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md` (Phase 4 section)
+  - 4.2 Settlement Service
+    - `docs/02-MICROSERVICES-BREAKDOWN.md` (Settlement section)
+    - `docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`
+  - 4.3 Reconciliation Service
+    - `docs/02-MICROSERVICES-BREAKDOWN.md` (Reconciliation section)
+    - `docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`
+  - 4.4 Internal API Gateway (optional)
+    - `docs/32-GATEWAY-ARCHITECTURE-CLARIFICATION.md`
+    - `docs/00-ARCHITECTURE-OVERVIEW.md`
+  - 4.5 Web BFF (GraphQL)
+    - `docs/15-BFF-IMPLEMENTATION.md`
+    - `docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`
+  - 4.6 Mobile BFF (REST)
+    - `docs/15-BFF-IMPLEMENTATION.md`
+    - `docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`
+  - 4.7 Partner BFF (REST)
+    - `docs/15-BFF-IMPLEMENTATION.md`
+    - `docs/34-FEATURE-BREAKDOWN-TREE-ENHANCED.md`
+
+- Testing and quality
+  - `docs/23-TESTING-ARCHITECTURE.md`
+  - `docs/architecture/TESTING-ARCHITECTURE-SUMMARY.md`
+
+Context bundle guideline (Cursor): When implementing any Phase 4 feature, attach the corresponding items above to the agent’s context so it stays non-drifting and first-try green.
 
 ### Non-Drift Guardrails
 - Reuse existing build/test plugins: Maven `surefire` (unit) and `failsafe` (integration).
