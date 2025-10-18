@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 public class PaymentEventPublisher {
 
   private final ApplicationEventPublisher eventPublisher;
+  private final AuditEventAsyncPublisher auditPublisher;
 
   /**
    * Publish payment initiated event
@@ -60,6 +61,9 @@ public class PaymentEventPublisher {
 
     eventPublisher.publishEvent(event);
     log.debug("Payment initiated event published: {}", event.getEventId());
+
+    // Non-blocking audit
+    auditPublisher.publish(event, payment.getTenantContext().getTenantId().toString());
   }
 
   /**
@@ -88,6 +92,8 @@ public class PaymentEventPublisher {
 
     eventPublisher.publishEvent(event);
     log.debug("Payment validated event published: {}", event.getEventId());
+
+    auditPublisher.publish(event, payment.getTenantContext().getTenantId().toString());
   }
 
   /**
@@ -116,6 +122,8 @@ public class PaymentEventPublisher {
 
     eventPublisher.publishEvent(event);
     log.debug("Payment failed event published: {}", event.getEventId());
+
+    auditPublisher.publish(event, payment.getTenantContext().getTenantId().toString());
   }
 
   /**
@@ -142,6 +150,8 @@ public class PaymentEventPublisher {
 
     eventPublisher.publishEvent(event);
     log.debug("Payment completed event published: {}", event.getEventId());
+
+    auditPublisher.publish(event, payment.getTenantContext().getTenantId().toString());
   }
 
   /**

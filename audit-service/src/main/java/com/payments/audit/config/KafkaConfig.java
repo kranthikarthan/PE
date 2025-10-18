@@ -46,8 +46,9 @@ public class KafkaConfig {
 
     // Error handling: deserializer errors don't stop consumer
     properties.put("value.deserializer", ErrorHandlingDeserializer.class.getName());
-    properties.put("value.deserializer.value.deserializer.class",
-        org.springframework.kafka.support.serializer.StringDeserializer.class.getName());
+    properties.put(
+        "value.deserializer.value.deserializer.class",
+        org.apache.kafka.common.serialization.StringDeserializer.class.getName());
 
     // Batch processing optimization
     properties.put("max.poll.records", 100); // Batch size

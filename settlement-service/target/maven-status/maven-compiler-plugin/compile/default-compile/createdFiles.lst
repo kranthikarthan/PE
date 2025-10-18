@@ -1,0 +1,10 @@
+com\payments\settlement\event\SettlementEventPublisher.class
+com\payments\settlement\event\SettlementEvents$SettlementCompletedEvent.class
+com\payments\settlement\SettlementServiceApplication.class
+com\payments\settlement\event\InMemorySettlementEventPublisher.class
+com\payments\settlement\event\SettlementEvents.class
+com\payments\settlement\domain\SettlementBatch.class
+com\payments\settlement\domain\SettlementTransaction.class
+com\payments\settlement\event\SettlementEvents$SettlementBatchCreatedEvent.class
+com\payments\settlement\repository\SettlementBatchRepository.class
+com\payments\settlement\controller\SettlementController.class

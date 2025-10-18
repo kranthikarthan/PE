@@ -6,6 +6,9 @@ import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -14,6 +17,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -49,6 +53,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Audit Logs", description = "Compliance audit trail APIs (POPIA/FICA/PCI-DSS)")
+@Validated
 public class AuditController {
 
   private final AuditService auditService;
@@ -93,14 +98,16 @@ public class AuditController {
   @Operation(summary = "Get audit logs by user", description = "Retrieve audit logs for a specific user")
   public ResponseEntity<Page<AuditEventEntity>> getAuditLogsByUser(
       @RequestHeader("X-Tenant-ID") UUID tenantId,
-      @RequestParam String userId,
+      @RequestParam @NotBlank String userId,
       Pageable pageable) {
     log.info(
         "GET /api/audit/logs/user - tenant: {}, user: {}, page: {}",
         tenantId,
         userId,
         pageable.getPageNumber());
-
+    if (userId == null || userId.isBlank()) {
+      throw new IllegalArgumentException("User ID is required");
+    }
     Page<AuditEventEntity> logs = auditService.getAuditLogsByUser(tenantId, userId, pageable);
 
     return ResponseEntity.ok(logs);
@@ -122,7 +129,7 @@ public class AuditController {
   @Operation(summary = "Get audit logs by action", description = "Retrieve audit logs for a specific action type")
   public ResponseEntity<Page<AuditEventEntity>> getAuditLogsByAction(
       @RequestHeader("X-Tenant-ID") UUID tenantId,
-      @RequestParam String action,
+      @RequestParam @NotBlank String action,
       Pageable pageable) {
     log.info(
         "GET /api/audit/logs/action - tenant: {}, action: {}, page: {}",
@@ -201,7 +208,7 @@ public class AuditController {
       description = "Search action and resource fields for keyword (min 2 characters)")
   public ResponseEntity<Page<AuditEventEntity>> search(
       @RequestHeader("X-Tenant-ID") UUID tenantId,
-      @RequestParam String keyword,
+      @RequestParam @Size(min = 2, message = "keyword must be at least 2 characters") String keyword,
       Pageable pageable) {
     log.info(
         "GET /api/audit/logs/search - tenant: {}, keyword: {}, page: {}",
@@ -233,8 +240,8 @@ public class AuditController {
       description = "Retrieve audit logs within a specific time window")
   public ResponseEntity<Page<AuditEventEntity>> searchByTimeRange(
       @RequestHeader("X-Tenant-ID") UUID tenantId,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
+      @RequestParam @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+      @RequestParam @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
       Pageable pageable) {
     log.info(
         "GET /api/audit/logs/range - tenant: {}, start: {}, end: {}, page: {}",
@@ -242,7 +249,9 @@ public class AuditController {
         startTime,
         endTime,
         pageable.getPageNumber());
-
+    if (startTime.isAfter(endTime)) {
+      throw new IllegalArgumentException("startTime must be before or equal to endTime");
+    }
     Page<AuditEventEntity> logs =
         auditService.searchByTimeRange(tenantId, startTime, endTime, pageable);
 
@@ -267,7 +276,7 @@ public class AuditController {
       description = "Retrieve audit logs for a specific resource type")
   public ResponseEntity<Page<AuditEventEntity>> searchByResource(
       @RequestHeader("X-Tenant-ID") UUID tenantId,
-      @RequestParam String resource,
+      @RequestParam @NotBlank String resource,
       Pageable pageable) {
     log.info(
         "GET /api/audit/logs/resource - tenant: {}, resource: {}, page: {}",

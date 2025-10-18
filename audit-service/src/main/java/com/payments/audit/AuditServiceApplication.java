@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Audit Service Application.
@@ -32,6 +33,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableCaching
 @EnableKafka
 @EnableAsync
+@EnableScheduling
 public class AuditServiceApplication {
 
   public static void main(String[] args) {

@@ -1,0 +1,7 @@
+com\payments\batch\config\SimpleBatchJobConfig.class
+com\payments\batch\domain\BatchRecord.class
+com\payments\batch\config\SimpleBatchJobConfig$1.class
+com\payments\batch\domain\BatchRecord$BatchRecordBuilder.class
+com\payments\batch\config\SimpleBatchJobConfig$2.class
+com\payments\batch\controller\BatchController.class
+com\payments\batch\BatchProcessingServiceApplication.class

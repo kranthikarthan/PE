@@ -1,0 +1,5 @@
+paymentId,debtorAccount,creditorAccount,amount,currency
+P-1001,111111,222222,100.00,USD
+P-1002,111111,333333,250.50,USD
+P-1003,444444,555555,75.25,EUR
+

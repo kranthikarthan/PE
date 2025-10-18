@@ -5,8 +5,8 @@ import com.payments.audit.repository.AuditEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.rebalance.ConsumerSeekAware;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -38,7 +38,7 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class AuditEventConsumer implements ConsumerSeekAware {
+public class AuditEventConsumer {
 
   private final AuditEventRepository auditEventRepository;
 
@@ -67,8 +67,8 @@ public class AuditEventConsumer implements ConsumerSeekAware {
    */
   @KafkaListener(
       topics = "payment-audit-logs",
-      groupId = "audit-service-group",
-      concurrency = "3")
+      groupId = "${spring.kafka.consumer.group-id:audit-service-group}",
+      concurrency = "${app.kafka.consumer-concurrency:3}")
   @Transactional
   public void consumeAuditEvent(String eventJson) {
     try {
@@ -107,6 +107,11 @@ public class AuditEventConsumer implements ConsumerSeekAware {
         flushBatch();
       }
     }
+  }
+
+  @Scheduled(fixedDelayString = "${app.audit.flush-interval-seconds:60}000")
+  void scheduledFlush() {
+    flushBatchIfNeeded();
   }
 
   /**
@@ -230,16 +235,7 @@ public class AuditEventConsumer implements ConsumerSeekAware {
    *
    * <p>Action: Flush batch before rebalance to avoid message loss
    */
-  @Override
-  public void onPartitionsRevoked(java.util.Collection<org.apache.kafka.common.TopicPartition> partitions) {
-    log.info("Partitions revoked: {}. Flushing batch before rebalance.", partitions);
-    flushBatchIfNeeded();
-  }
-
-  @Override
-  public void onPartitionsAssigned(java.util.Collection<org.apache.kafka.common.TopicPartition> partitions) {
-    log.info("Partitions assigned: {}", partitions);
-  }
+  // Rebalance hooks could be wired if needed via Kafka listener container customization.
 
   /**
    * Custom exception for audit event processing failures.

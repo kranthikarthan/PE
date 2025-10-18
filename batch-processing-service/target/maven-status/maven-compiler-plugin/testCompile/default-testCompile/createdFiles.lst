@@ -1,0 +1,2 @@
+com\payments\batch\controller\BatchControllerTest.class
+com\payments\batch\integration\CsvImportIntegrationTest.class

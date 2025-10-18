@@ -27,6 +27,10 @@
         <module>iam-service</module>
         <module>audit-service</module>
         <module>notification-service</module>
+        <!-- Phase 4: Advanced Features -->
+        <module>settlement-service</module>
+        <module>reconciliation-service</module>
+        <module>batch-processing-service</module>
     </modules>
 
   <properties>
@@ -249,6 +253,7 @@
             </excludes>
             <systemPropertyVariables>
               <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+              <user.timezone>UTC</user.timezone>
             </systemPropertyVariables>
           </configuration>
         </plugin>
@@ -264,6 +269,7 @@
             </includes>
             <systemPropertyVariables>
               <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+              <user.timezone>UTC</user.timezone>
             </systemPropertyVariables>
           </configuration>
           <executions>
