@@ -26,6 +26,7 @@
         <module>tenant-management-service</module>
         <module>iam-service</module>
         <module>audit-service</module>
+        <module>notification-service</module>
     </modules>
 
   <properties>
@@ -404,5 +405,3 @@
     </profile>
   </profiles>
 </project>
-
-
