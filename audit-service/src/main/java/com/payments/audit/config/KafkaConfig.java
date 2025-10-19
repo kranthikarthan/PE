@@ -7,19 +7,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 /**
  * Kafka Configuration - Consumer and Producer Settings.
  *
- * <p>Configures:
- * - Consumer group for durable subscriber pattern
- * - Batch processing (100 events, 60s flush)
- * - Error handling (dead-letter queues)
- * - Deserialization with error tolerance
- * - Manual offset management (after DB persistence)
+ * <p>Configures: - Consumer group for durable subscriber pattern - Batch processing (100 events,
+ * 60s flush) - Error handling (dead-letter queues) - Deserialization with error tolerance - Manual
+ * offset management (after DB persistence)
  */
 @Configuration
 @Slf4j
@@ -31,12 +26,9 @@ public class KafkaConfig {
   /**
    * Configure Kafka consumer factory with error handling.
    *
-   * <p>Settings:
-   * - StringDeserializer for Kafka message (already in JsonDeserializer)
-   * - Error handling deserializer to avoid stopping consumer
-   * - Manual offset commit (after database persistence)
-   * - Batch size: 100 records
-   * - Session timeout: 30 seconds
+   * <p>Settings: - StringDeserializer for Kafka message (already in JsonDeserializer) - Error
+   * handling deserializer to avoid stopping consumer - Manual offset commit (after database
+   * persistence) - Batch size: 100 records - Session timeout: 30 seconds
    *
    * @return configured DefaultKafkaConsumerFactory
    */
@@ -74,7 +66,8 @@ public class KafkaConfig {
    */
   @Bean
   public KafkaTemplate<String, String> kafkaTemplate() {
-    return new KafkaTemplate<>(new org.springframework.kafka.core.DefaultKafkaProducerFactory<>(
-        kafkaProperties.buildProducerProperties()));
+    return new KafkaTemplate<>(
+        new org.springframework.kafka.core.DefaultKafkaProducerFactory<>(
+            kafkaProperties.buildProducerProperties()));
   }
 }

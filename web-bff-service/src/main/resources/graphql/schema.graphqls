@@ -1,0 +1,596 @@
+# GraphQL Schema for Payment Engine Web BFF
+
+scalar DateTime
+scalar BigDecimal
+scalar UUID
+
+# Payment Types
+type Payment {
+    id: UUID!
+    transactionReference: String!
+    amount: BigDecimal!
+    currency: String!
+    debtorName: String!
+    debtorAccount: String!
+    creditorName: String!
+    creditorAccount: String!
+    description: String
+    status: PaymentStatus!
+    paymentType: PaymentType!
+    clearingSystem: ClearingSystem
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+enum PaymentStatus {
+    PENDING
+    VALIDATED
+    SUBMITTED_TO_CLEARING
+    CLEARED
+    COMPLETED
+    FAILED
+    CANCELLED
+}
+
+enum PaymentType {
+    RTGS
+    ACH
+    RTC
+    INSTANT_P2P
+    INTERNATIONAL
+    CARD
+}
+
+enum ClearingSystem {
+    SAMOS
+    BANKSERV_AFRICA
+    RTC
+    PAYSHAP
+    SWIFT
+    SASWITCH
+}
+
+# Settlement Types
+type SettlementWorkflow {
+    id: UUID!
+    workflowId: String!
+    status: SettlementStatus!
+    nettingCycleId: UUID
+    totalAmount: BigDecimal!
+    currency: String!
+    participantCount: Int!
+    startTime: DateTime!
+    endTime: DateTime
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+enum SettlementStatus {
+    PENDING
+    IN_PROGRESS
+    NETTING
+    SETTLING
+    COMPLETED
+    FAILED
+    CANCELLED
+}
+
+type NettingPosition {
+    id: UUID!
+    participantId: String!
+    participantName: String!
+    netAmount: BigDecimal!
+    currency: String!
+    nettingCycleId: UUID!
+    status: NettingStatus!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+
+enum NettingStatus {
+    PENDING
+    CALCULATED
+    CONFIRMED
+    SETTLED
+    FAILED
+}
+
+type SettlementOrchestration {
+    id: UUID!
+    orchestrationId: String!
+    phase: SettlementPhase!
+    status: OrchestrationStatus!
+    progress: Float!
+    totalSteps: Int!
+    completedSteps: Int!
+    startTime: DateTime!
+    endTime: DateTime
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+enum SettlementPhase {
+    INITIALIZATION
+    NETTING
+    SETTLEMENT
+    COMPLETION
+    CLEANUP
+}
+
+enum OrchestrationStatus {
+    PENDING
+    IN_PROGRESS
+    COMPLETED
+    FAILED
+    CANCELLED
+}
+
+# Reconciliation Types
+type ReconciliationRun {
+    id: UUID!
+    runId: String!
+    runDate: String!
+    status: ReconciliationStatus!
+    totalInternal: Int!
+    totalClearing: Int!
+    matchedCount: Int!
+    exceptionCount: Int!
+    startedAt: DateTime
+    completedAt: DateTime
+    errorMessage: String
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+enum ReconciliationStatus {
+    PENDING
+    IN_PROGRESS
+    COMPLETED
+    FAILED
+    CANCELLED
+}
+
+type ReconciliationException {
+    id: UUID!
+    exceptionId: String!
+    runId: String!
+    exceptionType: ExceptionType!
+    internalTransactionId: String
+    clearingTransactionId: String
+    amountDifference: BigDecimal
+    description: String!
+    details: String
+    priority: Priority!
+    status: ExceptionStatus!
+    assignedTo: String
+    assignedAt: DateTime
+    resolvedAt: DateTime
+    resolution: String
+    resolutionNotes: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+enum ExceptionType {
+    AMOUNT_MISMATCH
+    MISSING_TRANSACTION
+    DUPLICATE_TRANSACTION
+    TIMING_DIFFERENCE
+    CURRENCY_MISMATCH
+    ACCOUNT_MISMATCH
+    STATUS_MISMATCH
+    OTHER
+}
+
+enum Priority {
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+}
+
+enum ExceptionStatus {
+    OPEN
+    ASSIGNED
+    IN_PROGRESS
+    RESOLVED
+    CLOSED
+    CANCELLED
+}
+
+# Monitoring Types
+type SettlementMonitoring {
+    id: UUID!
+    monitoringId: String!
+    workflowId: String!
+    status: MonitoringStatus!
+    alertLevel: AlertLevel!
+    metrics: SettlementMetrics!
+    alerts: [SettlementAlert!]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+enum MonitoringStatus {
+    ACTIVE
+    INACTIVE
+    SUSPENDED
+    ERROR
+}
+
+enum AlertLevel {
+    INFO
+    WARNING
+    ERROR
+    CRITICAL
+}
+
+type SettlementMetrics {
+    id: UUID!
+    metricName: String!
+    metricValue: BigDecimal!
+    metricUnit: String!
+    metricCategory: String!
+    timestamp: DateTime!
+    workflowId: String
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+type SettlementAlert {
+    id: UUID!
+    alertId: String!
+    alertType: AlertType!
+    severity: AlertSeverity!
+    title: String!
+    message: String!
+    status: AlertStatus!
+    acknowledgedBy: String
+    acknowledgedAt: DateTime
+    resolvedAt: DateTime
+    createdAt: DateTime!
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+enum AlertType {
+    PERFORMANCE
+    ERROR
+    SECURITY
+    COMPLIANCE
+    BUSINESS
+    SYSTEM
+}
+
+enum AlertSeverity {
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+}
+
+enum AlertStatus {
+    ACTIVE
+    ACKNOWLEDGED
+    RESOLVED
+    DISMISSED
+}
+
+# Batch Processing Types
+type BatchJob {
+    id: UUID!
+    jobName: String!
+    status: BatchJobStatus!
+    startTime: DateTime
+    endTime: DateTime
+    duration: Int
+    readCount: Int!
+    writeCount: Int!
+    filterCount: Int!
+    commitCount: Int!
+    rollbackCount: Int!
+    exitCode: String
+    exitDescription: String
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+enum BatchJobStatus {
+    PENDING
+    STARTED
+    COMPLETED
+    FAILED
+    STOPPED
+    ABANDONED
+}
+
+# Query Types
+type Query {
+    # Payment Queries
+    payments(
+        tenantId: UUID!
+        businessUnitId: UUID
+        status: PaymentStatus
+        paymentType: PaymentType
+        limit: Int = 50
+        offset: Int = 0
+    ): [Payment!]!
+    
+    payment(id: UUID!): Payment
+    
+    # Settlement Queries
+    settlementWorkflows(
+        tenantId: UUID!
+        businessUnitId: UUID
+        status: SettlementStatus
+        limit: Int = 50
+        offset: Int = 0
+    ): [SettlementWorkflow!]!
+    
+    settlementWorkflow(id: UUID!): SettlementWorkflow
+    
+    nettingPositions(
+        nettingCycleId: UUID!
+        tenantId: UUID!
+    ): [NettingPosition!]!
+    
+    settlementOrchestrations(
+        tenantId: UUID!
+        businessUnitId: UUID
+        status: OrchestrationStatus
+        limit: Int = 50
+        offset: Int = 0
+    ): [SettlementOrchestration!]!
+    
+    # Reconciliation Queries
+    reconciliationRuns(
+        tenantId: UUID!
+        businessUnitId: UUID
+        status: ReconciliationStatus
+        limit: Int = 50
+        offset: Int = 0
+    ): [ReconciliationRun!]!
+    
+    reconciliationRun(id: UUID!): ReconciliationRun
+    
+    reconciliationExceptions(
+        runId: String!
+        tenantId: UUID!
+        status: ExceptionStatus
+        priority: Priority
+        assignedTo: String
+        limit: Int = 50
+        offset: Int = 0
+    ): [ReconciliationException!]!
+    
+    reconciliationException(id: UUID!): ReconciliationException
+    
+    # Monitoring Queries
+    settlementMonitoring(
+        tenantId: UUID!
+        businessUnitId: UUID
+    ): SettlementMonitoring
+    
+    settlementMetrics(
+        workflowId: String!
+        tenantId: UUID!
+        metricCategory: String
+        startDate: DateTime
+        endDate: DateTime
+    ): [SettlementMetrics!]!
+    
+    settlementAlerts(
+        tenantId: UUID!
+        businessUnitId: UUID
+        status: AlertStatus
+        severity: AlertSeverity
+        limit: Int = 50
+        offset: Int = 0
+    ): [SettlementAlert!]!
+    
+    # Batch Processing Queries
+    batchJobs(
+        tenantId: UUID!
+        businessUnitId: UUID
+        status: BatchJobStatus
+        limit: Int = 50
+        offset: Int = 0
+    ): [BatchJob!]!
+    
+    batchJob(id: UUID!): BatchJob
+    
+    # Statistics Queries
+    paymentStatistics(
+        tenantId: UUID!
+        businessUnitId: UUID
+        startDate: DateTime
+        endDate: DateTime
+    ): PaymentStatistics!
+    
+    settlementStatistics(
+        tenantId: UUID!
+        businessUnitId: UUID
+        startDate: DateTime
+        endDate: DateTime
+    ): SettlementStatistics!
+    
+    reconciliationStatistics(
+        runId: String!
+        tenantId: UUID!
+    ): ReconciliationStatistics!
+}
+
+# Mutation Types
+type Mutation {
+    # Payment Mutations
+    createPayment(input: CreatePaymentInput!): Payment!
+    updatePayment(id: UUID!, input: UpdatePaymentInput!): Payment!
+    cancelPayment(id: UUID!): Payment!
+    
+    # Settlement Mutations
+    createSettlementWorkflow(input: CreateSettlementWorkflowInput!): SettlementWorkflow!
+    updateSettlementWorkflow(id: UUID!, input: UpdateSettlementWorkflowInput!): SettlementWorkflow!
+    startSettlementWorkflow(id: UUID!): SettlementWorkflow!
+    completeSettlementWorkflow(id: UUID!): SettlementWorkflow!
+    
+    # Reconciliation Mutations
+    createReconciliationRun(input: CreateReconciliationRunInput!): ReconciliationRun!
+    startReconciliationRun(id: UUID!): ReconciliationRun!
+    completeReconciliationRun(id: UUID!): ReconciliationRun!
+    
+    createReconciliationException(input: CreateReconciliationExceptionInput!): ReconciliationException!
+    assignReconciliationException(id: UUID!, assignedTo: String!): ReconciliationException!
+    resolveReconciliationException(id: UUID!, input: ResolveReconciliationExceptionInput!): ReconciliationException!
+    
+    # Monitoring Mutations
+    acknowledgeAlert(id: UUID!, acknowledgedBy: String!): SettlementAlert!
+    resolveAlert(id: UUID!, resolvedBy: String!): SettlementAlert!
+    
+    # Batch Processing Mutations
+    startBatchJob(input: StartBatchJobInput!): BatchJob!
+    stopBatchJob(id: UUID!): BatchJob!
+    restartBatchJob(id: UUID!): BatchJob!
+}
+
+# Subscription Types
+type Subscription {
+    # Payment Subscriptions
+    paymentStatusChanged(tenantId: UUID!): Payment!
+    paymentCreated(tenantId: UUID!): Payment!
+    
+    # Settlement Subscriptions
+    settlementWorkflowStatusChanged(tenantId: UUID!): SettlementWorkflow!
+    settlementWorkflowCompleted(tenantId: UUID!): SettlementWorkflow!
+    
+    # Reconciliation Subscriptions
+    reconciliationRunStatusChanged(tenantId: UUID!): ReconciliationRun!
+    reconciliationExceptionCreated(tenantId: UUID!): ReconciliationException!
+    reconciliationExceptionStatusChanged(tenantId: UUID!): ReconciliationException!
+    
+    # Monitoring Subscriptions
+    settlementAlertCreated(tenantId: UUID!): SettlementAlert!
+    settlementAlertStatusChanged(tenantId: UUID!): SettlementAlert!
+    
+    # Batch Processing Subscriptions
+    batchJobStatusChanged(tenantId: UUID!): BatchJob!
+    batchJobCompleted(tenantId: UUID!): BatchJob!
+}
+
+# Input Types
+input CreatePaymentInput {
+    transactionReference: String!
+    amount: BigDecimal!
+    currency: String!
+    debtorName: String!
+    debtorAccount: String!
+    creditorName: String!
+    creditorAccount: String!
+    description: String
+    paymentType: PaymentType!
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+input UpdatePaymentInput {
+    status: PaymentStatus
+    description: String
+}
+
+input CreateSettlementWorkflowInput {
+    nettingCycleId: UUID
+    currency: String!
+    participantCount: Int!
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+input UpdateSettlementWorkflowInput {
+    status: SettlementStatus
+    totalAmount: BigDecimal
+    participantCount: Int
+}
+
+input CreateReconciliationRunInput {
+    runDate: String!
+    description: String
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+input CreateReconciliationExceptionInput {
+    runId: String!
+    exceptionType: ExceptionType!
+    internalTransactionId: String
+    clearingTransactionId: String
+    amountDifference: BigDecimal
+    description: String!
+    details: String
+    priority: Priority!
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+input ResolveReconciliationExceptionInput {
+    resolution: String!
+    resolutionNotes: String
+}
+
+input StartBatchJobInput {
+    jobName: String!
+    jobParameters: String
+    tenantId: UUID!
+    businessUnitId: UUID
+}
+
+# Statistics Types
+type PaymentStatistics {
+    totalPayments: Int!
+    totalAmount: BigDecimal!
+    successfulPayments: Int!
+    failedPayments: Int!
+    pendingPayments: Int!
+    averageAmount: BigDecimal!
+    currencyBreakdown: [CurrencyStatistics!]!
+    statusBreakdown: [StatusStatistics!]!
+}
+
+type SettlementStatistics {
+    totalWorkflows: Int!
+    completedWorkflows: Int!
+    failedWorkflows: Int!
+    totalAmount: BigDecimal!
+    averageAmount: BigDecimal!
+    averageDuration: Int!
+    currencyBreakdown: [CurrencyStatistics!]!
+    statusBreakdown: [StatusStatistics!]!
+}
+
+type ReconciliationStatistics {
+    totalRuns: Int!
+    completedRuns: Int!
+    failedRuns: Int!
+    totalExceptions: Int!
+    resolvedExceptions: Int!
+    openExceptions: Int!
+    resolutionRate: Float!
+    averageRunDuration: Int!
+}
+
+type CurrencyStatistics {
+    currency: String!
+    count: Int!
+    totalAmount: BigDecimal!
+    percentage: Float!
+}
+
+type StatusStatistics {
+    status: String!
+    count: Int!
+    percentage: Float!
+}

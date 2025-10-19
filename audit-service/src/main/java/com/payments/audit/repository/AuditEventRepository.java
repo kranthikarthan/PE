@@ -1,6 +1,8 @@
 package com.payments.audit.repository;
 
 import com.payments.audit.entity.AuditEventEntity;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,16 +10,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-
 /**
  * Audit Event Repository - Data access for immutable audit logs.
  *
- * <p>Provides compliance audit trail queries with pagination and filtering.
- * All queries automatically filtered by tenant_id for multi-tenancy.
- * Retention: 7+ years (managed by archival process).
+ * <p>Provides compliance audit trail queries with pagination and filtering. All queries
+ * automatically filtered by tenant_id for multi-tenancy. Retention: 7+ years (managed by archival
+ * process).
  */
 @Repository
 public interface AuditEventRepository extends JpaRepository<AuditEventEntity, UUID> {
@@ -50,11 +48,10 @@ public interface AuditEventRepository extends JpaRepository<AuditEventEntity, UU
    * @param pageable pagination info
    * @return page of audit events
    */
-  @Query("SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.userId = :userId ORDER BY a.timestamp DESC")
+  @Query(
+      "SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.userId = :userId ORDER BY a.timestamp DESC")
   Page<AuditEventEntity> findByTenantIdAndUserId(
-      @Param("tenantId") UUID tenantId,
-      @Param("userId") String userId,
-      Pageable pageable);
+      @Param("tenantId") UUID tenantId, @Param("userId") String userId, Pageable pageable);
 
   /**
    * Find audit logs by action type.
@@ -64,11 +61,10 @@ public interface AuditEventRepository extends JpaRepository<AuditEventEntity, UU
    * @param pageable pagination info
    * @return page of audit events
    */
-  @Query("SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.action = :action ORDER BY a.timestamp DESC")
+  @Query(
+      "SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.action = :action ORDER BY a.timestamp DESC")
   Page<AuditEventEntity> findByTenantIdAndAction(
-      @Param("tenantId") UUID tenantId,
-      @Param("action") String action,
-      Pageable pageable);
+      @Param("tenantId") UUID tenantId, @Param("action") String action, Pageable pageable);
 
   /**
    * Find denied access attempts (security incidents).
@@ -77,7 +73,8 @@ public interface AuditEventRepository extends JpaRepository<AuditEventEntity, UU
    * @param pageable pagination info
    * @return page of denied audit events
    */
-  @Query("SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.result = 'DENIED' ORDER BY a.timestamp DESC")
+  @Query(
+      "SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.result = 'DENIED' ORDER BY a.timestamp DESC")
   Page<AuditEventEntity> findDeniedAccessAttempts(
       @Param("tenantId") UUID tenantId, Pageable pageable);
 
@@ -88,9 +85,9 @@ public interface AuditEventRepository extends JpaRepository<AuditEventEntity, UU
    * @param pageable pagination info
    * @return page of error audit events
    */
-  @Query("SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.result = 'ERROR' ORDER BY a.timestamp DESC")
-  Page<AuditEventEntity> findErrorEvents(
-      @Param("tenantId") UUID tenantId, Pageable pageable);
+  @Query(
+      "SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.result = 'ERROR' ORDER BY a.timestamp DESC")
+  Page<AuditEventEntity> findErrorEvents(@Param("tenantId") UUID tenantId, Pageable pageable);
 
   /**
    * Find audit logs within a time range.
@@ -101,7 +98,8 @@ public interface AuditEventRepository extends JpaRepository<AuditEventEntity, UU
    * @param pageable pagination info
    * @return page of audit events
    */
-  @Query("SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.timestamp BETWEEN :startTime AND :endTime ORDER BY a.timestamp DESC")
+  @Query(
+      "SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.timestamp BETWEEN :startTime AND :endTime ORDER BY a.timestamp DESC")
   Page<AuditEventEntity> findByTenantIdAndTimestampBetween(
       @Param("tenantId") UUID tenantId,
       @Param("startTime") LocalDateTime startTime,
@@ -116,11 +114,10 @@ public interface AuditEventRepository extends JpaRepository<AuditEventEntity, UU
    * @param pageable pagination info
    * @return page of audit events
    */
-  @Query("SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.resource = :resource ORDER BY a.timestamp DESC")
+  @Query(
+      "SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.resource = :resource ORDER BY a.timestamp DESC")
   Page<AuditEventEntity> findByTenantIdAndResource(
-      @Param("tenantId") UUID tenantId,
-      @Param("resource") String resource,
-      Pageable pageable);
+      @Param("tenantId") UUID tenantId, @Param("resource") String resource, Pageable pageable);
 
   /**
    * Find audit logs by result type (SUCCESS, DENIED, ERROR).
@@ -130,11 +127,10 @@ public interface AuditEventRepository extends JpaRepository<AuditEventEntity, UU
    * @param pageable pagination info
    * @return page of audit events
    */
-  @Query("SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.result = :result ORDER BY a.timestamp DESC")
+  @Query(
+      "SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.result = :result ORDER BY a.timestamp DESC")
   Page<AuditEventEntity> findByTenantIdAndResult(
-      @Param("tenantId") UUID tenantId,
-      @Param("result") String result,
-      Pageable pageable);
+      @Param("tenantId") UUID tenantId, @Param("result") String result, Pageable pageable);
 
   /**
    * Count audit logs by result type (for reporting).
@@ -143,10 +139,9 @@ public interface AuditEventRepository extends JpaRepository<AuditEventEntity, UU
    * @param result the result type
    * @return count
    */
-  @Query("SELECT COUNT(a) FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.result = :result")
-  long countByTenantIdAndResult(
-      @Param("tenantId") UUID tenantId,
-      @Param("result") String result);
+  @Query(
+      "SELECT COUNT(a) FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND a.result = :result")
+  long countByTenantIdAndResult(@Param("tenantId") UUID tenantId, @Param("result") String result);
 
   /**
    * Search audit logs by keyword in action and resource.
@@ -156,9 +151,8 @@ public interface AuditEventRepository extends JpaRepository<AuditEventEntity, UU
    * @param pageable pagination info
    * @return page of matching audit events
    */
-  @Query("SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND (LOWER(a.action) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(a.resource) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY a.timestamp DESC")
+  @Query(
+      "SELECT a FROM AuditEventEntity a WHERE a.tenantId = :tenantId AND (LOWER(a.action) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(a.resource) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY a.timestamp DESC")
   Page<AuditEventEntity> searchByKeyword(
-      @Param("tenantId") UUID tenantId,
-      @Param("keyword") String keyword,
-      Pageable pageable);
+      @Param("tenantId") UUID tenantId, @Param("keyword") String keyword, Pageable pageable);
 }

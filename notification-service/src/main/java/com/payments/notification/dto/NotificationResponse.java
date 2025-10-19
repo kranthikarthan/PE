@@ -36,17 +36,17 @@ public class NotificationResponse {
    */
   public static NotificationResponse from(NotificationEntity entity) {
     return NotificationResponse.builder()
-        .id(entity.getId())
-        .tenantId(entity.getTenantId())
+        .id(UUID.fromString(entity.getId()))
+        .tenantId(entity.getTenantId().getValue())
         .userId(entity.getUserId())
-        .notificationType(entity.getNotificationType())
+        .notificationType(entity.getType())
         .status(entity.getStatus())
         .recipientAddress(entity.getRecipientAddress())
         .externalId(entity.getExternalId())
         .attempts(entity.getAttempts())
         .failureReason(entity.getFailureReason())
-        .createdAt(entity.getCreatedAt())
-        .lastAttemptAt(entity.getLastAttemptAt())
+        .createdAt(entity.getCreatedAt() != null ? entity.getCreatedAt().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime() : null)
+        .lastAttemptAt(entity.getLastAttemptAt() != null ? entity.getLastAttemptAt().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime() : null)
         .build();
   }
 }

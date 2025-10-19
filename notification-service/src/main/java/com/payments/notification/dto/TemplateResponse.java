@@ -36,9 +36,9 @@ public class TemplateResponse {
    */
   public static TemplateResponse from(NotificationTemplateEntity entity) {
     return TemplateResponse.builder()
-        .id(entity.getId())
-        .tenantId(entity.getTenantId())
-        .notificationType(entity.getNotificationType())
+        .id(UUID.fromString(entity.getTemplateId().getValue()))
+        .tenantId(entity.getTenantId().getValue())
+        .notificationType(entity.getType())
         .name(entity.getName())
         .emailSubject(entity.getEmailSubject())
         .emailTemplate(entity.getEmailTemplate())
@@ -46,8 +46,8 @@ public class TemplateResponse {
         .pushBody(entity.getPushBody())
         .smsTemplate(entity.getSmsTemplate())
         .active(entity.isActive())
-        .createdAt(entity.getCreatedAt())
-        .updatedAt(entity.getUpdatedAt())
+        .createdAt(entity.getCreatedAt() != null ? entity.getCreatedAt().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime() : null)
+        .updatedAt(entity.getUpdatedAt() != null ? entity.getUpdatedAt().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime() : null)
         .build();
   }
 }

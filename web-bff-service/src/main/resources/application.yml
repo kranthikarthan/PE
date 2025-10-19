@@ -1,0 +1,177 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+
+spring:
+  application:
+    name: web-bff-service
+  
+  profiles:
+    active: dev
+  
+  # GraphQL Configuration
+  graphql:
+    servlet:
+      mapping: /graphql
+      enabled: true
+      cors:
+        allowed-origins: "*"
+        allowed-methods: "GET,POST,OPTIONS"
+        allowed-headers: "*"
+        allow-credentials: true
+    playground:
+      enabled: true
+      path: /playground
+    voyager:
+      enabled: true
+      path: /voyager
+  
+  # Redis Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+  
+  # Security Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI:http://localhost:9000}
+          jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:9000/.well-known/jwks.json}
+  
+  # Cache Configuration
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000 # 10 minutes
+      cache-null-values: false
+
+# Service URLs
+services:
+  payment-initiation:
+    url: ${PAYMENT_INITIATION_URL:http://localhost:8081}
+  validation:
+    url: ${VALIDATION_URL:http://localhost:8082}
+  routing:
+    url: ${ROUTING_URL:http://localhost:8083}
+  transaction-processing:
+    url: ${TRANSACTION_PROCESSING_URL:http://localhost:8084}
+  saga-orchestrator:
+    url: ${SAGA_ORCHESTRATOR_URL:http://localhost:8085}
+  settlement:
+    url: ${SETTLEMENT_URL:http://localhost:8086}
+  reconciliation:
+    url: ${RECONCILIATION_URL:http://localhost:8087}
+  batch-processing:
+    url: ${BATCH_PROCESSING_URL:http://localhost:8088}
+  notification:
+    url: ${NOTIFICATION_URL:http://localhost:8089}
+
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      payment-service:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+      settlement-service:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+      reconciliation-service:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+      batch-service:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+  retry:
+    instances:
+      payment-service:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+      settlement-service:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+      reconciliation-service:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+      batch-service:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+  timelimiter:
+    instances:
+      payment-service:
+        timeout-duration: 5s
+      settlement-service:
+        timeout-duration: 5s
+      reconciliation-service:
+        timeout-duration: 5s
+      batch-service:
+        timeout-duration: 5s
+
+# Management and Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,graphql
+  endpoint:
+    health:
+      show-details: always
+    graphql:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        http.client.requests: true
+
+# Logging Configuration
+logging:
+  level:
+    com.payments.webbff: DEBUG
+    org.springframework.graphql: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.data.redis: DEBUG
+    io.github.resilience4j: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/web-bff-service.log
+
+# GraphQL Extended Configuration
+graphql:
+  extended:
+    scalars:
+      DateTime: java.time.OffsetDateTime
+      BigDecimal: java.math.BigDecimal
+      UUID: java.util.UUID
+    validation:
+      enabled: true
+      max-errors: 10

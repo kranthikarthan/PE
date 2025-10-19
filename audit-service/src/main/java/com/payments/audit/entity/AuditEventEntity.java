@@ -1,21 +1,16 @@
 package com.payments.audit.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
+import lombok.*;
 
 /**
  * Audit Event Entity - Immutable compliance log.
  *
- * <p>Tracks all system operations for compliance (POPIA, FICA, PCI-DSS):
- * - Who performed the action
- * - What action was performed
- * - What resource was affected
- * - When it happened
- * - Result (SUCCESS, DENIED, ERROR)
- * - IP address and user agent for forensics
+ * <p>Tracks all system operations for compliance (POPIA, FICA, PCI-DSS): - Who performed the action
+ * - What action was performed - What resource was affected - When it happened - Result (SUCCESS,
+ * DENIED, ERROR) - IP address and user agent for forensics
  *
  * <p>Never modified after creation. Retention: 7 years minimum.
  */
@@ -77,9 +72,7 @@ public class AuditEventEntity {
     timestamp = LocalDateTime.now();
   }
 
-  /**
-   * Result enum for audit outcomes.
-   */
+  /** Result enum for audit outcomes. */
   public enum AuditResult {
     SUCCESS("Operation completed successfully"),
     DENIED("Operation denied (insufficient permissions)"),

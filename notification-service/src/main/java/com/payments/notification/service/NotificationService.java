@@ -91,7 +91,7 @@ public class NotificationService {
       NotificationTemplateEntity template =
           templateRepository
               .findActiveTemplateByTenantAndType(
-                  notification.getTenantId(), notification.getType())
+                  notification.getTenantId().getValue(), notification.getType())
               .orElseThrow(
                   () ->
                       new IllegalArgumentException(
@@ -128,8 +128,7 @@ public class NotificationService {
       }
 
       // 6. Render template
-      Map<String, Object> templateVariables =
-          parseTemplateData(notification.getMetadata());
+      Map<String, Object> templateVariables = notification.getMetadata();
       String renderedContent =
           renderTemplate(template.getContent(), templateVariables);
 
@@ -281,7 +280,7 @@ public class NotificationService {
           // TODO: sendViaSMS(notification, template, renderedContent);
           log.info("SMS dispatch: queued (adapter not yet implemented)");
           break;
-        case PUSH:
+        case PUSH_NOTIFICATION:
           // TODO: sendViaPush(notification, template, renderedContent);
           log.info("Push dispatch: queued (adapter not yet implemented)");
           break;
@@ -348,8 +347,8 @@ public class NotificationService {
    * @return default preferences
    */
   private NotificationPreferenceEntity createDefaultPreferences(String tenantId, String userId) {
-    PreferenceId preferenceId = new PreferenceId(UUID.randomUUID());
-    TenantId tenantIdObj = new TenantId(tenantId);
+    PreferenceId preferenceId = PreferenceId.of(UUID.randomUUID().toString());
+    TenantId tenantIdObj = TenantId.of(tenantId);
     Map<String, Object> settings = new HashMap<>();
     settings.put("transactionAlertsOptIn", true);
     settings.put("marketingOptIn", false);
@@ -414,9 +413,9 @@ public class NotificationService {
    */
   private void updateNotificationStatus(
       NotificationEntity notification, NotificationStatus newStatus) {
-    notificationRepository.updateStatus(notification.getNotificationId(), newStatus, LocalDateTime.now());
+    notificationRepository.updateStatus(UUID.fromString(notification.getId()), newStatus, LocalDateTime.now());
     log.debug(
-        "Updated notification status: id={}, status={}", notification.getNotificationId(), newStatus);
+        "Updated notification status: id={}, status={}", notification.getId(), newStatus);
   }
 
   /**
@@ -446,7 +445,7 @@ public class NotificationService {
       log.info("Found {} notifications to retry", retryCandidates.size());
 
       for (NotificationEntity notification : retryCandidates) {
-        processNotification(notification.getId());
+        processNotification(UUID.fromString(notification.getId()));
       }
 
     } catch (Exception e) {

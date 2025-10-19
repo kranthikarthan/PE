@@ -1,8 +1,19 @@
 package com.payments.audit.controller;
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payments.audit.entity.AuditEventEntity;
 import com.payments.audit.service.AuditService;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,29 +21,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-/**
- * Controller tests for AuditController using standalone MockMvc.
- */
+/** Controller tests for AuditController using standalone MockMvc. */
 @DisplayName("AuditController REST API Tests")
 class AuditControllerTest {
 
@@ -115,8 +112,7 @@ class AuditControllerTest {
     // Arrange
     Page<AuditEventEntity> page =
         new PageImpl<>(testEvents, PageRequest.of(0, 10), testEvents.size());
-    when(auditService.getAuditLogsByUser(tenantId, userId, PageRequest.of(0, 10)))
-        .thenReturn(page);
+    when(auditService.getAuditLogsByUser(tenantId, userId, PageRequest.of(0, 10))).thenReturn(page);
 
     // Act & Assert
     mockMvc
@@ -165,8 +161,7 @@ class AuditControllerTest {
             .build());
 
     Page<AuditEventEntity> page = new PageImpl<>(deniedEvents, PageRequest.of(0, 10), 1);
-    when(auditService.getDeniedAccessAttempts(tenantId, PageRequest.of(0, 10)))
-        .thenReturn(page);
+    when(auditService.getDeniedAccessAttempts(tenantId, PageRequest.of(0, 10))).thenReturn(page);
 
     // Act & Assert
     mockMvc
@@ -236,7 +231,10 @@ class AuditControllerTest {
         new PageImpl<>(testEvents, PageRequest.of(0, 10), testEvents.size());
 
     when(auditService.searchByTimeRange(
-            eq(tenantId), any(LocalDateTime.class), any(LocalDateTime.class), eq(PageRequest.of(0, 10))))
+            eq(tenantId),
+            any(LocalDateTime.class),
+            any(LocalDateTime.class),
+            eq(PageRequest.of(0, 10))))
         .thenReturn(page);
 
     // Act & Assert
@@ -342,9 +340,9 @@ class AuditControllerTest {
   @DisplayName("Pagination parameters work correctly")
   void testPagination() throws Exception {
     // Arrange
-    Page<AuditEventEntity> page =
-        new PageImpl<>(new ArrayList<>(), PageRequest.of(1, 20), 100);
-    when(auditService.getAuditLogs(eq(tenantId), argThat(p -> p.getPageNumber() == 1 && p.getPageSize() == 20)))
+    Page<AuditEventEntity> page = new PageImpl<>(new ArrayList<>(), PageRequest.of(1, 20), 100);
+    when(auditService.getAuditLogs(
+            eq(tenantId), argThat(p -> p.getPageNumber() == 1 && p.getPageSize() == 20)))
         .thenReturn(page);
 
     // Act & Assert

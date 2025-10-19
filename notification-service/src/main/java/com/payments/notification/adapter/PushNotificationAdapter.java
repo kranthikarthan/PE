@@ -81,7 +81,7 @@ public class PushNotificationAdapter implements ChannelAdapter {
       // Build FCM message
       Map<String, String> data = new HashMap<>();
       data.put("notificationId", notification.getId().toString());
-      data.put("tenantId", notification.getTenantId());
+      data.put("tenantId", notification.getTenantId().getValue());
       data.put("notificationType", notification.getNotificationType().toString());
       data.put("timestamp", Instant.now().toString());
 

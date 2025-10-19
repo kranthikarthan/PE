@@ -1,5 +1,7 @@
 package com.payments.audit.exception;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,17 +10,11 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 /**
  * Global Exception Handler for Audit Service.
  *
- * <p>Handles all exceptions and returns consistent error responses with:
- * - HTTP status code
- * - Timestamp
- * - Error message
- * - Request path
+ * <p>Handles all exceptions and returns consistent error responses with: - HTTP status code -
+ * Timestamp - Error message - Request path
  */
 @ControllerAdvice
 @Slf4j
@@ -104,8 +100,7 @@ public class AuditExceptionHandler {
    * @return 500 Internal Server Error response
    */
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleGlobalException(
-      Exception ex, WebRequest request) {
+  public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, WebRequest request) {
     log.error("Unexpected error occurred", ex);
 
     ErrorResponse error =
@@ -120,9 +115,7 @@ public class AuditExceptionHandler {
     return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  /**
-   * Error Response DTO.
-   */
+  /** Error Response DTO. */
   @lombok.Data
   @lombok.Builder
   @lombok.NoArgsConstructor

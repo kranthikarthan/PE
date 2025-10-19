@@ -132,10 +132,10 @@ public class NotificationController {
         request.getNotificationType());
 
     // Create notification entity
-    NotificationEntity notification =
+        NotificationEntity notification =
         NotificationEntity.builder()
             .id(UUID.randomUUID())
-            .tenantId(tenantId)
+            .tenantId(TenantId.of(tenantId))
             .userId(request.getUserId())
             .notificationType(request.getNotificationType())
             .channelType(request.getChannelType())
@@ -148,9 +148,9 @@ public class NotificationController {
     NotificationEntity saved = notificationRepository.save(notification);
 
     // Trigger async processing
-    notificationService.processNotification(saved.getId());
+    notificationService.processNotification(UUID.fromString(saved.getNotificationId().getValue()));
 
-    log.info("Notification created: id={}", saved.getId());
+    log.info("Notification created: id={}", saved.getNotificationId());
 
     return ResponseEntity.status(HttpStatus.CREATED).body(NotificationResponse.from(saved));
   }
@@ -241,10 +241,10 @@ public class NotificationController {
 
     // Update status to RETRY
     notificationRepository.updateStatus(
-        notification.getId(), NotificationStatus.RETRY, java.time.LocalDateTime.now());
+        notification.getId().toString(), NotificationStatus.RETRY, java.time.LocalDateTime.now());
 
     // Trigger processing
-    notificationService.processNotification(notification.getId());
+    notificationService.processNotification(UUID.fromString(notification.getId()));
 
     log.info("Notification retry triggered: id={}", notificationId);
 
@@ -332,7 +332,7 @@ public class NotificationController {
       template =
           NotificationTemplateEntity.builder()
               .id(UUID.randomUUID())
-              .tenantId(tenantId)
+              .tenantId(TenantId.of(tenantId))
               .notificationType(request.getNotificationType())
               .name(request.getName())
               .emailSubject(request.getEmailSubject())
@@ -446,7 +446,7 @@ public class NotificationController {
                 () ->
                     NotificationPreferenceEntity.builder()
                         .id(UUID.randomUUID())
-                        .tenantId(tenantId)
+                        .tenantId(TenantId.of(tenantId))
                         .userId(userId)
                         .build());
 

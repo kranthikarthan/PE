@@ -2,8 +2,8 @@ package com.payments.notification.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payments.domain.entities.NotificationEntity;
-import com.payments.domain.valueobjects.NotificationStatus;
-import com.payments.domain.valueobjects.NotificationType;
+import com.payments.domain.shared.*;
+import com.payments.domain.valueobjects.*;
 import com.payments.notification.repository.NotificationRepository;
 import com.payments.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +16,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -197,7 +198,7 @@ public class NotificationEventConsumer {
       NotificationEntity notification =
           NotificationEntity.builder()
               .id(UUID.randomUUID())
-              .tenantId(event.getTenantId())
+              .tenantId(TenantId.of(event.getTenantId()))
               .userId(event.getUserId())
               .templateId(UUID.fromString("12345678-1234-1234-1234-123456789001"))
               // TODO: look up actual template ID from database

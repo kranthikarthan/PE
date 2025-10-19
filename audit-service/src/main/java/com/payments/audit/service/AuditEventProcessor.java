@@ -2,21 +2,17 @@ package com.payments.audit.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payments.audit.entity.AuditEventEntity;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 /**
  * Audit Event Processor - Deserializes and validates Kafka events.
  *
- * <p>Responsibilities:
- * - Parse JSON from Kafka into AuditEventEntity
- * - Validate event structure (fail-fast pattern)
- * - Handle deserialization errors
- * - Apply default values if needed
+ * <p>Responsibilities: - Parse JSON from Kafka into AuditEventEntity - Validate event structure
+ * (fail-fast pattern) - Handle deserialization errors - Apply default values if needed
  */
 @Component
 @Slf4j
@@ -28,11 +24,8 @@ public class AuditEventProcessor {
   /**
    * Parse and validate audit event from Kafka JSON.
    *
-   * <p>Process:
-   * 1. Deserialize JSON to AuditEventPayload
-   * 2. Validate required fields
-   * 3. Create AuditEventEntity
-   * 4. Return for persistence
+   * <p>Process: 1. Deserialize JSON to AuditEventPayload 2. Validate required fields 3. Create
+   * AuditEventEntity 4. Return for persistence
    *
    * @param eventJson the JSON event from Kafka
    * @return validated AuditEventEntity
@@ -92,7 +85,8 @@ public class AuditEventProcessor {
       AuditEventEntity.AuditResult.valueOf(payload.getResult().toUpperCase());
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException(
-          String.format("Invalid result: %s. Must be SUCCESS, DENIED, or ERROR", payload.getResult()));
+          String.format(
+              "Invalid result: %s. Must be SUCCESS, DENIED, or ERROR", payload.getResult()));
     }
 
     log.debug(
@@ -119,7 +113,8 @@ public class AuditEventProcessor {
         .result(AuditEventEntity.AuditResult.valueOf(payload.getResult().toUpperCase()))
         .details(payload.getDetails())
         .timestamp(
-            payload.getTimestamp() != null ? LocalDateTime.parse(payload.getTimestamp())
+            payload.getTimestamp() != null
+                ? LocalDateTime.parse(payload.getTimestamp())
                 : LocalDateTime.now())
         .ipAddress(payload.getIpAddress())
         .userAgent(payload.getUserAgent())
@@ -129,11 +124,8 @@ public class AuditEventProcessor {
   /**
    * DTO for incoming Kafka audit event payload.
    *
-   * <p>Matches the event schema from other services:
-   * - tenant-management-service
-   * - iam-service
-   * - payment-initiation-service
-   * etc.
+   * <p>Matches the event schema from other services: - tenant-management-service - iam-service -
+   * payment-initiation-service etc.
    */
   @lombok.Data
   @lombok.NoArgsConstructor

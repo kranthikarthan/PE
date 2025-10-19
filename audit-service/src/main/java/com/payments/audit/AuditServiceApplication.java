@@ -14,19 +14,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 /**
  * Audit Service Application.
  *
- * <p>This service is responsible for:
- * - Consuming audit events from Kafka (durable subscriber pattern)
- * - Storing audit logs in PostgreSQL for compliance
- * - Providing REST API for querying audit trails
- * - Supporting multi-tenant audit isolation
- * - Maintaining 7-year retention (via CosmosDB or archival)
+ * <p>This service is responsible for: - Consuming audit events from Kafka (durable subscriber
+ * pattern) - Storing audit logs in PostgreSQL for compliance - Providing REST API for querying
+ * audit trails - Supporting multi-tenant audit isolation - Maintaining 7-year retention (via
+ * CosmosDB or archival)
  *
- * <p>Key Features:
- * - Event-driven (Kafka consumer)
- * - POPIA/FICA/PCI-DSS compliance
- * - Multi-tenancy enforcement
- * - Observability (metrics, tracing)
- * - Caching for performance
+ * <p>Key Features: - Event-driven (Kafka consumer) - POPIA/FICA/PCI-DSS compliance - Multi-tenancy
+ * enforcement - Observability (metrics, tracing) - Caching for performance
  */
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "com.payments.audit.repository")

@@ -34,8 +34,8 @@ public class PreferenceResponse {
    */
   public static PreferenceResponse from(NotificationPreferenceEntity entity) {
     return PreferenceResponse.builder()
-        .id(entity.getId())
-        .tenantId(entity.getTenantId())
+        .id(UUID.fromString(entity.getPreferenceId().getValue()))
+        .tenantId(entity.getTenantId().getValue())
         .userId(entity.getUserId())
         .preferredChannels(entity.getPreferredChannels())
         .transactionAlertsOptIn(entity.isTransactionAlertsOptIn())

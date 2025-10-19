@@ -1,7 +1,16 @@
 package com.payments.audit.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import com.payments.audit.entity.AuditEventEntity;
 import com.payments.audit.repository.AuditEventRepository;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,26 +23,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 /**
  * Unit tests for AuditService.
  *
- * <p>Coverage:
- * - All 9 public methods
- * - Query methods with pagination
- * - Search methods (keyword, time range, resource)
- * - Statistics generation
- * - Multi-tenancy enforcement
- * - Validation (tenant_id, user_id, keyword, time range)
+ * <p>Coverage: - All 9 public methods - Query methods with pagination - Search methods (keyword,
+ * time range, resource) - Statistics generation - Multi-tenancy enforcement - Validation
+ * (tenant_id, user_id, keyword, time range)
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuditService Unit Tests")
@@ -116,8 +111,7 @@ class AuditServiceTest {
 
     // Assert
     assertEquals(5, result.getNumberOfElements());
-    verify(auditEventRepository, times(1))
-        .findByTenantIdAndUserId(tenantId, userId, pageable);
+    verify(auditEventRepository, times(1)).findByTenantIdAndUserId(tenantId, userId, pageable);
   }
 
   @Test
@@ -142,8 +136,7 @@ class AuditServiceTest {
 
     // Assert
     assertEquals(5, result.getNumberOfElements());
-    verify(auditEventRepository, times(1))
-        .findByTenantIdAndAction(tenantId, action, pageable);
+    verify(auditEventRepository, times(1)).findByTenantIdAndAction(tenantId, action, pageable);
   }
 
   @Test
@@ -245,8 +238,7 @@ class AuditServiceTest {
 
     // Assert
     assertEquals(5, result.getNumberOfElements());
-    verify(auditEventRepository, times(1))
-        .findByTenantIdAndResource(tenantId, resource, pageable);
+    verify(auditEventRepository, times(1)).findByTenantIdAndResource(tenantId, resource, pageable);
   }
 
   @Test
@@ -255,8 +247,7 @@ class AuditServiceTest {
     // Arrange
     String keyword = "pay";
     Page<AuditEventEntity> expected = new PageImpl<>(testEvents, pageable, testEvents.size());
-    when(auditEventRepository.searchByKeyword(tenantId, keyword, pageable))
-        .thenReturn(expected);
+    when(auditEventRepository.searchByKeyword(tenantId, keyword, pageable)).thenReturn(expected);
 
     // Act
     Page<AuditEventEntity> result = auditService.search(tenantId, keyword, pageable);
@@ -297,13 +288,11 @@ class AuditServiceTest {
   @DisplayName("Multi-tenancy - no data leakage between tenants")
   void testMultiTenancyIsolation() {
     // Arrange
-    Page<AuditEventEntity> tenant1Events =
-        new PageImpl<>(testEvents, pageable, testEvents.size());
+    Page<AuditEventEntity> tenant1Events = new PageImpl<>(testEvents, pageable, testEvents.size());
     Page<AuditEventEntity> tenant2Events = new PageImpl<>(new ArrayList<>(), pageable, 0);
 
     when(auditEventRepository.findByTenantId(tenantId, pageable)).thenReturn(tenant1Events);
-    when(auditEventRepository.findByTenantId(otherTenantId, pageable))
-        .thenReturn(tenant2Events);
+    when(auditEventRepository.findByTenantId(otherTenantId, pageable)).thenReturn(tenant2Events);
 
     // Act
     Page<AuditEventEntity> result1 = auditService.getAuditLogs(tenantId, pageable);
@@ -320,8 +309,7 @@ class AuditServiceTest {
   @DisplayName("Validation - catches all invalid inputs")
   void testValidationComprehensive() {
     // Test null tenant ID
-    assertThrows(
-        IllegalArgumentException.class, () -> auditService.getAuditLogs(null, pageable));
+    assertThrows(IllegalArgumentException.class, () -> auditService.getAuditLogs(null, pageable));
 
     // Test null user ID
     assertThrows(

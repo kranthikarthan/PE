@@ -1,13 +1,12 @@
 package com.payments.audit.integration;
 
-import static org.awaitility.Awaitility.await;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payments.audit.entity.AuditEventEntity;
 import com.payments.audit.service.AuditEventProcessor.AuditEventPayload;
 import java.time.Duration;
-import java.util.Map;
 import java.util.UUID;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -22,13 +21,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.KafkaContainer;
-import org.testcontainers.utility.DockerImageName;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -37,12 +36,14 @@ class AuditServiceE2EIntegrationTest {
 
   @Container
   static PostgreSQLContainer<?> postgres =
-      new PostgreSQLContainer<>("postgres:15").withDatabaseName("testdb").withUsername("test")
+      new PostgreSQLContainer<>("postgres:15")
+          .withDatabaseName("testdb")
+          .withUsername("test")
           .withPassword("test");
 
   @Container
-  static KafkaContainer kafka = new KafkaContainer(
-      DockerImageName.parse("confluentinc/cp-kafka:7.5.1"));
+  static KafkaContainer kafka =
+      new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.1"));
 
   @Autowired private ObjectMapper objectMapper;
 
@@ -100,7 +101,8 @@ class AuditServiceE2EIntegrationTest {
     producer.flush();
 
     // Assert: await persistence in Postgres
-    await().atMost(30, SECONDS)
+    await()
+        .atMost(30, SECONDS)
         .pollInterval(Duration.ofSeconds(1))
         .untilAsserted(
             () -> {
@@ -110,5 +112,3 @@ class AuditServiceE2EIntegrationTest {
             });
   }
 }
-
-

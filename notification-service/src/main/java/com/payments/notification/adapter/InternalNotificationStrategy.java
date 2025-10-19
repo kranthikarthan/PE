@@ -36,10 +36,10 @@ public class InternalNotificationStrategy implements NotificationStrategy {
         "Processing notification via internal strategy: id={}, type={}, channels={}",
         notification.getId(),
         notification.getNotificationType(),
-        notification.getChannelType());
+        notification.getChannel());
 
     // Dispatch to appropriate channel adapter
-    NotificationChannel channel = notification.getChannelType();
+    NotificationChannel channel = notification.getChannel();
 
     if (channel == null) {
       log.warn("No channel specified for notification: id={}", notification.getId());
@@ -56,7 +56,7 @@ public class InternalNotificationStrategy implements NotificationStrategy {
           // TODO: Call smsAdapter.send() with proper template
           log.debug("SMS dispatch via internal strategy");
           break;
-        case PUSH:
+        case PUSH_NOTIFICATION:
           // TODO: Call pushAdapter.send() with proper template
           log.debug("Push dispatch via internal strategy");
           break;

@@ -4,49 +4,37 @@ import com.payments.audit.entity.AuditEventEntity;
 import com.payments.audit.service.AuditService;
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.UUID;
-
 /**
  * Audit Controller - REST API for compliance audit logs.
  *
- * <p>Endpoints:
- * - GET /api/audit/logs - Get audit logs (paginated)
- * - GET /api/audit/logs/user - Get logs by user
- * - GET /api/audit/logs/action - Get logs by action
- * - GET /api/audit/logs/denied - Get denied access attempts
- * - GET /api/audit/logs/errors - Get error events
- * - GET /api/audit/logs/search - Search by keyword
- * - GET /api/audit/logs/range - Search by time range
- * - GET /api/audit/logs/resource - Search by resource
- * - GET /api/audit/stats - Get audit statistics
+ * <p>Endpoints: - GET /api/audit/logs - Get audit logs (paginated) - GET /api/audit/logs/user - Get
+ * logs by user - GET /api/audit/logs/action - Get logs by action - GET /api/audit/logs/denied - Get
+ * denied access attempts - GET /api/audit/logs/errors - Get error events - GET
+ * /api/audit/logs/search - Search by keyword - GET /api/audit/logs/range - Search by time range -
+ * GET /api/audit/logs/resource - Search by resource - GET /api/audit/stats - Get audit statistics
  *
- * <p>Security:
- * - All endpoints require JWT token (OAuth2 Resource Server)
- * - All endpoints require X-Tenant-ID header
- * - Admin/Compliance/Auditor roles only
+ * <p>Security: - All endpoints require JWT token (OAuth2 Resource Server) - All endpoints require
+ * X-Tenant-ID header - Admin/Compliance/Auditor roles only
  *
- * <p>Multi-Tenancy:
- * - All queries filtered by X-Tenant-ID header
- * - No cross-tenant data exposure
- * - Enforced at controller and service layer
+ * <p>Multi-Tenancy: - All queries filtered by X-Tenant-ID header - No cross-tenant data exposure -
+ * Enforced at controller and service layer
  */
 @RestController
 @RequestMapping("/api/audit")
@@ -95,7 +83,9 @@ public class AuditController {
   @GetMapping("/logs/user")
   @PreAuthorize("hasAnyRole('ADMIN', 'COMPLIANCE', 'AUDITOR')")
   @Timed(value = "api.audit.logs.user", description = "Get audit logs by user")
-  @Operation(summary = "Get audit logs by user", description = "Retrieve audit logs for a specific user")
+  @Operation(
+      summary = "Get audit logs by user",
+      description = "Retrieve audit logs for a specific user")
   public ResponseEntity<Page<AuditEventEntity>> getAuditLogsByUser(
       @RequestHeader("X-Tenant-ID") UUID tenantId,
       @RequestParam @NotBlank String userId,
@@ -126,7 +116,9 @@ public class AuditController {
   @GetMapping("/logs/action")
   @PreAuthorize("hasAnyRole('ADMIN', 'COMPLIANCE', 'AUDITOR')")
   @Timed(value = "api.audit.logs.action", description = "Get audit logs by action")
-  @Operation(summary = "Get audit logs by action", description = "Retrieve audit logs for a specific action type")
+  @Operation(
+      summary = "Get audit logs by action",
+      description = "Retrieve audit logs for a specific action type")
   public ResponseEntity<Page<AuditEventEntity>> getAuditLogsByAction(
       @RequestHeader("X-Tenant-ID") UUID tenantId,
       @RequestParam @NotBlank String action,
@@ -178,9 +170,7 @@ public class AuditController {
   @GetMapping("/logs/errors")
   @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'AUDITOR')")
   @Timed(value = "api.audit.errors", description = "Get error events")
-  @Operation(
-      summary = "Get error events",
-      description = "Retrieve system failures (error events)")
+  @Operation(summary = "Get error events", description = "Retrieve system failures (error events)")
   public ResponseEntity<Page<AuditEventEntity>> getErrorEvents(
       @RequestHeader("X-Tenant-ID") UUID tenantId, Pageable pageable) {
     log.warn("GET /api/audit/logs/errors - tenant: {}", tenantId);
@@ -208,7 +198,8 @@ public class AuditController {
       description = "Search action and resource fields for keyword (min 2 characters)")
   public ResponseEntity<Page<AuditEventEntity>> search(
       @RequestHeader("X-Tenant-ID") UUID tenantId,
-      @RequestParam @Size(min = 2, message = "keyword must be at least 2 characters") String keyword,
+      @RequestParam @Size(min = 2, message = "keyword must be at least 2 characters")
+          String keyword,
       Pageable pageable) {
     log.info(
         "GET /api/audit/logs/search - tenant: {}, keyword: {}, page: {}",
@@ -240,8 +231,10 @@ public class AuditController {
       description = "Retrieve audit logs within a specific time window")
   public ResponseEntity<Page<AuditEventEntity>> searchByTimeRange(
       @RequestHeader("X-Tenant-ID") UUID tenantId,
-      @RequestParam @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
-      @RequestParam @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
+      @RequestParam @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          LocalDateTime startTime,
+      @RequestParam @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          LocalDateTime endTime,
       Pageable pageable) {
     log.info(
         "GET /api/audit/logs/range - tenant: {}, start: {}, end: {}, page: {}",

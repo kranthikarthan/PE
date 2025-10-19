@@ -2,38 +2,29 @@ package com.payments.audit.service;
 
 import com.payments.audit.entity.AuditEventEntity;
 import com.payments.audit.repository.AuditEventRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Service;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Audit Event Consumer - Durable Subscriber Pattern Implementation.
  *
- * <p>Responsibilities:
- * - Consume audit events from Kafka topic
- * - Batch process events for performance
- * - Store events immutably in PostgreSQL
- * - Handle errors and retry logic
- * - Support multi-tenant event isolation
+ * <p>Responsibilities: - Consume audit events from Kafka topic - Batch process events for
+ * performance - Store events immutably in PostgreSQL - Handle errors and retry logic - Support
+ * multi-tenant event isolation
  *
- * <p>Pattern: Durable Subscriber
- * - Kafka maintains message order per partition
- * - Consumer group ensures durability (offset management)
- * - No message loss (manual commit after persistence)
- * - Idempotent processing (UUID-based deduplication if needed)
+ * <p>Pattern: Durable Subscriber - Kafka maintains message order per partition - Consumer group
+ * ensures durability (offset management) - No message loss (manual commit after persistence) -
+ * Idempotent processing (UUID-based deduplication if needed)
  *
- * <p>Performance:
- * - Batch size: 100 events per commit
- * - Flush interval: 60 seconds (configurable)
- * - Concurrent consumers: 3 (configurable)
+ * <p>Performance: - Batch size: 100 events per commit - Flush interval: 60 seconds (configurable) -
+ * Concurrent consumers: 3 (configurable)
  */
 @Service
 @Slf4j
@@ -53,14 +44,11 @@ public class AuditEventConsumer {
   /**
    * Kafka listener for audit events.
    *
-   * <p>Implements durable subscriber pattern:
-   * 1. Receive event from Kafka
-   * 2. Add to batch buffer
-   * 3. When batch is full OR time limit reached, flush to DB
-   * 4. Manual commit after successful persistence
+   * <p>Implements durable subscriber pattern: 1. Receive event from Kafka 2. Add to batch buffer 3.
+   * When batch is full OR time limit reached, flush to DB 4. Manual commit after successful
+   * persistence
    *
-   * <p>Topic: payment-audit-logs
-   * Consumer Group: audit-service-group (ensures durability)
+   * <p>Topic: payment-audit-logs Consumer Group: audit-service-group (ensures durability)
    * Concurrency: 3 (configurable)
    *
    * @param eventJson the JSON-serialized audit event from Kafka
@@ -97,8 +85,8 @@ public class AuditEventConsumer {
   /**
    * Scheduled flush of batch buffer.
    *
-   * <p>Runs periodically to ensure events don't stay in memory too long.
-   * Triggered by Spring scheduler (60 seconds by default).
+   * <p>Runs periodically to ensure events don't stay in memory too long. Triggered by Spring
+   * scheduler (60 seconds by default).
    */
   public void flushBatchIfNeeded() {
     synchronized (eventBatch) {
@@ -117,14 +105,11 @@ public class AuditEventConsumer {
   /**
    * Internal flush method - persists batch to database.
    *
-   * <p>Batch operations:
-   * 1. Validate all events (multi-tenancy, immutability)
-   * 2. Save all events in single transaction
-   * 3. Clear batch buffer
-   * 4. Log metrics
+   * <p>Batch operations: 1. Validate all events (multi-tenancy, immutability) 2. Save all events in
+   * single transaction 3. Clear batch buffer 4. Log metrics
    *
-   * <p>Transactional: All events saved together or none saved
-   * Atomic: Offset committed only after successful persistence
+   * <p>Transactional: All events saved together or none saved Atomic: Offset committed only after
+   * successful persistence
    */
   private void flushBatch() {
     try {
@@ -142,10 +127,7 @@ public class AuditEventConsumer {
       List<AuditEventEntity> saved = auditEventRepository.saveAll(eventBatch);
       long duration = System.currentTimeMillis() - startTime;
 
-      log.info(
-          "Flushed {} audit events to database in {} ms",
-          saved.size(),
-          duration);
+      log.info("Flushed {} audit events to database in {} ms", saved.size(), duration);
 
       // Metrics
       recordBatchMetrics(saved.size(), duration);
@@ -163,12 +145,8 @@ public class AuditEventConsumer {
   /**
    * Validate audit event for compliance.
    *
-   * <p>Checks:
-   * - Tenant ID is present (multi-tenancy)
-   * - User ID is present (audit trail)
-   * - Action is present
-   * - Timestamp is valid
-   * - No duplicate ID (idempotency)
+   * <p>Checks: - Tenant ID is present (multi-tenancy) - User ID is present (audit trail) - Action
+   * is present - Timestamp is valid - No duplicate ID (idempotency)
    *
    * @param event the event to validate
    */
@@ -185,7 +163,8 @@ public class AuditEventConsumer {
       throw new IllegalArgumentException("Audit event missing action");
     }
 
-    if (event.getTimestamp() == null || event.getTimestamp().isAfter(LocalDateTime.now().plusSeconds(10))) {
+    if (event.getTimestamp() == null
+        || event.getTimestamp().isAfter(LocalDateTime.now().plusSeconds(10))) {
       throw new IllegalArgumentException("Audit event has invalid timestamp");
     }
 
@@ -203,10 +182,8 @@ public class AuditEventConsumer {
   /**
    * Record batch processing metrics.
    *
-   * <p>Metrics for monitoring:
-   * - Batch size (number of events)
-   * - Duration (processing time)
-   * - Throughput (events per second)
+   * <p>Metrics for monitoring: - Batch size (number of events) - Duration (processing time) -
+   * Throughput (events per second)
    *
    * @param eventCount number of events in batch
    * @param durationMs processing duration in milliseconds
@@ -229,17 +206,13 @@ public class AuditEventConsumer {
   /**
    * Consumer seek callback - handles rebalancing.
    *
-   * <p>Called when consumer group rebalances:
-   * - New partitions assigned
-   * - Partitions revoked
+   * <p>Called when consumer group rebalances: - New partitions assigned - Partitions revoked
    *
    * <p>Action: Flush batch before rebalance to avoid message loss
    */
   // Rebalance hooks could be wired if needed via Kafka listener container customization.
 
-  /**
-   * Custom exception for audit event processing failures.
-   */
+  /** Custom exception for audit event processing failures. */
   public static class AuditEventProcessingException extends RuntimeException {
     public AuditEventProcessingException(String message, Throwable cause) {
       super(message, cause);

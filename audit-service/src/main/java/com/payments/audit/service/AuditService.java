@@ -2,7 +2,12 @@ package com.payments.audit.service;
 
 import com.payments.audit.entity.AuditEventEntity;
 import com.payments.audit.repository.AuditEventRepository;
+import com.payments.domain.entities.NotificationEntity;
 import io.micrometer.core.annotation.Timed;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -11,33 +16,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 /**
  * Audit Service - Business logic for compliance audit logging.
  *
- * <p>Responsibilities:
- * - Query audit logs (with pagination and filtering)
- * - Search audit trail by keyword
- * - Track security incidents (denied access)
- * - Track system failures (errors)
- * - Generate audit statistics
- * - Manage archival/retention policies
- * - Enforce multi-tenancy
+ * <p>Responsibilities: - Query audit logs (with pagination and filtering) - Search audit trail by
+ * keyword - Track security incidents (denied access) - Track system failures (errors) - Generate
+ * audit statistics - Manage archival/retention policies - Enforce multi-tenancy
  *
- * <p>All operations are multi-tenant aware:
- * - Requires X-Tenant-ID header from caller
- * - Filters all queries by tenant_id
- * - Enforces data isolation at service layer
+ * <p>All operations are multi-tenant aware: - Requires X-Tenant-ID header from caller - Filters all
+ * queries by tenant_id - Enforces data isolation at service layer
  *
- * <p>Compliance:
- * - POPIA: Data tracking and user audit trails
- * - FICA: Transaction audit trails
- * - PCI-DSS: Payment card operation logging
- * - 7-year retention policy
+ * <p>Compliance: - POPIA: Data tracking and user audit trails - FICA: Transaction audit trails -
+ * PCI-DSS: Payment card operation logging - 7-year retention policy
  */
 @Service
 @Slf4j
@@ -185,9 +175,7 @@ public class AuditService {
             tenantId, startTime, endTime, pageable);
 
     log.debug(
-        "Found {} audit logs in time range for tenant: {}",
-        logs.getTotalElements(),
-        tenantId);
+        "Found {} audit logs in time range for tenant: {}", logs.getTotalElements(), tenantId);
     return logs;
   }
 
@@ -241,20 +229,15 @@ public class AuditService {
   /**
    * Get audit statistics (counts by result type).
    *
-   * <p>Provides overview of audit trail for compliance reporting:
-   * - SUCCESS: Normal operations
-   * - DENIED: Security incidents
-   * - ERROR: System failures
+   * <p>Provides overview of audit trail for compliance reporting: - SUCCESS: Normal operations -
+   * DENIED: Security incidents - ERROR: System failures
    *
    * @param tenantId the tenant ID
    * @return map of result type to count
    */
   @Transactional(readOnly = true)
   @Timed(value = "audit.stats", description = "Get audit statistics")
-  @Cacheable(
-      value = "audit_stats",
-      key = "#tenantId.toString()",
-      cacheManager = "cacheManager")
+  @Cacheable(value = "audit_stats", key = "#tenantId.toString()", cacheManager = "cacheManager")
   public Map<String, Long> getAuditStats(UUID tenantId) {
     log.debug("Fetching audit statistics for tenant: {}", tenantId);
 
@@ -366,7 +349,7 @@ public class AuditService {
   }
 
   // Phase 3.5: Notification-specific audit methods
-  
+
   /**
    * Log notification denied event.
    *
@@ -375,9 +358,9 @@ public class AuditService {
    */
   @Transactional
   @Timed(value = "audit.notification.denied", description = "Log notification denied")
-  public void logNotificationDenied(com.payments.domain.entities.NotificationEntity notification, String reason) {
+  public void logNotificationDenied(NotificationEntity notification, String reason) {
     log.debug("Logging notification denied: {} - {}", notification.getNotificationId(), reason);
-    
+
     AuditEventEntity auditEvent = new AuditEventEntity();
     auditEvent.setTenantId(java.util.UUID.fromString(notification.getTenantId().getValue()));
     auditEvent.setUserId(notification.getUserId());
@@ -386,10 +369,12 @@ public class AuditService {
     auditEvent.setResult(AuditEventEntity.AuditResult.DENIED);
     auditEvent.setDetails("Notification denied: " + reason);
     auditEvent.setTimestamp(LocalDateTime.now());
-    
+
     auditEventRepository.save(auditEvent);
-    log.info("Logged notification denied for tenant: {}, user: {}", 
-             notification.getTenantId().getValue(), notification.getUserId());
+    log.info(
+        "Logged notification denied for tenant: {}, user: {}",
+        notification.getTenantId().getValue(),
+        notification.getUserId());
   }
 
   /**
@@ -399,9 +384,9 @@ public class AuditService {
    */
   @Transactional
   @Timed(value = "audit.notification.sent", description = "Log notification sent")
-  public void logNotificationSent(com.payments.domain.entities.NotificationEntity notification) {
+  public void logNotificationSent(NotificationEntity notification) {
     log.debug("Logging notification sent: {}", notification.getNotificationId());
-    
+
     AuditEventEntity auditEvent = new AuditEventEntity();
     auditEvent.setTenantId(java.util.UUID.fromString(notification.getTenantId().getValue()));
     auditEvent.setUserId(notification.getUserId());
@@ -410,10 +395,12 @@ public class AuditService {
     auditEvent.setResult(AuditEventEntity.AuditResult.SUCCESS);
     auditEvent.setDetails("Notification sent successfully via " + notification.getChannelType());
     auditEvent.setTimestamp(LocalDateTime.now());
-    
+
     auditEventRepository.save(auditEvent);
-    log.info("Logged notification sent for tenant: {}, user: {}", 
-             notification.getTenantId().getValue(), notification.getUserId());
+    log.info(
+        "Logged notification sent for tenant: {}, user: {}",
+        notification.getTenantId().getValue(),
+        notification.getUserId());
   }
 
   /**
@@ -424,9 +411,10 @@ public class AuditService {
    */
   @Transactional
   @Timed(value = "audit.notification.error", description = "Log notification error")
-  public void logNotificationError(com.payments.domain.entities.NotificationEntity notification, String errorMessage) {
-    log.debug("Logging notification error: {} - {}", notification.getNotificationId(), errorMessage);
-    
+  public void logNotificationError(NotificationEntity notification, String errorMessage) {
+    log.debug(
+        "Logging notification error: {} - {}", notification.getNotificationId(), errorMessage);
+
     AuditEventEntity auditEvent = new AuditEventEntity();
     auditEvent.setTenantId(java.util.UUID.fromString(notification.getTenantId().getValue()));
     auditEvent.setUserId(notification.getUserId());
@@ -435,9 +423,12 @@ public class AuditService {
     auditEvent.setResult(AuditEventEntity.AuditResult.ERROR);
     auditEvent.setDetails("Notification error: " + errorMessage);
     auditEvent.setTimestamp(LocalDateTime.now());
-    
+
     auditEventRepository.save(auditEvent);
-    log.warn("Logged notification error for tenant: {}, user: {} - {}", 
-             notification.getTenantId().getValue(), notification.getUserId(), errorMessage);
+    log.warn(
+        "Logged notification error for tenant: {}, user: {} - {}",
+        notification.getTenantId().getValue(),
+        notification.getUserId(),
+        errorMessage);
   }
 }
