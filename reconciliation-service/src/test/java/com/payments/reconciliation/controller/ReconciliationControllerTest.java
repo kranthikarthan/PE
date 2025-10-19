@@ -39,12 +39,20 @@ class ReconciliationControllerTest {
   void shouldRunReconciliation_WhenRequested() throws Exception {
     var response =
         mockMvc
-            .perform(post("/api/v1/reconciliation/run").with(csrf()))
+            .perform(post("/api/v1/reconciliation/run").param("system", "RTC").with(csrf()))
             .andExpect(status().isAccepted())
             .andReturn()
             .getResponse()
             .getContentAsString();
     assertThat(response).isEqualTo("RECONCILIATION-RUNNING");
+  }
+
+  @Test
+  @WithMockUser
+  void shouldReturnBadRequest_WhenSystemParamTooShort() throws Exception {
+    mockMvc
+        .perform(post("/api/v1/reconciliation/run").param("system", "R").with(csrf()))
+        .andExpect(status().isBadRequest());
   }
 
   @Test
