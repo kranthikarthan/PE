@@ -241,7 +241,7 @@ public class NotificationController {
 
     // Update status to RETRY
     notificationRepository.updateStatus(
-        notification.getId().toString(), NotificationStatus.RETRY, java.time.LocalDateTime.now());
+        UUID.fromString(notification.getId()), NotificationStatus.RETRY, java.time.LocalDateTime.now());
 
     // Trigger processing
     notificationService.processNotification(UUID.fromString(notification.getId()));
@@ -340,7 +340,7 @@ public class NotificationController {
               .pushTitle(request.getPushTitle())
               .pushBody(request.getPushBody())
               .smsTemplate(request.getSmsTemplate())
-              .active(true)
+              .isActive(true)
               .build();
     }
 

@@ -285,6 +285,26 @@ public class NotificationTemplateEntity extends AggregateRoot<TemplateId> {
       return this;
     }
 
+    public NotificationTemplateEntityBuilder emailTemplate(String content) {
+      this.templateEntity.content = content;
+      return this;
+    }
+
+    public NotificationTemplateEntityBuilder pushTitle(String title) {
+      this.templateEntity.subject = title;
+      return this;
+    }
+
+    public NotificationTemplateEntityBuilder pushBody(String body) {
+      this.templateEntity.content = body;
+      return this;
+    }
+
+    public NotificationTemplateEntityBuilder smsTemplate(String template) {
+      this.templateEntity.content = template;
+      return this;
+    }
+
     public NotificationTemplateEntityBuilder variables(Map<String, Object> variables) {
       this.templateEntity.variables = variables;
       return this;

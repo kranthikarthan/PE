@@ -324,6 +324,19 @@ public class NotificationEntity extends AggregateRoot<NotificationId> {
       return this;
     }
 
+    public NotificationEntityBuilder templateData(Map<String, Object> metadata) {
+      this.notificationEntity.metadata = metadata;
+      return this;
+    }
+
+    public NotificationEntityBuilder templateData(String templateData) {
+      if (this.notificationEntity.metadata == null) {
+        this.notificationEntity.metadata = new java.util.HashMap<>();
+      }
+      this.notificationEntity.metadata.put("templateData", templateData);
+      return this;
+    }
+
     public NotificationEntityBuilder templateId(java.util.UUID templateId) {
       if (this.notificationEntity.metadata == null) {
         this.notificationEntity.metadata = new java.util.HashMap<>();
@@ -354,6 +367,11 @@ public class NotificationEntity extends AggregateRoot<NotificationId> {
 
     public NotificationEntityBuilder retryCount(Integer retryCount) {
       this.notificationEntity.retryCount = retryCount;
+      return this;
+    }
+
+    public NotificationEntityBuilder attempts(int attempts) {
+      this.notificationEntity.retryCount = attempts;
       return this;
     }
 
