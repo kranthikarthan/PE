@@ -2138,6 +2138,1314 @@ public class SamosSettlementWindowService {
 
 ---
 
-Continue in next message due to length limits...
+---
 
-Would you like me to continue with the remaining tickets (PE-314 through PE-325)?
+### **[PE-314] Implement BankservAfrica ACH File Format Generation**
+
+**Epic**: SA Compliance  
+**Priority**: P1 - Critical  
+**Story Points**: 5  
+**Assignee**: Backend Developer  
+**Sprint**: Sprint 4  
+
+#### **Description**
+Implement BankservAfrica fixed-length ACH file format generation for EFT batch processing.
+
+#### **BankservAfrica Requirements**
+Per docs/06-SOUTH-AFRICA-CLEARING.md:
+- **Format**: Fixed-length records
+- **Record Types**: 01 (Header), 02 (Transaction), 99 (Trailer)
+- **Encoding**: ASCII
+- **Line Ending**: CRLF
+
+#### **File Format Specification**
+```
+Header Record (Type 01):
+Pos 1-1:   Record Type = "01"
+Pos 2-11:  Bank Code (10 chars, left-aligned, space-padded)
+Pos 12-19: Date (YYYYMMDD)
+Pos 20-39: Batch Reference (20 chars, left-aligned, space-padded)
+Pos 40-140: Reserved (101 chars, space-padded)
+
+Transaction Record (Type 02):
+Pos 1-1:   Record Type = "02"
+Pos 2-11:  Debit Account (10 chars, left-aligned, space-padded)
+Pos 12-21: Credit Account (10 chars, left-aligned, space-padded)
+Pos 22-34: Amount (13 chars, right-aligned, zero-padded, in cents)
+Pos 35-37: Currency (3 chars = "ZAR")
+Pos 38-57: Payment Reference (20 chars, left-aligned, space-padded)
+Pos 58-87: Beneficiary Name (30 chars, left-aligned, space-padded)
+Pos 88-140: Reserved (53 chars, space-padded)
+
+Trailer Record (Type 99):
+Pos 1-1:   Record Type = "99"
+Pos 2-14:  Total Amount (13 chars, right-aligned, zero-padded, in cents)
+Pos 15-24: Transaction Count (10 chars, right-aligned, zero-padded)
+Pos 25-140: Reserved (116 chars, space-padded)
+```
+
+#### **Implementation**
+```java
+@Service
+@Slf4j
+public class BankservAfricaAchFileBuilder {
+    
+    private static final int RECORD_LENGTH = 140;
+    private static final String LINE_SEPARATOR = "\r\n";
+    
+    @Value("${bankservafrica.bank-code}")
+    private String bankCode;
+    
+    /**
+     * Build ACH batch file from payment list
+     */
+    public String buildAchBatchFile(
+        List<BankservAfricaEftMessage> payments,
+        String batchReference
+    ) {
+        StringBuilder sb = new StringBuilder();
+        
+        // 1. Header Record (Type 01)
+        sb.append(buildHeaderRecord(batchReference));
+        sb.append(LINE_SEPARATOR);
+        
+        // 2. Transaction Records (Type 02)
+        long totalAmountCents = 0;
+        for (BankservAfricaEftMessage payment : payments) {
+            sb.append(buildTransactionRecord(payment));
+            sb.append(LINE_SEPARATOR);
+            
+            totalAmountCents += payment.getAmount()
+                .multiply(new BigDecimal(100))
+                .longValue();
+        }
+        
+        // 3. Trailer Record (Type 99)
+        sb.append(buildTrailerRecord(totalAmountCents, payments.size()));
+        sb.append(LINE_SEPARATOR);
+        
+        log.info("Built ACH file: batch={}, transactions={}, totalAmount=R{}",
+            batchReference,
+            payments.size(),
+            new BigDecimal(totalAmountCents).divide(new BigDecimal(100))
+        );
+        
+        return sb.toString();
+    }
+    
+    /**
+     * Build header record (Type 01)
+     */
+    private String buildHeaderRecord(String batchReference) {
+        StringBuilder record = new StringBuilder(RECORD_LENGTH);
+        
+        // Pos 1-1: Record Type
+        record.append("01");
+        
+        // Pos 2-11: Bank Code (10 chars)
+        record.append(padRight(bankCode, 10));
+        
+        // Pos 12-19: Date (YYYYMMDD)
+        record.append(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
+        
+        // Pos 20-39: Batch Reference (20 chars)
+        record.append(padRight(batchReference, 20));
+        
+        // Pos 40-140: Reserved (101 chars)
+        record.append(padRight("", 101));
+        
+        return record.toString();
+    }
+    
+    /**
+     * Build transaction record (Type 02)
+     */
+    private String buildTransactionRecord(BankservAfricaEftMessage payment) {
+        StringBuilder record = new StringBuilder(RECORD_LENGTH);
+        
+        // Pos 1-1: Record Type
+        record.append("02");
+        
+        // Pos 2-11: Debit Account (10 chars)
+        record.append(padRight(payment.getDebitAccount(), 10));
+        
+        // Pos 12-21: Credit Account (10 chars)
+        record.append(padRight(payment.getCreditAccount(), 10));
+        
+        // Pos 22-34: Amount in cents (13 chars, right-aligned, zero-padded)
+        long amountCents = payment.getAmount()
+            .multiply(new BigDecimal(100))
+            .longValue();
+        record.append(padLeft(String.valueOf(amountCents), 13, '0'));
+        
+        // Pos 35-37: Currency (3 chars)
+        record.append(padRight(payment.getCurrency(), 3));
+        
+        // Pos 38-57: Payment Reference (20 chars)
+        record.append(padRight(payment.getPaymentReference(), 20));
+        
+        // Pos 58-87: Beneficiary Name (30 chars)
+        record.append(padRight(payment.getBeneficiaryName(), 30));
+        
+        // Pos 88-140: Reserved (53 chars)
+        record.append(padRight("", 53));
+        
+        return record.toString();
+    }
+    
+    /**
+     * Build trailer record (Type 99)
+     */
+    private String buildTrailerRecord(long totalAmountCents, int transactionCount) {
+        StringBuilder record = new StringBuilder(RECORD_LENGTH);
+        
+        // Pos 1-1: Record Type
+        record.append("99");
+        
+        // Pos 2-14: Total Amount in cents (13 chars)
+        record.append(padLeft(String.valueOf(totalAmountCents), 13, '0'));
+        
+        // Pos 15-24: Transaction Count (10 chars)
+        record.append(padLeft(String.valueOf(transactionCount), 10, '0'));
+        
+        // Pos 25-140: Reserved (116 chars)
+        record.append(padRight("", 116));
+        
+        return record.toString();
+    }
+    
+    /**
+     * Pad string on the right with spaces
+     */
+    private String padRight(String str, int length) {
+        if (str == null) str = "";
+        if (str.length() >= length) {
+            return str.substring(0, length);
+        }
+        return str + " ".repeat(length - str.length());
+    }
+    
+    /**
+     * Pad string on the left with specified character
+     */
+    private String padLeft(String str, int length, char padChar) {
+        if (str == null) str = "";
+        if (str.length() >= length) {
+            return str.substring(str.length() - length);
+        }
+        return String.valueOf(padChar).repeat(length - str.length()) + str;
+    }
+    
+    /**
+     * Validate ACH file format
+     */
+    public boolean validateAchFile(String fileContent) {
+        String[] lines = fileContent.split("\\r?\\n");
+        
+        // Must have at least header, one transaction, and trailer
+        if (lines.length < 3) {
+            return false;
+        }
+        
+        // Check header (Type 01)
+        if (!lines[0].startsWith("01") || lines[0].length() != RECORD_LENGTH) {
+            return false;
+        }
+        
+        // Check trailer (Type 99)
+        String lastLine = lines[lines.length - 1];
+        if (!lastLine.startsWith("99") || lastLine.length() != RECORD_LENGTH) {
+            return false;
+        }
+        
+        // Check all transaction records (Type 02)
+        for (int i = 1; i < lines.length - 1; i++) {
+            if (!lines[i].startsWith("02") || lines[i].length() != RECORD_LENGTH) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+}
+```
+
+#### **ACH File Parser (for acknowledgments)**
+```java
+@Service
+@Slf4j
+public class BankservAfricaAchFileParser {
+    
+    /**
+     * Parse acknowledgment file from BankservAfrica
+     */
+    public BankservAfricaAckFile parseAckFile(String fileContent) {
+        String[] lines = fileContent.split("\\r?\\n");
+        
+        BankservAfricaAckFile ackFile = new BankservAfricaAckFile();
+        
+        for (String line : lines) {
+            if (line.startsWith("01")) {
+                // Header record
+                ackFile.setBatchReference(line.substring(19, 39).trim());
+                ackFile.setProcessingDate(LocalDate.parse(
+                    line.substring(11, 19),
+                    DateTimeFormatter.BASIC_ISO_DATE
+                ));
+            } else if (line.startsWith("02")) {
+                // Transaction status record
+                BankservAfricaTransactionStatus status = parseTransactionStatus(line);
+                ackFile.addTransactionStatus(status);
+            } else if (line.startsWith("99")) {
+                // Trailer record
+                long totalAmount = Long.parseLong(line.substring(1, 14).trim());
+                int count = Integer.parseInt(line.substring(14, 24).trim());
+                ackFile.setTotalAmount(new BigDecimal(totalAmount).divide(new BigDecimal(100)));
+                ackFile.setTransactionCount(count);
+            }
+        }
+        
+        return ackFile;
+    }
+    
+    private BankservAfricaTransactionStatus parseTransactionStatus(String line) {
+        return BankservAfricaTransactionStatus.builder()
+            .paymentReference(line.substring(37, 57).trim())
+            .status(line.substring(87, 90).trim())  // Status code position
+            .statusDescription(getStatusDescription(line.substring(87, 90).trim()))
+            .build();
+    }
+    
+    private String getStatusDescription(String statusCode) {
+        return switch (statusCode) {
+            case "000" -> "Accepted";
+            case "001" -> "Insufficient Funds";
+            case "002" -> "Account Closed";
+            case "003" -> "Invalid Account";
+            case "004" -> "Duplicate Transaction";
+            default -> "Unknown Status: " + statusCode;
+        };
+    }
+}
+```
+
+#### **Acceptance Criteria**
+- [ ] ACH file builder implemented
+- [ ] Fixed-length format correct (140 chars per record)
+- [ ] Header record (Type 01) generation working
+- [ ] Transaction record (Type 02) generation working
+- [ ] Trailer record (Type 99) generation working
+- [ ] Amount formatting correct (cents, zero-padded)
+- [ ] String padding working (left/right)
+- [ ] File validation implemented
+- [ ] ACK file parser implemented
+- [ ] Integration with SFTP service complete
+- [ ] All tests pass
+
+#### **Testing Requirements**
+- [ ] Test with single transaction
+- [ ] Test with multiple transactions (100+)
+- [ ] Test with maximum amount
+- [ ] Test with special characters in names
+- [ ] Test record length (must be exactly 140)
+- [ ] Test amount formatting (cents)
+- [ ] Test padding (left/right)
+- [ ] Test ACK file parsing
+
+#### **Sample Output**
+```
+01BANK001   20251019BATCH-2025-10-19-001
+021234567890098765432100000100000ZARPAY-2025-000001        John Doe                      
+021234567890012345678900000050000ZARPAY-2025-000002        Jane Smith                    
+9900000150000000000002
+```
+
+#### **Estimated Time**: 1 week (5 working days)
+
+---
+
+### **[PE-315] Add Certificate Expiry Monitoring**
+
+**Epic**: SA Compliance  
+**Priority**: P1 - Critical  
+**Story Points**: 3  
+**Assignee**: DevOps Engineer  
+**Sprint**: Sprint 4  
+
+#### **Description**
+Implement certificate expiry monitoring for all clearing system certificates (SAMOS, BankservAfrica, PayShap) with automated alerts.
+
+#### **Technical Requirements**
+1. Certificate expiry check service
+2. Daily scheduled job
+3. Alert thresholds: 90, 60, 30, 14, 7 days
+4. Integration with alerting system
+5. Dashboard display
+
+#### **Implementation**
+```java
+@Service
+@Slf4j
+public class CertificateExpiryMonitoringService {
+    
+    @Value("${samos.certificate.path}")
+    private String samosCertPath;
+    
+    @Value("${payshap.certificate.path}")
+    private String payshapCertPath;
+    
+    @Value("${bankservafrica.ssh.key.path}")
+    private String bankservSshKeyPath;
+    
+    @Autowired
+    private AlertService alertService;
+    
+    private static final List<Integer> ALERT_THRESHOLDS = 
+        List.of(90, 60, 30, 14, 7, 3, 1);
+    
+    /**
+     * Check all certificate expiries (scheduled daily)
+     */
+    @Scheduled(cron = "0 0 9 * * ?")  // 9 AM daily
+    public void checkAllCertificates() {
+        log.info("Starting daily certificate expiry check");
+        
+        checkCertificate("SAMOS", samosCertPath);
+        checkCertificate("PayShap", payshapCertPath);
+        checkSshKey("BankservAfrica SSH", bankservSshKeyPath);
+        
+        log.info("Completed daily certificate expiry check");
+    }
+    
+    /**
+     * Check X.509 certificate expiry
+     */
+    public CertificateExpiryInfo checkCertificate(String name, String certPath) {
+        try {
+            KeyStore keyStore = KeyStore.getInstance("PKCS12");
+            try (InputStream is = new FileInputStream(certPath)) {
+                keyStore.load(is, null);
+            }
+            
+            String alias = keyStore.aliases().nextElement();
+            X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
+            
+            Date expiryDate = cert.getNotAfter();
+            long daysUntilExpiry = ChronoUnit.DAYS.between(
+                Instant.now(),
+                expiryDate.toInstant()
+            );
+            
+            log.info("Certificate {}: expires in {} days ({})",
+                name, daysUntilExpiry, expiryDate);
+            
+            // Check alert thresholds
+            for (int threshold : ALERT_THRESHOLDS) {
+                if (daysUntilExpiry <= threshold) {
+                    sendExpiryAlert(name, certPath, daysUntilExpiry, expiryDate);
+                    break;
+                }
+            }
+            
+            return CertificateExpiryInfo.builder()
+                .name(name)
+                .certPath(certPath)
+                .issuer(cert.getIssuerX500Principal().getName())
+                .subject(cert.getSubjectX500Principal().getName())
+                .serialNumber(cert.getSerialNumber().toString(16))
+                .expiryDate(expiryDate.toInstant())
+                .daysUntilExpiry(daysUntilExpiry)
+                .status(getCertificateStatus(daysUntilExpiry))
+                .build();
+            
+        } catch (Exception e) {
+            log.error("Failed to check certificate: {}", name, e);
+            alertService.sendAlert(
+                AlertLevel.ERROR,
+                "Certificate Check Failed",
+                String.format("Failed to check %s certificate: %s", name, e.getMessage())
+            );
+            return null;
+        }
+    }
+    
+    private CertificateStatus getCertificateStatus(long daysUntilExpiry) {
+        if (daysUntilExpiry < 0) return CertificateStatus.EXPIRED;
+        if (daysUntilExpiry <= 7) return CertificateStatus.CRITICAL;
+        if (daysUntilExpiry <= 30) return CertificateStatus.WARNING;
+        if (daysUntilExpiry <= 60) return CertificateStatus.ATTENTION;
+        return CertificateStatus.VALID;
+    }
+    
+    private void sendExpiryAlert(String name, String certPath, 
+                                  long daysUntilExpiry, Date expiryDate) {
+        AlertLevel level = daysUntilExpiry <= 7 ? 
+            AlertLevel.CRITICAL : AlertLevel.WARNING;
+        
+        String message = String.format(
+            "%s certificate expires in %d days (on %s). Path: %s",
+            name,
+            daysUntilExpiry,
+            expiryDate,
+            certPath
+        );
+        
+        alertService.sendAlert(level, "Certificate Expiring Soon", message);
+    }
+}
+
+@Data
+@Builder
+public class CertificateExpiryInfo {
+    private String name;
+    private String certPath;
+    private String issuer;
+    private String subject;
+    private String serialNumber;
+    private Instant expiryDate;
+    private long daysUntilExpiry;
+    private CertificateStatus status;
+}
+
+public enum CertificateStatus {
+    VALID,      // > 60 days
+    ATTENTION,  // 30-60 days
+    WARNING,    // 7-30 days
+    CRITICAL,   // 0-7 days
+    EXPIRED     // < 0 days
+}
+```
+
+#### **Dashboard Controller**
+```java
+@RestController
+@RequestMapping("/api/v1/certificates")
+public class CertificateMonitoringController {
+    
+    @Autowired
+    private CertificateExpiryMonitoringService certMonitoringService;
+    
+    @GetMapping("/status")
+    public List<CertificateExpiryInfo> getCertificateStatus() {
+        return List.of(
+            certMonitoringService.checkCertificate("SAMOS", samosCertPath),
+            certMonitoringService.checkCertificate("PayShap", payshapCertPath)
+        );
+    }
+    
+    @GetMapping("/alerts")
+    public List<CertificateExpiryInfo> getCertificatesRequiringAttention() {
+        return getCertificateStatus().stream()
+            .filter(cert -> cert.getDaysUntilExpiry() <= 60)
+            .sorted(Comparator.comparing(CertificateExpiryInfo::getDaysUntilExpiry))
+            .collect(Collectors.toList());
+    }
+}
+```
+
+#### **Acceptance Criteria**
+- [ ] Certificate expiry monitoring service implemented
+- [ ] Daily scheduled job configured
+- [ ] Alert thresholds implemented (90, 60, 30, 14, 7 days)
+- [ ] Email/Slack alerts configured
+- [ ] Dashboard endpoint created
+- [ ] All clearing system certificates monitored:
+  - [ ] SAMOS mTLS certificate
+  - [ ] PayShap mTLS certificate
+  - [ ] BankservAfrica SSH key
+- [ ] Metrics exposed
+- [ ] All tests pass
+
+#### **Testing Requirements**
+- [ ] Test with certificate expiring in 90 days
+- [ ] Test with certificate expiring in 7 days
+- [ ] Test with expired certificate
+- [ ] Test alert sending
+- [ ] Test scheduled job execution
+
+#### **Estimated Time**: 3 days
+
+---
+
+### **[PE-316] Implement RTC ISO 8583 Message Handling**
+
+**Epic**: SA Compliance  
+**Priority**: P1 - Critical  
+**Story Points**: 8  
+**Assignee**: Backend Developer (Senior)  
+**Sprint**: Sprint 4  
+
+#### **Description**
+Implement ISO 8583 message handling for RTC (Real-Time Clearing) with proper binary/ASCII encoding.
+
+#### **RTC Requirements**
+Per docs/06-SOUTH-AFRICA-CLEARING.md:
+- **Format**: ISO 8583 (Binary or ASCII)
+- **Message Types**: 0200 (Authorization), 0210 (Response), 0420 (Reversal)
+- **Response Time**: < 10 seconds
+- **Timeout**: 10 seconds
+
+#### **Implementation**
+```java
+@Service
+@Slf4j
+public class RtcIso8583MessageBuilder {
+    
+    @Value("${rtc.bank-code}")
+    private String bankCode;
+    
+    @Value("${rtc.terminal-id}")
+    private String terminalId;
+    
+    private final AtomicInteger stanGenerator = new AtomicInteger(1);
+    
+    /**
+     * Build ISO 8583 0200 (Authorization Request) message
+     */
+    public ISO8583Message buildAuthorizationRequest(RtcPaymentRequest request) {
+        ISO8583Message message = new ISO8583Message();
+        
+        // MTI (Message Type Indicator)
+        message.setMTI("0200");
+        
+        // Field 2: PAN (Primary Account Number)
+        message.setField(2, request.getDebitAccount());
+        
+        // Field 3: Processing Code (000000 = Purchase)
+        message.setField(3, "000000");
+        
+        // Field 4: Amount (12 digits, in cents)
+        long amountCents = request.getAmount()
+            .multiply(new BigDecimal(100))
+            .longValue();
+        message.setField(4, String.format("%012d", amountCents));
+        
+        // Field 7: Transmission Date/Time (MMDDHHmmss)
+        LocalDateTime now = LocalDateTime.now();
+        message.setField(7, now.format(
+            DateTimeFormatter.ofPattern("MMddHHmmss")
+        ));
+        
+        // Field 11: STAN (System Trace Audit Number)
+        message.setField(11, generateSTAN());
+        
+        // Field 12: Local Time (HHmmss)
+        message.setField(12, now.format(
+            DateTimeFormatter.ofPattern("HHmmss")
+        ));
+        
+        // Field 13: Local Date (MMDD)
+        message.setField(13, now.format(
+            DateTimeFormatter.ofPattern("MMdd")
+        ));
+        
+        // Field 18: Merchant Type (6011 = Financial Institution)
+        message.setField(18, "6011");
+        
+        // Field 22: POS Entry Mode (051 = Chip card)
+        message.setField(22, "051");
+        
+        // Field 32: Acquiring Institution ID
+        message.setField(32, bankCode);
+        
+        // Field 37: Retrieval Reference Number
+        message.setField(37, request.getPaymentId().substring(0, 12));
+        
+        // Field 41: Card Acceptor Terminal ID
+        message.setField(41, terminalId);
+        
+        // Field 42: Card Acceptor ID
+        message.setField(42, bankCode);
+        
+        // Field 43: Card Acceptor Name/Location
+        message.setField(43, String.format("%-40s", "PAYMENT ENGINE"));
+        
+        // Field 49: Currency Code (710 = ZAR)
+        message.setField(49, "710");
+        
+        // Field 102: Beneficiary Account
+        message.setField(102, request.getCreditAccount());
+        
+        log.debug("Built ISO 8583 0200 message: STAN={}, Amount=R{}", 
+            message.getField(11), request.getAmount());
+        
+        return message;
+    }
+    
+    /**
+     * Parse ISO 8583 0210 (Authorization Response) message
+     */
+    public RtcAuthorizationResponse parseAuthorizationResponse(ISO8583Message message) {
+        String responseCode = message.getField(39);
+        String authId = message.getField(38);
+        String stan = message.getField(11);
+        
+        boolean approved = "00".equals(responseCode);
+        
+        log.info("Parsed ISO 8583 0210 response: STAN={}, ResponseCode={}, Approved={}",
+            stan, responseCode, approved);
+        
+        return RtcAuthorizationResponse.builder()
+            .stan(stan)
+            .responseCode(responseCode)
+            .responseDescription(getResponseDescription(responseCode))
+            .authorizationId(authId)
+            .approved(approved)
+            .timestamp(Instant.now())
+            .build();
+    }
+    
+    /**
+     * Build ISO 8583 0420 (Reversal Request) message
+     */
+    public ISO8583Message buildReversalRequest(
+        String originalStan,
+        BigDecimal amount,
+        String reason
+    ) {
+        ISO8583Message message = new ISO8583Message();
+        
+        message.setMTI("0420");
+        message.setField(4, String.format("%012d", 
+            amount.multiply(new BigDecimal(100)).longValue()));
+        message.setField(11, generateSTAN());
+        message.setField(37, originalStan);  // Original STAN
+        message.setField(56, reason);  // Reversal reason
+        
+        return message;
+    }
+    
+    /**
+     * Generate STAN (System Trace Audit Number)
+     * 6 digits, sequential, resets daily
+     */
+    private String generateSTAN() {
+        int stan = stanGenerator.getAndIncrement();
+        if (stan > 999999) {
+            stanGenerator.set(1);
+            stan = 1;
+        }
+        return String.format("%06d", stan);
+    }
+    
+    /**
+     * Get response code description
+     */
+    private String getResponseDescription(String code) {
+        return switch (code) {
+            case "00" -> "Approved";
+            case "01" -> "Refer to card issuer";
+            case "05" -> "Do not honour";
+            case "14" -> "Invalid card number";
+            case "51" -> "Insufficient funds";
+            case "54" -> "Expired card";
+            case "55" -> "Incorrect PIN";
+            case "91" -> "Issuer unavailable";
+            default -> "Unknown response code: " + code;
+        };
+    }
+}
+
+/**
+ * ISO 8583 Message wrapper
+ */
+@Data
+public class ISO8583Message {
+    private String mti;  // Message Type Indicator
+    private Map<Integer, String> fields = new HashMap<>();
+    
+    public void setMTI(String mti) {
+        this.mti = mti;
+    }
+    
+    public void setField(int fieldNumber, String value) {
+        fields.put(fieldNumber, value);
+    }
+    
+    public String getField(int fieldNumber) {
+        return fields.get(fieldNumber);
+    }
+    
+    /**
+     * Pack message to binary format
+     */
+    public byte[] pack() {
+        // TODO: Implement ISO 8583 binary packing
+        // Use library like jPOS or implement custom packer
+        return new byte[0];
+    }
+    
+    /**
+     * Unpack message from binary format
+     */
+    public static ISO8583Message unpack(byte[] data) {
+        // TODO: Implement ISO 8583 binary unpacking
+        return new ISO8583Message();
+    }
+}
+```
+
+#### **Dependencies**
+```xml
+<!-- jPOS library for ISO 8583 -->
+<dependency>
+    <groupId>org.jpos</groupId>
+    <artifactId>jpos</artifactId>
+    <version>2.1.7</version>
+</dependency>
+```
+
+#### **Acceptance Criteria**
+- [ ] ISO 8583 message builder implemented
+- [ ] Authorization request (0200) generation working
+- [ ] Authorization response (0210) parsing working
+- [ ] Reversal request (0420) generation working
+- [ ] STAN generation working (sequential, resets daily)
+- [ ] All required fields populated
+- [ ] Binary packing/unpacking working
+- [ ] Response code mapping implemented
+- [ ] Integration with RTC client complete
+- [ ] All tests pass
+
+#### **Testing Requirements**
+- [ ] Test 0200 message generation
+- [ ] Test 0210 message parsing
+- [ ] Test 0420 reversal message
+- [ ] Test STAN generation
+- [ ] Test binary packing/unpacking
+- [ ] Test all response codes
+- [ ] Performance test: 1000 messages/sec
+
+#### **Estimated Time**: 2 weeks (10 working days)
+
+---
+
+## **EPIC 4: PayShap Integration**
+
+### **[PE-317] Complete PayShap Payment Processing Flow**
+
+**Epic**: PayShap Integration  
+**Priority**: P2 - High  
+**Story Points**: 5  
+**Assignee**: Backend Developer  
+**Sprint**: Sprint 5  
+**Depends On**: PE-308, PE-312  
+
+#### **Description**
+Complete end-to-end PayShap payment processing flow including proxy lookup, ISO 20022 generation, and gateway submission.
+
+#### **Implementation**
+```java
+@Service
+@Slf4j
+public class PayShapPaymentProcessingService {
+    
+    @Autowired
+    private PayShapProxyService proxyService;
+    
+    @Autowired
+    private PayShapLimitValidationService limitValidationService;
+    
+    @Autowired
+    private PayShapIso20022MessageBuilder iso20022Builder;
+    
+    @Autowired
+    private PayShapGatewayClient gatewayClient;
+    
+    @Autowired
+    private PayShapOAuth2TokenService tokenService;
+    
+    @Autowired
+    private PayShapPaymentMessageRepository paymentMessageRepository;
+    
+    /**
+     * Process PayShap instant payment
+     */
+    @Transactional
+    @CircuitBreaker(name = "payshap-payment", fallbackMethod = "processPaymentFallback")
+    @Retry(name = "payshap-payment")
+    @TimeLimiter(name = "payshap-payment")
+    public CompletableFuture<PayShapPaymentResult> processPayment(
+        PayShapPaymentRequest request
+    ) {
+        return CompletableFuture.supplyAsync(() -> {
+            log.info("Processing PayShap payment: paymentId={}, proxyType={}, proxy={}",
+                request.getPaymentId(),
+                request.getProxyType(),
+                maskProxy(request.getRecipientProxy())
+            );
+            
+            // STEP 1: Validate amount (R3,000 limit)
+            limitValidationService.validateAmount(
+                request.getAmount(),
+                request.getCurrency()
+            );
+            
+            // STEP 2: Lookup recipient proxy (mobile/email → account)
+            ProxyLookupResult proxy = proxyService.lookupProxy(
+                request.getRecipientProxy(),
+                request.getProxyType()
+            ).join();
+            
+            if (proxy == null) {
+                throw new ProxyNotFoundException(
+                    "Recipient not found on PayShap: " + 
+                    maskProxy(request.getRecipientProxy())
+                );
+            }
+            
+            // STEP 3: Build ISO 20022 pacs.008 message
+            String uetr = UUID.randomUUID().toString();
+            String pacs008Xml = iso20022Builder.buildPayShapPayment(
+                request,
+                proxy,
+                uetr
+            );
+            
+            // STEP 4: Save payment message
+            PayShapPaymentMessage message = PayShapPaymentMessage.builder()
+                .paymentId(request.getPaymentId())
+                .uetr(uetr)
+                .debtorAccount(request.getDebtorAccount())
+                .debtorName(request.getDebtorName())
+                .creditorProxy(request.getRecipientProxy())
+                .creditorProxyType(request.getProxyType())
+                .creditorAccount(proxy.getAccountNumber())
+                .creditorBankCode(proxy.getBankCode())
+                .amount(request.getAmount())
+                .currency(request.getCurrency())
+                .iso20022Payload(pacs008Xml)
+                .status("SUBMITTED")
+                .build();
+            
+            paymentMessageRepository.save(message);
+            
+            // STEP 5: Get OAuth2 token
+            String authHeader = tokenService.getAuthorizationHeader();
+            
+            // STEP 6: Submit to PayShap gateway
+            PayShapGatewayResponse response = gatewayClient.submitPayment(
+                pacs008Xml,
+                authHeader,
+                uetr
+            );
+            
+            // STEP 7: Process response
+            if (response.isAccepted()) {
+                message.setStatus("COMPLETED");
+                message.setSettledAt(response.getCompletedAt());
+                paymentMessageRepository.save(message);
+                
+                log.info("PayShap payment completed: paymentId={}, uetr={}",
+                    request.getPaymentId(), uetr);
+                
+                return PayShapPaymentResult.success(
+                    request.getPaymentId(),
+                    uetr,
+                    response.getCompletedAt()
+                );
+            } else {
+                message.setStatus("FAILED");
+                message.setErrorCode(response.getErrorCode());
+                message.setErrorMessage(response.getErrorMessage());
+                paymentMessageRepository.save(message);
+                
+                log.warn("PayShap payment failed: paymentId={}, reason={}",
+                    request.getPaymentId(), response.getErrorMessage());
+                
+                return PayShapPaymentResult.failure(
+                    request.getPaymentId(),
+                    response.getErrorCode(),
+                    response.getErrorMessage()
+                );
+            }
+        });
+    }
+    
+    public CompletableFuture<PayShapPaymentResult> processPaymentFallback(
+        PayShapPaymentRequest request,
+        Exception ex
+    ) {
+        log.error("PayShap payment processing failed: paymentId={} - {}",
+            request.getPaymentId(), ex.getMessage());
+        
+        return CompletableFuture.completedFuture(
+            PayShapPaymentResult.failure(
+                request.getPaymentId(),
+                "SYSTEM_ERROR",
+                "Payment processing temporarily unavailable"
+            )
+        );
+    }
+    
+    private String maskProxy(String proxy) {
+        if (proxy.startsWith("+27")) {
+            return proxy.substring(0, 5) + "****" + proxy.substring(proxy.length() - 3);
+        } else if (proxy.contains("@")) {
+            String[] parts = proxy.split("@");
+            return parts[0].substring(0, 2) + "****@" + parts[1];
+        }
+        return "****";
+    }
+}
+```
+
+#### **Acceptance Criteria**
+- [ ] End-to-end payment flow implemented
+- [ ] Proxy lookup integration working
+- [ ] Amount validation working
+- [ ] ISO 20022 message generation working
+- [ ] Gateway submission working
+- [ ] Response handling complete
+- [ ] Error handling implemented
+- [ ] Database persistence working
+- [ ] All tests pass
+- [ ] Integration test with PayShap UAT complete
+
+#### **Estimated Time**: 1 week (5 working days)
+
+---
+
+### **[PE-318] Add PayShap 24/7/365 Availability Support**
+
+**Epic**: PayShap Integration  
+**Priority**: P2 - High  
+**Story Points**: 3  
+**Assignee**: Backend Developer  
+**Sprint**: Sprint 5  
+
+#### **Description**
+Ensure PayShap payment processing supports 24/7/365 operation with proper monitoring and failover.
+
+#### **Implementation**
+- Remove operating hours restrictions for PayShap
+- Add health monitoring
+- Implement automatic failover
+- Add weekend/holiday processing
+
+#### **Acceptance Criteria**
+- [ ] No operating hours restrictions for PayShap
+- [ ] 24/7 processing confirmed
+- [ ] Weekend processing working
+- [ ] Holiday processing working
+- [ ] Health monitoring in place
+- [ ] All tests pass
+
+#### **Estimated Time**: 3 days
+
+---
+
+### **[PE-319] Implement PayShap Instant Settlement Tracking**
+
+**Epic**: PayShap Integration  
+**Priority**: P2 - High  
+**Story Points**: 5  
+**Assignee**: Backend Developer  
+**Sprint**: Sprint 5  
+
+#### **Description**
+Implement real-time settlement tracking for PayShap instant payments with status updates and notifications.
+
+#### **Acceptance Criteria**
+- [ ] Settlement tracking implemented
+- [ ] Real-time status updates working
+- [ ] Settlement records persisted
+- [ ] API endpoints created
+- [ ] All tests pass
+
+#### **Estimated Time**: 1 week (5 working days)
+
+---
+
+## **EPIC 5: Observability & Monitoring**
+
+### **[PE-320] Enhanced Structured Logging for ISO 20022 Messages**
+
+**Epic**: Observability  
+**Priority**: P2 - High  
+**Story Points**: 3  
+**Assignee**: Backend Developer  
+**Sprint**: Sprint 6  
+
+#### **Description**
+Implement structured logging for all ISO 20022 message processing with proper correlation IDs and searchable fields.
+
+#### **Implementation**
+```java
+@Service
+@Slf4j
+public class Iso20022LoggingService {
+    
+    public void logMessageSubmission(
+        String clearingSystem,
+        String messageType,
+        String messageId,
+        String uetr,
+        BigDecimal amount,
+        String currency,
+        String tenantId
+    ) {
+        log.info("ISO 20022 message submitted: " +
+            "clearing_system={}, " +
+            "message_type={}, " +
+            "message_id={}, " +
+            "uetr={}, " +
+            "amount={}, " +
+            "currency={}, " +
+            "tenant_id={}",
+            clearingSystem,
+            messageType,
+            messageId,
+            uetr,
+            amount,
+            currency,
+            tenantId
+        );
+    }
+}
+```
+
+#### **Acceptance Criteria**
+- [ ] Structured logging implemented
+- [ ] Correlation IDs tracked
+- [ ] ISO 20022 fields logged
+- [ ] ELK/Splunk compatible format
+- [ ] All services updated
+- [ ] All tests pass
+
+#### **Estimated Time**: 3 days
+
+---
+
+### **[PE-321] Create Clearing Adapter Dashboards**
+
+**Epic**: Observability  
+**Priority**: P2 - High  
+**Story Points**: 3  
+**Assignee**: DevOps Engineer  
+**Sprint**: Sprint 6  
+
+#### **Description**
+Create Grafana dashboards for clearing adapter monitoring including success rates, latency, and error tracking.
+
+#### **Dashboard Panels**
+1. Payment Success Rate (by clearing system)
+2. Average Processing Time
+3. Error Rate and Top Errors
+4. ISO 20022 Message Volume
+5. Certificate Expiry Status
+6. Circuit Breaker Status
+7. Settlement Account Balance
+
+#### **Acceptance Criteria**
+- [ ] Grafana dashboards created
+- [ ] All metrics displayed
+- [ ] Alerts configured
+- [ ] Documentation complete
+
+#### **Estimated Time**: 3 days
+
+---
+
+### **[PE-322] Add Performance Metrics for Clearing Operations**
+
+**Epic**: Observability  
+**Priority**: P2 - High  
+**Story Points**: 2  
+**Assignee**: Backend Developer  
+**Sprint**: Sprint 6  
+
+#### **Description**
+Add comprehensive performance metrics for all clearing adapter operations.
+
+#### **Metrics to Add**
+- Payment submission duration
+- ISO 20022 generation time
+- Proxy lookup time
+- SFTP upload/download time
+- Circuit breaker state changes
+- Retry attempts
+
+#### **Acceptance Criteria**
+- [ ] All metrics implemented
+- [ ] Micrometer integration complete
+- [ ] Prometheus export working
+- [ ] All tests pass
+
+#### **Estimated Time**: 2 days
+
+---
+
+## **EPIC 6: Performance & Testing**
+
+### **[PE-323] Implement Caching for Clearing Adapter Configurations**
+
+**Epic**: Performance  
+**Priority**: P3 - Medium  
+**Story Points**: 3  
+**Assignee**: Backend Developer  
+**Sprint**: Sprint 7  
+
+#### **Description**
+Implement Redis caching for clearing adapter configurations to reduce database load.
+
+#### **Acceptance Criteria**
+- [ ] Redis cache configured
+- [ ] Adapter configs cached
+- [ ] Cache eviction working
+- [ ] TTL configured
+- [ ] All tests pass
+
+#### **Estimated Time**: 3 days
+
+---
+
+### **[PE-324] Load Testing with SA Clearing Systems**
+
+**Epic**: Testing  
+**Priority**: P3 - Medium  
+**Story Points**: 5  
+**Assignee**: QA Engineer  
+**Sprint**: Sprint 7  
+
+#### **Description**
+Conduct comprehensive load testing with South African clearing system UAT environments.
+
+#### **Test Scenarios**
+1. SAMOS: 100 concurrent payments
+2. BankservAfrica: 1000 payments/batch
+3. PayShap: 500 concurrent payments
+4. RTC: 200 concurrent payments
+
+#### **Acceptance Criteria**
+- [ ] Load tests executed
+- [ ] Performance baselines established
+- [ ] Bottlenecks identified
+- [ ] Report generated
+
+#### **Estimated Time**: 1 week (5 working days)
+
+---
+
+### **[PE-325] End-to-End Integration Tests with Clearing Systems**
+
+**Epic**: Testing  
+**Priority**: P3 - Medium  
+**Story Points**: 8  
+**Assignee**: QA Engineer + Backend Developer  
+**Sprint**: Sprint 7-8  
+
+#### **Description**
+Create comprehensive end-to-end integration tests with all clearing systems in UAT environments.
+
+#### **Test Coverage**
+- [ ] SAMOS payment submission and settlement
+- [ ] BankservAfrica batch upload and ACK processing
+- [ ] PayShap proxy lookup and instant payment
+- [ ] RTC ISO 8583 authorization and reversal
+- [ ] Error scenarios and fallbacks
+- [ ] Timeout handling
+- [ ] Certificate validation
+
+#### **Acceptance Criteria**
+- [ ] All E2E tests implemented
+- [ ] UAT environment tests pass
+- [ ] Test reports generated
+- [ ] Documentation complete
+
+#### **Estimated Time**: 2 weeks (10 working days)
+
+---
+
+## 📊 **IMPLEMENTATION ROADMAP**
+
+### **Sprint 1 (Weeks 1-2): Critical Blockers**
+- PE-301: JAXB for ISO 20022 ✅
+- PE-302: XSD Validation ✅
+- PE-303: UETR Generation ✅
+- PE-304: Settlement Account Management ✅
+
+### **Sprint 2 (Weeks 2-3): External Integration**
+- PE-305: ISO 20022 Namespace Handling ✅
+- PE-306: SAMOS mTLS Client ✅
+- PE-307: BankservAfrica SFTP Client ✅
+
+### **Sprint 3 (Weeks 3-4): SA Compliance**
+- PE-308: PayShap Proxy Registry ✅
+- PE-310: SAMOS Operating Hours ✅
+- PE-311: BankservAfrica Batch Windows ✅
+- PE-312: PayShap R3,000 Limit ✅
+- PE-313: SARB Settlement Window ✅
+
+### **Sprint 4 (Week 4): Compliance & Standards**
+- PE-314: ACH File Format ✅
+- PE-315: Certificate Monitoring ✅
+- PE-316: RTC ISO 8583 ✅
+
+### **Sprint 5 (Week 5): PayShap Complete**
+- PE-317: PayShap Payment Flow ✅
+- PE-318: 24/7 Availability ✅
+- PE-319: Settlement Tracking ✅
+
+### **Sprint 6 (Week 5-6): Observability**
+- PE-320: Structured Logging ✅
+- PE-321: Dashboards ✅
+- PE-322: Performance Metrics ✅
+
+### **Sprint 7-8 (Week 6): Performance & Testing**
+- PE-323: Caching ✅
+- PE-324: Load Testing ✅
+- PE-325: E2E Integration Tests ✅
+
+---
+
+## 🎯 **SUCCESS CRITERIA**
+
+### **Definition of Done**
+For each ticket, ALL of the following must be complete:
+- [ ] Code implementation complete
+- [ ] Unit tests written and passing (min 80% coverage)
+- [ ] Integration tests written and passing
+- [ ] Code review approved by senior developer
+- [ ] Documentation updated
+- [ ] No linter errors or warnings
+- [ ] Performance impact assessed
+- [ ] Security review passed
+- [ ] Deployed to UAT environment
+- [ ] UAT testing completed
+- [ ] Product owner acceptance
+
+### **Production Readiness Checklist**
+- [ ] All P0 and P1 tickets complete
+- [ ] ISO 20022 validation passing 100%
+- [ ] All external integrations tested with clearing systems
+- [ ] Certificate management operational
+- [ ] Monitoring and alerts configured
+- [ ] Load testing completed successfully
+- [ ] Security audit passed
+- [ ] Disaster recovery tested
+- [ ] Runbook documentation complete
+- [ ] Team training completed
+
+---
+
+## 📞 **SUPPORT & ESCALATION**
+
+### **Technical Questions**
+- Backend Lead: backend-lead@company.com
+- Principal Architect: architect@company.com
+- DevOps Lead: devops-lead@company.com
+
+### **Clearing System Support**
+- **SAMOS/SARB**: samos-support@sarb.co.za
+- **BankservAfrica**: support@bankservafrica.com
+- **PayShap**: support@payshap.co.za
+
+### **Escalation Path**
+1. Team Lead → Technical Lead → Engineering Manager → CTO
+
+---
+
+**Last Updated**: October 19, 2025  
+**Document Owner**: Engineering Manager  
+**Next Review**: Weekly during implementation

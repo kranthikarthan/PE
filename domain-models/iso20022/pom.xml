@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.payments</groupId>
+        <artifactId>domain-models</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>iso20022</artifactId>
+    <packaging>jar</packaging>
+
+    <name>ISO 20022 Domain Models</name>
+    <description>ISO 20022 message models with JAXB bindings for South African clearing systems</description>
+
+    <dependencies>
+        <!-- JAXB API -->
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
+        <!-- JAXB Runtime -->
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+
+        <!-- EclipseLink MOXy for advanced JAXB features -->
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.moxy</artifactId>
+            <version>3.0.3</version>
+        </dependency>
+
+        <!-- Shared domain models -->
+        <dependency>
+            <groupId>com.payments</groupId>
+            <artifactId>shared</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- SLF4J Logging API -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.9</version>
+        </dependency>
+
+        <!-- Validation API -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- JAXB Code Generation Plugin -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <!-- Generate pacs.008 classes -->
+                    <execution>
+                        <id>generate-pacs008</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/main/resources/xsd/pacs.008.001.08.xsd</source>
+                            </sources>
+                            <packageName>com.payments.iso20022.pacs008</packageName>
+                            <clearOutputDir>false</clearOutputDir>
+                            <outputDirectory>${project.build.directory}/generated-sources/jaxb/pacs008</outputDirectory>
+                        </configuration>
+                    </execution>
+
+                    <!-- Generate pacs.002 classes -->
+                    <execution>
+                        <id>generate-pacs002</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/main/resources/xsd/pacs.002.001.10.xsd</source>
+                            </sources>
+                            <packageName>com.payments.iso20022.pacs002</packageName>
+                            <clearOutputDir>false</clearOutputDir>
+                            <outputDirectory>${project.build.directory}/generated-sources/jaxb/pacs002</outputDirectory>
+                        </configuration>
+                    </execution>
+
+                    <!-- Generate pacs.004 classes -->
+                    <execution>
+                        <id>generate-pacs004</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/main/resources/xsd/pacs.004.001.09.xsd</source>
+                            </sources>
+                            <packageName>com.payments.iso20022.pacs004</packageName>
+                            <clearOutputDir>false</clearOutputDir>
+                            <outputDirectory>${project.build.directory}/generated-sources/jaxb/pacs004</outputDirectory>
+                        </configuration>
+                    </execution>
+
+                    <!-- Generate camt.054 classes -->
+                    <execution>
+                        <id>generate-camt054</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/main/resources/xsd/camt.054.001.08.xsd</source>
+                            </sources>
+                            <packageName>com.payments.iso20022.camt054</packageName>
+                            <clearOutputDir>false</clearOutputDir>
+                            <outputDirectory>${project.build.directory}/generated-sources/jaxb/camt054</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Add generated sources to build path -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/jaxb/pacs008</source>
+                                <source>${project.build.directory}/generated-sources/jaxb/pacs002</source>
+                                <source>${project.build.directory}/generated-sources/jaxb/pacs004</source>
+                                <source>${project.build.directory}/generated-sources/jaxb/camt054</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+
