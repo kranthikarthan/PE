@@ -40,4 +40,3 @@ public class SamosSettlementAccountResponse {
   private String createdBy;
   private String updatedBy;
 }
-

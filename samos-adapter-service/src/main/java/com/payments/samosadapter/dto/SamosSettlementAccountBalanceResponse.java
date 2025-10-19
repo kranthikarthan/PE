@@ -32,4 +32,3 @@ public class SamosSettlementAccountBalanceResponse {
   private String status;
   private String currency;
 }
-

@@ -1,0 +1,408 @@
+# =============================================================================
+# PRODUCTION-READY ISTIO GATEWAY CONFIGURATION
+# =============================================================================
+# Gateway and ingress configuration for external access
+
+# Main Gateway for Payments Engine
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: payments-gateway
+  namespace: payments
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - payments.example.com
+        - api.payments.example.com
+      tls:
+        httpsRedirect: true
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - payments.example.com
+        - api.payments.example.com
+      tls:
+        mode: SIMPLE
+        credentialName: payments-tls-cert
+    - port:
+        number: 8080
+        name: http-internal
+        protocol: HTTP
+      hosts:
+        - "*.payments.internal"
+      tls:
+        httpsRedirect: false
+
+---
+# Web BFF Gateway
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: web-bff-gateway
+  namespace: payments
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - web.payments.example.com
+      tls:
+        httpsRedirect: true
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - web.payments.example.com
+      tls:
+        mode: SIMPLE
+        credentialName: payments-tls-cert
+
+---
+# API Gateway
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: api-gateway
+  namespace: payments
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - api.payments.example.com
+      tls:
+        httpsRedirect: true
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - api.payments.example.com
+      tls:
+        mode: SIMPLE
+        credentialName: payments-tls-cert
+
+---
+# =============================================================================
+# VIRTUAL SERVICES FOR GATEWAY ROUTING
+# =============================================================================
+
+# Web BFF Virtual Service
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: web-bff-vs
+  namespace: payments
+spec:
+  hosts:
+    - web.payments.example.com
+  gateways:
+    - web-bff-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            host: web-bff-service
+            port:
+              number: 8080
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+        retryOn: 5xx,reset,connect-failure
+
+---
+# API Virtual Service
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: api-vs
+  namespace: payments
+spec:
+  hosts:
+    - api.payments.example.com
+  gateways:
+    - api-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /api/v1/payments
+      route:
+        - destination:
+            host: payment-initiation-service
+            port:
+              number: 8080
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+        retryOn: 5xx,reset,connect-failure
+    - match:
+        - uri:
+            prefix: /api/v1/validation
+      route:
+        - destination:
+            host: validation-service
+            port:
+              number: 8082
+      timeout: 15s
+      retries:
+        attempts: 2
+        perTryTimeout: 5s
+        retryOn: 5xx,reset,connect-failure
+    - match:
+        - uri:
+            prefix: /api/v1/accounts
+      route:
+        - destination:
+            host: account-adapter-service
+            port:
+              number: 8083
+      timeout: 20s
+      retries:
+        attempts: 3
+        perTryTimeout: 8s
+        retryOn: 5xx,reset,connect-failure
+    - match:
+        - uri:
+            prefix: /api/v1/routing
+      route:
+        - destination:
+            host: routing-service
+            port:
+              number: 8084
+      timeout: 10s
+      retries:
+        attempts: 2
+        perTryTimeout: 5s
+        retryOn: 5xx,reset,connect-failure
+    - match:
+        - uri:
+            prefix: /api/v1/transactions
+      route:
+        - destination:
+            host: transaction-processing-service
+            port:
+              number: 8085
+      timeout: 60s
+      retries:
+        attempts: 3
+        perTryTimeout: 20s
+        retryOn: 5xx,reset,connect-failure
+    - match:
+        - uri:
+            prefix: /api/v1/saga
+      route:
+        - destination:
+            host: saga-orchestrator
+            port:
+              number: 8086
+      timeout: 45s
+      retries:
+        attempts: 2
+        perTryTimeout: 15s
+        retryOn: 5xx,reset,connect-failure
+    - match:
+        - uri:
+            prefix: /api/v1/auth
+      route:
+        - destination:
+            host: iam-service
+            port:
+              number: 8087
+      timeout: 15s
+      retries:
+        attempts: 2
+        perTryTimeout: 5s
+        retryOn: 5xx,reset,connect-failure
+    - match:
+        - uri:
+            prefix: /api/v1/notifications
+      route:
+        - destination:
+            host: notification-service
+            port:
+              number: 8088
+      timeout: 20s
+      retries:
+        attempts: 3
+        perTryTimeout: 8s
+        retryOn: 5xx,reset,connect-failure
+    - match:
+        - uri:
+            prefix: /api/v1/audit
+      route:
+        - destination:
+            host: audit-service
+            port:
+              number: 8089
+      timeout: 10s
+      retries:
+        attempts: 2
+        perTryTimeout: 5s
+        retryOn: 5xx,reset,connect-failure
+    - match:
+        - uri:
+            prefix: /api/v1/tenants
+      route:
+        - destination:
+            host: tenant-management-service
+            port:
+              number: 8090
+      timeout: 15s
+      retries:
+        attempts: 2
+        perTryTimeout: 5s
+        retryOn: 5xx,reset,connect-failure
+    - match:
+        - uri:
+            prefix: /api/v1/settlement
+      route:
+        - destination:
+            host: settlement-service
+            port:
+              number: 8091
+      timeout: 120s
+      retries:
+        attempts: 2
+        perTryTimeout: 60s
+        retryOn: 5xx,reset,connect-failure
+    - match:
+        - uri:
+            prefix: /api/v1/reconciliation
+      route:
+        - destination:
+            host: reconciliation-service
+            port:
+              number: 8092
+      timeout: 90s
+      retries:
+        attempts: 2
+        perTryTimeout: 45s
+        retryOn: 5xx,reset,connect-failure
+    - match:
+        - uri:
+            prefix: /api/v1/batch
+      route:
+        - destination:
+            host: batch-processing-service
+            port:
+              number: 8093
+      timeout: 300s
+      retries:
+        attempts: 1
+        perTryTimeout: 300s
+        retryOn: 5xx,reset,connect-failure
+    - match:
+        - uri:
+            prefix: /api/v1/analytics
+      route:
+        - destination:
+            host: analytics-service
+            port:
+              number: 8094
+      timeout: 30s
+      retries:
+        attempts: 2
+        perTryTimeout: 15s
+        retryOn: 5xx,reset,connect-failure
+
+---
+# =============================================================================
+# CORS CONFIGURATION
+# =============================================================================
+
+# CORS Policy for Web BFF
+apiVersion: networking.istio.io/v1beta1
+kind: EnvoyFilter
+metadata:
+  name: web-bff-cors
+  namespace: payments
+spec:
+  workloadSelector:
+    labels:
+      app: web-bff-service
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_INBOUND
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.cors
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+            allow_origin_string_match:
+              - prefix: "*"
+            allow_methods: "GET, POST, PUT, DELETE, OPTIONS"
+            allow_headers: "content-type, authorization, x-requested-with"
+            expose_headers: "content-length, content-range"
+            max_age: "86400"
+
+---
+# =============================================================================
+# RATE LIMITING CONFIGURATION
+# =============================================================================
+
+# Rate Limiting for Payment API
+apiVersion: networking.istio.io/v1beta1
+kind: EnvoyFilter
+metadata:
+  name: payment-api-rate-limit
+  namespace: payments
+spec:
+  workloadSelector:
+    labels:
+      app: payment-initiation-service
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_INBOUND
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.local_ratelimit
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+            stat_prefix: payment_api_rate_limit
+            token_bucket:
+              max_tokens: 1000
+              tokens_per_fill: 100
+              fill_interval: 60s
+            filter_enabled:
+              runtime_key: payment_api_rate_limit_enabled
+              default_value:
+                numerator: 100
+                denominator: HUNDRED
+            filter_enforced:
+              runtime_key: payment_api_rate_limit_enforced
+              default_value:
+                numerator: 100
+                denominator: HUNDRED

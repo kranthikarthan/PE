@@ -40,7 +40,7 @@ class FraudDetectionRuleEngineTest {
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getRuleType().toString()).isEqualTo(RuleType.FRAUD);
+    assertThat(result.getRuleType().toString()).isEqualTo("FRAUD");
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getAppliedRules())
         .contains(
@@ -67,13 +67,13 @@ class FraudDetectionRuleEngineTest {
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getRuleType().toString()).isEqualTo(RuleType.FRAUD);
+    assertThat(result.getRuleType().toString()).isEqualTo("FRAUD");
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getAppliedRules()).contains("FRAUD_RULE_001");
     assertThat(result.getFailedRules()).hasSize(1);
     assertThat(result.getFailedRules().get(0).getRuleId()).isEqualTo("FRAUD_RULE_001");
     assertThat(result.getFailedRules().get(0).getRuleName()).isEqualTo("Velocity Check");
-    assertThat(result.getFailedRules().get(0).getRuleType()).isEqualTo(RuleType.FRAUD);
+    assertThat(result.getFailedRules().get(0).getRuleType().toString()).isEqualTo("FRAUD");
     assertThat(result.getFailedRules().get(0).getFailureReason()).contains("velocity check failed");
     assertThat(result.getFraudScore()).isEqualTo(25);
     assertThat(result.getRiskScore()).isEqualTo(20);
@@ -91,7 +91,7 @@ class FraudDetectionRuleEngineTest {
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getRuleType().toString()).isEqualTo(RuleType.FRAUD);
+    assertThat(result.getRuleType().toString()).isEqualTo("FRAUD");
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getAppliedRules()).hasSize(5);
     assertThat(result.getFailedRules()).hasSize(2); // Velocity check + amount anomaly
@@ -111,13 +111,13 @@ class FraudDetectionRuleEngineTest {
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getRuleType().toString()).isEqualTo(RuleType.FRAUD);
+    assertThat(result.getRuleType().toString()).isEqualTo("FRAUD");
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getAppliedRules()).contains("FRAUD_RULE_003");
     assertThat(result.getFailedRules()).hasSize(1);
     assertThat(result.getFailedRules().get(0).getRuleId()).isEqualTo("FRAUD_RULE_003");
     assertThat(result.getFailedRules().get(0).getRuleName()).isEqualTo("Account Pattern Analysis");
-    assertThat(result.getFailedRules().get(0).getRuleType()).isEqualTo(RuleType.FRAUD);
+    assertThat(result.getFailedRules().get(0).getRuleType().toString()).isEqualTo("FRAUD");
     assertThat(result.getFailedRules().get(0).getFailureReason())
         .contains("Suspicious account pattern");
     assertThat(result.getFraudScore()).isEqualTo(20);

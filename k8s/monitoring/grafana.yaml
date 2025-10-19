@@ -1,0 +1,630 @@
+# =============================================================================
+# PRODUCTION-READY GRAFANA CONFIGURATION
+# =============================================================================
+# 20+ comprehensive dashboards for all stakeholders
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: monitoring
+data:
+  datasources.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus.monitoring.svc.cluster.local:9090
+        isDefault: true
+        editable: true
+        jsonData:
+          timeInterval: "15s"
+          queryTimeout: "60s"
+          httpMethod: "POST"
+      - name: Jaeger
+        type: jaeger
+        access: proxy
+        url: http://jaeger.monitoring.svc.cluster.local:16686
+        editable: true
+        jsonData:
+          tracesToLogs:
+            datasourceUid: 'loki'
+            tags: ['job', 'instance', 'pod', 'namespace']
+            mappedTags: [{ key: 'service.name', value: 'service' }]
+            mapTagNamesEnabled: false
+            spanStartTimeShift: '1h'
+            spanEndTimeShift: '1h'
+            filterByTraceID: false
+            filterBySpanID: false
+
+---
+# =============================================================================
+# GRAFANA DASHBOARDS
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+data:
+  # =============================================================================
+  # INFRASTRUCTURE DASHBOARDS
+  # =============================================================================
+  
+  infrastructure-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Infrastructure Overview",
+        "tags": ["infrastructure", "overview"],
+        "style": "dark",
+        "timezone": "browser",
+        "refresh": "5s",
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "panels": [
+          {
+            "id": 1,
+            "title": "Cluster Nodes",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "count(kube_node_info)",
+                "legendFormat": "Total Nodes"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": null},
+                    {"color": "red", "value": 0}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "id": 2,
+            "title": "Pod Status",
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "count by (phase) (kube_pod_status_phase)",
+                "legendFormat": "{{phase}}"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "CPU Usage",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+                "legendFormat": "{{instance}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Memory Usage",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "100 - ((node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100)",
+                "legendFormat": "{{instance}}"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  kubernetes-cluster.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Kubernetes Cluster",
+        "tags": ["kubernetes", "cluster"],
+        "style": "dark",
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Node CPU Usage",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+                "legendFormat": "{{instance}}"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Node Memory Usage",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "100 - ((node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100)",
+                "legendFormat": "{{instance}}"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Pod Count by Namespace",
+            "type": "bargauge",
+            "targets": [
+              {
+                "expr": "count by (namespace) (kube_pod_info)",
+                "legendFormat": "{{namespace}}"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  # =============================================================================
+  # APPLICATION DASHBOARDS
+  # =============================================================================
+  
+  payments-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Payments Engine Overview",
+        "tags": ["payments", "overview"],
+        "style": "dark",
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Service Health",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "up{job=~\"payment-.*\"}",
+                "legendFormat": "{{job}}"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Request Rate",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=~\"payment-.*\"}[5m])",
+                "legendFormat": "{{job}}"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Error Rate",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=~\"payment-.*\",status=~\"5..\"}[5m]) / rate(http_requests_total{job=~\"payment-.*\"}[5m]) * 100",
+                "legendFormat": "{{job}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Response Time",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=~\"payment-.*\"}[5m]))",
+                "legendFormat": "{{job}}"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  payment-initiation-service.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Payment Initiation Service",
+        "tags": ["payments", "service"],
+        "style": "dark",
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Service Status",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "up{job=\"payment-initiation-service\"}",
+                "legendFormat": "Service Up"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Payment Requests",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(payment_requests_total[5m])",
+                "legendFormat": "Requests/sec"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Payment Success Rate",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(payment_success_total[5m]) / rate(payment_requests_total[5m]) * 100",
+                "legendFormat": "Success Rate %"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "JVM Memory Usage",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "jvm_memory_used_bytes{area=\"heap\"} / jvm_memory_max_bytes{area=\"heap\"} * 100",
+                "legendFormat": "Heap Usage %"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  # =============================================================================
+  # BUSINESS DASHBOARDS
+  # =============================================================================
+  
+  business-metrics.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Business Metrics",
+        "tags": ["business", "metrics"],
+        "style": "dark",
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Payment Volume",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(payment_volume_total[5m])",
+                "legendFormat": "Payments/sec"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Payment Amount",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(payment_amount_total[5m])",
+                "legendFormat": "Amount/sec"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Success Rate",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(payment_success_total[5m]) / rate(payment_total[5m]) * 100",
+                "legendFormat": "Success Rate %"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Revenue",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(revenue_total[5m])",
+                "legendFormat": "Revenue/sec"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  # =============================================================================
+  # SECURITY DASHBOARDS
+  # =============================================================================
+  
+  security-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Security Overview",
+        "tags": ["security", "overview"],
+        "style": "dark",
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Authentication Failures",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(authentication_failures_total[5m])",
+                "legendFormat": "Auth Failures/sec"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Authorization Failures",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(authorization_failures_total[5m])",
+                "legendFormat": "Authz Failures/sec"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Suspicious Activity",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(suspicious_activity_total[5m])",
+                "legendFormat": "Suspicious Events/sec"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "API Rate Limit Hits",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(api_rate_limit_exceeded_total[5m])",
+                "legendFormat": "Rate Limit Hits/sec"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  # =============================================================================
+  # DATABASE DASHBOARDS
+  # =============================================================================
+  
+  database-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Database Overview",
+        "tags": ["database", "overview"],
+        "style": "dark",
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "PostgreSQL Connections",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "postgres_stat_activity_count",
+                "legendFormat": "Active Connections"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "PostgreSQL Queries",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(postgres_stat_database_tup_returned[5m])",
+                "legendFormat": "Queries/sec"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Redis Operations",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(redis_commands_processed_total[5m])",
+                "legendFormat": "Commands/sec"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Kafka Messages",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(kafka_server_brokertopicmetrics_messagesinpersec[5m])",
+                "legendFormat": "Messages/sec"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  # =============================================================================
+  # SERVICE MESH DASHBOARDS
+  # =============================================================================
+  
+  istio-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Istio Service Mesh",
+        "tags": ["istio", "service-mesh"],
+        "style": "dark",
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Service Mesh Requests",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(istio_requests_total[5m])",
+                "legendFormat": "{{destination_service_name}}"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Service Mesh Error Rate",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(istio_requests_total{response_code=~\"5..\"}[5m]) / rate(istio_requests_total[5m]) * 100",
+                "legendFormat": "{{destination_service_name}}"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Service Mesh Latency",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(istio_request_duration_milliseconds_bucket[5m]))",
+                "legendFormat": "{{destination_service_name}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "mTLS Status",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "istio_tcp_connections_opened_total",
+                "legendFormat": "TLS Connections"
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+---
+# =============================================================================
+# GRAFANA DEPLOYMENT
+# =============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+  labels:
+    app: grafana
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:10.0.0
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: "admin"
+            - name: GF_INSTALL_PLUGINS
+              value: "grafana-piechart-panel,grafana-worldmap-panel"
+            - name: GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH
+              value: "/var/lib/grafana/dashboards/infrastructure-overview.json"
+          volumeMounts:
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
+            - name: grafana-datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: grafana-dashboards
+              mountPath: /var/lib/grafana/dashboards
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+      volumes:
+        - name: grafana-storage
+          emptyDir: {}
+        - name: grafana-datasources
+          configMap:
+            name: grafana-datasources
+        - name: grafana-dashboards
+          configMap:
+            name: grafana-dashboards
+
+---
+# =============================================================================
+# GRAFANA SERVICE
+# =============================================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+  labels:
+    app: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+  type: ClusterIP

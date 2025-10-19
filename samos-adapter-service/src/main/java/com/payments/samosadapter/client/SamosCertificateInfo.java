@@ -67,10 +67,7 @@ public class SamosCertificateInfo {
    */
   public boolean isValid() {
     Date now = new Date();
-    return notBefore != null
-        && notAfter != null
-        && now.after(notBefore)
-        && now.before(notAfter);
+    return notBefore != null && notAfter != null && now.after(notBefore) && now.before(notAfter);
   }
 
   /**
@@ -136,4 +133,3 @@ public class SamosCertificateInfo {
     ERROR
   }
 }
-

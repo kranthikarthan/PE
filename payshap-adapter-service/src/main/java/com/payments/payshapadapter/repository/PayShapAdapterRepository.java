@@ -1,7 +1,7 @@
 package com.payments.payshapadapter.repository;
 
-import com.payments.domain.valueobjects.AdapterOperationalStatus;
 import com.payments.domain.shared.ClearingAdapterId;
+import com.payments.domain.valueobjects.AdapterOperationalStatus;
 import com.payments.payshapadapter.domain.PayShapAdapter;
 import java.util.List;
 import java.util.Optional;

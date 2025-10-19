@@ -1,6 +1,8 @@
 package com.payments.tenant.exception;
 
 import com.payments.tenant.service.TenantService.TenantNotFoundException;
+import java.time.OffsetDateTime;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,24 +12,16 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
-import java.time.OffsetDateTime;
-import java.util.stream.Collectors;
-
 /**
  * Global Exception Handler - Maps exceptions to HTTP responses.
  *
- * <p>Handles all exceptions thrown by Tenant Management Service:
- * - TenantNotFoundException (404)
- * - IllegalArgumentException / validation errors (400)
- * - IllegalStateException (409 Conflict)
- * - Generic exceptions (500)
+ * <p>Handles all exceptions thrown by Tenant Management Service: - TenantNotFoundException (404) -
+ * IllegalArgumentException / validation errors (400) - IllegalStateException (409 Conflict) -
+ * Generic exceptions (500)
  *
- * <p>Returns structured error response with:
- * - timestamp: When error occurred
- * - status: HTTP status code
- * - error: Error message
- * - details: Field-level validation errors (if applicable)
- * - path: Request path
+ * <p>Returns structured error response with: - timestamp: When error occurred - status: HTTP status
+ * code - error: Error message - details: Field-level validation errors (if applicable) - path:
+ * Request path
  */
 @ControllerAdvice
 @Slf4j
@@ -119,7 +113,8 @@ public class TenantExceptionHandler {
   /**
    * Handle illegal state (409 Conflict).
    *
-   * <p>Triggered when operation violates state machine rules (e.g., activate already active tenant).
+   * <p>Triggered when operation violates state machine rules (e.g., activate already active
+   * tenant).
    *
    * @param ex IllegalStateException
    * @param request WebRequest context
@@ -150,8 +145,7 @@ public class TenantExceptionHandler {
    * @return 500 Internal Server Error response
    */
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleGenericException(
-      Exception ex, WebRequest request) {
+  public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, WebRequest request) {
     log.error("Unexpected error", ex);
 
     ErrorResponse error =

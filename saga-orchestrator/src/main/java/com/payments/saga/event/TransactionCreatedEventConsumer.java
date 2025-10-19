@@ -37,8 +37,12 @@ public class TransactionCreatedEventConsumer {
           offset);
 
       // Parse the event payload
-      Map<String, Object> eventData = objectMapper.readValue(message, 
-          objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class));
+      Map<String, Object> eventData =
+          objectMapper.readValue(
+              message,
+              objectMapper
+                  .getTypeFactory()
+                  .constructMapType(Map.class, String.class, Object.class));
       String transactionId = (String) eventData.get("transactionId");
       String paymentId = (String) eventData.get("paymentId");
       String status = (String) eventData.get("status");
@@ -50,16 +54,10 @@ public class TransactionCreatedEventConsumer {
           status);
 
       // Start a new payment processing saga
-      TenantContext tenantContext = TenantContext.builder()
-          .tenantId((String) eventData.get("tenantId"))
-          .build();
+      TenantContext tenantContext =
+          TenantContext.builder().tenantId((String) eventData.get("tenantId")).build();
       sagaOrchestrator.startSaga(
-          "PAYMENT_PROCESSING",
-          tenantContext,
-          correlationId,
-          paymentId,
-          eventData
-      );
+          "PAYMENT_PROCESSING", tenantContext, correlationId, paymentId, eventData);
       // based on the step execution flow
 
     } catch (Exception e) {

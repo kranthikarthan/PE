@@ -1,13 +1,13 @@
 package com.payments.bankservafricaadapter.domain;
 
 import com.payments.bankservafricaadapter.exception.InvalidBankservAfricaAdapterException;
-import com.payments.domain.valueobjects.AdapterOperationalStatus;
-import com.payments.domain.valueobjects.ClearingNetwork;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.ClearingMessageId;
 import com.payments.domain.shared.ClearingRouteId;
 import com.payments.domain.shared.DomainEvent;
 import com.payments.domain.shared.TenantContext;
+import com.payments.domain.valueobjects.AdapterOperationalStatus;
+import com.payments.domain.valueobjects.ClearingNetwork;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.ArrayList;

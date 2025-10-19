@@ -1,41 +1,44 @@
-# Traffic routing and canary deployment configuration
+# =============================================================================
+# PRODUCTION-READY ISTIO VIRTUAL SERVICES
+# =============================================================================
+# Comprehensive traffic routing for all 22 services with advanced features
+
+# Payment Initiation Service
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: payment-service-routing
+  name: payment-initiation-service
   namespace: payments
 spec:
   hosts:
-    - payment-service
+    - payment-initiation-service
   http:
-    # Default routing - can be modified for canary deployments
+    - match:
+        - headers:
+            canary:
+              exact: "true"
+      route:
+        - destination:
+            host: payment-initiation-service
+            subset: v2
+          weight: 100
     - route:
         - destination:
-            host: payment-service
+            host: payment-initiation-service
             subset: v1
           weight: 100
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure,refused-stream
 
 ---
+# Validation Service
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: account-service-routing
-  namespace: payments
-spec:
-  hosts:
-    - account-service
-  http:
-    - route:
-        - destination:
-            host: account-service
-            subset: v1
-          weight: 100
-
----
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
-metadata:
-  name: validation-service-routing
+  name: validation-service
   namespace: payments
 spec:
   hosts:
@@ -46,12 +49,84 @@ spec:
             host: validation-service
             subset: v1
           weight: 100
+    timeout: 15s
+    retries:
+      attempts: 2
+      perTryTimeout: 5s
+      retryOn: 5xx,reset,connect-failure
 
 ---
+# Account Adapter Service
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: saga-orchestrator-routing
+  name: account-adapter-service
+  namespace: payments
+spec:
+  hosts:
+    - account-adapter-service
+  http:
+    - route:
+        - destination:
+            host: account-adapter-service
+            subset: v1
+          weight: 100
+    timeout: 20s
+    retries:
+      attempts: 3
+      perTryTimeout: 8s
+      retryOn: 5xx,reset,connect-failure
+
+---
+# Routing Service
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: routing-service
+  namespace: payments
+spec:
+  hosts:
+    - routing-service
+  http:
+    - route:
+        - destination:
+            host: routing-service
+            subset: v1
+          weight: 100
+    timeout: 10s
+    retries:
+      attempts: 2
+      perTryTimeout: 5s
+      retryOn: 5xx,reset,connect-failure
+
+---
+# Transaction Processing Service
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: transaction-processing-service
+  namespace: payments
+spec:
+  hosts:
+    - transaction-processing-service
+  http:
+    - route:
+        - destination:
+            host: transaction-processing-service
+            subset: v1
+          weight: 100
+    timeout: 60s
+    retries:
+      attempts: 3
+      perTryTimeout: 20s
+      retryOn: 5xx,reset,connect-failure
+
+---
+# Saga Orchestrator Service
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: saga-orchestrator
   namespace: payments
 spec:
   hosts:
@@ -62,25 +137,379 @@ spec:
             host: saga-orchestrator
             subset: v1
           weight: 100
+    timeout: 45s
+    retries:
+      attempts: 2
+      perTryTimeout: 15s
+      retryOn: 5xx,reset,connect-failure
 
 ---
-# Canary deployment example for payment service
+# Clearing Adapter Services
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: payment-service-canary
+  name: samos-adapter-service
   namespace: payments
 spec:
   hosts:
-    - payment-service
+    - samos-adapter-service
   http:
-    # Route 90% to v1, 10% to v2 (canary)
     - route:
         - destination:
-            host: payment-service
+            host: samos-adapter-service
+            subset: v1
+          weight: 100
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: bankservafrica-adapter-service
+  namespace: payments
+spec:
+  hosts:
+    - bankservafrica-adapter-service
+  http:
+    - route:
+        - destination:
+            host: bankservafrica-adapter-service
+            subset: v1
+          weight: 100
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: rtc-adapter-service
+  namespace: payments
+spec:
+  hosts:
+    - rtc-adapter-service
+  http:
+    - route:
+        - destination:
+            host: rtc-adapter-service
+            subset: v1
+          weight: 100
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: payshap-adapter-service
+  namespace: payments
+spec:
+  hosts:
+    - payshap-adapter-service
+  http:
+    - route:
+        - destination:
+            host: payshap-adapter-service
+            subset: v1
+          weight: 100
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: swift-adapter-service
+  namespace: payments
+spec:
+  hosts:
+    - swift-adapter-service
+  http:
+    - route:
+        - destination:
+            host: swift-adapter-service
+            subset: v1
+          weight: 100
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure
+
+---
+# Platform Services
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: iam-service
+  namespace: payments
+spec:
+  hosts:
+    - iam-service
+  http:
+    - route:
+        - destination:
+            host: iam-service
+            subset: v1
+          weight: 100
+    timeout: 15s
+    retries:
+      attempts: 2
+      perTryTimeout: 5s
+      retryOn: 5xx,reset,connect-failure
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: notification-service
+  namespace: payments
+spec:
+  hosts:
+    - notification-service
+  http:
+    - route:
+        - destination:
+            host: notification-service
+            subset: v1
+          weight: 100
+    timeout: 20s
+    retries:
+      attempts: 3
+      perTryTimeout: 8s
+      retryOn: 5xx,reset,connect-failure
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: audit-service
+  namespace: payments
+spec:
+  hosts:
+    - audit-service
+  http:
+    - route:
+        - destination:
+            host: audit-service
+            subset: v1
+          weight: 100
+    timeout: 10s
+    retries:
+      attempts: 2
+      perTryTimeout: 5s
+      retryOn: 5xx,reset,connect-failure
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: tenant-management-service
+  namespace: payments
+spec:
+  hosts:
+    - tenant-management-service
+  http:
+    - route:
+        - destination:
+            host: tenant-management-service
+            subset: v1
+          weight: 100
+    timeout: 15s
+    retries:
+      attempts: 2
+      perTryTimeout: 5s
+      retryOn: 5xx,reset,connect-failure
+
+---
+# Advanced Services
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: settlement-service
+  namespace: payments
+spec:
+  hosts:
+    - settlement-service
+  http:
+    - route:
+        - destination:
+            host: settlement-service
+            subset: v1
+          weight: 100
+    timeout: 120s
+    retries:
+      attempts: 2
+      perTryTimeout: 60s
+      retryOn: 5xx,reset,connect-failure
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: reconciliation-service
+  namespace: payments
+spec:
+  hosts:
+    - reconciliation-service
+  http:
+    - route:
+        - destination:
+            host: reconciliation-service
+            subset: v1
+          weight: 100
+    timeout: 90s
+    retries:
+      attempts: 2
+      perTryTimeout: 45s
+      retryOn: 5xx,reset,connect-failure
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: batch-processing-service
+  namespace: payments
+spec:
+  hosts:
+    - batch-processing-service
+  http:
+    - route:
+        - destination:
+            host: batch-processing-service
+            subset: v1
+          weight: 100
+    timeout: 300s
+    retries:
+      attempts: 1
+      perTryTimeout: 300s
+      retryOn: 5xx,reset,connect-failure
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: analytics-service
+  namespace: payments
+spec:
+  hosts:
+    - analytics-service
+  http:
+    - route:
+        - destination:
+            host: analytics-service
+            subset: v1
+          weight: 100
+    timeout: 30s
+    retries:
+      attempts: 2
+      perTryTimeout: 15s
+      retryOn: 5xx,reset,connect-failure
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: web-bff-service
+  namespace: payments
+spec:
+  hosts:
+    - web-bff-service
+  http:
+    - route:
+        - destination:
+            host: web-bff-service
+            subset: v1
+          weight: 100
+    timeout: 20s
+    retries:
+      attempts: 3
+      perTryTimeout: 8s
+      retryOn: 5xx,reset,connect-failure
+
+---
+# =============================================================================
+# CANARY DEPLOYMENT CONFIGURATIONS
+# =============================================================================
+
+# Payment Service Canary (90/10 split)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: payment-initiation-service-canary
+  namespace: payments
+spec:
+  hosts:
+    - payment-initiation-service
+  http:
+    - match:
+        - headers:
+            canary:
+              exact: "true"
+      route:
+        - destination:
+            host: payment-initiation-service
+            subset: v2
+          weight: 100
+    - route:
+        - destination:
+            host: payment-initiation-service
             subset: v1
           weight: 90
         - destination:
-            host: payment-service
+            host: payment-initiation-service
             subset: v2
           weight: 10
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure
+
+---
+# Transaction Processing Service Canary (50/50 split)
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: transaction-processing-service-canary
+  namespace: payments
+spec:
+  hosts:
+    - transaction-processing-service
+  http:
+    - match:
+        - headers:
+            canary:
+              exact: "true"
+      route:
+        - destination:
+            host: transaction-processing-service
+            subset: v2
+          weight: 100
+    - route:
+        - destination:
+            host: transaction-processing-service
+            subset: v1
+          weight: 50
+        - destination:
+            host: transaction-processing-service
+            subset: v2
+          weight: 50
+    timeout: 60s
+    retries:
+      attempts: 3
+      perTryTimeout: 20s
+      retryOn: 5xx,reset,connect-failure

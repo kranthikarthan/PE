@@ -13,17 +13,13 @@ import org.springframework.stereotype.Component;
 /**
  * Tenant Event Publisher - Publishes tenant lifecycle events to Kafka topics.
  *
- * <p>Events:
- * - TenantCreatedEvent: New tenant created (PENDING_APPROVAL)
- * - TenantActivatedEvent: Tenant approved and activated
- * - TenantSuspendedEvent: Tenant suspended (temporary deactivation)
- * - TenantDeactivatedEvent: Tenant deactivated (soft delete)
+ * <p>Events: - TenantCreatedEvent: New tenant created (PENDING_APPROVAL) - TenantActivatedEvent:
+ * Tenant approved and activated - TenantSuspendedEvent: Tenant suspended (temporary deactivation) -
+ * TenantDeactivatedEvent: Tenant deactivated (soft delete)
  *
- * <p>Topics:
- * - `tenant.created` - Consumed by audit, notification services
- * - `tenant.activated` - Triggers downstream provisioning
- * - `tenant.suspended` - Alerts compliance/operations
- * - `tenant.deactivated` - Cleanup tasks for related entities
+ * <p>Topics: - `tenant.created` - Consumed by audit, notification services - `tenant.activated` -
+ * Triggers downstream provisioning - `tenant.suspended` - Alerts compliance/operations -
+ * `tenant.deactivated` - Cleanup tasks for related entities
  *
  * <p>Pattern: Enterprise Integration Pattern - Event Message
  */
@@ -42,8 +38,8 @@ public class TenantEventPublisher {
   /**
    * Publish TenantCreatedEvent.
    *
-   * <p>Fired when a new tenant is created (status = PENDING_APPROVAL).
-   * Other services (audit, notification) listen for this event.
+   * <p>Fired when a new tenant is created (status = PENDING_APPROVAL). Other services (audit,
+   * notification) listen for this event.
    *
    * @param tenant Created tenant
    * @param createdBy User who created
@@ -73,8 +69,7 @@ public class TenantEventPublisher {
   /**
    * Publish TenantActivatedEvent.
    *
-   * <p>Fired when tenant is approved (status = ACTIVE).
-   * Triggers downstream provisioning tasks.
+   * <p>Fired when tenant is approved (status = ACTIVE). Triggers downstream provisioning tasks.
    *
    * @param tenant Activated tenant
    * @param activatedBy User who activated
@@ -103,8 +98,7 @@ public class TenantEventPublisher {
   /**
    * Publish TenantSuspendedEvent.
    *
-   * <p>Fired when tenant is suspended (temporary deactivation).
-   * Alerts compliance and operations.
+   * <p>Fired when tenant is suspended (temporary deactivation). Alerts compliance and operations.
    *
    * @param tenant Suspended tenant
    * @param suspendedBy User who suspended
@@ -133,8 +127,7 @@ public class TenantEventPublisher {
   /**
    * Publish TenantDeactivatedEvent.
    *
-   * <p>Fired when tenant is deactivated (soft delete).
-   * Triggers cleanup tasks for related entities.
+   * <p>Fired when tenant is deactivated (soft delete). Triggers cleanup tasks for related entities.
    *
    * @param tenant Deactivated tenant
    * @param deactivatedBy User who deactivated

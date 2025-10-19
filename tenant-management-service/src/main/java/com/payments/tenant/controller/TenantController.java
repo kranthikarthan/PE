@@ -1,7 +1,6 @@
 package com.payments.tenant.controller;
 
 import com.payments.tenant.dto.CreateTenantRequest;
-import com.payments.tenant.dto.StatusChangeRequest;
 import com.payments.tenant.dto.TenantResponse;
 import com.payments.tenant.dto.UpdateTenantRequest;
 import com.payments.tenant.entity.TenantEntity;
@@ -20,30 +19,24 @@ import org.springframework.web.bind.annotation.*;
 /**
  * Tenant Controller - REST API for tenant management.
  *
- * <p>Endpoints:
- * - POST /tenants - Create tenant (ADMIN)
- * - GET /tenants/{id} - Get tenant by ID (any user)
- * - PUT /tenants/{id} - Update tenant (ADMIN)
- * - DELETE /tenants/{id} - Deactivate tenant (ADMIN)
- * - GET /tenants - List active tenants (any user)
- * - POST /tenants/{id}/activate - Activate tenant (ADMIN)
- * - POST /tenants/{id}/suspend - Suspend tenant (ADMIN)
+ * <p>Endpoints: - POST /tenants - Create tenant (ADMIN) - GET /tenants/{id} - Get tenant by ID (any
+ * user) - PUT /tenants/{id} - Update tenant (ADMIN) - DELETE /tenants/{id} - Deactivate tenant
+ * (ADMIN) - GET /tenants - List active tenants (any user) - POST /tenants/{id}/activate - Activate
+ * tenant (ADMIN) - POST /tenants/{id}/suspend - Suspend tenant (ADMIN)
  *
- * <p>Security:
- * - All endpoints require JWT token (X-Authorization header)
- * - X-Tenant-ID header required for multi-tenancy
- * - Role-based access control (ADMIN required for mutations)
+ * <p>Security: - All endpoints require JWT token (X-Authorization header) - X-Tenant-ID header
+ * required for multi-tenancy - Role-based access control (ADMIN required for mutations)
  *
- * <p>Validation:
- * - @Valid annotations on DTOs
- * - TenantValidator called at service layer
- * - Spring Bean Validation for HTTP constraints
+ * <p>Validation: - @Valid annotations on DTOs - TenantValidator called at service layer - Spring
+ * Bean Validation for HTTP constraints
  */
 @RestController
 @RequestMapping("/tenants")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Tenant Management", description = "Manage tenants (create, read, update, delete, lifecycle)")
+@Tag(
+    name = "Tenant Management",
+    description = "Manage tenants (create, read, update, delete, lifecycle)")
 public class TenantController {
 
   private final TenantService tenantService;
@@ -51,8 +44,7 @@ public class TenantController {
   /**
    * Create a new tenant.
    *
-   * <p>HTTP: POST /tenants
-   * Status: 201 Created
+   * <p>HTTP: POST /tenants Status: 201 Created
    *
    * @param request Tenant creation request
    * @param createdBy Current user (from JWT principal)
@@ -90,8 +82,7 @@ public class TenantController {
   /**
    * Get tenant by ID.
    *
-   * <p>HTTP: GET /tenants/{id}
-   * Status: 200 OK
+   * <p>HTTP: GET /tenants/{id} Status: 200 OK
    *
    * @param tenantId Tenant identifier
    * @return Tenant response
@@ -108,8 +99,7 @@ public class TenantController {
   /**
    * List active tenants with pagination.
    *
-   * <p>HTTP: GET /tenants?page=0&size=20
-   * Status: 200 OK
+   * <p>HTTP: GET /tenants?page=0&size=20 Status: 200 OK
    *
    * @param pageable Pagination (page, size, sort)
    * @return Page of tenant responses
@@ -126,11 +116,10 @@ public class TenantController {
   /**
    * Update tenant information.
    *
-   * <p>HTTP: PUT /tenants/{id}
-   * Status: 200 OK
+   * <p>HTTP: PUT /tenants/{id} Status: 200 OK
    *
-   * <p>Allowed updates: contact info, address, timezone, currency
-   * Protected fields: tenantId, status (use activate/suspend endpoints)
+   * <p>Allowed updates: contact info, address, timezone, currency Protected fields: tenantId,
+   * status (use activate/suspend endpoints)
    *
    * @param tenantId Tenant identifier
    * @param request Update request
@@ -145,17 +134,18 @@ public class TenantController {
       @RequestHeader("X-User-ID") String updatedBy) {
     log.info("Updating tenant: {}", tenantId);
 
-    TenantEntity updates = TenantEntity.builder()
-        .contactEmail(request.getContactEmail())
-        .contactPhone(request.getContactPhone())
-        .addressLine1(request.getAddressLine1())
-        .addressLine2(request.getAddressLine2())
-        .city(request.getCity())
-        .province(request.getProvince())
-        .postalCode(request.getPostalCode())
-        .timezone(request.getTimezone())
-        .currency(request.getCurrency())
-        .build();
+    TenantEntity updates =
+        TenantEntity.builder()
+            .contactEmail(request.getContactEmail())
+            .contactPhone(request.getContactPhone())
+            .addressLine1(request.getAddressLine1())
+            .addressLine2(request.getAddressLine2())
+            .city(request.getCity())
+            .province(request.getProvince())
+            .postalCode(request.getPostalCode())
+            .timezone(request.getTimezone())
+            .currency(request.getCurrency())
+            .build();
 
     TenantEntity updated = tenantService.updateTenant(tenantId, updates, updatedBy);
     return ResponseEntity.ok(TenantResponse.from(updated));
@@ -164,8 +154,7 @@ public class TenantController {
   /**
    * Activate tenant (approve from PENDING_APPROVAL).
    *
-   * <p>HTTP: POST /tenants/{id}/activate
-   * Status: 200 OK
+   * <p>HTTP: POST /tenants/{id}/activate Status: 200 OK
    *
    * @param tenantId Tenant identifier
    * @param activatedBy Current user
@@ -184,8 +173,7 @@ public class TenantController {
   /**
    * Suspend tenant (temporary deactivation).
    *
-   * <p>HTTP: POST /tenants/{id}/suspend
-   * Status: 200 OK
+   * <p>HTTP: POST /tenants/{id}/suspend Status: 200 OK
    *
    * @param tenantId Tenant identifier
    * @param suspendedBy Current user
@@ -204,15 +192,16 @@ public class TenantController {
   /**
    * Deactivate tenant (soft delete).
    *
-   * <p>HTTP: DELETE /tenants/{id}
-   * Status: 200 OK
+   * <p>HTTP: DELETE /tenants/{id} Status: 200 OK
    *
    * @param tenantId Tenant identifier
    * @param deactivatedBy Current user
    * @return Deactivated tenant response
    */
   @DeleteMapping("/{tenantId}")
-  @Operation(summary = "Deactivate tenant", description = "Deactivate tenant (soft delete, ADMIN only)")
+  @Operation(
+      summary = "Deactivate tenant",
+      description = "Deactivate tenant (soft delete, ADMIN only)")
   public ResponseEntity<TenantResponse> deactivateTenant(
       @PathVariable String tenantId, @RequestHeader("X-User-ID") String deactivatedBy) {
     log.warn("Deactivating tenant: {}", tenantId);

@@ -1,10 +1,10 @@
 package com.payments.rtcadapter.service;
 
-import com.payments.domain.valueobjects.AdapterOperationalStatus;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.ClearingMessageId;
 import com.payments.domain.shared.ClearingRouteId;
 import com.payments.domain.shared.TenantContext;
+import com.payments.domain.valueobjects.AdapterOperationalStatus;
 import com.payments.rtcadapter.domain.ClearingMessageLog;
 import com.payments.rtcadapter.domain.ClearingRoute;
 import com.payments.rtcadapter.domain.RtcAdapter;

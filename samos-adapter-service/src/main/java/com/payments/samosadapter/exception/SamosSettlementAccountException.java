@@ -11,4 +11,3 @@ public class SamosSettlementAccountException extends RuntimeException {
     super(message, cause);
   }
 }
-

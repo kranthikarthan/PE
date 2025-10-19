@@ -11,15 +11,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 /**
  * Tenant Management Service Application.
  *
- * <p>This service is responsible for:
- * - Tenant lifecycle management (create, activate, suspend, delete)
- * - Business unit management
- * - Configuration management
- * - Multi-tenancy enforcement
+ * <p>This service is responsible for: - Tenant lifecycle management (create, activate, suspend,
+ * delete) - Business unit management - Configuration management - Multi-tenancy enforcement
  *
- * <p>Security: All endpoints require JWT token + X-Tenant-ID header
- * Performance: Caching enabled for tenant lookups (O(1) via Redis)
- * Observability: OpenTelemetry tracing + Micrometer metrics
+ * <p>Security: All endpoints require JWT token + X-Tenant-ID header Performance: Caching enabled
+ * for tenant lookups (O(1) via Redis) Observability: OpenTelemetry tracing + Micrometer metrics
  */
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "com.payments.tenant.repository")

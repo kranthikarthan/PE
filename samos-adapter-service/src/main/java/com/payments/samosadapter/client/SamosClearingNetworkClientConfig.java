@@ -73,7 +73,8 @@ public class SamosClearingNetworkClientConfig {
       }
 
       // Log request for audit trail
-      log.debug("SAMOS Request: {} {} [Correlation-ID: {}]",
+      log.debug(
+          "SAMOS Request: {} {} [Correlation-ID: {}]",
           template.method(),
           template.url(),
           template.headers().get("X-Correlation-ID"));
@@ -117,9 +118,7 @@ public class SamosClearingNetworkClientConfig {
     return Retryer.NEVER_RETRY; // Use Resilience4j retry instead
   }
 
-  /**
-   * Custom request logger for SAMOS compliance
-   */
+  /** Custom request logger for SAMOS compliance */
   @Bean
   public Logger feignLogger() {
     return new SamosComplianceLogger();

@@ -1,8 +1,8 @@
 package com.payments.samosadapter.domain;
 
-import com.payments.domain.valueobjects.ClearingNetwork;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.DomainEvent;
+import com.payments.domain.valueobjects.ClearingNetwork;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Value;

@@ -3,6 +3,8 @@ package com.payments.tenant.service;
 import com.payments.tenant.entity.TenantEntity;
 import com.payments.tenant.repository.TenantRepository;
 import io.micrometer.core.annotation.Timed;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -12,22 +14,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.UUID;
-
 /**
  * Tenant Service - Business logic for tenant management.
  *
- * <p>Responsibilities:
- * - Tenant lifecycle management (CRUD)
- * - Multi-tenancy enforcement (validate X-Tenant-ID)
- * - Caching for performance (O(1) lookups)
- * - Event publishing for tenant lifecycle events
- * - Audit trail tracking
+ * <p>Responsibilities: - Tenant lifecycle management (CRUD) - Multi-tenancy enforcement (validate
+ * X-Tenant-ID) - Caching for performance (O(1) lookups) - Event publishing for tenant lifecycle
+ * events - Audit trail tracking
  *
- * <p>Security: All operations check current tenant context via ThreadLocal.
- * Performance: O(1) cached lookups, O(log N) database searches with indexes.
- * Compliance: POPIA tenant data handling, audit logging.
+ * <p>Security: All operations check current tenant context via ThreadLocal. Performance: O(1)
+ * cached lookups, O(log N) database searches with indexes. Compliance: POPIA tenant data handling,
+ * audit logging.
  */
 @Service
 @RequiredArgsConstructor
@@ -41,13 +37,9 @@ public class TenantService {
   /**
    * Create a new tenant.
    *
-   * <p>Flow:
-   * 1. **Validate** request (required fields, enum values, email format) ← CATCHES MISSING REFS HERE
-   * 2. Generate tenant ID (STD-XXX format)
-   * 3. Set initial status = PENDING_APPROVAL
-   * 4. Save to database
-   * 5. Publish TenantCreatedEvent
-   * 6. Return created tenant
+   * <p>Flow: 1. **Validate** request (required fields, enum values, email format) ← CATCHES MISSING
+   * REFS HERE 2. Generate tenant ID (STD-XXX format) 3. Set initial status = PENDING_APPROVAL 4.
+   * Save to database 5. Publish TenantCreatedEvent 6. Return created tenant
    *
    * <p>Performance: ~100ms (DB write + event publish)
    *
@@ -101,8 +93,7 @@ public class TenantService {
   /**
    * Get tenant by ID with caching.
    *
-   * <p>Cache: O(1) in Redis (10-minute TTL)  
-   * Database: O(log N) with index on primary key
+   * <p>Cache: O(1) in Redis (10-minute TTL) Database: O(log N) with index on primary key
    *
    * @param tenantId Tenant identifier
    * @return Tenant if found
@@ -164,12 +155,8 @@ public class TenantService {
   /**
    * Activate tenant (approve from PENDING_APPROVAL).
    *
-   * <p>Flow:
-   * 1. Find tenant by ID
-   * 2. Check status is PENDING_APPROVAL
-   * 3. Update status to ACTIVE
-   * 4. Clear cache
-   * 5. Publish TenantActivatedEvent
+   * <p>Flow: 1. Find tenant by ID 2. Check status is PENDING_APPROVAL 3. Update status to ACTIVE 4.
+   * Clear cache 5. Publish TenantActivatedEvent
    *
    * <p>Performance: ~50ms (DB write + event publish)
    *
@@ -186,8 +173,7 @@ public class TenantService {
     TenantEntity tenant = getTenant(tenantId);
 
     if (tenant.getStatus() != TenantEntity.TenantStatus.PENDING_APPROVAL) {
-      throw new IllegalStateException(
-          "Cannot activate tenant with status: " + tenant.getStatus());
+      throw new IllegalStateException("Cannot activate tenant with status: " + tenant.getStatus());
     }
 
     tenant.activate(activatedBy);
@@ -203,11 +189,8 @@ public class TenantService {
   /**
    * Suspend tenant (temporary deactivation).
    *
-   * <p>Flow:
-   * 1. Find tenant
-   * 2. Update status to SUSPENDED
-   * 3. Clear cache
-   * 4. Publish TenantSuspendedEvent
+   * <p>Flow: 1. Find tenant 2. Update status to SUSPENDED 3. Clear cache 4. Publish
+   * TenantSuspendedEvent
    *
    * @param tenantId Tenant to suspend
    * @param suspendedBy User suspending
@@ -232,11 +215,8 @@ public class TenantService {
   /**
    * Deactivate tenant (soft delete).
    *
-   * <p>Flow:
-   * 1. Find tenant
-   * 2. Update status to INACTIVE
-   * 3. Clear cache
-   * 4. Publish TenantDeactivatedEvent
+   * <p>Flow: 1. Find tenant 2. Update status to INACTIVE 3. Clear cache 4. Publish
+   * TenantDeactivatedEvent
    *
    * @param tenantId Tenant to deactivate
    * @param deactivatedBy User deactivating
@@ -261,8 +241,8 @@ public class TenantService {
   /**
    * Update tenant information.
    *
-   * <p>Allowed updates: Contact email, phone, address, timezone, currency  
-   * Protected fields: tenant_id, status (use separate activate/suspend methods)
+   * <p>Allowed updates: Contact email, phone, address, timezone, currency Protected fields:
+   * tenant_id, status (use separate activate/suspend methods)
    *
    * @param tenantId Tenant to update
    * @param updates Partial update data
@@ -332,8 +312,7 @@ public class TenantService {
   /**
    * Generate unique tenant ID based on type.
    *
-   * <p>Format: {TYPE_PREFIX}-{SEQUENCE}  
-   * Examples: STD-001, FINTECH-042, BANK-001
+   * <p>Format: {TYPE_PREFIX}-{SEQUENCE} Examples: STD-001, FINTECH-042, BANK-001
    *
    * @param type Tenant type
    * @return Generated tenant ID

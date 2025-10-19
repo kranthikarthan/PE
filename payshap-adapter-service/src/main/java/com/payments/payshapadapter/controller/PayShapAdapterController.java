@@ -1,8 +1,8 @@
 package com.payments.payshapadapter.controller;
 
-import com.payments.domain.valueobjects.ClearingNetwork;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.TenantContext;
+import com.payments.domain.valueobjects.ClearingNetwork;
 import com.payments.payshapadapter.domain.PayShapAdapter;
 import com.payments.payshapadapter.service.PayShapAdapterService;
 import io.swagger.v3.oas.annotations.Operation;

@@ -11,13 +11,9 @@ import org.springframework.stereotype.Component;
  * <p>Purpose: Catch invalid operations, missing references, and constraint violations BEFORE
  * database operations occur.
  *
- * <p>Validation Rules:
- * 1. Required fields cannot be null
- * 2. Status transitions must be valid (state machine)
- * 3. Tenant must exist before updates/deletes
- * 4. Email must be in valid format
- * 5. Country code must be ISO 3166-1 alpha-3
- * 6. Enum values must be recognized
+ * <p>Validation Rules: 1. Required fields cannot be null 2. Status transitions must be valid (state
+ * machine) 3. Tenant must exist before updates/deletes 4. Email must be in valid format 5. Country
+ * code must be ISO 3166-1 alpha-3 6. Enum values must be recognized
  *
  * <p>Throws: IllegalArgumentException with clear error messages
  */
@@ -65,7 +61,9 @@ public class TenantValidator {
       TenantEntity.TenantType.valueOf(request.getTenantType().toString());
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException(
-          "Cannot create: tenantType '" + request.getTenantType() + "' is not recognized. "
+          "Cannot create: tenantType '"
+              + request.getTenantType()
+              + "' is not recognized. "
               + "Valid types: BANK, FINANCIAL_INSTITUTION, FINTECH, CORPORATE");
     }
 
@@ -73,7 +71,9 @@ public class TenantValidator {
     if (request.getCountry() != null && !request.getCountry().isBlank()) {
       if (!isValidCountryCode(request.getCountry())) {
         throw new IllegalArgumentException(
-            "Cannot create: country code '" + request.getCountry() + "' must be ISO 3166-1 alpha-3");
+            "Cannot create: country code '"
+                + request.getCountry()
+                + "' must be ISO 3166-1 alpha-3");
       }
     }
 
@@ -103,13 +103,8 @@ public class TenantValidator {
   /**
    * Validate status transition.
    *
-   * <p>Valid transitions:
-   * - PENDING_APPROVAL → ACTIVE
-   * - PENDING_APPROVAL → INACTIVE
-   * - ACTIVE → SUSPENDED
-   * - ACTIVE → INACTIVE
-   * - SUSPENDED → ACTIVE
-   * - SUSPENDED → INACTIVE
+   * <p>Valid transitions: - PENDING_APPROVAL → ACTIVE - PENDING_APPROVAL → INACTIVE - ACTIVE →
+   * SUSPENDED - ACTIVE → INACTIVE - SUSPENDED → ACTIVE - SUSPENDED → INACTIVE
    *
    * @param currentStatus Current status
    * @param targetStatus Target status
@@ -131,16 +126,19 @@ public class TenantValidator {
     // Define valid transitions
     switch (currentStatus) {
       case PENDING_APPROVAL:
-        isValidTransition = (targetStatus == TenantEntity.TenantStatus.ACTIVE
-            || targetStatus == TenantEntity.TenantStatus.INACTIVE);
+        isValidTransition =
+            (targetStatus == TenantEntity.TenantStatus.ACTIVE
+                || targetStatus == TenantEntity.TenantStatus.INACTIVE);
         break;
       case ACTIVE:
-        isValidTransition = (targetStatus == TenantEntity.TenantStatus.SUSPENDED
-            || targetStatus == TenantEntity.TenantStatus.INACTIVE);
+        isValidTransition =
+            (targetStatus == TenantEntity.TenantStatus.SUSPENDED
+                || targetStatus == TenantEntity.TenantStatus.INACTIVE);
         break;
       case SUSPENDED:
-        isValidTransition = (targetStatus == TenantEntity.TenantStatus.ACTIVE
-            || targetStatus == TenantEntity.TenantStatus.INACTIVE);
+        isValidTransition =
+            (targetStatus == TenantEntity.TenantStatus.ACTIVE
+                || targetStatus == TenantEntity.TenantStatus.INACTIVE);
         break;
       case INACTIVE:
         // Cannot transition from INACTIVE (terminal state)
@@ -249,9 +247,7 @@ public class TenantValidator {
     }
   }
 
-  /**
-   * Exception for validation failures.
-   */
+  /** Exception for validation failures. */
   public static class TenantValidationException extends IllegalArgumentException {
     public TenantValidationException(String message) {
       super(message);

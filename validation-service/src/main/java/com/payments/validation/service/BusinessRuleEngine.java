@@ -63,6 +63,7 @@ public class BusinessRuleEngine {
           .fraudScore(0)
           .riskScore(calculateRiskScore(failedRules))
           .executionTime(executionTime)
+          .errorMessage(failedRules.isEmpty() ? null : "Business rules validation failed")
           .build();
 
     } catch (Exception e) {
@@ -87,6 +88,19 @@ public class BusinessRuleEngine {
   private void executeAmountLimitRule(
       PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
     appliedRules.add("BUSINESS_RULE_001");
+
+    // Handle null amount case
+    if (event.getAmount() == null) {
+      failedRules.add(
+          FailedRule.builder()
+              .ruleId("BUSINESS_RULE_001")
+              .ruleName("Amount Limit Check")
+              .ruleType(RuleType.BUSINESS.getCode())
+              .failureReason("Payment amount is required but was null")
+              .failedAt(Instant.now())
+              .build());
+      return;
+    }
 
     double amount = event.getAmount().getAmount().doubleValue();
     double maxAmount = 100000.0; // TODO: Get from configuration
@@ -137,6 +151,19 @@ public class BusinessRuleEngine {
   private void executeCurrencyValidationRule(
       PaymentInitiatedEvent event, List<String> appliedRules, List<FailedRule> failedRules) {
     appliedRules.add("BUSINESS_RULE_004");
+
+    // Handle null amount case
+    if (event.getAmount() == null) {
+      failedRules.add(
+          FailedRule.builder()
+              .ruleId("BUSINESS_RULE_004")
+              .ruleName("Currency Validation")
+              .ruleType(RuleType.BUSINESS.getCode())
+              .failureReason("Payment amount is required but was null")
+              .failedAt(Instant.now())
+              .build());
+      return;
+    }
 
     String currency = event.getAmount().getCurrency().getCurrencyCode();
     if (currency == null || currency.trim().isEmpty()) {

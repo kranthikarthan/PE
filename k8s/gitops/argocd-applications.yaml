@@ -1,0 +1,667 @@
+# =============================================================================
+# ARGOCD APPLICATIONS FOR ALL SERVICES
+# =============================================================================
+# GitOps applications for automated deployments
+
+# =============================================================================
+# PAYMENTS ENGINE APPLICATIONS
+# =============================================================================
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: payment-initiation-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/payment-initiation-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: validation-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/validation-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: account-adapter-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/account-adapter-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: routing-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/routing-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: transaction-processing-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/transaction-processing-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: saga-orchestrator
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/saga-orchestrator
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+# =============================================================================
+# CLEARING ADAPTER APPLICATIONS
+# =============================================================================
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: samos-adapter-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/samos-adapter-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: bankservafrica-adapter-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/bankservafrica-adapter-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rtc-adapter-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/rtc-adapter-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: payshap-adapter-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/payshap-adapter-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: swift-adapter-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/swift-adapter-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+# =============================================================================
+# PLATFORM SERVICES APPLICATIONS
+# =============================================================================
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: iam-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/iam-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: notification-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/notification-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: audit-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/audit-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tenant-management-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/tenant-management-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+# =============================================================================
+# ADVANCED SERVICES APPLICATIONS
+# =============================================================================
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: settlement-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/settlement-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: reconciliation-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/reconciliation-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: batch-processing-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/batch-processing-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: analytics-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/analytics-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: web-bff-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/deployments/web-bff-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+# =============================================================================
+# INFRASTRUCTURE APPLICATIONS
+# =============================================================================
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-stack
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/monitoring
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: istio-service-mesh
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/istio
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: istio-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infrastructure-components
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/company/payments-engine
+    targetRevision: HEAD
+    path: k8s/infrastructure
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payments
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

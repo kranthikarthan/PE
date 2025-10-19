@@ -1,15 +1,94 @@
-# Circuit breaker policies for critical services
+# =============================================================================
+# PRODUCTION-READY ISTIO DESTINATION RULES
+# =============================================================================
+# Comprehensive circuit breaker and load balancing policies for all services
+
+# Payment Initiation Service
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
-  name: payment-service-circuit-breaker
+  name: payment-initiation-service
   namespace: payments
 spec:
-  host: payment-service
+  host: payment-initiation-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 200
+        connectTimeout: 10s
+      http:
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 200
+        maxRequestsPerConnection: 4
+        maxRetries: 3
+        consecutiveGatewayErrors: 5
+        interval: 30s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 50
+        minHealthPercent: 30
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+
+---
+# Validation Service
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: validation-service
+  namespace: payments
+spec:
+  host: validation-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 150
+        connectTimeout: 5s
+      http:
+        http1MaxPendingRequests: 75
+        http2MaxRequests: 150
+        maxRequestsPerConnection: 3
+        maxRetries: 2
+        consecutiveGatewayErrors: 3
+        interval: 20s
+        baseEjectionTime: 20s
+        maxEjectionPercent: 30
+        minHealthPercent: 50
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 20s
+      baseEjectionTime: 20s
+      maxEjectionPercent: 30
+      minHealthPercent: 50
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+# Account Adapter Service
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: account-adapter-service
+  namespace: payments
+spec:
+  host: account-adapter-service
   trafficPolicy:
     connectionPool:
       tcp:
         maxConnections: 100
+        connectTimeout: 8s
       http:
         http1MaxPendingRequests: 50
         http2MaxRequests: 100
@@ -18,98 +97,602 @@ spec:
         consecutiveGatewayErrors: 5
         interval: 30s
         baseEjectionTime: 30s
-        maxEjectionPercent: 50
-        minHealthPercent: 30
+        maxEjectionPercent: 40
+        minHealthPercent: 40
     outlierDetection:
       consecutiveErrors: 5
       interval: 30s
       baseEjectionTime: 30s
-      maxEjectionPercent: 50
-      minHealthPercent: 30
+      maxEjectionPercent: 40
+      minHealthPercent: 40
+  subsets:
+    - name: v1
+      labels:
+        version: v1
 
 ---
+# Routing Service
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
-  name: account-service-circuit-breaker
+  name: routing-service
   namespace: payments
 spec:
-  host: account-service
+  host: routing-service
   trafficPolicy:
     connectionPool:
       tcp:
         maxConnections: 200
+        connectTimeout: 5s
       http:
         http1MaxPendingRequests: 100
         http2MaxRequests: 200
-        maxRequestsPerConnection: 2
-        maxRetries: 3
-        consecutiveGatewayErrors: 5
-        interval: 30s
-        baseEjectionTime: 30s
-        maxEjectionPercent: 50
-        minHealthPercent: 30
+        maxRequestsPerConnection: 4
+        maxRetries: 2
+        consecutiveGatewayErrors: 3
+        interval: 15s
+        baseEjectionTime: 15s
+        maxEjectionPercent: 25
+        minHealthPercent: 60
     outlierDetection:
-      consecutiveErrors: 5
-      interval: 30s
-      baseEjectionTime: 30s
-      maxEjectionPercent: 50
-      minHealthPercent: 30
+      consecutiveErrors: 3
+      interval: 15s
+      baseEjectionTime: 15s
+      maxEjectionPercent: 25
+      minHealthPercent: 60
+  subsets:
+    - name: v1
+      labels:
+        version: v1
 
 ---
+# Transaction Processing Service
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
-  name: validation-service-circuit-breaker
+  name: transaction-processing-service
   namespace: payments
 spec:
-  host: validation-service
+  host: transaction-processing-service
   trafficPolicy:
     connectionPool:
       tcp:
-        maxConnections: 150
+        maxConnections: 50
+        connectTimeout: 15s
       http:
-        http1MaxPendingRequests: 75
-        http2MaxRequests: 150
+        http1MaxPendingRequests: 25
+        http2MaxRequests: 50
         maxRequestsPerConnection: 2
-        maxRetries: 3
-        consecutiveGatewayErrors: 5
-        interval: 30s
-        baseEjectionTime: 30s
-        maxEjectionPercent: 50
-        minHealthPercent: 30
+        maxRetries: 2
+        consecutiveGatewayErrors: 3
+        interval: 60s
+        baseEjectionTime: 60s
+        maxEjectionPercent: 20
+        minHealthPercent: 70
     outlierDetection:
-      consecutiveErrors: 5
-      interval: 30s
-      baseEjectionTime: 30s
-      maxEjectionPercent: 50
-      minHealthPercent: 30
+      consecutiveErrors: 3
+      interval: 60s
+      baseEjectionTime: 60s
+      maxEjectionPercent: 20
+      minHealthPercent: 70
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
 
 ---
+# Saga Orchestrator Service
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
-  name: saga-orchestrator-circuit-breaker
+  name: saga-orchestrator
   namespace: payments
 spec:
   host: saga-orchestrator
   trafficPolicy:
     connectionPool:
       tcp:
-        maxConnections: 50
+        maxConnections: 30
+        connectTimeout: 10s
       http:
-        http1MaxPendingRequests: 25
-        http2MaxRequests: 50
+        http1MaxPendingRequests: 15
+        http2MaxRequests: 30
+        maxRequestsPerConnection: 2
+        maxRetries: 2
+        consecutiveGatewayErrors: 3
+        interval: 45s
+        baseEjectionTime: 45s
+        maxEjectionPercent: 30
+        minHealthPercent: 60
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 45s
+      baseEjectionTime: 45s
+      maxEjectionPercent: 30
+      minHealthPercent: 60
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+# Clearing Adapter Services
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: samos-adapter-service
+  namespace: payments
+spec:
+  host: samos-adapter-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 10s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
         maxRequestsPerConnection: 2
         maxRetries: 3
         consecutiveGatewayErrors: 5
         interval: 30s
         baseEjectionTime: 30s
-        maxEjectionPercent: 50
-        minHealthPercent: 30
+        maxEjectionPercent: 40
+        minHealthPercent: 40
     outlierDetection:
       consecutiveErrors: 5
       interval: 30s
       baseEjectionTime: 30s
-      maxEjectionPercent: 50
-      minHealthPercent: 30
+      maxEjectionPercent: 40
+      minHealthPercent: 40
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: bankservafrica-adapter-service
+  namespace: payments
+spec:
+  host: bankservafrica-adapter-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 10s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+        maxRetries: 3
+        consecutiveGatewayErrors: 5
+        interval: 30s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 40
+        minHealthPercent: 40
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 40
+      minHealthPercent: 40
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: rtc-adapter-service
+  namespace: payments
+spec:
+  host: rtc-adapter-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 10s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+        maxRetries: 3
+        consecutiveGatewayErrors: 5
+        interval: 30s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 40
+        minHealthPercent: 40
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 40
+      minHealthPercent: 40
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: payshap-adapter-service
+  namespace: payments
+spec:
+  host: payshap-adapter-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 10s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+        maxRetries: 3
+        consecutiveGatewayErrors: 5
+        interval: 30s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 40
+        minHealthPercent: 40
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 40
+      minHealthPercent: 40
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: swift-adapter-service
+  namespace: payments
+spec:
+  host: swift-adapter-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 10s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+        maxRetries: 3
+        consecutiveGatewayErrors: 5
+        interval: 30s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 40
+        minHealthPercent: 40
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 40
+      minHealthPercent: 40
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+# Platform Services
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: iam-service
+  namespace: payments
+spec:
+  host: iam-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 200
+        connectTimeout: 5s
+      http:
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 200
+        maxRequestsPerConnection: 4
+        maxRetries: 2
+        consecutiveGatewayErrors: 3
+        interval: 15s
+        baseEjectionTime: 15s
+        maxEjectionPercent: 25
+        minHealthPercent: 60
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 15s
+      baseEjectionTime: 15s
+      maxEjectionPercent: 25
+      minHealthPercent: 60
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: notification-service
+  namespace: payments
+spec:
+  host: notification-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 150
+        connectTimeout: 8s
+      http:
+        http1MaxPendingRequests: 75
+        http2MaxRequests: 150
+        maxRequestsPerConnection: 3
+        maxRetries: 3
+        consecutiveGatewayErrors: 5
+        interval: 20s
+        baseEjectionTime: 20s
+        maxEjectionPercent: 30
+        minHealthPercent: 50
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 20s
+      baseEjectionTime: 20s
+      maxEjectionPercent: 30
+      minHealthPercent: 50
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: audit-service
+  namespace: payments
+spec:
+  host: audit-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 5s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+        maxRetries: 2
+        consecutiveGatewayErrors: 3
+        interval: 10s
+        baseEjectionTime: 10s
+        maxEjectionPercent: 20
+        minHealthPercent: 70
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 10s
+      baseEjectionTime: 10s
+      maxEjectionPercent: 20
+      minHealthPercent: 70
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: tenant-management-service
+  namespace: payments
+spec:
+  host: tenant-management-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 5s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+        maxRetries: 2
+        consecutiveGatewayErrors: 3
+        interval: 15s
+        baseEjectionTime: 15s
+        maxEjectionPercent: 25
+        minHealthPercent: 60
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 15s
+      baseEjectionTime: 15s
+      maxEjectionPercent: 25
+      minHealthPercent: 60
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+# Advanced Services
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: settlement-service
+  namespace: payments
+spec:
+  host: settlement-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 20
+        connectTimeout: 30s
+      http:
+        http1MaxPendingRequests: 10
+        http2MaxRequests: 20
+        maxRequestsPerConnection: 1
+        maxRetries: 1
+        consecutiveGatewayErrors: 2
+        interval: 120s
+        baseEjectionTime: 120s
+        maxEjectionPercent: 10
+        minHealthPercent: 80
+    outlierDetection:
+      consecutiveErrors: 2
+      interval: 120s
+      baseEjectionTime: 120s
+      maxEjectionPercent: 10
+      minHealthPercent: 80
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: reconciliation-service
+  namespace: payments
+spec:
+  host: reconciliation-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 30
+        connectTimeout: 20s
+      http:
+        http1MaxPendingRequests: 15
+        http2MaxRequests: 30
+        maxRequestsPerConnection: 2
+        maxRetries: 1
+        consecutiveGatewayErrors: 2
+        interval: 90s
+        baseEjectionTime: 90s
+        maxEjectionPercent: 15
+        minHealthPercent: 75
+    outlierDetection:
+      consecutiveErrors: 2
+      interval: 90s
+      baseEjectionTime: 90s
+      maxEjectionPercent: 15
+      minHealthPercent: 75
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: batch-processing-service
+  namespace: payments
+spec:
+  host: batch-processing-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 10
+        connectTimeout: 60s
+      http:
+        http1MaxPendingRequests: 5
+        http2MaxRequests: 10
+        maxRequestsPerConnection: 1
+        maxRetries: 0
+        consecutiveGatewayErrors: 1
+        interval: 300s
+        baseEjectionTime: 300s
+        maxEjectionPercent: 5
+        minHealthPercent: 90
+    outlierDetection:
+      consecutiveErrors: 1
+      interval: 300s
+      baseEjectionTime: 300s
+      maxEjectionPercent: 5
+      minHealthPercent: 90
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: analytics-service
+  namespace: payments
+spec:
+  host: analytics-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 10s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+        maxRetries: 2
+        consecutiveGatewayErrors: 3
+        interval: 30s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 30
+        minHealthPercent: 50
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 30
+      minHealthPercent: 50
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: web-bff-service
+  namespace: payments
+spec:
+  host: web-bff-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 200
+        connectTimeout: 8s
+      http:
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 200
+        maxRequestsPerConnection: 4
+        maxRetries: 3
+        consecutiveGatewayErrors: 5
+        interval: 20s
+        baseEjectionTime: 20s
+        maxEjectionPercent: 30
+        minHealthPercent: 50
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 20s
+      baseEjectionTime: 20s
+      maxEjectionPercent: 30
+      minHealthPercent: 50
+  subsets:
+    - name: v1
+      labels:
+        version: v1

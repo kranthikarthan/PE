@@ -3,19 +3,15 @@ package com.payments.samosadapter.client;
 import feign.Client;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Date;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -122,9 +118,7 @@ public class SamosMtlsConfig {
           keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
       log.info(
-          "SAMOS mTLS configured successfully. Protocol: {}, Key Alias: {}",
-          tlsProtocol,
-          keyAlias);
+          "SAMOS mTLS configured successfully. Protocol: {}, Key Alias: {}", tlsProtocol, keyAlias);
 
       // Create Feign Client with custom SSL Context
       return new Client.Default(sslContext.getSocketFactory(), null);
@@ -253,4 +247,3 @@ public class SamosMtlsConfig {
     }
   }
 }
-

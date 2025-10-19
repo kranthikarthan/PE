@@ -1,0 +1,1079 @@
+# =============================================================================
+# 14 CUSTOM KUBERNETES OPERATORS
+# =============================================================================
+# Automated resource management for all services
+
+# =============================================================================
+# PAYMENT OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: payments.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                serviceName:
+                  type: string
+                replicas:
+                  type: integer
+                resources:
+                  type: object
+                environment:
+                  type: string
+                features:
+                  type: array
+                  items:
+                    type: string
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+                lastUpdated:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: payments
+    singular: payment
+    kind: Payment
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-operator
+  namespace: operators
+  labels:
+    app: payment-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment-operator
+  template:
+    metadata:
+      labels:
+        app: payment-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: payment-operator
+          image: payments-engine/payment-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments"
+            - name: OPERATOR_NAME
+              value: "payment-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# =============================================================================
+# TENANT OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: tenants.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                tenantId:
+                  type: string
+                tenantName:
+                  type: string
+                configuration:
+                  type: object
+                resources:
+                  type: object
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: tenants
+    singular: tenant
+    kind: Tenant
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tenant-operator
+  namespace: operators
+  labels:
+    app: tenant-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tenant-operator
+  template:
+    metadata:
+      labels:
+        app: tenant-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: tenant-operator
+          image: payments-engine/tenant-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments"
+            - name: OPERATOR_NAME
+              value: "tenant-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# =============================================================================
+# CLEARING OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: clearings.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                clearingSystem:
+                  type: string
+                connectionConfig:
+                  type: object
+                healthCheck:
+                  type: object
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: clearings
+    singular: clearing
+    kind: Clearing
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clearing-operator
+  namespace: operators
+  labels:
+    app: clearing-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clearing-operator
+  template:
+    metadata:
+      labels:
+        app: clearing-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: clearing-operator
+          image: payments-engine/clearing-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments"
+            - name: OPERATOR_NAME
+              value: "clearing-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# =============================================================================
+# AUDIT OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: audits.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                auditLevel:
+                  type: string
+                retentionPolicy:
+                  type: object
+                exportConfig:
+                  type: object
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: audits
+    singular: audit
+    kind: Audit
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit-operator
+  namespace: operators
+  labels:
+    app: audit-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: audit-operator
+  template:
+    metadata:
+      labels:
+        app: audit-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: audit-operator
+          image: payments-engine/audit-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments"
+            - name: OPERATOR_NAME
+              value: "audit-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# =============================================================================
+# NOTIFICATION OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: notifications.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                channel:
+                  type: string
+                template:
+                  type: string
+                deliveryConfig:
+                  type: object
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: notifications
+    singular: notification
+    kind: Notification
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-operator
+  namespace: operators
+  labels:
+    app: notification-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-operator
+  template:
+    metadata:
+      labels:
+        app: notification-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: notification-operator
+          image: payments-engine/notification-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments"
+            - name: OPERATOR_NAME
+              value: "notification-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# =============================================================================
+# SETTLEMENT OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: settlements.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                settlementType:
+                  type: string
+                batchSize:
+                  type: integer
+                schedule:
+                  type: string
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: settlements
+    singular: settlement
+    kind: Settlement
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: settlement-operator
+  namespace: operators
+  labels:
+    app: settlement-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: settlement-operator
+  template:
+    metadata:
+      labels:
+        app: settlement-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: settlement-operator
+          image: payments-engine/settlement-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments"
+            - name: OPERATOR_NAME
+              value: "settlement-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# =============================================================================
+# RECONCILIATION OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: reconciliations.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                reconciliationType:
+                  type: string
+                tolerance:
+                  type: number
+                schedule:
+                  type: string
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: reconciliations
+    singular: reconciliation
+    kind: Reconciliation
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reconciliation-operator
+  namespace: operators
+  labels:
+    app: reconciliation-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reconciliation-operator
+  template:
+    metadata:
+      labels:
+        app: reconciliation-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: reconciliation-operator
+          image: payments-engine/reconciliation-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments"
+            - name: OPERATOR_NAME
+              value: "reconciliation-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# =============================================================================
+# BATCH OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: batches.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                batchType:
+                  type: string
+                size:
+                  type: integer
+                schedule:
+                  type: string
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: batches
+    singular: batch
+    kind: Batch
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: batch-operator
+  namespace: operators
+  labels:
+    app: batch-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: batch-operator
+  template:
+    metadata:
+      labels:
+        app: batch-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: batch-operator
+          image: payments-engine/batch-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments"
+            - name: OPERATOR_NAME
+              value: "batch-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# =============================================================================
+# ROUTING OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: routings.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                routingRules:
+                  type: array
+                  items:
+                    type: object
+                loadBalancing:
+                  type: string
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: routings
+    singular: routing
+    kind: Routing
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: routing-operator
+  namespace: operators
+  labels:
+    app: routing-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: routing-operator
+  template:
+    metadata:
+      labels:
+        app: routing-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: routing-operator
+          image: payments-engine/routing-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments"
+            - name: OPERATOR_NAME
+              value: "routing-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# =============================================================================
+# VALIDATION OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: validations.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                validationRules:
+                  type: array
+                  items:
+                    type: object
+                strictMode:
+                  type: boolean
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: validations
+    singular: validation
+    kind: Validation
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: validation-operator
+  namespace: operators
+  labels:
+    app: validation-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: validation-operator
+  template:
+    metadata:
+      labels:
+        app: validation-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: validation-operator
+          image: payments-engine/validation-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments"
+            - name: OPERATOR_NAME
+              value: "validation-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# =============================================================================
+# ACCOUNT OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: accounts.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                accountType:
+                  type: string
+                connectionConfig:
+                  type: object
+                healthCheck:
+                  type: object
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: accounts
+    singular: account
+    kind: Account
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-operator
+  namespace: operators
+  labels:
+    app: account-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-operator
+  template:
+    metadata:
+      labels:
+        app: account-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: account-operator
+          image: payments-engine/account-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments"
+            - name: OPERATOR_NAME
+              value: "account-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# =============================================================================
+# SAGA OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sagas.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                sagaType:
+                  type: string
+                steps:
+                  type: array
+                  items:
+                    type: object
+                compensation:
+                  type: object
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: sagas
+    singular: saga
+    kind: Saga
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saga-operator
+  namespace: operators
+  labels:
+    app: saga-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: saga-operator
+  template:
+    metadata:
+      labels:
+        app: saga-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: saga-operator
+          image: payments-engine/saga-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments"
+            - name: OPERATOR_NAME
+              value: "saga-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# =============================================================================
+# TRANSACTION OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: transactions.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                transactionType:
+                  type: string
+                processingConfig:
+                  type: object
+                retryPolicy:
+                  type: object
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: transactions
+    singular: transaction
+    kind: Transaction
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transaction-operator
+  namespace: operators
+  labels:
+    app: transaction-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transaction-operator
+  template:
+    metadata:
+      labels:
+        app: transaction-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: transaction-operator
+          image: payments-engine/transaction-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments"
+            - name: OPERATOR_NAME
+              value: "transaction-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# =============================================================================
+# INFRASTRUCTURE OPERATOR
+# =============================================================================
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: infrastructures.payments.engine.io
+spec:
+  group: payments.engine.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                infrastructureType:
+                  type: string
+                configuration:
+                  type: object
+                monitoring:
+                  type: object
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+  scope: Namespaced
+  names:
+    plural: infrastructures
+    singular: infrastructure
+    kind: Infrastructure
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: infrastructure-operator
+  namespace: operators
+  labels:
+    app: infrastructure-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: infrastructure-operator
+  template:
+    metadata:
+      labels:
+        app: infrastructure-operator
+    spec:
+      serviceAccountName: payments-engine-operator
+      containers:
+        - name: infrastructure-operator
+          image: payments-engine/infrastructure-operator:v1.0.0
+          env:
+            - name: WATCH_NAMESPACE
+              value: "payments,monitoring,feature-flags"
+            - name: OPERATOR_NAME
+              value: "infrastructure-operator"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"

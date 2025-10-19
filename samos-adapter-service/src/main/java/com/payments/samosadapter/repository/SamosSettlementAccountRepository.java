@@ -164,4 +164,3 @@ public interface SamosSettlementAccountRepository
   boolean existsByTenantIdAndBankCode(
       @Param("tenantId") String tenantId, @Param("bankCode") String bankCode);
 }
-

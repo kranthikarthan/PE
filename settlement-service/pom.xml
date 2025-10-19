@@ -23,6 +23,12 @@
             <artifactId>shared</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- Settlement Domain Models -->
+        <dependency>
+            <groupId>com.payments</groupId>
+            <artifactId>settlement</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Contracts -->
         <dependency>
             <groupId>com.payments</groupId>

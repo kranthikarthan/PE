@@ -1,0 +1,688 @@
+# =============================================================================
+# DETAILED GRAFANA DASHBOARDS FOR ALL STAKEHOLDERS
+# =============================================================================
+# Specialized dashboards for different user roles and use cases
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-detailed
+  namespace: monitoring
+data:
+  # =============================================================================
+  # EXECUTIVE DASHBOARD
+  # =============================================================================
+  
+  executive-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Executive Overview",
+        "tags": ["executive", "overview"],
+        "style": "dark",
+        "refresh": "30s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "System Health Score",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "avg(up) * 100",
+                "legendFormat": "Health Score %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 80},
+                    {"color": "green", "value": 95}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "id": 2,
+            "title": "Payment Volume (24h)",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(payment_volume_total[1h]) * 3600",
+                "legendFormat": "Payments/hour"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Revenue (24h)",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(revenue_total[1h]) * 3600",
+                "legendFormat": "Revenue/hour"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Success Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(payment_success_total[5m]) / rate(payment_total[5m]) * 100",
+                "legendFormat": "Success Rate %"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  # =============================================================================
+  # OPERATIONS TEAM DASHBOARDS
+  # =============================================================================
+  
+  ops-infrastructure.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Operations Infrastructure",
+        "tags": ["ops", "infrastructure"],
+        "style": "dark",
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Node Status",
+            "type": "table",
+            "targets": [
+              {
+                "expr": "kube_node_status_condition{condition=\"Ready\"}",
+                "legendFormat": "{{node}}"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Pod Status by Namespace",
+            "type": "bargauge",
+            "targets": [
+              {
+                "expr": "count by (namespace, phase) (kube_pod_status_phase)",
+                "legendFormat": "{{namespace}} - {{phase}}"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Resource Usage",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+                "legendFormat": "CPU {{instance}}"
+              },
+              {
+                "expr": "100 - ((node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100)",
+                "legendFormat": "Memory {{instance}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Disk Usage",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "100 - ((node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100)",
+                "legendFormat": "{{instance}} - {{mountpoint}}"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  ops-alerts.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Operations Alerts",
+        "tags": ["ops", "alerts"],
+        "style": "dark",
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Active Alerts",
+            "type": "table",
+            "targets": [
+              {
+                "expr": "ALERTS{alertstate=\"firing\"}",
+                "legendFormat": "{{alertname}}"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Alert Count by Severity",
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "count by (severity) (ALERTS{alertstate=\"firing\"})",
+                "legendFormat": "{{severity}}"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Alert Trends",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(ALERTS{alertstate=\"firing\"}[5m])",
+                "legendFormat": "{{alertname}}"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  # =============================================================================
+  # DEVELOPMENT TEAM DASHBOARDS
+  # =============================================================================
+  
+  dev-application.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Development Application Metrics",
+        "tags": ["dev", "application"],
+        "style": "dark",
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Service Response Times",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))",
+                "legendFormat": "{{job}} - 50th percentile"
+              },
+              {
+                "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+                "legendFormat": "{{job}} - 95th percentile"
+              },
+              {
+                "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))",
+                "legendFormat": "{{job}} - 99th percentile"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Error Rates by Service",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m]) * 100",
+                "legendFormat": "{{job}}"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "JVM Metrics",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "jvm_memory_used_bytes{area=\"heap\"} / jvm_memory_max_bytes{area=\"heap\"} * 100",
+                "legendFormat": "{{job}} - Heap Usage %"
+              },
+              {
+                "expr": "rate(jvm_gc_pause_seconds_total[5m])",
+                "legendFormat": "{{job}} - GC Pause Time"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Database Connections",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "hikaricp_connections_active",
+                "legendFormat": "{{job}} - Active Connections"
+              },
+              {
+                "expr": "hikaricp_connections_idle",
+                "legendFormat": "{{job}} - Idle Connections"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  dev-performance.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Development Performance",
+        "tags": ["dev", "performance"],
+        "style": "dark",
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Request Rate",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total[5m])",
+                "legendFormat": "{{job}}"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Throughput",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(payment_processing_total[5m])",
+                "legendFormat": "{{job}} - Payments/sec"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Thread Pool Usage",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "jvm_threads_states_threads",
+                "legendFormat": "{{job}} - {{state}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Cache Hit Rate",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(cache_hits_total[5m]) / rate(cache_requests_total[5m]) * 100",
+                "legendFormat": "{{job}} - Hit Rate %"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  # =============================================================================
+  # BUSINESS TEAM DASHBOARDS
+  # =============================================================================
+  
+  business-revenue.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Business Revenue",
+        "tags": ["business", "revenue"],
+        "style": "dark",
+        "refresh": "30s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Daily Revenue",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "increase(revenue_total[1d])",
+                "legendFormat": "Daily Revenue"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Revenue by Payment Method",
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "sum by (payment_method) (revenue_total)",
+                "legendFormat": "{{payment_method}}"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Revenue Growth",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(revenue_total[1h]) * 3600",
+                "legendFormat": "Hourly Revenue"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Average Transaction Value",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "avg(payment_amount)",
+                "legendFormat": "Avg Transaction Value"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  business-customer.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Business Customer Metrics",
+        "tags": ["business", "customer"],
+        "style": "dark",
+        "refresh": "30s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Active Customers",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "count(customer_sessions_active)",
+                "legendFormat": "Active Customers"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Customer Satisfaction",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(customer_satisfaction_score[5m])",
+                "legendFormat": "Satisfaction Score"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Customer Support Tickets",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(support_tickets_total[5m])",
+                "legendFormat": "Tickets/sec"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Customer Retention",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(customer_retention_total[1d])",
+                "legendFormat": "Retention Rate %"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  # =============================================================================
+  # SECURITY TEAM DASHBOARDS
+  # =============================================================================
+  
+  security-threats.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Security Threats",
+        "tags": ["security", "threats"],
+        "style": "dark",
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Threat Detection",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(threat_detection_total[5m])",
+                "legendFormat": "{{threat_type}}"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Failed Login Attempts",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(authentication_failures_total[5m])",
+                "legendFormat": "Failed Logins/sec"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Suspicious IPs",
+            "type": "table",
+            "targets": [
+              {
+                "expr": "topk(10, rate(suspicious_activity_total[5m]))",
+                "legendFormat": "{{source_ip}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Security Score",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "security_score",
+                "legendFormat": "Security Score"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  security-compliance.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Security Compliance",
+        "tags": ["security", "compliance"],
+        "style": "dark",
+        "refresh": "30s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Compliance Score",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "compliance_score",
+                "legendFormat": "Compliance Score %"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Audit Events",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(audit_events_total[5m])",
+                "legendFormat": "{{event_type}}"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Data Access Patterns",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(data_access_total[5m])",
+                "legendFormat": "{{access_type}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Encryption Status",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "encryption_enabled",
+                "legendFormat": "Encryption Enabled"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  # =============================================================================
+  # FINANCE TEAM DASHBOARDS
+  # =============================================================================
+  
+  finance-reconciliation.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Finance Reconciliation",
+        "tags": ["finance", "reconciliation"],
+        "style": "dark",
+        "refresh": "30s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Reconciliation Status",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "reconciliation_success_rate",
+                "legendFormat": "Success Rate %"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Reconciliation Errors",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(reconciliation_errors_total[5m])",
+                "legendFormat": "Errors/sec"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Settlement Status",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(settlement_completed_total[5m])",
+                "legendFormat": "Settlements/sec"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Financial Discrepancies",
+            "type": "table",
+            "targets": [
+              {
+                "expr": "financial_discrepancies_total",
+                "legendFormat": "{{discrepancy_type}}"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  
+  # =============================================================================
+  # PRODUCT TEAM DASHBOARDS
+  # =============================================================================
+  
+  product-usage.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Product Usage",
+        "tags": ["product", "usage"],
+        "style": "dark",
+        "refresh": "30s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Feature Usage",
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "sum by (feature) (feature_usage_total)",
+                "legendFormat": "{{feature}}"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "User Engagement",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(user_engagement_total[5m])",
+                "legendFormat": "Engagement/sec"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "API Usage by Endpoint",
+            "type": "bargauge",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total[5m])",
+                "legendFormat": "{{endpoint}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Mobile vs Web Usage",
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "sum by (client_type) (client_usage_total)",
+                "legendFormat": "{{client_type}}"
+              }
+            ]
+          }
+        ]
+      }
+    }

@@ -1,0 +1,187 @@
+# =============================================================================
+# UNLEASH SDK CONFIGURATION FOR SPRING BOOT SERVICES
+# =============================================================================
+# Feature flag integration for all services
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unleash-sdk-config
+  namespace: payments
+data:
+  application.properties: |
+    # Unleash Feature Flags Configuration
+    unleash.api.url=http://unleash-server.feature-flags.svc.cluster.local:4242/api
+    unleash.api.token=admin:development:unleash-insecure-api-token
+    unleash.app.name=payments-engine
+    unleash.environment=production
+    unleash.sdk.name=unleash-java-client
+    unleash.sdk.version=5.0.0
+    
+    # Feature Flag Settings
+    unleash.feature-flags.enabled=true
+    unleash.feature-flags.cache-ttl=300
+    unleash.feature-flags.refresh-interval=15
+    unleash.feature-flags.metrics-enabled=true
+    unleash.feature-flags.impression-data-enabled=true
+    
+    # Custom Feature Flags
+    unleash.feature-flags.payment-processing-v2.enabled=false
+    unleash.feature-flags.real-time-validation.enabled=true
+    unleash.feature-flags.advanced-analytics.enabled=false
+    unleash.feature-flags.settlement-optimization.enabled=true
+    unleash.feature-flags.notification-channels.enabled=true
+    unleash.feature-flags.security-enhancements.enabled=true
+    unleash.feature-flags.performance-monitoring.enabled=false
+    unleash.feature-flags.api-rate-limiting.enabled=true
+    unleash.feature-flags.data-encryption.enabled=true
+    unleash.feature-flags.audit-logging.enabled=true
+
+---
+# =============================================================================
+# UNLEASH FEATURE FLAG DASHBOARD
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unleash-dashboard
+  namespace: monitoring
+data:
+  unleash-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Feature Flags Dashboard",
+        "tags": ["feature-flags", "unleash"],
+        "style": "dark",
+        "refresh": "30s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Feature Flag Status",
+            "type": "table",
+            "targets": [
+              {
+                "expr": "unleash_feature_flag_status",
+                "legendFormat": "{{feature_name}}"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Feature Flag Usage",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(unleash_feature_flag_evaluations_total[5m])",
+                "legendFormat": "{{feature_name}}"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Feature Flag Performance",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(unleash_feature_flag_evaluation_duration_seconds_bucket[5m]))",
+                "legendFormat": "95th percentile"
+              },
+              {
+                "expr": "histogram_quantile(0.50, rate(unleash_feature_flag_evaluation_duration_seconds_bucket[5m]))",
+                "legendFormat": "50th percentile"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Feature Flag Errors",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(unleash_feature_flag_errors_total[5m])",
+                "legendFormat": "{{feature_name}}"
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+---
+# =============================================================================
+# UNLEASH METRICS EXPORTER
+# =============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unleash-metrics-exporter
+  namespace: feature-flags
+  labels:
+    app: unleash-metrics-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unleash-metrics-exporter
+  template:
+    metadata:
+      labels:
+        app: unleash-metrics-exporter
+    spec:
+      containers:
+        - name: unleash-metrics-exporter
+          image: unleashorg/unleash-metrics-exporter:1.0.0
+          ports:
+            - containerPort: 8080
+              name: metrics
+          env:
+            - name: UNLEASH_API_URL
+              value: "http://unleash-server.feature-flags.svc.cluster.local:4242/api"
+            - name: UNLEASH_API_TOKEN
+              value: "admin:development:unleash-insecure-api-token"
+            - name: METRICS_PORT
+              value: "8080"
+            - name: METRICS_PATH
+              value: "/metrics"
+            - name: SCRAPE_INTERVAL
+              value: "30s"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unleash-metrics-exporter
+  namespace: feature-flags
+  labels:
+    app: unleash-metrics-exporter
+spec:
+  selector:
+    app: unleash-metrics-exporter
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP

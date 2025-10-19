@@ -51,8 +51,7 @@ class SamosCertificateInfoTest {
     // When/Then
     assertThat(certInfo.isExpired()).isTrue();
     assertThat(certInfo.isValid()).isFalse();
-    assertThat(certInfo.getStatus())
-        .isEqualTo(SamosCertificateInfo.CertificateStatus.EXPIRED);
+    assertThat(certInfo.getStatus()).isEqualTo(SamosCertificateInfo.CertificateStatus.EXPIRED);
   }
 
   @Test
@@ -97,8 +96,7 @@ class SamosCertificateInfoTest {
     assertThat(certInfo.isValid()).isTrue();
     assertThat(certInfo.isExpired()).isFalse();
     assertThat(certInfo.isExpiringSoon(90)).isFalse();
-    assertThat(certInfo.getStatus())
-        .isEqualTo(SamosCertificateInfo.CertificateStatus.VALID);
+    assertThat(certInfo.getStatus()).isEqualTo(SamosCertificateInfo.CertificateStatus.VALID);
   }
 
   @Test
@@ -119,8 +117,7 @@ class SamosCertificateInfoTest {
     // When/Then
     assertThat(certInfo.isExpiringSoon(90)).isTrue();
     assertThat(certInfo.isValid()).isTrue();
-    assertThat(certInfo.getStatus())
-        .isEqualTo(SamosCertificateInfo.CertificateStatus.EXPIRING);
+    assertThat(certInfo.getStatus()).isEqualTo(SamosCertificateInfo.CertificateStatus.EXPIRING);
   }
 
   @Test
@@ -157,8 +154,7 @@ class SamosCertificateInfoTest {
 
     // Then
     assertThat(certInfo.getAlias()).isEqualTo("missing-cert");
-    assertThat(certInfo.getStatus())
-        .isEqualTo(SamosCertificateInfo.CertificateStatus.NOT_FOUND);
+    assertThat(certInfo.getStatus()).isEqualTo(SamosCertificateInfo.CertificateStatus.NOT_FOUND);
     assertThat(certInfo.getErrorMessage()).contains("not found");
   }
 
@@ -179,8 +175,7 @@ class SamosCertificateInfoTest {
   @DisplayName("Should handle null dates gracefully")
   void shouldHandleNullDatesGracefully() {
     // Given - Certificate with null dates
-    SamosCertificateInfo certInfo =
-        SamosCertificateInfo.builder().alias("test-cert").build();
+    SamosCertificateInfo certInfo = SamosCertificateInfo.builder().alias("test-cert").build();
 
     // When/Then - Should not throw exceptions
     assertThat(certInfo.getDaysUntilExpiry()).isEqualTo(-1);
@@ -262,4 +257,3 @@ class SamosCertificateInfoTest {
     assertThat(certInfo.isValid()).isTrue();
   }
 }
-

@@ -1,6 +1,8 @@
 package com.payments.tenant.repository;
 
 import com.payments.tenant.entity.TenantEntity;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,9 +10,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Tenant Repository - Provides database access for tenant entities.
@@ -26,9 +25,8 @@ public interface TenantRepository extends JpaRepository<TenantEntity, String> {
   /**
    * Find tenant by ID with Redis caching.
    *
-   * <p>Cache Key: `tenant:{tenantId}`  
-   * Cache TTL: 10 minutes  
-   * Performance: O(1) with cache hit, O(log N) on cache miss
+   * <p>Cache Key: `tenant:{tenantId}` Cache TTL: 10 minutes Performance: O(1) with cache hit, O(log
+   * N) on cache miss
    *
    * @param tenantId Tenant identifier
    * @return Tenant if found
@@ -162,9 +160,6 @@ public interface TenantRepository extends JpaRepository<TenantEntity, String> {
    * @param limit Maximum number to return
    * @return List of recently created tenants
    */
-  @Query(
-      value =
-          "SELECT * FROM tenants ORDER BY created_at DESC LIMIT :limit",
-      nativeQuery = true)
+  @Query(value = "SELECT * FROM tenants ORDER BY created_at DESC LIMIT :limit", nativeQuery = true)
   List<TenantEntity> findRecentlyCreated(@Param("limit") int limit);
 }

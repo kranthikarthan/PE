@@ -2,9 +2,9 @@ package com.payments.bankservafricaadapter.controller;
 
 import com.payments.bankservafricaadapter.domain.BankservAfricaAdapter;
 import com.payments.bankservafricaadapter.service.BankservAfricaAdapterService;
-import com.payments.domain.valueobjects.ClearingNetwork;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.TenantContext;
+import com.payments.domain.valueobjects.ClearingNetwork;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

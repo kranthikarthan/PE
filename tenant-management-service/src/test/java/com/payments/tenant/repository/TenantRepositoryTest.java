@@ -1,6 +1,9 @@
 package com.payments.tenant.repository;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.payments.tenant.entity.TenantEntity;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,18 +14,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * Repository tests for TenantRepository.
  *
- * <p>Coverage:
- * - Query methods (findById, findByName, findByEmail, etc.)
- * - Pagination
- * - Filtering by status and type
- * - Caching behavior
+ * <p>Coverage: - Query methods (findById, findByName, findByEmail, etc.) - Pagination - Filtering
+ * by status and type - Caching behavior
  */
 @DataJpaTest
 @ActiveProfiles("test")
@@ -37,29 +33,31 @@ class TenantRepositoryTest {
   @BeforeEach
   void setUp() {
     // Create test tenants
-    testTenant1 = TenantEntity.builder()
-        .tenantId("STD-001")
-        .tenantName("Standard Bank")
-        .status(TenantEntity.TenantStatus.ACTIVE)
-        .tenantType(TenantEntity.TenantType.BANK)
-        .contactEmail("stdbank@example.com")
-        .country("ZAF")
-        .timezone("Africa/Johannesburg")
-        .registrationNumber("REG-001")
-        .taxNumber("TAX-001")
-        .build();
+    testTenant1 =
+        TenantEntity.builder()
+            .tenantId("STD-001")
+            .tenantName("Standard Bank")
+            .status(TenantEntity.TenantStatus.ACTIVE)
+            .tenantType(TenantEntity.TenantType.BANK)
+            .contactEmail("stdbank@example.com")
+            .country("ZAF")
+            .timezone("Africa/Johannesburg")
+            .registrationNumber("REG-001")
+            .taxNumber("TAX-001")
+            .build();
 
-    testTenant2 = TenantEntity.builder()
-        .tenantId("FIN-002")
-        .tenantName("Finance Fintech")
-        .status(TenantEntity.TenantStatus.SUSPENDED)
-        .tenantType(TenantEntity.TenantType.FINTECH)
-        .contactEmail("finance@example.com")
-        .country("ZAF")
-        .timezone("Africa/Johannesburg")
-        .registrationNumber("REG-002")
-        .taxNumber("TAX-002")
-        .build();
+    testTenant2 =
+        TenantEntity.builder()
+            .tenantId("FIN-002")
+            .tenantName("Finance Fintech")
+            .status(TenantEntity.TenantStatus.SUSPENDED)
+            .tenantType(TenantEntity.TenantType.FINTECH)
+            .contactEmail("finance@example.com")
+            .country("ZAF")
+            .timezone("Africa/Johannesburg")
+            .registrationNumber("REG-002")
+            .taxNumber("TAX-002")
+            .build();
 
     // Save test data
     tenantRepository.save(testTenant1);
@@ -117,8 +115,8 @@ class TenantRepositoryTest {
     Pageable pageable = PageRequest.of(0, 10);
 
     // Act
-    Page<TenantEntity> result = tenantRepository.findByStatus(
-        TenantEntity.TenantStatus.ACTIVE, pageable);
+    Page<TenantEntity> result =
+        tenantRepository.findByStatus(TenantEntity.TenantStatus.ACTIVE, pageable);
 
     // Assert
     assertEquals(1, result.getTotalElements());
@@ -132,13 +130,12 @@ class TenantRepositoryTest {
     Pageable pageable = PageRequest.of(0, 10);
 
     // Act
-    Page<TenantEntity> result = tenantRepository.findByTenantType(
-        TenantEntity.TenantType.BANK, pageable);
+    Page<TenantEntity> result =
+        tenantRepository.findByTenantType(TenantEntity.TenantType.BANK, pageable);
 
     // Assert
     assertTrue(result.getTotalElements() >= 1);
-    assertTrue(result.getContent().stream()
-        .anyMatch(t -> t.getTenantId().equals("STD-001")));
+    assertTrue(result.getContent().stream().anyMatch(t -> t.getTenantId().equals("STD-001")));
   }
 
   @Test
@@ -152,8 +149,9 @@ class TenantRepositoryTest {
 
     // Assert
     assertTrue(result.getTotalElements() >= 1);
-    assertTrue(result.getContent().stream()
-        .allMatch(t -> t.getStatus() == TenantEntity.TenantStatus.ACTIVE));
+    assertTrue(
+        result.getContent().stream()
+            .allMatch(t -> t.getStatus() == TenantEntity.TenantStatus.ACTIVE));
   }
 
   @Test
@@ -170,14 +168,15 @@ class TenantRepositoryTest {
   @DisplayName("Find tenants pending approval")
   void testFindPendingApproval() {
     // Arrange
-    TenantEntity pendingTenant = TenantEntity.builder()
-        .tenantId("PND-003")
-        .tenantName("Pending Tenant")
-        .status(TenantEntity.TenantStatus.PENDING_APPROVAL)
-        .tenantType(TenantEntity.TenantType.CORPORATE)
-        .contactEmail("pending@example.com")
-        .country("ZAF")
-        .build();
+    TenantEntity pendingTenant =
+        TenantEntity.builder()
+            .tenantId("PND-003")
+            .tenantName("Pending Tenant")
+            .status(TenantEntity.TenantStatus.PENDING_APPROVAL)
+            .tenantType(TenantEntity.TenantType.CORPORATE)
+            .contactEmail("pending@example.com")
+            .country("ZAF")
+            .build();
     tenantRepository.save(pendingTenant);
 
     Pageable pageable = PageRequest.of(0, 10);
@@ -187,8 +186,9 @@ class TenantRepositoryTest {
 
     // Assert
     assertTrue(result.getTotalElements() >= 1);
-    assertTrue(result.getContent().stream()
-        .allMatch(t -> t.getStatus() == TenantEntity.TenantStatus.PENDING_APPROVAL));
+    assertTrue(
+        result.getContent().stream()
+            .allMatch(t -> t.getStatus() == TenantEntity.TenantStatus.PENDING_APPROVAL));
   }
 
   @Test
@@ -235,8 +235,9 @@ class TenantRepositoryTest {
 
     // Assert
     assertTrue(result.getTotalElements() >= 1);
-    assertTrue(result.getContent().stream()
-        .allMatch(t -> t.getStatus() == TenantEntity.TenantStatus.SUSPENDED));
+    assertTrue(
+        result.getContent().stream()
+            .allMatch(t -> t.getStatus() == TenantEntity.TenantStatus.SUSPENDED));
   }
 
   @Test
@@ -247,7 +248,8 @@ class TenantRepositoryTest {
 
     // Assert
     assertTrue(result.size() >= 1);
-    assertTrue(result.get(0).getTenantId().equals("FIN-002") || 
-               result.get(0).getTenantId().equals("STD-001"));
+    assertTrue(
+        result.get(0).getTenantId().equals("FIN-002")
+            || result.get(0).getTenantId().equals("STD-001"));
   }
 }

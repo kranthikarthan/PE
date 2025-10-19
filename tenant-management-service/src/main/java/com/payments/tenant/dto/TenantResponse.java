@@ -2,25 +2,20 @@ package com.payments.tenant.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.payments.tenant.entity.TenantEntity;
+import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.OffsetDateTime;
 
 /**
  * Tenant Response DTO.
  *
  * <p>Used for GET endpoints. Contains all readable tenant information including audit fields.
  *
- * <p>Fields:
- * - tenantId: Auto-generated identifier
- * - tenantName: Tenant name
- * - tenantType: Type (BANK, FINTECH, etc.)
- * - status: Current status (ACTIVE, SUSPENDED, INACTIVE)
- * - contactEmail: Contact email (never null)
- * - Audit fields: createdAt, updatedAt, createdBy, updatedBy
+ * <p>Fields: - tenantId: Auto-generated identifier - tenantName: Tenant name - tenantType: Type
+ * (BANK, FINTECH, etc.) - status: Current status (ACTIVE, SUSPENDED, INACTIVE) - contactEmail:
+ * Contact email (never null) - Audit fields: createdAt, updatedAt, createdBy, updatedBy
  */
 @Data
 @NoArgsConstructor

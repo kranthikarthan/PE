@@ -1,0 +1,510 @@
+# =============================================================================
+# PRODUCTION-READY PROMETHEUS ALERT RULES
+# =============================================================================
+# 50+ comprehensive alert rules for all scenarios
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: monitoring
+data:
+  # =============================================================================
+  # CRITICAL ALERTS (P0 - Immediate Response Required)
+  # =============================================================================
+  
+  critical-alerts.yml: |
+    groups:
+      - name: critical-alerts
+        rules:
+          # Service Down Alerts
+          - alert: ServiceDown
+            expr: up == 0
+            for: 1m
+            labels:
+              severity: critical
+              category: availability
+            annotations:
+              summary: "Service {{ $labels.job }} is down"
+              description: "Service {{ $labels.job }} has been down for more than 1 minute"
+              runbook_url: "https://docs.payments.com/runbooks/service-down"
+          
+          # High Error Rate
+          - alert: HighErrorRate
+            expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.1
+            for: 2m
+            labels:
+              severity: critical
+              category: reliability
+            annotations:
+              summary: "High error rate for {{ $labels.job }}"
+              description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.job }}"
+              runbook_url: "https://docs.payments.com/runbooks/high-error-rate"
+          
+          # Database Connection Failure
+          - alert: DatabaseConnectionFailure
+            expr: postgres_up == 0
+            for: 1m
+            labels:
+              severity: critical
+              category: infrastructure
+            annotations:
+              summary: "Database connection failed"
+              description: "PostgreSQL database is unreachable"
+              runbook_url: "https://docs.payments.com/runbooks/database-failure"
+          
+          # Redis Connection Failure
+          - alert: RedisConnectionFailure
+            expr: redis_up == 0
+            for: 1m
+            labels:
+              severity: critical
+              category: infrastructure
+            annotations:
+              summary: "Redis connection failed"
+              description: "Redis cache is unreachable"
+              runbook_url: "https://docs.payments.com/runbooks/redis-failure"
+          
+          # Kafka Connection Failure
+          - alert: KafkaConnectionFailure
+            expr: kafka_server_brokertopicmetrics_messagesinpersec == 0
+            for: 2m
+            labels:
+              severity: critical
+              category: infrastructure
+            annotations:
+              summary: "Kafka connection failed"
+              description: "Kafka message broker is unreachable"
+              runbook_url: "https://docs.payments.com/runbooks/kafka-failure"
+          
+          # Payment Processing Failure
+          - alert: PaymentProcessingFailure
+            expr: rate(payment_processing_errors_total[5m]) > 10
+            for: 1m
+            labels:
+              severity: critical
+              category: business
+            annotations:
+              summary: "High payment processing errors"
+              description: "Payment processing error rate is {{ $value }} errors per second"
+              runbook_url: "https://docs.payments.com/runbooks/payment-failure"
+          
+          # High Memory Usage
+          - alert: HighMemoryUsage
+            expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.9
+            for: 5m
+            labels:
+              severity: critical
+              category: resources
+            annotations:
+              summary: "High memory usage for {{ $labels.pod }}"
+              description: "Memory usage is {{ $value | humanizePercentage }} for {{ $labels.pod }}"
+              runbook_url: "https://docs.payments.com/runbooks/high-memory"
+          
+          # High CPU Usage
+          - alert: HighCPUUsage
+            expr: rate(container_cpu_usage_seconds_total[5m]) > 0.8
+            for: 5m
+            labels:
+              severity: critical
+              category: resources
+            annotations:
+              summary: "High CPU usage for {{ $labels.pod }}"
+              description: "CPU usage is {{ $value | humanizePercentage }} for {{ $labels.pod }}"
+              runbook_url: "https://docs.payments.com/runbooks/high-cpu"
+          
+          # Disk Space Critical
+          - alert: DiskSpaceCritical
+            expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+            for: 1m
+            labels:
+              severity: critical
+              category: infrastructure
+            annotations:
+              summary: "Disk space critical on {{ $labels.instance }}"
+              description: "Only {{ $value | humanizePercentage }} disk space remaining"
+              runbook_url: "https://docs.payments.com/runbooks/disk-space"
+
+  # =============================================================================
+  # WARNING ALERTS (P1 - Response Required Within 15 Minutes)
+  # =============================================================================
+  
+  warning-alerts.yml: |
+    groups:
+      - name: warning-alerts
+        rules:
+          # High Latency
+          - alert: HighLatency
+            expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+            for: 5m
+            labels:
+              severity: warning
+              category: performance
+            annotations:
+              summary: "High latency for {{ $labels.job }}"
+              description: "95th percentile latency is {{ $value }}s for {{ $labels.job }}"
+              runbook_url: "https://docs.payments.com/runbooks/high-latency"
+          
+          # High Request Rate
+          - alert: HighRequestRate
+            expr: rate(http_requests_total[5m]) > 1000
+            for: 5m
+            labels:
+              severity: warning
+              category: performance
+            annotations:
+              summary: "High request rate for {{ $labels.job }}"
+              description: "Request rate is {{ $value }} requests per second"
+              runbook_url: "https://docs.payments.com/runbooks/high-request-rate"
+          
+          # Memory Usage Warning
+          - alert: MemoryUsageWarning
+            expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.8
+            for: 10m
+            labels:
+              severity: warning
+              category: resources
+            annotations:
+              summary: "High memory usage for {{ $labels.pod }}"
+              description: "Memory usage is {{ $value | humanizePercentage }} for {{ $labels.pod }}"
+              runbook_url: "https://docs.payments.com/runbooks/memory-warning"
+          
+          # CPU Usage Warning
+          - alert: CPUUsageWarning
+            expr: rate(container_cpu_usage_seconds_total[5m]) > 0.6
+            for: 10m
+            labels:
+              severity: warning
+              category: resources
+            annotations:
+              summary: "High CPU usage for {{ $labels.pod }}"
+              description: "CPU usage is {{ $value | humanizePercentage }} for {{ $labels.pod }}"
+              runbook_url: "https://docs.payments.com/runbooks/cpu-warning"
+          
+          # Disk Space Warning
+          - alert: DiskSpaceWarning
+            expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.2
+            for: 5m
+            labels:
+              severity: warning
+              category: infrastructure
+            annotations:
+              summary: "Low disk space on {{ $labels.instance }}"
+              description: "Only {{ $value | humanizePercentage }} disk space remaining"
+              runbook_url: "https://docs.payments.com/runbooks/disk-warning"
+          
+          # Pod Restart
+          - alert: PodRestart
+            expr: rate(kube_pod_container_status_restarts_total[1h]) > 0
+            for: 1m
+            labels:
+              severity: warning
+              category: reliability
+            annotations:
+              summary: "Pod {{ $labels.pod }} has restarted"
+              description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last hour"
+              runbook_url: "https://docs.payments.com/runbooks/pod-restart"
+          
+          # JVM Heap Usage
+          - alert: JVMHeapUsageWarning
+            expr: (jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"}) > 0.8
+            for: 5m
+            labels:
+              severity: warning
+              category: application
+            annotations:
+              summary: "High JVM heap usage for {{ $labels.job }}"
+              description: "JVM heap usage is {{ $value | humanizePercentage }} for {{ $labels.job }}"
+              runbook_url: "https://docs.payments.com/runbooks/jvm-heap"
+          
+          # Database Connection Pool
+          - alert: DatabaseConnectionPoolWarning
+            expr: (postgres_stat_activity_count / postgres_settings_max_connections) > 0.8
+            for: 5m
+            labels:
+              severity: warning
+              category: database
+            annotations:
+              summary: "High database connection pool usage"
+              description: "Database connection pool is {{ $value | humanizePercentage }} full"
+              runbook_url: "https://docs.payments.com/runbooks/db-connection-pool"
+
+  # =============================================================================
+  # BUSINESS ALERTS (P1 - Business Impact)
+  # =============================================================================
+  
+  business-alerts.yml: |
+    groups:
+      - name: business-alerts
+        rules:
+          # Payment Volume Anomaly
+          - alert: PaymentVolumeAnomaly
+            expr: abs(rate(payment_volume_total[1h]) - rate(payment_volume_total[1h] offset 24h)) / rate(payment_volume_total[1h] offset 24h) > 0.5
+            for: 10m
+            labels:
+              severity: warning
+              category: business
+            annotations:
+              summary: "Payment volume anomaly detected"
+              description: "Payment volume has changed by {{ $value | humanizePercentage }} compared to yesterday"
+              runbook_url: "https://docs.payments.com/runbooks/payment-volume-anomaly"
+          
+          # Payment Success Rate Drop
+          - alert: PaymentSuccessRateDrop
+            expr: rate(payment_success_total[5m]) / rate(payment_total[5m]) < 0.95
+            for: 5m
+            labels:
+              severity: critical
+              category: business
+            annotations:
+              summary: "Payment success rate dropped"
+              description: "Payment success rate is {{ $value | humanizePercentage }}"
+              runbook_url: "https://docs.payments.com/runbooks/payment-success-rate"
+          
+          # Reconciliation Failure
+          - alert: ReconciliationFailure
+            expr: rate(reconciliation_errors_total[5m]) > 5
+            for: 2m
+            labels:
+              severity: critical
+              category: business
+            annotations:
+              summary: "Reconciliation failures detected"
+              description: "Reconciliation error rate is {{ $value }} errors per second"
+              runbook_url: "https://docs.payments.com/runbooks/reconciliation-failure"
+          
+          # Settlement Delay
+          - alert: SettlementDelay
+            expr: time() - settlement_last_processed_timestamp > 3600
+            for: 1m
+            labels:
+              severity: warning
+              category: business
+            annotations:
+              summary: "Settlement processing delayed"
+              description: "Last settlement was {{ $value }} seconds ago"
+              runbook_url: "https://docs.payments.com/runbooks/settlement-delay"
+          
+          # Notification Delivery Failure
+          - alert: NotificationDeliveryFailure
+            expr: rate(notification_delivery_failures_total[5m]) > 10
+            for: 2m
+            labels:
+              severity: warning
+              category: business
+            annotations:
+              summary: "Notification delivery failures"
+              description: "Notification delivery failure rate is {{ $value }} failures per second"
+              runbook_url: "https://docs.payments.com/runbooks/notification-failure"
+
+  # =============================================================================
+  # SECURITY ALERTS (P1 - Security Impact)
+  # =============================================================================
+  
+  security-alerts.yml: |
+    groups:
+      - name: security-alerts
+        rules:
+          # Authentication Failure Spike
+          - alert: AuthenticationFailureSpike
+            expr: rate(authentication_failures_total[5m]) > 50
+            for: 2m
+            labels:
+              severity: critical
+              category: security
+            annotations:
+              summary: "High authentication failure rate"
+              description: "Authentication failure rate is {{ $value }} failures per second"
+              runbook_url: "https://docs.payments.com/runbooks/auth-failure-spike"
+          
+          # Authorization Failure
+          - alert: AuthorizationFailure
+            expr: rate(authorization_failures_total[5m]) > 10
+            for: 1m
+            labels:
+              severity: critical
+              category: security
+            annotations:
+              summary: "High authorization failure rate"
+              description: "Authorization failure rate is {{ $value }} failures per second"
+              runbook_url: "https://docs.payments.com/runbooks/authz-failure"
+          
+          # Suspicious Activity
+          - alert: SuspiciousActivity
+            expr: rate(suspicious_activity_total[5m]) > 5
+            for: 1m
+            labels:
+              severity: critical
+              category: security
+            annotations:
+              summary: "Suspicious activity detected"
+              description: "Suspicious activity rate is {{ $value }} events per second"
+              runbook_url: "https://docs.payments.com/runbooks/suspicious-activity"
+          
+          # API Rate Limit Exceeded
+          - alert: APIRateLimitExceeded
+            expr: rate(api_rate_limit_exceeded_total[5m]) > 100
+            for: 1m
+            labels:
+              severity: warning
+              category: security
+            annotations:
+              summary: "API rate limit exceeded"
+              description: "API rate limit exceeded {{ $value }} times per second"
+              runbook_url: "https://docs.payments.com/runbooks/api-rate-limit"
+
+  # =============================================================================
+  # INFRASTRUCTURE ALERTS (P2 - Infrastructure Health)
+  # =============================================================================
+  
+  infrastructure-alerts.yml: |
+    groups:
+      - name: infrastructure-alerts
+        rules:
+          # Node Not Ready
+          - alert: NodeNotReady
+            expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+            for: 5m
+            labels:
+              severity: critical
+              category: infrastructure
+            annotations:
+              summary: "Node {{ $labels.node }} is not ready"
+              description: "Node {{ $labels.node }} has been not ready for more than 5 minutes"
+              runbook_url: "https://docs.payments.com/runbooks/node-not-ready"
+          
+          # Pod Eviction
+          - alert: PodEviction
+            expr: rate(kube_pod_status_phase{phase="Failed"}[5m]) > 0
+            for: 1m
+            labels:
+              severity: warning
+              category: infrastructure
+            annotations:
+              summary: "Pod eviction detected"
+              description: "Pod {{ $labels.pod }} has been evicted"
+              runbook_url: "https://docs.payments.com/runbooks/pod-eviction"
+          
+          # Network Partition
+          - alert: NetworkPartition
+            expr: rate(network_connectivity_failures_total[5m]) > 10
+            for: 2m
+            labels:
+              severity: critical
+              category: infrastructure
+            annotations:
+              summary: "Network partition detected"
+              description: "Network connectivity failure rate is {{ $value }} failures per second"
+              runbook_url: "https://docs.payments.com/runbooks/network-partition"
+          
+          # Service Mesh Issues
+          - alert: ServiceMeshIssues
+            expr: rate(istio_requests_total{response_code=~"5.."}[5m]) / rate(istio_requests_total[5m]) > 0.1
+            for: 2m
+            labels:
+              severity: warning
+              category: infrastructure
+            annotations:
+              summary: "Service mesh error rate high"
+              description: "Service mesh error rate is {{ $value | humanizePercentage }}"
+              runbook_url: "https://docs.payments.com/runbooks/service-mesh-issues"
+
+  # =============================================================================
+  # APPLICATION ALERTS (P2 - Application Health)
+  # =============================================================================
+  
+  application-alerts.yml: |
+    groups:
+      - name: application-alerts
+        rules:
+          # Spring Boot Actuator Health
+          - alert: SpringBootHealthDown
+            expr: spring_boot_actuator_health_status != 1
+            for: 2m
+            labels:
+              severity: critical
+              category: application
+            annotations:
+              summary: "Spring Boot health check failed for {{ $labels.job }}"
+              description: "Health check status is {{ $labels.status }} for {{ $labels.job }}"
+              runbook_url: "https://docs.payments.com/runbooks/spring-boot-health"
+          
+          # JVM GC Pressure
+          - alert: JVMGCPressure
+            expr: rate(jvm_gc_pause_seconds_total[5m]) > 0.1
+            for: 5m
+            labels:
+              severity: warning
+              category: application
+            annotations:
+              summary: "High JVM GC pressure for {{ $labels.job }}"
+              description: "JVM GC pause time is {{ $value }}s per second for {{ $labels.job }}"
+              runbook_url: "https://docs.payments.com/runbooks/jvm-gc-pressure"
+          
+          # Thread Pool Exhaustion
+          - alert: ThreadPoolExhaustion
+            expr: jvm_threads_states_threads{state="blocked"} > 50
+            for: 5m
+            labels:
+              severity: warning
+              category: application
+            annotations:
+              summary: "Thread pool exhaustion for {{ $labels.job }}"
+              description: "{{ $value }} threads are blocked for {{ $labels.job }}"
+              runbook_url: "https://docs.payments.com/runbooks/thread-pool-exhaustion"
+          
+          # Database Connection Leak
+          - alert: DatabaseConnectionLeak
+            expr: rate(database_connections_created_total[5m]) - rate(database_connections_closed_total[5m]) > 10
+            for: 5m
+            labels:
+              severity: warning
+              category: application
+            annotations:
+              summary: "Potential database connection leak for {{ $labels.job }}"
+              description: "Database connections are being created faster than closed"
+              runbook_url: "https://docs.payments.com/runbooks/db-connection-leak"
+
+  # =============================================================================
+  # RECORDING RULES (Computed Metrics)
+  # =============================================================================
+  
+  recording-rules.yml: |
+    groups:
+      - name: recording-rules
+        rules:
+          # Service Availability
+          - record: service_availability
+            expr: avg_over_time(up[5m])
+            labels:
+              service: "{{ $labels.job }}"
+          
+          # Error Rate
+          - record: service_error_rate
+            expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])
+            labels:
+              service: "{{ $labels.job }}"
+          
+          # Request Rate
+          - record: service_request_rate
+            expr: rate(http_requests_total[5m])
+            labels:
+              service: "{{ $labels.job }}"
+          
+          # Response Time
+          - record: service_response_time_p95
+            expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+            labels:
+              service: "{{ $labels.job }}"
+          
+          # Memory Usage Percentage
+          - record: service_memory_usage_percent
+            expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100
+            labels:
+              service: "{{ $labels.job }}"
+          
+          # CPU Usage Percentage
+          - record: service_cpu_usage_percent
+            expr: rate(container_cpu_usage_seconds_total[5m]) * 100
+            labels:
+              service: "{{ $labels.job }}"

@@ -12,12 +12,9 @@ import lombok.NoArgsConstructor;
  *
  * <p>Used for POST /tenants endpoint. Validated before reaching service layer.
  *
- * <p>Validation:
- * - tenantName: required, 3-200 chars
- * - tenantType: required, valid enum value
- * - contactEmail: required, valid email format
- * - country: optional, ISO 3166-1 alpha-3 format
- * - timezone: optional, valid Java timezone
+ * <p>Validation: - tenantName: required, 3-200 chars - tenantType: required, valid enum value -
+ * contactEmail: required, valid email format - country: optional, ISO 3166-1 alpha-3 format -
+ * timezone: optional, valid Java timezone
  */
 @Data
 @NoArgsConstructor

@@ -1,0 +1,129 @@
+# =============================================================================
+# OPENTELEMETRY CONFIGURATION FOR ALL SERVICES
+# =============================================================================
+# OpenTelemetry SDK configuration for distributed tracing
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opentelemetry-config
+  namespace: monitoring
+data:
+  otel-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    
+    processors:
+      batch:
+        timeout: 1s
+        send_batch_size: 1024
+      memory_limiter:
+        limit_mib: 512
+      resource:
+        attributes:
+          - key: service.name
+            value: "payments-engine"
+            action: upsert
+          - key: service.version
+            value: "1.0.0"
+            action: upsert
+          - key: deployment.environment
+            value: "production"
+            action: upsert
+    
+    exporters:
+      jaeger:
+        endpoint: jaeger.monitoring.svc.cluster.local:14250
+        tls:
+          insecure: true
+      logging:
+        loglevel: debug
+    
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch, resource]
+          exporters: [jaeger, logging]
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opentelemetry-collector
+  namespace: monitoring
+  labels:
+    app: opentelemetry-collector
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: opentelemetry-collector
+  template:
+    metadata:
+      labels:
+        app: opentelemetry-collector
+    spec:
+      containers:
+        - name: opentelemetry-collector
+          image: otel/opentelemetry-collector-contrib:0.85.0
+          command: ["/otelcol-contrib"]
+          args: ["--config=/etc/otelcol/otel-config.yaml"]
+          ports:
+            - containerPort: 4317
+              name: otlp-http
+            - containerPort: 4318
+              name: otlp-grpc
+          volumeMounts:
+            - name: otel-config
+              mountPath: /etc/otelcol
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+      volumes:
+        - name: otel-config
+          configMap:
+            name: opentelemetry-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opentelemetry-collector
+  namespace: monitoring
+  labels:
+    app: opentelemetry-collector
+spec:
+  selector:
+    app: opentelemetry-collector
+  ports:
+    - name: otlp-http
+      port: 4317
+      targetPort: 4317
+      protocol: TCP
+    - name: otlp-grpc
+      port: 4318
+      targetPort: 4318
+      protocol: TCP
+  type: ClusterIP

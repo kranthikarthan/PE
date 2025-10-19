@@ -2,10 +2,9 @@ package com.payments.samosadapter.service;
 
 import com.payments.domain.shared.TenantContext;
 import com.payments.samosadapter.domain.SamosSettlementAccount;
-import com.payments.samosadapter.domain.SamosSettlementAccount.AccountStatus;
+import com.payments.samosadapter.dto.SamosSettlementAccountBalanceResponse;
 import com.payments.samosadapter.dto.SamosSettlementAccountCreateRequest;
 import com.payments.samosadapter.dto.SamosSettlementAccountResponse;
-import com.payments.samosadapter.dto.SamosSettlementAccountBalanceResponse;
 import com.payments.samosadapter.exception.SamosSettlementAccountException;
 import com.payments.samosadapter.repository.SamosSettlementAccountRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -56,8 +55,7 @@ public class SamosSettlementAccountService {
   @Transactional
   @CircuitBreaker(name = "samos-settlement", fallbackMethod = "createAccountFallback")
   @Retry(name = "samos-settlement")
-  public SamosSettlementAccountResponse createAccount(
-      SamosSettlementAccountCreateRequest request) {
+  public SamosSettlementAccountResponse createAccount(SamosSettlementAccountCreateRequest request) {
 
     log.info(
         "Creating SAMOS settlement account for tenant: {}, account: {}",
@@ -65,8 +63,7 @@ public class SamosSettlementAccountService {
         request.getAccountNumber());
 
     // Validate tenant context
-    TenantContext tenantContext =
-        TenantContext.builder().tenantId(request.getTenantId()).build();
+    TenantContext tenantContext = TenantContext.builder().tenantId(request.getTenantId()).build();
 
     // Check for duplicate account number
     if (accountRepository.existsByTenantIdAndAccountNumber(
@@ -210,8 +207,7 @@ public class SamosSettlementAccountService {
         .dailyDebitLimit(account.getDailyDebitLimit())
         .amountSettledToday(account.getAmountSettledToday())
         .settlementsToday(account.getSettlementsToday())
-        .remainingDailyLimit(
-            account.getDailyDebitLimit().subtract(account.getAmountSettledToday()))
+        .remainingDailyLimit(account.getDailyDebitLimit().subtract(account.getAmountSettledToday()))
         .lastBalanceUpdate(account.getLastBalanceUpdate())
         .lastSettlementTime(account.getLastSettlementTime())
         .status(account.getStatus().name())
@@ -586,8 +582,7 @@ public class SamosSettlementAccountService {
         .filter(a -> a.getTenantContext().getTenantId().equals(tenantId))
         .orElseThrow(
             () ->
-                new SamosSettlementAccountException(
-                    "Settlement account not found: " + accountId));
+                new SamosSettlementAccountException("Settlement account not found: " + accountId));
   }
 
   private SamosSettlementAccountResponse mapToResponse(SamosSettlementAccount account) {
@@ -645,4 +640,3 @@ public class SamosSettlementAccountService {
         "Settlement account service temporarily unavailable. Please try again later.", ex);
   }
 }
-

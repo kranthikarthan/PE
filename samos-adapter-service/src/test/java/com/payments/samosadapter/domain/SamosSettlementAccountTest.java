@@ -91,8 +91,7 @@ class SamosSettlementAccountTest {
     account.debit(debitAmount, "admin");
 
     // Then
-    assertThat(account.getCurrentBalance())
-        .isEqualByComparingTo(new BigDecimal("7000.00"));
+    assertThat(account.getCurrentBalance()).isEqualByComparingTo(new BigDecimal("7000.00"));
   }
 
   @Test
@@ -121,8 +120,7 @@ class SamosSettlementAccountTest {
 
     // Then
     assertThat(account.getReservedBalance()).isEqualByComparingTo(reserveAmount);
-    assertThat(account.getAvailableBalance())
-        .isEqualByComparingTo(new BigDecimal("7000.00"));
+    assertThat(account.getAvailableBalance()).isEqualByComparingTo(new BigDecimal("7000.00"));
   }
 
   @Test
@@ -150,10 +148,8 @@ class SamosSettlementAccountTest {
     account.releaseReservation(new BigDecimal("1000.00"), "admin");
 
     // Then
-    assertThat(account.getReservedBalance())
-        .isEqualByComparingTo(new BigDecimal("2000.00"));
-    assertThat(account.getAvailableBalance())
-        .isEqualByComparingTo(new BigDecimal("8000.00"));
+    assertThat(account.getReservedBalance()).isEqualByComparingTo(new BigDecimal("2000.00"));
+    assertThat(account.getAvailableBalance()).isEqualByComparingTo(new BigDecimal("8000.00"));
   }
 
   @Test
@@ -168,12 +164,10 @@ class SamosSettlementAccountTest {
     account.settleReservedFunds(new BigDecimal("3000.00"), "admin");
 
     // Then
-    assertThat(account.getCurrentBalance())
-        .isEqualByComparingTo(new BigDecimal("7000.00"));
+    assertThat(account.getCurrentBalance()).isEqualByComparingTo(new BigDecimal("7000.00"));
     assertThat(account.getReservedBalance()).isEqualByComparingTo(BigDecimal.ZERO);
     assertThat(account.getSettlementsToday()).isEqualTo(1);
-    assertThat(account.getAmountSettledToday())
-        .isEqualByComparingTo(new BigDecimal("3000.00"));
+    assertThat(account.getAmountSettledToday()).isEqualByComparingTo(new BigDecimal("3000.00"));
   }
 
   @Test
@@ -201,8 +195,7 @@ class SamosSettlementAccountTest {
     account.releaseCollateral(new BigDecimal("500000.00"), "admin");
 
     // Then
-    assertThat(account.getCollateralPledged())
-        .isEqualByComparingTo(new BigDecimal("1500000.00"));
+    assertThat(account.getCollateralPledged()).isEqualByComparingTo(new BigDecimal("1500000.00"));
   }
 
   @Test
@@ -375,4 +368,3 @@ class SamosSettlementAccountTest {
         CREATED_BY);
   }
 }
-

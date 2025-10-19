@@ -40,7 +40,7 @@ class RiskAssessmentRuleEngineTest {
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getRuleType()).isEqualTo(RuleType.RISK);
+    assertThat(result.getRuleType().toString()).isEqualTo("RISK");
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getAppliedRules())
         .contains(
@@ -63,13 +63,13 @@ class RiskAssessmentRuleEngineTest {
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getRuleType()).isEqualTo(RuleType.RISK);
+    assertThat(result.getRuleType().toString()).isEqualTo("RISK");
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getAppliedRules()).contains("RISK_RULE_001");
     assertThat(result.getFailedRules()).hasSize(1);
     assertThat(result.getFailedRules().get(0).getRuleId()).isEqualTo("RISK_RULE_001");
     assertThat(result.getFailedRules().get(0).getRuleName()).isEqualTo("Credit Risk Assessment");
-    assertThat(result.getFailedRules().get(0).getRuleType()).isEqualTo(RuleType.RISK);
+    assertThat(result.getFailedRules().get(0).getRuleType().toString()).isEqualTo("RISK");
     assertThat(result.getFailedRules().get(0).getFailureReason())
         .contains("High credit risk transaction");
     assertThat(result.getRiskScore()).isEqualTo(30);
@@ -87,13 +87,13 @@ class RiskAssessmentRuleEngineTest {
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getRuleType()).isEqualTo(RuleType.RISK);
+    assertThat(result.getRuleType().toString()).isEqualTo("RISK");
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getAppliedRules()).contains("RISK_RULE_002");
     assertThat(result.getFailedRules()).hasSize(1);
     assertThat(result.getFailedRules().get(0).getRuleId()).isEqualTo("RISK_RULE_002");
     assertThat(result.getFailedRules().get(0).getRuleName()).isEqualTo("Market Risk Analysis");
-    assertThat(result.getFailedRules().get(0).getRuleType()).isEqualTo(RuleType.RISK);
+    assertThat(result.getFailedRules().get(0).getRuleType().toString()).isEqualTo("RISK");
     assertThat(result.getFailedRules().get(0).getFailureReason())
         .contains("Foreign currency transaction");
     assertThat(result.getRiskScore()).isEqualTo(25);
@@ -111,14 +111,14 @@ class RiskAssessmentRuleEngineTest {
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getRuleType()).isEqualTo(RuleType.RISK);
+    assertThat(result.getRuleType().toString()).isEqualTo("RISK");
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getAppliedRules()).contains("RISK_RULE_003");
     assertThat(result.getFailedRules()).hasSize(1);
     assertThat(result.getFailedRules().get(0).getRuleId()).isEqualTo("RISK_RULE_003");
     assertThat(result.getFailedRules().get(0).getRuleName())
         .isEqualTo("Operational Risk Evaluation");
-    assertThat(result.getFailedRules().get(0).getRuleType()).isEqualTo(RuleType.RISK);
+    assertThat(result.getFailedRules().get(0).getRuleType().toString()).isEqualTo("RISK");
     assertThat(result.getFailedRules().get(0).getFailureReason())
         .contains("High-value transaction");
     assertThat(result.getRiskScore()).isEqualTo(35);
@@ -136,13 +136,13 @@ class RiskAssessmentRuleEngineTest {
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getRuleType()).isEqualTo(RuleType.RISK);
+    assertThat(result.getRuleType().toString()).isEqualTo("RISK");
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getAppliedRules()).contains("RISK_RULE_004");
     assertThat(result.getFailedRules()).hasSize(1);
     assertThat(result.getFailedRules().get(0).getRuleId()).isEqualTo("RISK_RULE_004");
     assertThat(result.getFailedRules().get(0).getRuleName()).isEqualTo("Liquidity Risk Assessment");
-    assertThat(result.getFailedRules().get(0).getRuleType()).isEqualTo(RuleType.RISK);
+    assertThat(result.getFailedRules().get(0).getRuleType().toString()).isEqualTo("RISK");
     assertThat(result.getFailedRules().get(0).getFailureReason()).contains("Large transaction");
     assertThat(result.getRiskScore()).isEqualTo(20);
   }
@@ -159,14 +159,14 @@ class RiskAssessmentRuleEngineTest {
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getRuleType()).isEqualTo(RuleType.RISK);
+    assertThat(result.getRuleType().toString()).isEqualTo("RISK");
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getAppliedRules()).contains("RISK_RULE_005");
     assertThat(result.getFailedRules()).hasSize(1);
     assertThat(result.getFailedRules().get(0).getRuleId()).isEqualTo("RISK_RULE_005");
     assertThat(result.getFailedRules().get(0).getRuleName())
         .isEqualTo("Counterparty Risk Analysis");
-    assertThat(result.getFailedRules().get(0).getRuleType()).isEqualTo(RuleType.RISK);
+    assertThat(result.getFailedRules().get(0).getRuleType().toString()).isEqualTo("RISK");
     assertThat(result.getFailedRules().get(0).getFailureReason())
         .contains("High-risk counterparty");
     assertThat(result.getRiskScore()).isEqualTo(40);
@@ -184,7 +184,7 @@ class RiskAssessmentRuleEngineTest {
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getRuleType()).isEqualTo(RuleType.RISK);
+    assertThat(result.getRuleType().toString()).isEqualTo("RISK");
     assertThat(result.isSuccess()).isFalse();
     assertThat(result.getAppliedRules()).hasSize(5);
     assertThat(result.getFailedRules()).hasSize(2); // Credit risk + operational risk

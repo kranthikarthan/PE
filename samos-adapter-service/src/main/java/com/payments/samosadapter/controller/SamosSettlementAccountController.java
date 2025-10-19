@@ -25,11 +25,15 @@ public class SamosSettlementAccountController {
 
   private final SamosSettlementAccountService accountService;
 
-  @Operation(summary = "Create settlement account", description = "Create a new SARB settlement account")
+  @Operation(
+      summary = "Create settlement account",
+      description = "Create a new SARB settlement account")
   @PostMapping
   public ResponseEntity<SamosSettlementAccountResponse> createAccount(
       @Valid @RequestBody SamosSettlementAccountCreateRequest request) {
-    log.info("POST /api/v1/samos/settlement-accounts - Create account for tenant: {}", request.getTenantId());
+    log.info(
+        "POST /api/v1/samos/settlement-accounts - Create account for tenant: {}",
+        request.getTenantId());
     SamosSettlementAccountResponse response = accountService.createAccount(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
@@ -50,15 +54,15 @@ public class SamosSettlementAccountController {
   public ResponseEntity<SamosSettlementAccountResponse> getAccountByNumber(
       @RequestHeader("X-Tenant-ID") String tenantId, @PathVariable String accountNumber) {
     log.info(
-        "GET /api/v1/samos/settlement-accounts/by-number/{} - tenant: {}",
-        accountNumber,
-        tenantId);
+        "GET /api/v1/samos/settlement-accounts/by-number/{} - tenant: {}", accountNumber, tenantId);
     SamosSettlementAccountResponse response =
         accountService.getAccountByNumber(tenantId, accountNumber);
     return ResponseEntity.ok(response);
   }
 
-  @Operation(summary = "Get all settlement accounts", description = "Get all settlement accounts for a tenant")
+  @Operation(
+      summary = "Get all settlement accounts",
+      description = "Get all settlement accounts for a tenant")
   @GetMapping
   public ResponseEntity<List<SamosSettlementAccountResponse>> getAllAccounts(
       @RequestHeader("X-Tenant-ID") String tenantId) {
@@ -78,7 +82,9 @@ public class SamosSettlementAccountController {
     return ResponseEntity.ok(response);
   }
 
-  @Operation(summary = "Get account balance", description = "Get detailed balance information for an account")
+  @Operation(
+      summary = "Get account balance",
+      description = "Get detailed balance information for an account")
   @GetMapping("/{accountId}/balance")
   public ResponseEntity<SamosSettlementAccountBalanceResponse> getAccountBalance(
       @RequestHeader("X-Tenant-ID") String tenantId, @PathVariable String accountId) {
@@ -109,8 +115,7 @@ public class SamosSettlementAccountController {
       @PathVariable String accountId,
       @RequestParam BigDecimal amount,
       @RequestParam String updatedBy) {
-    log.info(
-        "POST /api/v1/samos/settlement-accounts/{}/debit - amount: {} ZAR", accountId, amount);
+    log.info("POST /api/v1/samos/settlement-accounts/{}/debit - amount: {} ZAR", accountId, amount);
     SamosSettlementAccountResponse response =
         accountService.debitAccount(tenantId, accountId, amount, updatedBy);
     return ResponseEntity.ok(response);
@@ -146,7 +151,9 @@ public class SamosSettlementAccountController {
     return ResponseEntity.ok(response);
   }
 
-  @Operation(summary = "Settle reserved funds", description = "Settle reserved funds (complete payment)")
+  @Operation(
+      summary = "Settle reserved funds",
+      description = "Settle reserved funds (complete payment)")
   @PostMapping("/{accountId}/settle")
   public ResponseEntity<SamosSettlementAccountResponse> settleReservedFunds(
       @RequestHeader("X-Tenant-ID") String tenantId,
@@ -160,7 +167,9 @@ public class SamosSettlementAccountController {
     return ResponseEntity.ok(response);
   }
 
-  @Operation(summary = "Pledge collateral", description = "Pledge collateral for settlement account")
+  @Operation(
+      summary = "Pledge collateral",
+      description = "Pledge collateral for settlement account")
   @PostMapping("/{accountId}/pledge-collateral")
   public ResponseEntity<SamosSettlementAccountResponse> pledgeCollateral(
       @RequestHeader("X-Tenant-ID") String tenantId,
@@ -176,7 +185,9 @@ public class SamosSettlementAccountController {
     return ResponseEntity.ok(response);
   }
 
-  @Operation(summary = "Release collateral", description = "Release collateral from settlement account")
+  @Operation(
+      summary = "Release collateral",
+      description = "Release collateral from settlement account")
   @PostMapping("/{accountId}/release-collateral")
   public ResponseEntity<SamosSettlementAccountResponse> releaseCollateral(
       @RequestHeader("X-Tenant-ID") String tenantId,
@@ -266,4 +277,3 @@ public class SamosSettlementAccountController {
     return ResponseEntity.ok(response);
   }
 }
-

@@ -94,7 +94,7 @@ class ComplianceRuleEngineTest {
 
     // Then
     assertThat(result).isNotNull();
-    assertThat(result.getRuleType().toString()).isEqualTo(RuleType.COMPLIANCE);
+    assertThat(result.getRuleType().toString()).isEqualTo("COMPLIANCE");
     assertThat(result.isSuccess()).isTrue();
     assertThat(result.getAppliedRules()).contains("COMPLIANCE_RULE_001");
     assertThat(result.getFailedRules()).isEmpty();

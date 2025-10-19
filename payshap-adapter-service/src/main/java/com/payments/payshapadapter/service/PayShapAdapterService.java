@@ -1,10 +1,10 @@
 package com.payments.payshapadapter.service;
 
-import com.payments.domain.valueobjects.AdapterOperationalStatus;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.ClearingMessageId;
 import com.payments.domain.shared.ClearingRouteId;
 import com.payments.domain.shared.TenantContext;
+import com.payments.domain.valueobjects.AdapterOperationalStatus;
 import com.payments.payshapadapter.domain.ClearingMessageLog;
 import com.payments.payshapadapter.domain.ClearingRoute;
 import com.payments.payshapadapter.domain.PayShapAdapter;

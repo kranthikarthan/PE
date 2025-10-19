@@ -497,4 +497,3 @@ public class SamosSettlementAccount {
     BACKUP // Backup settlement account
   }
 }
-

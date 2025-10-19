@@ -1,0 +1,191 @@
+# =============================================================================
+# OPENTELEMETRY INSTRUMENTATION FOR SPRING BOOT SERVICES
+# =============================================================================
+# Automatic instrumentation configuration for all services
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opentelemetry-instrumentation
+  namespace: payments
+data:
+  application.properties: |
+    # OpenTelemetry Configuration
+    management.tracing.sampling.probability=0.1
+    management.tracing.enabled=true
+    
+    # Jaeger Configuration
+    management.tracing.jaeger.endpoint=http://jaeger.monitoring.svc.cluster.local:14268/api/traces
+    management.tracing.jaeger.sampler.probability=0.1
+    
+    # OpenTelemetry Configuration
+    management.otlp.tracing.endpoint=http://opentelemetry-collector.monitoring.svc.cluster.local:4318/v1/traces
+    
+    # Custom spans for business operations
+    management.tracing.custom-spans.enabled=true
+    management.tracing.custom-spans.payment-processing=true
+    management.tracing.custom-spans.validation=true
+    management.tracing.custom-spans.settlement=true
+    management.tracing.custom-spans.reconciliation=true
+
+---
+# =============================================================================
+# OPENTELEMETRY SIDECAR INJECTION
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opentelemetry-sidecar-config
+  namespace: payments
+data:
+  opentelemetry-sidecar.yaml: |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: opentelemetry-sidecar
+      namespace: payments
+    data:
+      otel-collector-config.yaml: |
+        receivers:
+          otlp:
+            protocols:
+              grpc:
+                endpoint: 0.0.0.0:4317
+              http:
+                endpoint: 0.0.0.0:4318
+        
+        processors:
+          batch:
+            timeout: 1s
+            send_batch_size: 1024
+          resource:
+            attributes:
+              - key: service.name
+                value: "{{ .ServiceName }}"
+                action: upsert
+              - key: service.version
+                value: "{{ .ServiceVersion }}"
+                action: upsert
+              - key: deployment.environment
+                value: "production"
+                action: upsert
+        
+        exporters:
+          jaeger:
+            endpoint: jaeger.monitoring.svc.cluster.local:14250
+            tls:
+              insecure: true
+        
+        service:
+          pipelines:
+            traces:
+              receivers: [otlp]
+              processors: [batch, resource]
+              exporters: [jaeger]
+
+---
+# =============================================================================
+# OPENTELEMETRY AGENT INJECTION
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opentelemetry-agent-config
+  namespace: payments
+data:
+  opentelemetry-agent.yaml: |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: opentelemetry-agent
+      namespace: payments
+    data:
+      opentelemetry-javaagent.jar: |
+        # This would contain the OpenTelemetry Java agent JAR file
+        # In practice, this would be mounted as a volume from a persistent storage
+      
+      agent-config.yaml: |
+        otel.service.name={{ .ServiceName }}
+        otel.service.version={{ .ServiceVersion }}
+        otel.traces.exporter=otlp
+        otel.exporter.otlp.endpoint=http://opentelemetry-collector.monitoring.svc.cluster.local:4318
+        otel.traces.sampler=traceidratio
+        otel.traces.sampler.arg=0.1
+        otel.metrics.exporter=otlp
+        otel.exporter.otlp.metrics.endpoint=http://opentelemetry-collector.monitoring.svc.cluster.local:4318
+        otel.logs.exporter=otlp
+        otel.exporter.otlp.logs.endpoint=http://opentelemetry-collector.monitoring.svc.cluster.local:4318
+
+---
+# =============================================================================
+# TRACING DASHBOARD CONFIGURATION
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tracing-dashboard-config
+  namespace: monitoring
+data:
+  tracing-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Distributed Tracing",
+        "tags": ["tracing", "distributed"],
+        "style": "dark",
+        "refresh": "5s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Trace Count",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(jaeger_traces_total[5m])",
+                "legendFormat": "Traces/sec"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Span Duration",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(jaeger_spans_duration_seconds_bucket[5m]))",
+                "legendFormat": "95th percentile"
+              },
+              {
+                "expr": "histogram_quantile(0.50, rate(jaeger_spans_duration_seconds_bucket[5m]))",
+                "legendFormat": "50th percentile"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Error Rate",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(jaeger_spans_total{status=\"error\"}[5m]) / rate(jaeger_spans_total[5m]) * 100",
+                "legendFormat": "Error Rate %"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Service Dependencies",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "jaeger_service_dependencies",
+                "legendFormat": "{{source}} -> {{target}}"
+              }
+            ]
+          }
+        ]
+      }
+    }

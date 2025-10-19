@@ -12,12 +12,9 @@ import lombok.NoArgsConstructor;
  *
  * <p>Used for PUT /tenants/{id} endpoint. All fields are optional.
  *
- * <p>Protected fields (cannot be updated):
- * - tenantId (cannot be changed)
- * - status (use activate/suspend/deactivate endpoints)
- * - tenantType (cannot be changed)
- * - registrationNumber (cannot be changed)
- * - taxNumber (cannot be changed)
+ * <p>Protected fields (cannot be updated): - tenantId (cannot be changed) - status (use
+ * activate/suspend/deactivate endpoints) - tenantType (cannot be changed) - registrationNumber
+ * (cannot be changed) - taxNumber (cannot be changed)
  */
 @Data
 @NoArgsConstructor

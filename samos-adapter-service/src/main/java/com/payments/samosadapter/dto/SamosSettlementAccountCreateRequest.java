@@ -48,9 +48,6 @@ public class SamosSettlementAccountCreateRequest {
   @Email(message = "SARB contact email must be valid")
   private String sarbContactEmail;
 
-  @Pattern(
-      regexp = "^\\+?[0-9]{10,15}$",
-      message = "SARB contact phone must be 10-15 digits")
+  @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "SARB contact phone must be 10-15 digits")
   private String sarbContactPhone;
 }
-

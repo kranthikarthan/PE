@@ -1,0 +1,449 @@
+# =============================================================================
+# PRODUCTION-READY UNLEASH FEATURE FLAGS
+# =============================================================================
+# Runtime feature flag management for all services
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: feature-flags
+  labels:
+    name: feature-flags
+
+---
+# =============================================================================
+# UNLEASH SERVER DEPLOYMENT
+# =============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unleash-server
+  namespace: feature-flags
+  labels:
+    app: unleash-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: unleash-server
+  template:
+    metadata:
+      labels:
+        app: unleash-server
+    spec:
+      containers:
+        - name: unleash-server
+          image: unleashorg/unleash-server:5.0.0
+          ports:
+            - containerPort: 4242
+              name: http
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://unleash:unleash@unleash-postgres:5432/unleash"
+            - name: DATABASE_SSL
+              value: "false"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: UNLEASH_URL
+              value: "http://unleash-server.feature-flags.svc.cluster.local:4242"
+            - name: UNLEASH_ADMIN_INITIAL_USERNAME
+              value: "admin"
+            - name: UNLEASH_ADMIN_INITIAL_PASSWORD
+              value: "admin123"
+            - name: UNLEASH_ADMIN_INITIAL_EMAIL
+              value: "admin@payments.com"
+            - name: UNLEASH_ADMIN_INITIAL_FIRST_NAME
+              value: "Admin"
+            - name: UNLEASH_ADMIN_INITIAL_LAST_NAME
+              value: "User"
+            - name: UNLEASH_ADMIN_INITIAL_API_TOKEN
+              value: "admin:development:unleash-insecure-api-token"
+            - name: UNLEASH_SERVER_PORT
+              value: "4242"
+            - name: UNLEASH_SERVER_HOST
+              value: "0.0.0.0"
+            - name: UNLEASH_SERVER_BASE_PATH
+              value: "/"
+            - name: UNLEASH_SERVER_UI_BASE_PATH
+              value: "/"
+            - name: UNLEASH_SERVER_API_BASE_PATH
+              value: "/api"
+            - name: UNLEASH_SERVER_PROXY_BASE_PATH
+              value: "/proxy"
+            - name: UNLEASH_SERVER_METRICS_BASE_PATH
+              value: "/metrics"
+            - name: UNLEASH_SERVER_HEALTH_BASE_PATH
+              value: "/health"
+            - name: UNLEASH_SERVER_READINESS_BASE_PATH
+              value: "/ready"
+            - name: UNLEASH_SERVER_LIVENESS_BASE_PATH
+              value: "/live"
+            - name: UNLEASH_SERVER_OPENAPI_BASE_PATH
+              value: "/openapi"
+            - name: UNLEASH_SERVER_DOCS_BASE_PATH
+              value: "/docs"
+            - name: UNLEASH_SERVER_STATIC_BASE_PATH
+              value: "/static"
+            - name: UNLEASH_SERVER_ASSETS_BASE_PATH
+              value: "/assets"
+            - name: UNLEASH_SERVER_PUBLIC_BASE_PATH
+              value: "/public"
+            - name: UNLEASH_SERVER_ADMIN_BASE_PATH
+              value: "/admin"
+            - name: UNLEASH_SERVER_LOGIN_BASE_PATH
+              value: "/login"
+            - name: UNLEASH_SERVER_LOGOUT_BASE_PATH
+              value: "/logout"
+            - name: UNLEASH_SERVER_CALLBACK_BASE_PATH
+              value: "/callback"
+            - name: UNLEASH_SERVER_ERROR_BASE_PATH
+              value: "/error"
+            - name: UNLEASH_SERVER_NOT_FOUND_BASE_PATH
+              value: "/404"
+            - name: UNLEASH_SERVER_FORBIDDEN_BASE_PATH
+              value: "/403"
+            - name: UNLEASH_SERVER_UNAUTHORIZED_BASE_PATH
+              value: "/401"
+            - name: UNLEASH_SERVER_BAD_REQUEST_BASE_PATH
+              value: "/400"
+            - name: UNLEASH_SERVER_INTERNAL_SERVER_ERROR_BASE_PATH
+              value: "/500"
+            - name: UNLEASH_SERVER_SERVICE_UNAVAILABLE_BASE_PATH
+              value: "/503"
+            - name: UNLEASH_SERVER_GATEWAY_TIMEOUT_BASE_PATH
+              value: "/504"
+            - name: UNLEASH_SERVER_BAD_GATEWAY_BASE_PATH
+              value: "/502"
+            - name: UNLEASH_SERVER_REQUEST_TIMEOUT_BASE_PATH
+              value: "/408"
+            - name: UNLEASH_SERVER_CONFLICT_BASE_PATH
+              value: "/409"
+            - name: UNLEASH_SERVER_GONE_BASE_PATH
+              value: "/410"
+            - name: UNLEASH_SERVER_LENGTH_REQUIRED_BASE_PATH
+              value: "/411"
+            - name: UNLEASH_SERVER_PRECONDITION_FAILED_BASE_PATH
+              value: "/412"
+            - name: UNLEASH_SERVER_PAYLOAD_TOO_LARGE_BASE_PATH
+              value: "/413"
+            - name: UNLEASH_SERVER_URI_TOO_LONG_BASE_PATH
+              value: "/414"
+            - name: UNLEASH_SERVER_UNSUPPORTED_MEDIA_TYPE_BASE_PATH
+              value: "/415"
+            - name: UNLEASH_SERVER_RANGE_NOT_SATISFIABLE_BASE_PATH
+              value: "/416"
+            - name: UNLEASH_SERVER_EXPECTATION_FAILED_BASE_PATH
+              value: "/417"
+            - name: UNLEASH_SERVER_IM_A_TEAPOT_BASE_PATH
+              value: "/418"
+            - name: UNLEASH_SERVER_MISDIRECTED_REQUEST_BASE_PATH
+              value: "/421"
+            - name: UNLEASH_SERVER_UNPROCESSABLE_ENTITY_BASE_PATH
+              value: "/422"
+            - name: UNLEASH_SERVER_LOCKED_BASE_PATH
+              value: "/423"
+            - name: UNLEASH_SERVER_FAILED_DEPENDENCY_BASE_PATH
+              value: "/424"
+            - name: UNLEASH_SERVER_TOO_EARLY_BASE_PATH
+              value: "/425"
+            - name: UNLEASH_SERVER_UPGRADE_REQUIRED_BASE_PATH
+              value: "/426"
+            - name: UNLEASH_SERVER_PRECONDITION_REQUIRED_BASE_PATH
+              value: "/428"
+            - name: UNLEASH_SERVER_TOO_MANY_REQUESTS_BASE_PATH
+              value: "/429"
+            - name: UNLEASH_SERVER_REQUEST_HEADER_FIELDS_TOO_LARGE_BASE_PATH
+              value: "/431"
+            - name: UNLEASH_SERVER_UNAVAILABLE_FOR_LEGAL_REASONS_BASE_PATH
+              value: "/451"
+            - name: UNLEASH_SERVER_INTERNAL_SERVER_ERROR_BASE_PATH
+              value: "/500"
+            - name: UNLEASH_SERVER_NOT_IMPLEMENTED_BASE_PATH
+              value: "/501"
+            - name: UNLEASH_SERVER_BAD_GATEWAY_BASE_PATH
+              value: "/502"
+            - name: UNLEASH_SERVER_SERVICE_UNAVAILABLE_BASE_PATH
+              value: "/503"
+            - name: UNLEASH_SERVER_GATEWAY_TIMEOUT_BASE_PATH
+              value: "/504"
+            - name: UNLEASH_SERVER_HTTP_VERSION_NOT_SUPPORTED_BASE_PATH
+              value: "/505"
+            - name: UNLEASH_SERVER_VARIANT_ALSO_NEGOTIATES_BASE_PATH
+              value: "/506"
+            - name: UNLEASH_SERVER_INSUFFICIENT_STORAGE_BASE_PATH
+              value: "/507"
+            - name: UNLEASH_SERVER_LOOP_DETECTED_BASE_PATH
+              value: "/508"
+            - name: UNLEASH_SERVER_NOT_EXTENDED_BASE_PATH
+              value: "/510"
+            - name: UNLEASH_SERVER_NETWORK_AUTHENTICATION_REQUIRED_BASE_PATH
+              value: "/511"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4242
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 4242
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+
+---
+# =============================================================================
+# UNLEASH POSTGRESQL DATABASE
+# =============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unleash-postgres
+  namespace: feature-flags
+  labels:
+    app: unleash-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: unleash-postgres
+  template:
+    metadata:
+      labels:
+        app: unleash-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: "unleash"
+            - name: POSTGRES_USER
+              value: "unleash"
+            - name: POSTGRES_PASSWORD
+              value: "unleash"
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "300m"
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - unleash
+                - -d
+                - unleash
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - unleash
+                - -d
+                - unleash
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+      volumes:
+        - name: postgres-storage
+          emptyDir: {}
+
+---
+# =============================================================================
+# UNLEASH SERVICES
+# =============================================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: unleash-server
+  namespace: feature-flags
+  labels:
+    app: unleash-server
+spec:
+  selector:
+    app: unleash-server
+  ports:
+    - name: http
+      port: 4242
+      targetPort: 4242
+      protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unleash-postgres
+  namespace: feature-flags
+  labels:
+    app: unleash-postgres
+spec:
+  selector:
+    app: unleash-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  type: ClusterIP
+
+---
+# =============================================================================
+# UNLEASH FEATURE FLAGS CONFIGURATION
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unleash-feature-flags
+  namespace: feature-flags
+data:
+  feature-flags.json: |
+    {
+      "features": [
+        {
+          "name": "payment-processing-v2",
+          "description": "New payment processing engine",
+          "enabled": false,
+          "strategies": [
+            {
+              "name": "gradualRollout",
+              "parameters": {
+                "percentage": "10",
+                "groupId": "payment-processing"
+              }
+            }
+          ]
+        },
+        {
+          "name": "real-time-validation",
+          "description": "Real-time payment validation",
+          "enabled": true,
+          "strategies": [
+            {
+              "name": "default",
+              "parameters": {}
+            }
+          ]
+        },
+        {
+          "name": "advanced-analytics",
+          "description": "Advanced analytics and reporting",
+          "enabled": false,
+          "strategies": [
+            {
+              "name": "userWithId",
+              "parameters": {
+                "userIds": "admin,analyst,manager"
+              }
+            }
+          ]
+        },
+        {
+          "name": "settlement-optimization",
+          "description": "Optimized settlement processing",
+          "enabled": true,
+          "strategies": [
+            {
+              "name": "gradualRollout",
+              "parameters": {
+                "percentage": "50",
+                "groupId": "settlement"
+              }
+            }
+          ]
+        },
+        {
+          "name": "notification-channels",
+          "description": "Multi-channel notification system",
+          "enabled": true,
+          "strategies": [
+            {
+              "name": "default",
+              "parameters": {}
+            }
+          ]
+        },
+        {
+          "name": "security-enhancements",
+          "description": "Enhanced security features",
+          "enabled": true,
+          "strategies": [
+            {
+              "name": "default",
+              "parameters": {}
+            }
+          ]
+        },
+        {
+          "name": "performance-monitoring",
+          "description": "Advanced performance monitoring",
+          "enabled": false,
+          "strategies": [
+            {
+              "name": "gradualRollout",
+              "parameters": {
+                "percentage": "25",
+                "groupId": "monitoring"
+              }
+            }
+          ]
+        },
+        {
+          "name": "api-rate-limiting",
+          "description": "API rate limiting functionality",
+          "enabled": true,
+          "strategies": [
+            {
+              "name": "default",
+              "parameters": {}
+            }
+          ]
+        },
+        {
+          "name": "data-encryption",
+          "description": "End-to-end data encryption",
+          "enabled": true,
+          "strategies": [
+            {
+              "name": "default",
+              "parameters": {}
+            }
+          ]
+        },
+        {
+          "name": "audit-logging",
+          "description": "Comprehensive audit logging",
+          "enabled": true,
+          "strategies": [
+            {
+              "name": "default",
+              "parameters": {}
+            }
+          ]
+        }
+      ]
+    }

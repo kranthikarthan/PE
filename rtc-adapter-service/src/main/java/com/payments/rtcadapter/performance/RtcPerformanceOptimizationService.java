@@ -136,7 +136,9 @@ public class RtcPerformanceOptimizationService {
       rtcQueryOptimizationCounter.increment();
       rtcOptimizedQueries.incrementAndGet();
 
-      List<RtcAdapter> adapters = rtcAdapterRepository.findByStatus(com.payments.domain.valueobjects.AdapterOperationalStatus.valueOf(status));
+      List<RtcAdapter> adapters =
+          rtcAdapterRepository.findByStatus(
+              com.payments.domain.valueobjects.AdapterOperationalStatus.valueOf(status));
 
       log.debug(
           "Retrieved optimized RTC adapters by status: {}, count: {}", status, adapters.size());

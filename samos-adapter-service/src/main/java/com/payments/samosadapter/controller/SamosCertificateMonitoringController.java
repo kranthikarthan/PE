@@ -95,4 +95,3 @@ public class SamosCertificateMonitoringController {
     private String message;
   }
 }
-

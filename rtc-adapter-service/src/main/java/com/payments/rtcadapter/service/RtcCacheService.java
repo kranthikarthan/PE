@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 /**
  * RTC Cache Service
  *
- * <p>Service for managing RTC adapter cache: - Cache statistics - Cache clearing - Cache
- * health - Tenant cache management
+ * <p>Service for managing RTC adapter cache: - Cache statistics - Cache clearing - Cache health -
+ * Tenant cache management
  */
 @Slf4j
 @Service

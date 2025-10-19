@@ -1,12 +1,11 @@
 package com.payments.tenant.entity;
 
 import jakarta.persistence.*;
+import java.io.Serializable;
+import java.time.OffsetDateTime;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
-import java.io.Serializable;
-import java.time.OffsetDateTime;
 
 /**
  * Tenant Entity - Represents a tenant (bank/organization) in the system.
@@ -47,7 +46,11 @@ public class TenantEntity implements Serializable {
   private TenantType tenantType;
 
   /** Current status: ACTIVE, INACTIVE, SUSPENDED, PENDING_APPROVAL. */
-  @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'ACTIVE'")
+  @Column(
+      name = "status",
+      nullable = false,
+      length = 20,
+      columnDefinition = "VARCHAR(20) DEFAULT 'ACTIVE'")
   @Enumerated(EnumType.STRING)
   @Builder.Default
   private TenantStatus status = TenantStatus.ACTIVE;
@@ -94,7 +97,10 @@ public class TenantEntity implements Serializable {
   private String country = "ZAF";
 
   /** Timezone for the tenant (e.g., Africa/Johannesburg). */
-  @Column(name = "timezone", length = 50, columnDefinition = "VARCHAR(50) DEFAULT 'Africa/Johannesburg'")
+  @Column(
+      name = "timezone",
+      length = 50,
+      columnDefinition = "VARCHAR(50) DEFAULT 'Africa/Johannesburg'")
   @Builder.Default
   private String timezone = "Africa/Johannesburg";
 

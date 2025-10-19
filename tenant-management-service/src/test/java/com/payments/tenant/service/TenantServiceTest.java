@@ -1,7 +1,12 @@
 package com.payments.tenant.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import com.payments.tenant.entity.TenantEntity;
 import com.payments.tenant.repository.TenantRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,21 +15,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 /**
  * Unit tests for TenantService.
  *
- * <p>Coverage:
- * - Create tenant (success & validation errors)
- * - Get tenant (found & not found)
- * - Activate/Suspend tenant (state machine)
- * - Event publishing
- * - State transitions
+ * <p>Coverage: - Create tenant (success & validation errors) - Get tenant (found & not found) -
+ * Activate/Suspend tenant (state machine) - Event publishing - State transitions
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("TenantService Unit Tests")
@@ -41,15 +36,16 @@ class TenantServiceTest {
   void setUp() {
     tenantId = "STD-001";
 
-    testTenant = TenantEntity.builder()
-        .tenantId(tenantId)
-        .tenantName("Test Bank")
-        .status(TenantEntity.TenantStatus.ACTIVE)
-        .tenantType(TenantEntity.TenantType.BANK)
-        .contactEmail("bank@example.com")
-        .country("ZAF")
-        .timezone("Africa/Johannesburg")
-        .build();
+    testTenant =
+        TenantEntity.builder()
+            .tenantId(tenantId)
+            .tenantName("Test Bank")
+            .status(TenantEntity.TenantStatus.ACTIVE)
+            .tenantType(TenantEntity.TenantType.BANK)
+            .contactEmail("bank@example.com")
+            .country("ZAF")
+            .timezone("Africa/Johannesburg")
+            .build();
   }
 
   @Test
@@ -93,8 +89,8 @@ class TenantServiceTest {
     when(tenantRepository.findById(tenantId)).thenReturn(Optional.empty());
 
     // Act & Assert
-    assertThrows(TenantService.TenantNotFoundException.class, () ->
-        tenantService.getTenant(tenantId));
+    assertThrows(
+        TenantService.TenantNotFoundException.class, () -> tenantService.getTenant(tenantId));
 
     verify(tenantRepository, times(1)).findById(tenantId);
   }
@@ -121,11 +117,12 @@ class TenantServiceTest {
   void testActivateTenantSuccess() {
     // Arrange
     testTenant.setStatus(TenantEntity.TenantStatus.PENDING_APPROVAL);
-    TenantEntity activatedTenant = TenantEntity.builder()
-        .tenantId(tenantId)
-        .tenantName("Test Bank")
-        .status(TenantEntity.TenantStatus.ACTIVE)
-        .build();
+    TenantEntity activatedTenant =
+        TenantEntity.builder()
+            .tenantId(tenantId)
+            .tenantName("Test Bank")
+            .status(TenantEntity.TenantStatus.ACTIVE)
+            .build();
 
     when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(testTenant));
     when(tenantRepository.save(any(TenantEntity.class))).thenReturn(activatedTenant);
@@ -146,11 +143,12 @@ class TenantServiceTest {
   void testSuspendTenantSuccess() {
     // Arrange
     testTenant.setStatus(TenantEntity.TenantStatus.ACTIVE);
-    TenantEntity suspendedTenant = TenantEntity.builder()
-        .tenantId(tenantId)
-        .tenantName("Test Bank")
-        .status(TenantEntity.TenantStatus.SUSPENDED)
-        .build();
+    TenantEntity suspendedTenant =
+        TenantEntity.builder()
+            .tenantId(tenantId)
+            .tenantName("Test Bank")
+            .status(TenantEntity.TenantStatus.SUSPENDED)
+            .build();
 
     when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(testTenant));
     when(tenantRepository.save(any(TenantEntity.class))).thenReturn(suspendedTenant);
@@ -171,11 +169,12 @@ class TenantServiceTest {
   void testDeactivateTenantSuccess() {
     // Arrange
     testTenant.setStatus(TenantEntity.TenantStatus.ACTIVE);
-    TenantEntity deactivatedTenant = TenantEntity.builder()
-        .tenantId(tenantId)
-        .tenantName("Test Bank")
-        .status(TenantEntity.TenantStatus.INACTIVE)
-        .build();
+    TenantEntity deactivatedTenant =
+        TenantEntity.builder()
+            .tenantId(tenantId)
+            .tenantName("Test Bank")
+            .status(TenantEntity.TenantStatus.INACTIVE)
+            .build();
 
     when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(testTenant));
     when(tenantRepository.save(any(TenantEntity.class))).thenReturn(deactivatedTenant);
@@ -195,17 +194,19 @@ class TenantServiceTest {
   @DisplayName("Update tenant successfully")
   void testUpdateTenantSuccess() {
     // Arrange
-    TenantEntity updates = TenantEntity.builder()
-        .tenantName("Updated Bank")
-        .contactEmail("updated@example.com")
-        .build();
+    TenantEntity updates =
+        TenantEntity.builder()
+            .tenantName("Updated Bank")
+            .contactEmail("updated@example.com")
+            .build();
 
-    TenantEntity updatedTenant = TenantEntity.builder()
-        .tenantId(tenantId)
-        .tenantName("Updated Bank")
-        .contactEmail("updated@example.com")
-        .status(TenantEntity.TenantStatus.ACTIVE)
-        .build();
+    TenantEntity updatedTenant =
+        TenantEntity.builder()
+            .tenantId(tenantId)
+            .tenantName("Updated Bank")
+            .contactEmail("updated@example.com")
+            .status(TenantEntity.TenantStatus.ACTIVE)
+            .build();
 
     when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(testTenant));
     when(tenantRepository.save(any(TenantEntity.class))).thenReturn(updatedTenant);
@@ -227,10 +228,11 @@ class TenantServiceTest {
   void testSuspendActiveReturnsCorrectStatus() {
     // Arrange
     testTenant.setStatus(TenantEntity.TenantStatus.ACTIVE);
-    TenantEntity expectedSuspended = TenantEntity.builder()
-        .tenantId(tenantId)
-        .status(TenantEntity.TenantStatus.SUSPENDED)
-        .build();
+    TenantEntity expectedSuspended =
+        TenantEntity.builder()
+            .tenantId(tenantId)
+            .status(TenantEntity.TenantStatus.SUSPENDED)
+            .build();
 
     when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(testTenant));
     when(tenantRepository.save(any(TenantEntity.class))).thenReturn(expectedSuspended);
@@ -249,7 +251,7 @@ class TenantServiceTest {
     when(tenantRepository.findById("NON-EXISTENT")).thenReturn(Optional.empty());
 
     // Act & Assert
-    assertThrows(TenantService.TenantNotFoundException.class, () ->
-        tenantService.getTenant("NON-EXISTENT"));
+    assertThrows(
+        TenantService.TenantNotFoundException.class, () -> tenantService.getTenant("NON-EXISTENT"));
   }
 }

@@ -77,5 +77,6 @@
     <module>shared</module>
     <module>infrastructure</module>
     <module>iso20022</module>
+    <module>settlement</module>
   </modules>
 </project>

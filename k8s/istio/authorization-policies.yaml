@@ -1,53 +1,44 @@
-# Authorization policies for service-to-service communication
+# =============================================================================
+# PRODUCTION-READY ISTIO AUTHORIZATION POLICIES
+# =============================================================================
+# Comprehensive security policies for all 22 services with fine-grained access control
+
+# Payment Initiation Service
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
-  name: payment-service-authz
+  name: payment-initiation-service-authz
   namespace: payments
 spec:
   selector:
     matchLabels:
-      app: payment-service
+      app: payment-initiation-service
   rules:
-    # Allow payment service to call other services
-    - to:
-        - operation:
-            methods: ["GET", "POST", "PUT"]
-            paths: ["/api/v1/*"]
-    # Allow external access to payment service
+    # Allow external access to payment initiation
     - from:
         - source:
             namespaces: ["istio-system"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/web-bff-service"]
       to:
         - operation:
             methods: ["GET", "POST"]
             paths: ["/api/v1/payments/*"]
-
----
-apiVersion: security.istio.io/v1beta1
-kind: AuthorizationPolicy
-metadata:
-  name: account-service-authz
-  namespace: payments
-spec:
-  selector:
-    matchLabels:
-      app: account-service
-  rules:
-    # Only allow specific services to call account service
+    # Allow internal service calls
     - from:
-        - source:
-            principals: ["cluster.local/ns/payments/sa/payment-service"]
         - source:
             principals: ["cluster.local/ns/payments/sa/validation-service"]
         - source:
             principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/saga-orchestrator"]
       to:
         - operation:
-            methods: ["GET", "POST"]
-            paths: ["/api/v1/accounts/*"]
+            methods: ["GET", "POST", "PUT"]
+            paths: ["/api/v1/payments/*"]
 
 ---
+# Validation Service
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -58,18 +49,96 @@ spec:
     matchLabels:
       app: validation-service
   rules:
-    # Allow payment service to call validation service
+    # Allow specific services to call validation
     - from:
         - source:
-            principals: ["cluster.local/ns/payments/sa/payment-service"]
+            principals: ["cluster.local/ns/payments/sa/payment-initiation-service"]
         - source:
             principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/routing-service"]
       to:
         - operation:
             methods: ["POST"]
             paths: ["/api/v1/validation/*"]
 
 ---
+# Account Adapter Service
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: account-adapter-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: account-adapter-service
+  rules:
+    # Allow specific services to call account adapter
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/payment-initiation-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/validation-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/v1/accounts/*"]
+
+---
+# Routing Service
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: routing-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: routing-service
+  rules:
+    # Allow specific services to call routing
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/payment-initiation-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/saga-orchestrator"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/v1/routing/*"]
+
+---
+# Transaction Processing Service
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: transaction-processing-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: transaction-processing-service
+  rules:
+    # Allow specific services to call transaction processing
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/payment-initiation-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/saga-orchestrator"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/validation-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT"]
+            paths: ["/api/v1/transactions/*"]
+
+---
+# Saga Orchestrator Service
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -83,12 +152,377 @@ spec:
     # Allow multiple services to call saga orchestrator
     - from:
         - source:
-            principals: ["cluster.local/ns/payments/sa/payment-service"]
+            principals: ["cluster.local/ns/payments/sa/payment-initiation-service"]
         - source:
             principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
         - source:
             principals: ["cluster.local/ns/payments/sa/validation-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/settlement-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "DELETE"]
+            paths: ["/api/v1/saga/*"]
+
+---
+# Clearing Adapter Services
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: samos-adapter-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: samos-adapter-service
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/settlement-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/v1/samos/*"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: bankservafrica-adapter-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: bankservafrica-adapter-service
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/settlement-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/v1/bankservafrica/*"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: rtc-adapter-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: rtc-adapter-service
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/settlement-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/v1/rtc/*"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: payshap-adapter-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: payshap-adapter-service
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/settlement-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/v1/payshap/*"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: swift-adapter-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: swift-adapter-service
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/settlement-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/v1/swift/*"]
+
+---
+# Platform Services
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: iam-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: iam-service
+  rules:
+    # Allow all services to call IAM for authentication
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/*"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/v1/auth/*", "/api/v1/users/*"]
+    # Allow external access for authentication
+    - from:
+        - source:
+            namespaces: ["istio-system"]
+      to:
+        - operation:
+            methods: ["POST"]
+            paths: ["/api/v1/auth/login", "/api/v1/auth/refresh"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: notification-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: notification-service
+  rules:
+    # Allow all services to send notifications
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/*"]
+      to:
+        - operation:
+            methods: ["POST"]
+            paths: ["/api/v1/notifications/*"]
+    # Allow external access for notification management
+    - from:
+        - source:
+            namespaces: ["istio-system"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "DELETE"]
+            paths: ["/api/v1/notifications/*"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: audit-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: audit-service
+  rules:
+    # Allow all services to write audit logs
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/*"]
+      to:
+        - operation:
+            methods: ["POST"]
+            paths: ["/api/v1/audit/*"]
+    # Allow read access for audit queries
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/iam-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/tenant-management-service"]
+      to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/api/v1/audit/*"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: tenant-management-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: tenant-management-service
+  rules:
+    # Allow IAM service to manage tenants
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/iam-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "DELETE"]
+            paths: ["/api/v1/tenants/*"]
+    # Allow external access for tenant management
+    - from:
+        - source:
+            namespaces: ["istio-system"]
       to:
         - operation:
             methods: ["GET", "POST", "PUT"]
-            paths: ["/api/v1/saga/*"]
+            paths: ["/api/v1/tenants/*"]
+
+---
+# Advanced Services
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: settlement-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: settlement-service
+  rules:
+    # Allow specific services to call settlement
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/transaction-processing-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/saga-orchestrator"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/batch-processing-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT"]
+            paths: ["/api/v1/settlement/*"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: reconciliation-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: reconciliation-service
+  rules:
+    # Allow specific services to call reconciliation
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/settlement-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/batch-processing-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/analytics-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/v1/reconciliation/*"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: batch-processing-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: batch-processing-service
+  rules:
+    # Allow specific services to call batch processing
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/settlement-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/reconciliation-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/v1/batch/*"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: analytics-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: analytics-service
+  rules:
+    # Allow all services to send analytics data
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/*"]
+      to:
+        - operation:
+            methods: ["POST"]
+            paths: ["/api/v1/analytics/*"]
+    # Allow read access for analytics queries
+    - from:
+        - source:
+            principals: ["cluster.local/ns/payments/sa/web-bff-service"]
+        - source:
+            principals: ["cluster.local/ns/payments/sa/tenant-management-service"]
+      to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/api/v1/analytics/*"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: web-bff-service-authz
+  namespace: payments
+spec:
+  selector:
+    matchLabels:
+      app: web-bff-service
+  rules:
+    # Allow external access to web BFF
+    - from:
+        - source:
+            namespaces: ["istio-system"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "DELETE"]
+            paths: ["/api/v1/*"]
+    # Allow web BFF to call all other services
+    - to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "DELETE"]
+            paths: ["/api/v1/*"]
+
+---
+# =============================================================================
+# DENY ALL BY DEFAULT POLICY
+# =============================================================================
+# This policy ensures that any service not explicitly allowed is denied access
+
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all-default
+  namespace: payments
+spec:
+  # This policy applies to all services by default
+  rules: []
+  # Empty rules means deny all

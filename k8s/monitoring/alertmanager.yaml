@@ -1,0 +1,285 @@
+# =============================================================================
+# PRODUCTION-READY ALERTMANAGER CONFIGURATION
+# =============================================================================
+# Alert routing and notification configuration
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+data:
+  alertmanager.yml: |
+    global:
+      smtp_smarthost: 'smtp.company.com:587'
+      smtp_from: 'alerts@payments.com'
+      smtp_auth_username: 'alerts@payments.com'
+      smtp_auth_password: 'password'
+      smtp_require_tls: true
+    
+    route:
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'default'
+      routes:
+        # Critical alerts - immediate notification
+        - match:
+            severity: critical
+          receiver: 'critical-alerts'
+          group_wait: 5s
+          repeat_interval: 30m
+        # Warning alerts - delayed notification
+        - match:
+            severity: warning
+          receiver: 'warning-alerts'
+          group_wait: 30s
+          repeat_interval: 2h
+        # Business alerts - specific routing
+        - match:
+            category: business
+          receiver: 'business-team'
+          group_wait: 10s
+          repeat_interval: 1h
+        # Security alerts - immediate escalation
+        - match:
+            category: security
+          receiver: 'security-team'
+          group_wait: 5s
+          repeat_interval: 15m
+        # Infrastructure alerts - ops team
+        - match:
+            category: infrastructure
+          receiver: 'ops-team'
+          group_wait: 15s
+          repeat_interval: 1h
+    
+    receivers:
+      # Default receiver
+      - name: 'default'
+        email_configs:
+          - to: 'oncall@payments.com'
+            subject: '[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}'
+            body: |
+              {{ range .Alerts }}
+              Alert: {{ .Annotations.summary }}
+              Description: {{ .Annotations.description }}
+              Runbook: {{ .Annotations.runbook_url }}
+              {{ end }}
+      
+      # Critical alerts receiver
+      - name: 'critical-alerts'
+        email_configs:
+          - to: 'oncall@payments.com,engineering-lead@payments.com'
+            subject: '[CRITICAL] {{ .GroupLabels.alertname }}'
+            body: |
+              CRITICAL ALERT: {{ .GroupLabels.alertname }}
+              {{ range .Alerts }}
+              Summary: {{ .Annotations.summary }}
+              Description: {{ .Annotations.description }}
+              Runbook: {{ .Annotations.runbook_url }}
+              {{ end }}
+        slack_configs:
+          - api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+            channel: '#alerts-critical'
+            title: 'Critical Alert: {{ .GroupLabels.alertname }}'
+            text: |
+              {{ range .Alerts }}
+              *Summary:* {{ .Annotations.summary }}
+              *Description:* {{ .Annotations.description }}
+              *Runbook:* {{ .Annotations.runbook_url }}
+              {{ end }}
+        pagerduty_configs:
+          - routing_key: 'your-pagerduty-integration-key'
+            description: '{{ .GroupLabels.alertname }}'
+            details:
+              summary: '{{ .Annotations.summary }}'
+              description: '{{ .Annotations.description }}'
+              runbook: '{{ .Annotations.runbook_url }}'
+      
+      # Warning alerts receiver
+      - name: 'warning-alerts'
+        email_configs:
+          - to: 'oncall@payments.com'
+            subject: '[WARNING] {{ .GroupLabels.alertname }}'
+            body: |
+              WARNING: {{ .GroupLabels.alertname }}
+              {{ range .Alerts }}
+              Summary: {{ .Annotations.summary }}
+              Description: {{ .Annotations.description }}
+              Runbook: {{ .Annotations.runbook_url }}
+              {{ end }}
+        slack_configs:
+          - api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+            channel: '#alerts-warning'
+            title: 'Warning Alert: {{ .GroupLabels.alertname }}'
+            text: |
+              {{ range .Alerts }}
+              *Summary:* {{ .Annotations.summary }}
+              *Description:* {{ .Annotations.description }}
+              *Runbook:* {{ .Annotations.runbook_url }}
+              {{ end }}
+      
+      # Business team receiver
+      - name: 'business-team'
+        email_configs:
+          - to: 'business-team@payments.com,product-manager@payments.com'
+            subject: '[BUSINESS] {{ .GroupLabels.alertname }}'
+            body: |
+              BUSINESS ALERT: {{ .GroupLabels.alertname }}
+              {{ range .Alerts }}
+              Summary: {{ .Annotations.summary }}
+              Description: {{ .Annotations.description }}
+              Runbook: {{ .Annotations.runbook_url }}
+              {{ end }}
+        slack_configs:
+          - api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+            channel: '#business-alerts'
+            title: 'Business Alert: {{ .GroupLabels.alertname }}'
+            text: |
+              {{ range .Alerts }}
+              *Summary:* {{ .Annotations.summary }}
+              *Description:* {{ .Annotations.description }}
+              *Runbook:* {{ .Annotations.runbook_url }}
+              {{ end }}
+      
+      # Security team receiver
+      - name: 'security-team'
+        email_configs:
+          - to: 'security-team@payments.com,ciso@payments.com'
+            subject: '[SECURITY] {{ .GroupLabels.alertname }}'
+            body: |
+              SECURITY ALERT: {{ .GroupLabels.alertname }}
+              {{ range .Alerts }}
+              Summary: {{ .Annotations.summary }}
+              Description: {{ .Annotations.description }}
+              Runbook: {{ .Annotations.runbook_url }}
+              {{ end }}
+        slack_configs:
+          - api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+            channel: '#security-alerts'
+            title: 'Security Alert: {{ .GroupLabels.alertname }}'
+            text: |
+              {{ range .Alerts }}
+              *Summary:* {{ .Annotations.summary }}
+              *Description:* {{ .Annotations.description }}
+              *Runbook:* {{ .Annotations.runbook_url }}
+              {{ end }}
+        pagerduty_configs:
+          - routing_key: 'your-security-pagerduty-key'
+            description: 'Security Alert: {{ .GroupLabels.alertname }}'
+            details:
+              summary: '{{ .Annotations.summary }}'
+              description: '{{ .Annotations.description }}'
+              runbook: '{{ .Annotations.runbook_url }}'
+      
+      # Ops team receiver
+      - name: 'ops-team'
+        email_configs:
+          - to: 'ops-team@payments.com,devops@payments.com'
+            subject: '[INFRASTRUCTURE] {{ .GroupLabels.alertname }}'
+            body: |
+              INFRASTRUCTURE ALERT: {{ .GroupLabels.alertname }}
+              {{ range .Alerts }}
+              Summary: {{ .Annotations.summary }}
+              Description: {{ .Annotations.description }}
+              Runbook: {{ .Annotations.runbook_url }}
+              {{ end }}
+        slack_configs:
+          - api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+            channel: '#ops-alerts'
+            title: 'Infrastructure Alert: {{ .GroupLabels.alertname }}'
+            text: |
+              {{ range .Alerts }}
+              *Summary:* {{ .Annotations.summary }}
+              *Description:* {{ .Annotations.description }}
+              *Runbook:* {{ .Annotations.runbook_url }}
+              {{ end }}
+
+---
+# =============================================================================
+# ALERTMANAGER DEPLOYMENT
+# =============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  labels:
+    app: alertmanager
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+        - name: alertmanager
+          image: prom/alertmanager:v0.25.0
+          args:
+            - '--config.file=/etc/alertmanager/alertmanager.yml'
+            - '--storage.path=/alertmanager/'
+            - '--web.external-url=http://alertmanager.monitoring.svc.cluster.local:9093'
+            - '--web.route-prefix=/'
+          ports:
+            - containerPort: 9093
+              name: web
+          volumeMounts:
+            - name: alertmanager-config-volume
+              mountPath: /etc/alertmanager/
+            - name: alertmanager-storage-volume
+              mountPath: /alertmanager/
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9093
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9093
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+      volumes:
+        - name: alertmanager-config-volume
+          configMap:
+            defaultMode: 420
+            name: alertmanager-config
+        - name: alertmanager-storage-volume
+          emptyDir: {}
+
+---
+# =============================================================================
+# ALERTMANAGER SERVICE
+# =============================================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  labels:
+    app: alertmanager
+spec:
+  selector:
+    app: alertmanager
+  ports:
+    - name: web
+      port: 9093
+      targetPort: 9093
+      protocol: TCP
+  type: ClusterIP
