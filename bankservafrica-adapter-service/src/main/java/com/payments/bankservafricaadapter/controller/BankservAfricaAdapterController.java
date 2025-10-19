@@ -2,7 +2,7 @@ package com.payments.bankservafricaadapter.controller;
 
 import com.payments.bankservafricaadapter.domain.BankservAfricaAdapter;
 import com.payments.bankservafricaadapter.service.BankservAfricaAdapterService;
-import com.payments.domain.clearing.ClearingNetwork;
+import com.payments.domain.valueobjects.ClearingNetwork;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.TenantContext;
 import io.swagger.v3.oas.annotations.Operation;

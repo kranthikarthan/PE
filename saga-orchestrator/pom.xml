@@ -111,22 +111,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Domain Models -->
-        <dependency>
-            <groupId>com.payments</groupId>
-            <artifactId>payment-initiation</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.payments</groupId>
-            <artifactId>validation</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.payments</groupId>
-            <artifactId>transaction-processing</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
-        </dependency>
+        <!-- Domain Models - Consolidated shared module -->
         <dependency>
             <groupId>com.payments</groupId>
             <artifactId>shared</artifactId>
@@ -222,9 +207,3 @@
         </plugins>
     </build>
 </project>
-
-
-
-
-
-

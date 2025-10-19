@@ -1,7 +1,7 @@
 package com.payments.notification.dto;
 
-import com.payments.notification.domain.model.NotificationTemplateEntity;
-import com.payments.notification.domain.model.NotificationType;
+import com.payments.domain.entities.NotificationTemplateEntity;
+import com.payments.domain.valueobjects.NotificationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

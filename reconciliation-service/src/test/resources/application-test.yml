@@ -2,6 +2,10 @@ spring:
   config:
     import: "optional:configserver:,optional:consul:"
   cloud:
+    config:
+      enabled: false
+      import-check:
+        enabled: false
     vault:
       enabled: false
   datasource:

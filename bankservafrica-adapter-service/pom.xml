@@ -97,6 +97,25 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
+        <!-- SFTP Client (JSch) -->
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.55</version>
+        </dependency>
+
+        <!-- PGP Encryption (BouncyCastle) -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.78.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpg-jdk18on</artifactId>
+            <version>1.78.1</version>
+        </dependency>
+
         <!-- Utilities -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -105,15 +124,10 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Domain Models - Individual modules -->
+        <!-- Domain Models - Consolidated shared module -->
         <dependency>
             <groupId>com.payments</groupId>
             <artifactId>shared</artifactId>
-            <version>${domain-models.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.payments</groupId>
-            <artifactId>clearing-adapter</artifactId>
             <version>${domain-models.version}</version>
         </dependency>
 

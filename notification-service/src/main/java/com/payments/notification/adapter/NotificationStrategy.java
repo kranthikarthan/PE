@@ -1,6 +1,6 @@
 package com.payments.notification.adapter;
 
-import com.payments.notification.domain.model.NotificationEntity;
+import com.payments.domain.entities.NotificationEntity;
 
 /**
  * Strategy interface for different notification delivery mechanisms.

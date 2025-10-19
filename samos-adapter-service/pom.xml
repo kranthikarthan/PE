@@ -45,10 +45,10 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Domain Models -->
+        <!-- Domain Models - Consolidated shared module -->
         <dependency>
             <groupId>com.payments</groupId>
-            <artifactId>clearing-adapter</artifactId>
+            <artifactId>shared</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -110,11 +110,6 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Spring Cloud OpenFeign for external API clients -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-        </dependency>
 
         <!-- Resilience4j for circuit breaker, retry, timeout -->
         <dependency>
@@ -159,12 +154,6 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-        </dependency>
-
-        <!-- Redis for caching -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
         <!-- Lombok -->

@@ -1,6 +1,6 @@
 package com.payments.payshapadapter.controller;
 
-import com.payments.domain.clearing.ClearingNetwork;
+import com.payments.domain.valueobjects.ClearingNetwork;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.TenantContext;
 import com.payments.payshapadapter.domain.PayShapAdapter;

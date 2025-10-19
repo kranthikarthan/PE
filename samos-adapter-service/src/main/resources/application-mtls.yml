@@ -1,0 +1,86 @@
+# SAMOS mTLS Configuration
+# This configuration file contains settings for Mutual TLS authentication with SARB's SAMOS network
+# 
+# IMPORTANT: This is a template. Copy to application-mtls-local.yml and configure with actual values.
+# Add application-mtls-local.yml to .gitignore to prevent committing sensitive information.
+
+samos:
+  mtls:
+    # Enable/disable mTLS
+    enabled: true
+    
+    # Client keystore configuration (contains our certificate + private key)
+    keystore:
+      path: file:/etc/samos/keystores/samos-client-keystore.p12
+      password: ${SAMOS_KEYSTORE_PASSWORD} # Set via environment variable
+      type: PKCS12
+    
+    # Client key configuration
+    key:
+      alias: samos-client-cert
+      password: ${SAMOS_KEY_PASSWORD} # Set via environment variable
+    
+    # Truststore configuration (contains SARB CA certificates)
+    truststore:
+      path: file:/etc/samos/keystores/samos-truststore.jks
+      password: ${SAMOS_TRUSTSTORE_PASSWORD} # Set via environment variable
+      type: JKS
+    
+    # TLS protocol configuration
+    protocol: TLSv1.3 # Or TLSv1.2 if TLS 1.3 not supported by SARB
+    
+    # Certificate expiry monitoring
+    cert:
+      expiry:
+        warning:
+          days: 30 # Alert when certificate expires within 30 days
+
+  # SAMOS Clearing Network Configuration
+  clearing:
+    network:
+      # SARB SAMOS API endpoint (production)
+      url: https://samos.resbank.co.za/api
+      
+      # Timeouts (in seconds)
+      connect:
+        timeout: 15 # Connection timeout
+      read:
+        timeout: 60 # Read timeout (RTGS processing can be slow)
+      follow:
+        redirects: true
+
+# Example environment variables required:
+# export SAMOS_KEYSTORE_PASSWORD=changeit
+# export SAMOS_KEY_PASSWORD=changeit
+# export SAMOS_TRUSTSTORE_PASSWORD=changeit
+
+---
+# Development/UAT Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+samos:
+  mtls:
+    enabled: false # Disable mTLS in dev (use mock/stub)
+  clearing:
+    network:
+      url: https://samos-uat.resbank.co.za/api # UAT endpoint
+
+---
+# Production Profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+samos:
+  mtls:
+    enabled: true
+    # All other settings from main profile apply
+    cert:
+      expiry:
+        warning:
+          days: 60 # More aggressive monitoring in prod
+

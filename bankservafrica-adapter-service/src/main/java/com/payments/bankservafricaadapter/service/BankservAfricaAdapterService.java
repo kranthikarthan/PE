@@ -9,7 +9,7 @@ import com.payments.bankservafricaadapter.dto.BankservAfricaRiskAssessmentReques
 import com.payments.bankservafricaadapter.dto.BankservAfricaRiskAssessmentResponse;
 import com.payments.bankservafricaadapter.exception.BankservAfricaAdapterNotFoundException;
 import com.payments.bankservafricaadapter.repository.BankservAfricaAdapterRepository;
-import com.payments.domain.clearing.ClearingNetwork;
+import com.payments.domain.valueobjects.ClearingNetwork;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.ClearingMessageId;
 import com.payments.domain.shared.ClearingRouteId;
@@ -540,7 +540,7 @@ public class BankservAfricaAdapterService {
         () -> {
           log.debug("Getting active adapter count");
           return adapterRepository.countByStatus(
-              com.payments.domain.clearing.AdapterOperationalStatus.ACTIVE);
+              com.payments.domain.valueobjects.AdapterOperationalStatus.ACTIVE);
         });
   }
 

@@ -1,6 +1,6 @@
 package com.payments.notification.adapter;
 
-import com.payments.notification.domain.model.NotificationEntity;
+import com.payments.domain.entities.NotificationEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 

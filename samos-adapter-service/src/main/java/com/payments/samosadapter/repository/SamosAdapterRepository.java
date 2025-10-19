@@ -43,7 +43,7 @@ public interface SamosAdapterRepository extends JpaRepository<SamosAdapter, Clea
   /** Find SAMOS adapters by status */
   @Query("SELECT sa FROM SamosAdapter sa WHERE sa.status = :status")
   List<SamosAdapter> findByStatus(
-      @Param("status") com.payments.domain.clearing.AdapterOperationalStatus status);
+      @Param("status") com.payments.domain.valueobjects.AdapterOperationalStatus status);
 
   /** Count active adapters for tenant */
   @Query(
@@ -52,5 +52,5 @@ public interface SamosAdapterRepository extends JpaRepository<SamosAdapter, Clea
 
   /** Count adapters by status */
   @Query("SELECT COUNT(sa) FROM SamosAdapter sa WHERE sa.status = :status")
-  long countByStatus(@Param("status") com.payments.domain.clearing.AdapterOperationalStatus status);
+  long countByStatus(@Param("status") com.payments.domain.valueobjects.AdapterOperationalStatus status);
 }

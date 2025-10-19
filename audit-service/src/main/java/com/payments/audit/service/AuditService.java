@@ -364,4 +364,80 @@ public class AuditService {
       throw new IllegalArgumentException("Start time cannot be in the future");
     }
   }
+
+  // Phase 3.5: Notification-specific audit methods
+  
+  /**
+   * Log notification denied event.
+   *
+   * @param notification the notification entity
+   * @param reason the reason for denial
+   */
+  @Transactional
+  @Timed(value = "audit.notification.denied", description = "Log notification denied")
+  public void logNotificationDenied(com.payments.domain.entities.NotificationEntity notification, String reason) {
+    log.debug("Logging notification denied: {} - {}", notification.getNotificationId(), reason);
+    
+    AuditEventEntity auditEvent = new AuditEventEntity();
+    auditEvent.setTenantId(java.util.UUID.fromString(notification.getTenantId().getValue()));
+    auditEvent.setUserId(notification.getUserId());
+    auditEvent.setAction("NOTIFICATION_DENIED");
+    auditEvent.setResource("NOTIFICATION");
+    auditEvent.setResult(AuditEventEntity.AuditResult.DENIED);
+    auditEvent.setDetails("Notification denied: " + reason);
+    auditEvent.setTimestamp(LocalDateTime.now());
+    
+    auditEventRepository.save(auditEvent);
+    log.info("Logged notification denied for tenant: {}, user: {}", 
+             notification.getTenantId().getValue(), notification.getUserId());
+  }
+
+  /**
+   * Log notification sent event.
+   *
+   * @param notification the notification entity
+   */
+  @Transactional
+  @Timed(value = "audit.notification.sent", description = "Log notification sent")
+  public void logNotificationSent(com.payments.domain.entities.NotificationEntity notification) {
+    log.debug("Logging notification sent: {}", notification.getNotificationId());
+    
+    AuditEventEntity auditEvent = new AuditEventEntity();
+    auditEvent.setTenantId(java.util.UUID.fromString(notification.getTenantId().getValue()));
+    auditEvent.setUserId(notification.getUserId());
+    auditEvent.setAction("NOTIFICATION_SENT");
+    auditEvent.setResource("NOTIFICATION");
+    auditEvent.setResult(AuditEventEntity.AuditResult.SUCCESS);
+    auditEvent.setDetails("Notification sent successfully via " + notification.getChannelType());
+    auditEvent.setTimestamp(LocalDateTime.now());
+    
+    auditEventRepository.save(auditEvent);
+    log.info("Logged notification sent for tenant: {}, user: {}", 
+             notification.getTenantId().getValue(), notification.getUserId());
+  }
+
+  /**
+   * Log notification error event.
+   *
+   * @param notification the notification entity
+   * @param errorMessage the error message
+   */
+  @Transactional
+  @Timed(value = "audit.notification.error", description = "Log notification error")
+  public void logNotificationError(com.payments.domain.entities.NotificationEntity notification, String errorMessage) {
+    log.debug("Logging notification error: {} - {}", notification.getNotificationId(), errorMessage);
+    
+    AuditEventEntity auditEvent = new AuditEventEntity();
+    auditEvent.setTenantId(java.util.UUID.fromString(notification.getTenantId().getValue()));
+    auditEvent.setUserId(notification.getUserId());
+    auditEvent.setAction("NOTIFICATION_ERROR");
+    auditEvent.setResource("NOTIFICATION");
+    auditEvent.setResult(AuditEventEntity.AuditResult.ERROR);
+    auditEvent.setDetails("Notification error: " + errorMessage);
+    auditEvent.setTimestamp(LocalDateTime.now());
+    
+    auditEventRepository.save(auditEvent);
+    log.warn("Logged notification error for tenant: {}, user: {} - {}", 
+             notification.getTenantId().getValue(), notification.getUserId(), errorMessage);
+  }
 }

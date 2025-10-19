@@ -1,6 +1,12 @@
 package com.payments.notification.controller;
 
-import com.payments.notification.domain.model.*;
+import com.payments.domain.entities.NotificationEntity;
+import com.payments.domain.entities.NotificationTemplateEntity;
+import com.payments.domain.entities.NotificationPreferenceEntity;
+import com.payments.domain.shared.*;
+import com.payments.domain.valueobjects.*;
+import com.payments.notification.dto.*;
+import jakarta.validation.Valid;
 import com.payments.notification.repository.NotificationPreferenceRepository;
 import com.payments.notification.repository.NotificationRepository;
 import com.payments.notification.repository.NotificationTemplateRepository;
@@ -21,7 +27,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
+import java.time.Instant;
 import java.util.*;
 
 /**

@@ -1,15 +1,15 @@
 package com.payments.notification.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.payments.notification.domain.model.NotificationEntity;
-import com.payments.notification.domain.model.NotificationStatus;
-import com.payments.notification.domain.model.NotificationType;
+import com.payments.domain.entities.NotificationEntity;
+import com.payments.domain.valueobjects.NotificationStatus;
+import com.payments.domain.valueobjects.NotificationType;
 import com.payments.notification.repository.NotificationRepository;
 import com.payments.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.rebalance.ConsumerSeekToCurrentErrorHandler;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
@@ -66,7 +66,7 @@ public class NotificationEventConsumer {
   )
   public void handlePaymentEvent(
       @Payload String eventJson,
-      @Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition,
+        @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
       @Header(KafkaHeaders.OFFSET) long offset,
       Acknowledgment ack) {
 

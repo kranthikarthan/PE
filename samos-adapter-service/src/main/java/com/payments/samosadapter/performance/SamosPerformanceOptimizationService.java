@@ -128,7 +128,7 @@ public class SamosPerformanceOptimizationService {
 
       List<SamosAdapter> adapters =
           samosAdapterRepository.findByStatus(
-              com.payments.domain.clearing.AdapterOperationalStatus.valueOf(status));
+              com.payments.domain.valueobjects.AdapterOperationalStatus.valueOf(status));
 
       log.debug(
           "Retrieved optimized SAMOS adapters by status: {}, count: {}", status, adapters.size());

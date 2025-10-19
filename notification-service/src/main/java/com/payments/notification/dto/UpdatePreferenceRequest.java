@@ -1,6 +1,6 @@
 package com.payments.notification.dto;
 
-import com.payments.notification.domain.model.NotificationChannel;
+import com.payments.domain.valueobjects.NotificationChannel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

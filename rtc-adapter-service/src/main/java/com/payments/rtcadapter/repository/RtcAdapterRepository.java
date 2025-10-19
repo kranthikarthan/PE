@@ -1,6 +1,6 @@
 package com.payments.rtcadapter.repository;
 
-import com.payments.domain.clearing.AdapterOperationalStatus;
+import com.payments.domain.valueobjects.AdapterOperationalStatus;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.rtcadapter.domain.RtcAdapter;
 import java.util.List;

@@ -65,7 +65,8 @@ public class SamosSettlementAccountService {
         request.getAccountNumber());
 
     // Validate tenant context
-    TenantContext tenantContext = TenantContext.of(request.getTenantId());
+    TenantContext tenantContext =
+        TenantContext.builder().tenantId(request.getTenantId()).build();
 
     // Check for duplicate account number
     if (accountRepository.existsByTenantIdAndAccountNumber(

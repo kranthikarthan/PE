@@ -149,7 +149,14 @@
 
         <dependency>
             <groupId>com.payments</groupId>
-            <artifactId>domain-models</artifactId>
+            <artifactId>shared</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Audit Service -->
+        <dependency>
+            <groupId>com.payments</groupId>
+            <artifactId>audit-service</artifactId>
             <version>0.1.0-SNAPSHOT</version>
         </dependency>
 

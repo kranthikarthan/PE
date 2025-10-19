@@ -1,6 +1,6 @@
 package com.payments.payshapadapter.performance;
 
-import com.payments.domain.clearing.AdapterOperationalStatus;
+import com.payments.domain.valueobjects.AdapterOperationalStatus;
 import com.payments.payshapadapter.domain.PayShapAdapter;
 import com.payments.payshapadapter.repository.PayShapAdapterRepository;
 import io.micrometer.core.instrument.Counter;

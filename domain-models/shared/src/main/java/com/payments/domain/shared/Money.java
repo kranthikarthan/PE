@@ -78,6 +78,15 @@ public class Money {
     return this.amount.compareTo(BigDecimal.ZERO) <= 0;
   }
 
+  // Getters for compatibility
+  public BigDecimal getAmount() {
+    return this.amount;
+  }
+
+  public Currency getCurrency() {
+    return this.currency;
+  }
+
   private void assertSameCurrency(Money other) {
     if (!this.currency.equals(other.currency)) {
       throw new IllegalArgumentException(

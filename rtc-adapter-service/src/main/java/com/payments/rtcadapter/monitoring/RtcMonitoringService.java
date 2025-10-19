@@ -107,13 +107,13 @@ public class RtcMonitoringService {
             .register(meterRegistry);
 
     // Initialize gauges
-    Gauge.builder("rtc.adapters.active")
+    Gauge.builder("rtc.adapters.active", this, RtcMonitoringService::getActiveAdapterCount)
         .description("Number of active RTC adapters")
-        .register(meterRegistry, this, RtcMonitoringService::getActiveAdapterCount);
+        .register(meterRegistry);
 
-    Gauge.builder("rtc.transactions.success.rate")
+    Gauge.builder("rtc.transactions.success.rate", this, RtcMonitoringService::getSuccessRate)
         .description("RTC transaction success rate")
-        .register(meterRegistry, this, RtcMonitoringService::getSuccessRate);
+        .register(meterRegistry);
   }
 
   /** Record transaction metrics */
@@ -232,7 +232,7 @@ public class RtcMonitoringService {
   public Map<String, Object> getHealthMetrics() {
     Map<String, Object> health = new HashMap<>();
 
-    long activeAdapters = getActiveAdapterCount();
+    long activeAdapters = (long) getActiveAdapterCount();
     double successRate = getSuccessRate();
 
     health.put("status", activeAdapters > 0 && successRate > 0.95 ? "HEALTHY" : "DEGRADED");
@@ -273,7 +273,7 @@ public class RtcMonitoringService {
   /** Get active adapter count */
   private double getActiveAdapterCount() {
     return rtcAdapterRepository.countByStatus(
-        com.payments.domain.clearing.AdapterOperationalStatus.ACTIVE);
+        com.payments.domain.valueobjects.AdapterOperationalStatus.ACTIVE);
   }
 
   /** Get success rate */

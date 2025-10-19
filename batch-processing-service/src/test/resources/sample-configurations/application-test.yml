@@ -1,0 +1,127 @@
+# Test Configuration for Batch Processing Service
+spring:
+  profiles:
+    active: test
+  
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/payment_engine_batch_test
+    username: batch_user
+    password: test_password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+  
+  # Redis Configuration
+  redis:
+    host: localhost
+    port: 6379
+    password: 
+    database: 0
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+  
+  # Batch Configuration
+  batch:
+    jdbc:
+      initialize-schema: never
+    job:
+      enabled: true
+  
+  # Cloud Configuration
+  cloud:
+    vault:
+      enabled: false
+  
+  # Security Configuration
+  security:
+    user:
+      name: test
+      password: test
+      roles: USER
+
+# Batch Processing Configuration
+batch:
+  processing:
+    chunk-size: 100
+    page-size: 50
+    timeout-seconds: 1800
+    retry-count: 3
+    max-concurrent-executions: 2
+    async: false
+    
+  # SFTP Configuration
+  sftp:
+    host: localhost
+    port: 22
+    username: test_user
+    password: test_password
+    private-key-path: 
+    known-hosts-file: 
+    connection-pool:
+      max-connections: 5
+      max-idle-time: 300000
+      connection-timeout: 30000
+      socket-timeout: 30000
+
+# Logging Configuration
+logging:
+  level:
+    com.payments.batch: DEBUG
+    org.springframework.batch: INFO
+    org.springframework.jdbc: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/batch-processing-test.log
+
+# Management Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Test Data Configuration
+test:
+  data:
+    input-directory: src/test/resources/test-data
+    output-directory: target/test-output
+    cleanup-after-test: true
+    sample-files:
+      csv: sample-payments.csv
+      excel: sample-payments.xlsx
+      json: sample-payments.json
+      xml: sample-payments.xml

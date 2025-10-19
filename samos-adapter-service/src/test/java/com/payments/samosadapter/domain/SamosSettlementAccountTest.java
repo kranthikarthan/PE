@@ -25,7 +25,7 @@ class SamosSettlementAccountTest {
     // When
     SamosSettlementAccount account =
         SamosSettlementAccount.create(
-            TenantContext.of(TENANT_ID),
+            TenantContext.builder().tenantId(TENANT_ID).build(),
             ACCOUNT_NUMBER,
             BANK_CODE,
             BANK_NAME,
@@ -53,7 +53,7 @@ class SamosSettlementAccountTest {
     assertThatThrownBy(
             () ->
                 SamosSettlementAccount.create(
-                    TenantContext.of(TENANT_ID),
+                    TenantContext.builder().tenantId(TENANT_ID).build(),
                     "12345", // Invalid: too short
                     BANK_CODE,
                     BANK_NAME,
@@ -366,7 +366,7 @@ class SamosSettlementAccountTest {
 
   private SamosSettlementAccount createTestAccount() {
     return SamosSettlementAccount.create(
-        TenantContext.of(TENANT_ID),
+        TenantContext.builder().tenantId(TENANT_ID).build(),
         ACCOUNT_NUMBER,
         BANK_CODE,
         BANK_NAME,

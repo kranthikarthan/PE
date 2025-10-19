@@ -1,13 +1,13 @@
 package com.payments.notification.dto;
 
-import com.payments.notification.domain.model.NotificationType;
+import com.payments.domain.valueobjects.NotificationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * CreateTemplateRequest DTO for REST API.

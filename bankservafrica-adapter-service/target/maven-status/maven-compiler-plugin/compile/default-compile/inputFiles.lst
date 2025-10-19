@@ -1,4 +1,7 @@
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\BankservAfricaAdapterApplication.java
+C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\client\BankservAfricaBatchFileService.java
+C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\client\BankservAfricaPgpService.java
+C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\client\BankservAfricaSftpClient.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\config\BankservAfricaAdapterConfig.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\config\BankservAfricaAdapterHealthIndicator.java
 C:\git\clone\PE\bankservafrica-adapter-service\src\main\java\com\payments\bankservafricaadapter\config\BankservAfricaEnvironmentConfig.java

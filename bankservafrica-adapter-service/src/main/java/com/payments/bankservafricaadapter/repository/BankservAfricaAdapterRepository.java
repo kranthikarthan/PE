@@ -45,5 +45,5 @@ public interface BankservAfricaAdapterRepository
 
   /** Count adapters by status */
   @Query("SELECT COUNT(a) FROM BankservAfricaAdapter a WHERE a.status = :status")
-  long countByStatus(@Param("status") com.payments.domain.clearing.AdapterOperationalStatus status);
+  long countByStatus(@Param("status") com.payments.domain.valueobjects.AdapterOperationalStatus status);
 }

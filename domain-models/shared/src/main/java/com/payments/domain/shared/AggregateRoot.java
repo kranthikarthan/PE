@@ -1,16 +1,19 @@
 package com.payments.domain.shared;
 
-import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /** AggregateRoot - base class providing domain event recording. */
-public abstract class AggregateRoot {
+public abstract class AggregateRoot<T> {
 
-  @Transient private final List<DomainEvent> domainEvents = new ArrayList<>();
+  private final List<DomainEvent> domainEvents = new ArrayList<>();
 
   protected void registerEvent(DomainEvent event) {
+    domainEvents.add(event);
+  }
+
+  protected void addDomainEvent(DomainEvent event) {
     domainEvents.add(event);
   }
 

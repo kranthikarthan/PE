@@ -1,6 +1,6 @@
 package com.payments.rtcadapter.service;
 
-import com.payments.domain.clearing.AdapterOperationalStatus;
+import com.payments.domain.valueobjects.AdapterOperationalStatus;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.ClearingMessageId;
 import com.payments.domain.shared.ClearingRouteId;

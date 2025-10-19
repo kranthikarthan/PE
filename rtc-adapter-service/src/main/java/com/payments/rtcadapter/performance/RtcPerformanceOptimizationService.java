@@ -118,7 +118,7 @@ public class RtcPerformanceOptimizationService {
 
       RtcAdapter adapter =
           rtcAdapterRepository
-              .findById(adapterId)
+              .findById(com.payments.domain.shared.ClearingAdapterId.of(adapterId))
               .orElseThrow(() -> new RuntimeException("Adapter not found: " + adapterId));
 
       log.debug("Retrieved optimized RTC adapter: {}", adapterId);
@@ -136,7 +136,7 @@ public class RtcPerformanceOptimizationService {
       rtcQueryOptimizationCounter.increment();
       rtcOptimizedQueries.incrementAndGet();
 
-      List<RtcAdapter> adapters = rtcAdapterRepository.findByStatus(status);
+      List<RtcAdapter> adapters = rtcAdapterRepository.findByStatus(com.payments.domain.valueobjects.AdapterOperationalStatus.valueOf(status));
 
       log.debug(
           "Retrieved optimized RTC adapters by status: {}, count: {}", status, adapters.size());

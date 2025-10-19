@@ -1,4 +1,9 @@
 UHav4OKcUq9FjbSfkpiHF8FuKV2/86n/J+mjm8gGi1k=
+src\main\java\com\payments\swiftadapter\client\SwiftIncomingMessage.java 2025-10-19T10:56:08.136543900Z
+src\main\java\com\payments\swiftadapter\client\SwiftMessageResponse.java 2025-10-19T10:56:08.136543900Z
+src\main\java\com\payments\swiftadapter\client\SwiftMessageStatus.java 2025-10-19T10:56:08.136543900Z
+src\main\java\com\payments\swiftadapter\client\SwiftNetworkClient.java 2025-10-19T10:56:08.136543900Z
+src\main\java\com\payments\swiftadapter\client\SwiftNetworkClientConfig.java 2025-10-19T10:56:08.136543900Z
 src\main\java\com\payments\swiftadapter\config\MetricsConfig.java 2025-10-17T16:13:08.593462400Z
 src\main\java\com\payments\swiftadapter\config\Resilience4jConfig.java 2025-10-17T16:13:08.621465700Z
 src\main\java\com\payments\swiftadapter\config\SwiftAdapterConfig.java 2025-10-17T16:13:08.669501200Z
@@ -41,6 +46,7 @@ src\main\java\com\payments\swiftadapter\service\SwiftOAuth2TokenService.java 202
 src\main\java\com\payments\swiftadapter\service\SwiftPaymentProcessingService.java 2025-10-17T16:13:10.498681Z
 src\main\java\com\payments\swiftadapter\service\SwiftSecretManagementService.java 2025-10-17T16:13:10.569154800Z
 src\main\java\com\payments\swiftadapter\SwiftAdapterApplication.java 2025-10-17T10:31:42.579673700Z
+src\test\java\com\payments\swiftadapter\client\SwiftNetworkClientTest.java 2025-10-19T10:56:08.137617400Z
 src\test\java\com\payments\swiftadapter\fixtures\SwiftAdapterTestDataBuilder.java 2025-10-17T16:57:10.406658300Z
 src\test\java\com\payments\swiftadapter\fixtures\TenantContextTestDataBuilder.java 2025-10-17T16:57:10.414171500Z
 src\test\java\com\payments\swiftadapter\integration\SwiftAdapterIntegrationTest.java 2025-10-17T16:57:10.453313500Z

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<payments xmlns="http://www.payments.com/schema/payments">
+  <payment>
+    <paymentId>PAY001</paymentId>
+    <debtorAccount>1234567890</debtorAccount>
+    <creditorAccount>0987654321</creditorAccount>
+    <amount>1000.50</amount>
+    <currency>ZAR</currency>
+    <reference>REF001</reference>
+    <description>Payment for services</description>
+    <transactionDate>2025-10-19</transactionDate>
+    <debtorName>John Doe</debtorName>
+    <creditorName>Jane Smith</creditorName>
+    <debtorBankCode>632005</debtorBankCode>
+    <creditorBankCode>632005</creditorBankCode>
+    <transactionType>TRANSFER</transactionType>
+    <priority>NORMAL</priority>
+    <status>PENDING</status>
+  </payment>
+  <payment>
+    <paymentId>PAY002</paymentId>
+    <debtorAccount>1234567891</debtorAccount>
+    <creditorAccount>0987654322</creditorAccount>
+    <amount>2500.75</amount>
+    <currency>ZAR</currency>
+    <reference>REF002</reference>
+    <description>Salary payment</description>
+    <transactionDate>2025-10-19</transactionDate>
+    <debtorName>ABC Company</debtorName>
+    <creditorName>Employee 1</creditorName>
+    <debtorBankCode>632005</debtorBankCode>
+    <creditorBankCode>632005</creditorBankCode>
+    <transactionType>TRANSFER</transactionType>
+    <priority>HIGH</priority>
+    <status>PENDING</status>
+  </payment>
+  <payment>
+    <paymentId>PAY003</paymentId>
+    <debtorAccount>1234567892</debtorAccount>
+    <creditorAccount>0987654323</creditorAccount>
+    <amount>500.00</amount>
+    <currency>ZAR</currency>
+    <reference>REF003</reference>
+    <description>Utility bill</description>
+    <transactionDate>2025-10-19</transactionDate>
+    <debtorName>Home Owner</debtorName>
+    <creditorName>Utility Company</creditorName>
+    <debtorBankCode>632005</debtorBankCode>
+    <creditorBankCode>632005</creditorBankCode>
+    <transactionType>TRANSFER</transactionType>
+    <priority>NORMAL</priority>
+    <status>PENDING</status>
+  </payment>
+  <payment>
+    <paymentId>PAY004</paymentId>
+    <debtorAccount>1234567893</debtorAccount>
+    <creditorAccount>0987654324</creditorAccount>
+    <amount>15000.00</amount>
+    <currency>ZAR</currency>
+    <reference>REF004</reference>
+    <description>Loan repayment</description>
+    <transactionDate>2025-10-19</transactionDate>
+    <debtorName>Borrower</debtorName>
+    <creditorName>Bank</creditorName>
+    <debtorBankCode>632005</debtorBankCode>
+    <creditorBankCode>632005</creditorBankCode>
+    <transactionType>TRANSFER</transactionType>
+    <priority>HIGH</priority>
+    <status>PENDING</status>
+  </payment>
+  <payment>
+    <paymentId>PAY005</paymentId>
+    <debtorAccount>1234567894</debtorAccount>
+    <creditorAccount>0987654325</creditorAccount>
+    <amount>750.25</amount>
+    <currency>ZAR</currency>
+    <reference>REF005</reference>
+    <description>Insurance premium</description>
+    <transactionDate>2025-10-19</transactionDate>
+    <debtorName>Policy Holder</debtorName>
+    <creditorName>Insurance Co</creditorName>
+    <debtorBankCode>632005</debtorBankCode>
+    <creditorBankCode>632005</creditorBankCode>
+    <transactionType>TRANSFER</transactionType>
+    <priority>NORMAL</priority>
+    <status>PENDING</status>
+  </payment>
+</payments>

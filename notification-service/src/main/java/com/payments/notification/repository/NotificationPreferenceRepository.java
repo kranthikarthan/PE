@@ -1,6 +1,6 @@
 package com.payments.notification.repository;
 
-import com.payments.notification.domain.model.NotificationPreferenceEntity;
+import com.payments.domain.entities.NotificationPreferenceEntity;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;

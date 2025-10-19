@@ -23,10 +23,7 @@ import lombok.Setter;
 @Entity
 @Table(
     name = "bankservafrica_settlement_records",
-    indexes = {
-        @Index(name = "idx_settlement_date", columnList = "settlement_date")
-    }
-)
+    indexes = {@Index(name = "idx_settlement_date", columnList = "settlement_date")})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Setter

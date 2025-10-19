@@ -75,13 +75,7 @@
   </dependencies>
   <modules>
     <module>shared</module>
+    <module>infrastructure</module>
     <module>iso20022</module>
-    <module>tenant-management</module>
-    <module>account-adapter</module>
-    <module>payment-initiation</module>
-    <module>transaction-processing</module>
-    <module>validation</module>
-    <module>clearing-adapter</module>
-    <module>saga-orchestrator</module>
   </modules>
 </project>

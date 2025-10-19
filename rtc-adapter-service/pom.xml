@@ -82,15 +82,10 @@
             <artifactId>flyway-core</artifactId>
         </dependency>
 
-        <!-- Domain Models - Individual modules -->
+        <!-- Domain Models - Consolidated shared module -->
         <dependency>
             <groupId>com.payments</groupId>
             <artifactId>shared</artifactId>
-            <version>${domain-models.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.payments</groupId>
-            <artifactId>clearing-adapter</artifactId>
             <version>${domain-models.version}</version>
         </dependency>
 
@@ -112,11 +107,6 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
-        <!-- OpenFeign for external service integration -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-        </dependency>
 
         <!-- Validation Service for Business Rules Engine -->
         <dependency>
@@ -138,19 +128,6 @@
             <version>${contracts.version}</version>
         </dependency>
 
-        <!-- Shared Config -->
-        <dependency>
-            <groupId>com.payments</groupId>
-            <artifactId>shared-config</artifactId>
-            <version>${shared-config.version}</version>
-        </dependency>
-
-        <!-- Shared Telemetry -->
-        <dependency>
-            <groupId>com.payments</groupId>
-            <artifactId>shared-telemetry</artifactId>
-            <version>${shared-telemetry.version}</version>
-        </dependency>
 
         <!-- Lombok -->
         <dependency>

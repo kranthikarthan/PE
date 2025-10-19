@@ -1,8 +1,8 @@
 package com.payments.notification.repository;
 
-import com.payments.notification.domain.model.NotificationChannel;
-import com.payments.notification.domain.model.NotificationEntity;
-import com.payments.notification.domain.model.NotificationStatus;
+import com.payments.domain.entities.NotificationEntity;
+import com.payments.domain.valueobjects.NotificationStatus;
+import com.payments.domain.valueobjects.NotificationChannel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

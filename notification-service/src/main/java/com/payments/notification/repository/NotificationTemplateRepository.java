@@ -1,7 +1,7 @@
 package com.payments.notification.repository;
 
-import com.payments.notification.domain.model.NotificationTemplateEntity;
-import com.payments.notification.domain.model.NotificationType;
+import com.payments.domain.entities.NotificationTemplateEntity;
+import com.payments.domain.valueobjects.NotificationType;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -148,4 +148,18 @@ public interface NotificationTemplateRepository extends JpaRepository<Notificati
   @Override
   @CacheEvict(value = "notification_templates", allEntries = true)
   void delete(NotificationTemplateEntity template);
+
+  /**
+   * Find templates by tenant and active status, ordered by creation date.
+   *
+   * @param tenantId the tenant ID
+   * @param isActive the active status
+   * @param pageable pagination info
+   * @return paginated templates
+   */
+  @Query("SELECT t FROM NotificationTemplateEntity t WHERE t.tenantId = :tenantId AND t.isActive = :isActive ORDER BY t.createdAt DESC")
+  Page<NotificationTemplateEntity> findByTenantIdAndActiveOrderByCreatedAtDesc(
+      @Param("tenantId") String tenantId, 
+      @Param("isActive") boolean isActive, 
+      Pageable pageable);
 }

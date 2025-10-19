@@ -3,7 +3,12 @@ package com.payments.notification.service;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import com.github.mustachejava.DefaultMustacheFactory;
-import com.payments.notification.domain.model.*;
+import com.payments.domain.entities.NotificationEntity;
+import com.payments.domain.entities.NotificationTemplateEntity;
+import com.payments.domain.entities.NotificationPreferenceEntity;
+import com.payments.domain.shared.*;
+import com.payments.domain.valueobjects.*;
+import com.payments.audit.service.AuditService;
 import com.payments.notification.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.StringWriter;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -79,25 +85,25 @@ public class NotificationService {
           notificationId,
           notification.getTenantId(),
           notification.getUserId(),
-          notification.getNotificationType());
+          notification.getType());
 
       // 2. Look up template
       NotificationTemplateEntity template =
           templateRepository
               .findActiveTemplateByTenantAndType(
-                  notification.getTenantId(), notification.getNotificationType())
+                  notification.getTenantId(), notification.getType())
               .orElseThrow(
                   () ->
                       new IllegalArgumentException(
                           "Template not found for type: "
-                              + notification.getNotificationType()));
+                              + notification.getType()));
 
       // 3. Check user preferences
       NotificationPreferenceEntity preferences =
           preferenceRepository
               .findByTenantIdAndUserId(
-                  notification.getTenantId(), notification.getUserId())
-              .orElse(createDefaultPreferences(notification.getTenantId(), notification.getUserId()));
+                  notification.getTenantId().getValue(), notification.getUserId())
+              .orElse(createDefaultPreferences(notification.getTenantId().getValue(), notification.getUserId()));
 
       // 4. Validate preferences
       if (!isNotificationAllowed(notification, preferences)) {
@@ -123,9 +129,9 @@ public class NotificationService {
 
       // 6. Render template
       Map<String, Object> templateVariables =
-          parseTemplateData(notification.getTemplateData());
+          parseTemplateData(notification.getMetadata());
       String renderedContent =
-          renderTemplate(template.getEmailTemplate(), templateVariables);
+          renderTemplate(template.getContent(), templateVariables);
 
       log.debug(
           "Template rendered: id={}, contentLength={}", notificationId, renderedContent.length());
@@ -210,17 +216,17 @@ public class NotificationService {
     // Determine which channels to use
     for (NotificationChannel channel : NotificationChannel.values()) {
       // Check if user prefers this channel
-      if (!preferences.isChannelPreferred(channel)) {
+      if (!preferences.getChannel().equals(channel)) {
         log.debug(
             "User doesn't prefer channel: userId={}, channel={}", notification.getUserId(), channel);
         continue;
       }
 
       // Check if template supports this channel
-      if (!template.supportsChannel(channel)) {
+      if (!template.getChannel().equals(channel)) {
         log.debug(
             "Template doesn't support channel: type={}, channel={}",
-            notification.getNotificationType(),
+            notification.getType(),
             channel);
         continue;
       }
@@ -231,13 +237,13 @@ public class NotificationService {
     if (channelsToUse.isEmpty()) {
       log.warn(
           "No suitable channels for notification: id={}, userId={}",
-          notification.getId(),
+          notification.getNotificationId(),
           notification.getUserId());
       return;
     }
 
     log.info(
-        "Dispatching to channels: notificationId={}, channels={}", notification.getId(), channelsToUse);
+        "Dispatching to channels: notificationId={}, channels={}", notification.getNotificationId(), channelsToUse);
 
     // Send to each channel (async)
     for (NotificationChannel channel : channelsToUse) {
@@ -262,9 +268,9 @@ public class NotificationService {
     try {
       log.debug(
           "Sending to channel: notificationId={}, channel={}, recipient={}",
-          notification.getId(),
+          notification.getNotificationId(),
           channel,
-          notification.getRecipientAddress());
+          notification.getRecipient());
 
       switch (channel) {
         case EMAIL:
@@ -284,14 +290,14 @@ public class NotificationService {
       log.info(
           "Sent to {}: notificationId={}, recipient={}",
           channel,
-          notification.getId(),
-          notification.getRecipientAddress());
+          notification.getNotificationId(),
+          notification.getRecipient());
 
     } catch (Exception e) {
       log.error(
           "Failed to send via {}: notificationId={}, error={}",
           channel,
-          notification.getId(),
+          notification.getNotificationId(),
           e.getMessage(),
           e);
     }
@@ -342,20 +348,16 @@ public class NotificationService {
    * @return default preferences
    */
   private NotificationPreferenceEntity createDefaultPreferences(String tenantId, String userId) {
-    NotificationPreferenceEntity preferences =
-        NotificationPreferenceEntity.builder()
-            .id(UUID.randomUUID())
-            .tenantId(tenantId)
-            .userId(userId)
-            .preferredChannels(
-                Set.of(
-                    NotificationChannel.EMAIL,
-                    NotificationChannel.SMS,
-                    NotificationChannel.PUSH))
-            .transactionAlertsOptIn(true)
-            .marketingOptIn(false)
-            .systemNotificationsOptIn(true)
-            .build();
+    PreferenceId preferenceId = new PreferenceId(UUID.randomUUID());
+    TenantId tenantIdObj = new TenantId(tenantId);
+    Map<String, Object> settings = new HashMap<>();
+    settings.put("transactionAlertsOptIn", true);
+    settings.put("marketingOptIn", false);
+    settings.put("systemNotificationsOptIn", true);
+    
+    NotificationPreferenceEntity preferences = new NotificationPreferenceEntity(
+        preferenceId, tenantIdObj, userId, NotificationType.TRANSACTION, 
+        NotificationChannel.EMAIL, true, settings);
 
     return preferenceRepository.save(preferences);
   }
@@ -375,7 +377,7 @@ public class NotificationService {
         return;
       }
 
-      int newAttempts = (notification.getAttempts() != null ? notification.getAttempts() : 0) + 1;
+      int newAttempts = (notification.getRetryCount() != null ? notification.getRetryCount() : 0) + 1;
 
       if (newAttempts >= MAX_RETRY_ATTEMPTS) {
         log.error(
@@ -383,7 +385,7 @@ public class NotificationService {
             notificationId,
             newAttempts);
         updateNotificationStatus(notification, NotificationStatus.FAILED);
-        notification.setFailureReason(exception.getMessage());
+        notification.setErrorMessage(exception.getMessage());
         notificationRepository.save(notification);
         auditService.logNotificationError(notification, exception.getMessage());
       } else {
@@ -392,9 +394,9 @@ public class NotificationService {
             notificationId,
             newAttempts,
             MAX_RETRY_ATTEMPTS);
-        updateNotificationStatus(notification, NotificationStatus.RETRY);
-        notification.setAttempts(newAttempts);
-        notification.setLastAttemptAt(LocalDateTime.now());
+        updateNotificationStatus(notification, NotificationStatus.PENDING);
+        notification.setRetryCount(newAttempts);
+        notification.setExpiresAt(Instant.now().plusMillis(RETRY_BACKOFF_MS * newAttempts));
         notificationRepository.save(notification);
       }
 
@@ -412,9 +414,9 @@ public class NotificationService {
    */
   private void updateNotificationStatus(
       NotificationEntity notification, NotificationStatus newStatus) {
-    notificationRepository.updateStatus(notification.getId(), newStatus, LocalDateTime.now());
+    notificationRepository.updateStatus(notification.getNotificationId(), newStatus, LocalDateTime.now());
     log.debug(
-        "Updated notification status: id={}, status={}", notification.getId(), newStatus);
+        "Updated notification status: id={}, status={}", notification.getNotificationId(), newStatus);
   }
 
   /**

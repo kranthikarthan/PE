@@ -245,7 +245,7 @@ public class SamosMonitoringService {
   private double getActiveAdapterCount() {
     return (double)
         samosAdapterRepository.countByStatus(
-            com.payments.domain.clearing.AdapterOperationalStatus.ACTIVE);
+            com.payments.domain.valueobjects.AdapterOperationalStatus.ACTIVE);
   }
 
   /** Get success rate */

@@ -275,7 +275,7 @@ public class PayShapMonitoringService {
   /** Get active adapter count */
   private double getActiveAdapterCount() {
     return payShapAdapterRepository.countByStatus(
-        com.payments.domain.clearing.AdapterOperationalStatus.ACTIVE);
+        com.payments.domain.valueobjects.AdapterOperationalStatus.ACTIVE);
   }
 
   /** Get success rate */

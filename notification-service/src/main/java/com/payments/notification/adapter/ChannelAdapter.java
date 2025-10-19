@@ -1,7 +1,7 @@
 package com.payments.notification.adapter;
 
-import com.payments.notification.domain.model.NotificationEntity;
-import com.payments.notification.domain.model.NotificationTemplateEntity;
+import com.payments.domain.entities.NotificationEntity;
+import com.payments.domain.entities.NotificationTemplateEntity;
 
 /**
  * ChannelAdapter defines the contract for all notification channel implementations.

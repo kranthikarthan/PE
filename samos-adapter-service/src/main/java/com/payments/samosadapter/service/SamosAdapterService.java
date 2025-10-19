@@ -657,7 +657,7 @@ public class SamosAdapterService {
         () -> {
           log.debug("Getting active adapter count");
           return samosAdapterRepository.countByStatus(
-              com.payments.domain.clearing.AdapterOperationalStatus.ACTIVE);
+              com.payments.domain.valueobjects.AdapterOperationalStatus.ACTIVE);
         });
   }
 

@@ -1,6 +1,6 @@
 package com.payments.rtcadapter.domain;
 
-import com.payments.domain.clearing.ClearingNetwork;
+import com.payments.domain.valueobjects.ClearingNetwork;
 import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.shared.DomainEvent;
 import java.time.Instant;
