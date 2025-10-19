@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: batch-processing-service
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/payments}
+    username: ${DATABASE_USERNAME:payments_user}
+    password: ${DATABASE_PASSWORD:payments_pass}
+    hikari:
+      maximum-pool-size: ${DATABASE_POOL_SIZE:10}
+      minimum-idle: 2
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false # Don't auto-start jobs on application startup
+
+server:
+  port: ${SERVER_PORT:8093}
+  servlet:
+    context-path: /batch
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.payments.batch: DEBUG
+    org.springframework.batch: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+

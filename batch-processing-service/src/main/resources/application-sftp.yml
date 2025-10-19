@@ -1,0 +1,68 @@
+# SFTP Configuration for Batch Processing Service
+# This configuration supports multiple SFTP servers and authentication methods
+
+batch:
+  sftp:
+    # SFTP Server Configuration
+    host: ${SFTP_HOST:localhost}
+    port: ${SFTP_PORT:22}
+    username: ${SFTP_USERNAME:testuser}
+    
+    # Authentication Configuration
+    password: ${SFTP_PASSWORD:}
+    private-key: ${SFTP_PRIVATE_KEY:}
+    private-key-passphrase: ${SFTP_PRIVATE_KEY_PASSPHRASE:}
+    known-hosts: ${SFTP_KNOWN_HOSTS:}
+    
+    # Connection Configuration
+    timeout: ${SFTP_TIMEOUT:30000}
+    socket-timeout: ${SFTP_SOCKET_TIMEOUT:30000}
+    retry-attempts: ${SFTP_RETRY_ATTEMPTS:3}
+    retry-delay: ${SFTP_RETRY_DELAY:1000}
+    
+    # Connection Pool Configuration
+    max-connections: ${SFTP_MAX_CONNECTIONS:5}
+    pool-timeout: ${SFTP_POOL_TIMEOUT:60000}
+    
+    # Compression Configuration
+    compression-enabled: ${SFTP_COMPRESSION_ENABLED:false}
+    compression-level: ${SFTP_COMPRESSION_LEVEL:6}
+    
+    # Security Configuration
+    strict-host-key-checking: ${SFTP_STRICT_HOST_KEY_CHECKING:true}
+    preferred-auth-methods: ${SFTP_PREFERRED_AUTH_METHODS:publickey,password}
+    
+    # File Operation Configuration
+    max-file-size: ${SFTP_MAX_FILE_SIZE:104857600} # 100MB
+    temp-directory: ${SFTP_TEMP_DIRECTORY:${java.io.tmpdir}}
+    create-directories: ${SFTP_CREATE_DIRECTORIES:true}
+    file-permissions: ${SFTP_FILE_PERMISSIONS:644}
+    directory-permissions: ${SFTP_DIRECTORY_PERMISSIONS:755}
+
+# Logging Configuration for SFTP Operations
+logging:
+  level:
+    com.payments.batch.sftp: ${SFTP_LOG_LEVEL:INFO}
+    com.jcraft.jsch: ${JSCH_LOG_LEVEL:WARN}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Management and Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,sftp
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# SFTP Health Check Configuration
+health:
+  sftp:
+    enabled: true
+    timeout: 5000
