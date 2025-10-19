@@ -1,4 +1,9 @@
 spring:
+  config:
+    import: "optional:configserver:,optional:consul:"
+  cloud:
+    vault:
+      enabled: false
   datasource:
     url: jdbc:tc:postgresql:15:///testdb
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver

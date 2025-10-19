@@ -1,0 +1,11 @@
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+app:
+  kafka:
+    topics:
+      reconciliation-run-started: reconciliation-run-started
+      reconciliation-run-completed: reconciliation-run-completed
+
+
