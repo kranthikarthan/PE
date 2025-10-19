@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: settlement-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+app:
+  kafka:
+    topics:
+      settlement-batch-created: settlement-batch-created
+      settlement-completed: settlement-completed
+
+
