@@ -81,7 +81,7 @@ data:
               Runbook: {{ .Annotations.runbook_url }}
               {{ end }}
         slack_configs:
-          - api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+          - api_url: 'https://hooks.slack.com/services/REPLACE_WITH_ACTUAL_WEBHOOK_URL'
             channel: '#alerts-critical'
             title: 'Critical Alert: {{ .GroupLabels.alertname }}'
             text: |
@@ -111,7 +111,7 @@ data:
               Runbook: {{ .Annotations.runbook_url }}
               {{ end }}
         slack_configs:
-          - api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+          - api_url: 'https://hooks.slack.com/services/REPLACE_WITH_ACTUAL_WEBHOOK_URL'
             channel: '#alerts-warning'
             title: 'Warning Alert: {{ .GroupLabels.alertname }}'
             text: |
@@ -134,7 +134,7 @@ data:
               Runbook: {{ .Annotations.runbook_url }}
               {{ end }}
         slack_configs:
-          - api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+          - api_url: 'https://hooks.slack.com/services/REPLACE_WITH_ACTUAL_WEBHOOK_URL'
             channel: '#business-alerts'
             title: 'Business Alert: {{ .GroupLabels.alertname }}'
             text: |
@@ -157,7 +157,7 @@ data:
               Runbook: {{ .Annotations.runbook_url }}
               {{ end }}
         slack_configs:
-          - api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+          - api_url: 'https://hooks.slack.com/services/REPLACE_WITH_ACTUAL_WEBHOOK_URL'
             channel: '#security-alerts'
             title: 'Security Alert: {{ .GroupLabels.alertname }}'
             text: |
@@ -187,7 +187,7 @@ data:
               Runbook: {{ .Annotations.runbook_url }}
               {{ end }}
         slack_configs:
-          - api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+          - api_url: 'https://hooks.slack.com/services/REPLACE_WITH_ACTUAL_WEBHOOK_URL'
             channel: '#ops-alerts'
             title: 'Infrastructure Alert: {{ .GroupLabels.alertname }}'
             text: |
