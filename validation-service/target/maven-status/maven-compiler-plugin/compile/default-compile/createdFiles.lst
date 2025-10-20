@@ -46,6 +46,7 @@ com\payments\validation\service\RuleExecutionFacade$ValidationContext.class
 com\payments\contracts\validation\RiskLevel.class
 com\payments\contracts\events\ValidationResponseDto$ValidationResponseDtoBuilder.class
 com\payments\contracts\events\FailedRuleDto.class
+com\payments\validation\config\SecurityConfig.class
 com\payments\validation\service\ValidationRuleEngine$ValidationContext.class
 com\payments\validation\entity\FraudDetectionResultEntity$FraudDetectionResultEntityBuilder.class
 com\payments\validation\entity\RiskAssessmentResultEntity$RiskAssessmentResultEntityBuilder.class

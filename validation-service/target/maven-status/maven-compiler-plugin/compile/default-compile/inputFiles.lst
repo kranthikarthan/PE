@@ -11,6 +11,7 @@ C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\config\
 C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\config\KafkaConfig.java
 C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\config\KafkaHeaderInterceptor.java
 C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\config\RuleEngineConfig.java
+C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\config\SecurityConfig.java
 C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\consumer\PaymentEventConsumer.java
 C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\entity\FraudDetectionResultEntity.java
 C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\entity\RiskAssessmentResultEntity.java

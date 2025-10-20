@@ -1,0 +1,283 @@
+[
+    {
+        "Id": "ca983756c577052b8d7b080b443808e5b48820180c2f41c1c113e41f34bc3caa",
+        "Created": "2025-10-20T13:03:12.029041982Z",
+        "Path": "java",
+        "Args": [
+            "-jar",
+            "app.jar"
+        ],
+        "State": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 1,
+            "Error": "",
+            "StartedAt": "2025-10-20T13:03:12.943153491Z",
+            "FinishedAt": "2025-10-20T13:03:28.017200251Z",
+            "Health": {
+                "Status": "unhealthy",
+                "FailingStreak": 0,
+                "Log": [
+                    {
+                        "Start": "2025-10-20T13:03:18.208156834Z",
+                        "End": "2025-10-20T13:03:18.36217811Z",
+                        "ExitCode": 7,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\ncurl: (7) Failed to connect to localhost port 8084 after 2 ms: Couldn't connect to server\n"
+                    },
+                    {
+                        "Start": "2025-10-20T13:03:23.366812798Z",
+                        "End": "2025-10-20T13:03:23.756857781Z",
+                        "ExitCode": 7,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\ncurl: (7) Failed to connect to localhost port 8084 after 1 ms: Couldn't connect to server\n"
+                    }
+                ]
+            }
+        },
+        "Image": "sha256:8e4d0064f73083d439cf448094955fe8d8dd06c4786cd0056c1fd48610b00622",
+        "ResolvConfPath": "/var/lib/docker/containers/ca983756c577052b8d7b080b443808e5b48820180c2f41c1c113e41f34bc3caa/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/ca983756c577052b8d7b080b443808e5b48820180c2f41c1c113e41f34bc3caa/hostname",
+        "HostsPath": "/var/lib/docker/containers/ca983756c577052b8d7b080b443808e5b48820180c2f41c1c113e41f34bc3caa/hosts",
+        "LogPath": "/var/lib/docker/containers/ca983756c577052b8d7b080b443808e5b48820180c2f41c1c113e41f34bc3caa/ca983756c577052b8d7b080b443808e5b48820180c2f41c1c113e41f34bc3caa-json.log",
+        "Name": "/payments-transaction-processing-service",
+        "RestartCount": 0,
+        "Driver": "overlayfs",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": null,
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "pe_payments-network",
+            "PortBindings": {
+                "8084/tcp": [
+                    {
+                        "HostIp": "",
+                        "HostPort": "8085"
+                    }
+                ]
+            },
+            "RestartPolicy": {
+                "Name": "no",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "ConsoleSize": [
+                0,
+                0
+            ],
+            "CapAdd": null,
+            "CapDrop": null,
+            "CgroupnsMode": "private",
+            "Dns": null,
+            "DnsOptions": null,
+            "DnsSearch": null,
+            "ExtraHosts": [],
+            "GroupAdd": null,
+            "IpcMode": "private",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "NanoCpus": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": null,
+            "BlkioDeviceReadBps": null,
+            "BlkioDeviceWriteBps": null,
+            "BlkioDeviceReadIOps": null,
+            "BlkioDeviceWriteIOps": null,
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpuRealtimePeriod": 0,
+            "CpuRealtimeRuntime": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": null,
+            "DeviceCgroupRules": null,
+            "DeviceRequests": null,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": null,
+            "OomKillDisable": null,
+            "PidsLimit": null,
+            "Ulimits": null,
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0,
+            "MaskedPaths": [
+                "/proc/asound",
+                "/proc/acpi",
+                "/proc/interrupts",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/sys/firmware",
+                "/sys/devices/virtual/powercap"
+            ],
+            "ReadonlyPaths": [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger"
+            ]
+        },
+        "GraphDriver": {
+            "Data": null,
+            "Name": "overlayfs"
+        },
+        "Mounts": [],
+        "Config": {
+            "Hostname": "ca983756c577",
+            "Domainname": "",
+            "User": "appuser",
+            "AttachStdin": false,
+            "AttachStdout": true,
+            "AttachStderr": true,
+            "ExposedPorts": {
+                "8080/tcp": {},
+                "8084/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092",
+                "SPRING_REDIS_PORT=6379",
+                "SPRING_PROFILES_ACTIVE=docker",
+                "MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,metrics,prometheus",
+                "SPRING_DATASOURCE_USERNAME=payments_user",
+                "SPRING_DATASOURCE_PASSWORD=payments_password",
+                "MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always",
+                "SPRING_REDIS_HOST=redis",
+                "SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/transaction_processing",
+                "PATH=/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "JAVA_HOME=/opt/java/openjdk",
+                "LANG=en_US.UTF-8",
+                "LANGUAGE=en_US:en",
+                "LC_ALL=en_US.UTF-8",
+                "JAVA_VERSION=jdk-17.0.16+8"
+            ],
+            "Cmd": null,
+            "Healthcheck": {
+                "Test": [
+                    "CMD",
+                    "curl",
+                    "-f",
+                    "http://localhost:8084/transaction-processing/actuator/health"
+                ],
+                "Interval": 30000000000,
+                "Timeout": 10000000000,
+                "StartPeriod": 90000000000,
+                "Retries": 5
+            },
+            "Image": "pe-transaction-processing-service",
+            "Volumes": null,
+            "WorkingDir": "/app",
+            "Entrypoint": [
+                "java",
+                "-jar",
+                "app.jar"
+            ],
+            "OnBuild": null,
+            "Labels": {
+                "com.docker.compose.config-hash": "fe251053c595dd81c073047a28fadb3fe1f65486acb8676e06a7e01da0e8cbd5",
+                "com.docker.compose.container-number": "1",
+                "com.docker.compose.depends_on": "postgres:service_healthy:false,redis:service_healthy:false,kafka:service_healthy:false",
+                "com.docker.compose.image": "sha256:8e4d0064f73083d439cf448094955fe8d8dd06c4786cd0056c1fd48610b00622",
+                "com.docker.compose.oneoff": "False",
+                "com.docker.compose.project": "pe",
+                "com.docker.compose.project.config_files": "C:\\git\\clone\\PE\\docker-compose.yml",
+                "com.docker.compose.project.working_dir": "C:\\git\\clone\\PE",
+                "com.docker.compose.replace": "payments-transaction-processing-service",
+                "com.docker.compose.service": "transaction-processing-service",
+                "com.docker.compose.version": "2.39.4",
+                "org.opencontainers.image.ref.name": "ubuntu",
+                "org.opencontainers.image.version": "24.04"
+            }
+        },
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "",
+            "SandboxKey": "",
+            "Ports": {},
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "",
+            "Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "",
+            "IPPrefixLen": 0,
+            "IPv6Gateway": "",
+            "MacAddress": "",
+            "Networks": {
+                "pe_payments-network": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": [
+                        "payments-transaction-processing-service",
+                        "transaction-processing-service"
+                    ],
+                    "MacAddress": "",
+                    "DriverOpts": null,
+                    "GwPriority": 0,
+                    "NetworkID": "7ea58d2af0794dd2037b648ee6395e2980342015293c42cda353d483e94448fb",
+                    "EndpointID": "",
+                    "Gateway": "",
+                    "IPAddress": "",
+                    "IPPrefixLen": 0,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "DNSNames": [
+                        "payments-transaction-processing-service",
+                        "transaction-processing-service",
+                        "ca983756c577"
+                    ]
+                }
+            }
+        },
+        "ImageManifestDescriptor": {
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "digest": "sha256:a7cb4b6dfac612e903c1d20a3558a31810720bbffb0cfc40ab0337558c1264b6",
+            "size": 2194,
+            "platform": {
+                "architecture": "amd64",
+                "os": "linux"
+            }
+        }
+    }
+]

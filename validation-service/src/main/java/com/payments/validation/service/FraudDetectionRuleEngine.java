@@ -94,7 +94,7 @@ public class FraudDetectionRuleEngine {
     if (event.getAmount() != null) {
       double amount = event.getAmount().getAmount().doubleValue();
       double fraudThreshold = 50000.0; // ZAR 50,000 threshold for fraud detection
-      
+
       if (amount > fraudThreshold) {
         failedRules.add(
             FailedRule.builder()
@@ -106,7 +106,7 @@ public class FraudDetectionRuleEngine {
                 .build());
       }
     }
-    
+
     log.debug("Velocity check applied for payment: {}", event.getPaymentId().getValue());
   }
 
@@ -136,7 +136,7 @@ public class FraudDetectionRuleEngine {
               .failedAt(Instant.now())
               .build());
     }
-    
+
     log.debug("Behavioral analysis applied for payment: {}", event.getPaymentId().getValue());
   }
 
@@ -149,7 +149,7 @@ public class FraudDetectionRuleEngine {
     if (event.getAmount() != null) {
       double amount = event.getAmount().getAmount().doubleValue();
       double veryHighThreshold = 75000.0; // ZAR 75,000 threshold for pattern analysis
-      
+
       if (amount > veryHighThreshold) {
         failedRules.add(
             FailedRule.builder()
@@ -161,7 +161,7 @@ public class FraudDetectionRuleEngine {
                 .build());
       }
     }
-    
+
     log.debug("Pattern analysis applied for payment: {}", event.getPaymentId().getValue());
   }
 
@@ -173,7 +173,7 @@ public class FraudDetectionRuleEngine {
     // TODO: Implement actual device fingerprinting
     // For now, just log that the rule was applied
     log.debug("Device fingerprinting applied for payment: {}", event.getPaymentId().getValue());
-    
+
     // Add small delay to ensure execution time > 0
     try {
       Thread.sleep(1);

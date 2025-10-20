@@ -98,6 +98,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/payment_initiation
       SPRING_DATASOURCE_USERNAME: payments_user
       SPRING_DATASOURCE_PASSWORD: payments_password
+      SPRING_FLYWAY_ENABLED: 'false'
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
@@ -137,6 +138,9 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
       MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: always
+      MANAGEMENT_SERVER_PORT: 18082
+      SPRING_SECURITY_OAUTH2_CLIENT_ENABLED: 'false'
+      # Security enabled; actuator allowed via SecurityConfig
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/validation-service/actuator/health"]
       interval: 30s
@@ -171,6 +175,9 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
       MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: always
+      MANAGEMENT_SERVER_PORT: 18083
+      SPRING_SECURITY_OAUTH2_CLIENT_ENABLED: 'false'
+      # Security enabled; actuator allowed via SecurityConfig
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8083/account-adapter-service/actuator/health"]
       interval: 30s
@@ -239,8 +246,9 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
       MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: always
+      SPRING_FLYWAY_ENABLED: 'false'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://transaction-processing-service:8084/transaction-processing/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8084/transaction-processing/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5

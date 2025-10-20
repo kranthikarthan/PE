@@ -2,9 +2,9 @@ package com.payments.samosadapter.validation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.domain.valueobjects.AdapterOperationalStatus;
 import com.payments.domain.valueobjects.ClearingNetwork;
-import com.payments.domain.shared.ClearingAdapterId;
 import com.payments.samosadapter.domain.SamosAdapter;
 import com.payments.samosadapter.repository.SamosAdapterRepository;
 import java.time.Instant;

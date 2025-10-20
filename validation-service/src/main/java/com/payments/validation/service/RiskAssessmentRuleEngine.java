@@ -94,7 +94,7 @@ public class RiskAssessmentRuleEngine {
     if (event.getAmount() != null) {
       double amount = event.getAmount().getAmount().doubleValue();
       double creditRiskThreshold = 700000.0; // ZAR 700,000 threshold for credit risk
-      
+
       if (amount > creditRiskThreshold) {
         failedRules.add(
             FailedRule.builder()
@@ -106,7 +106,7 @@ public class RiskAssessmentRuleEngine {
                 .build());
       }
     }
-    
+
     log.debug("Credit risk assessment applied for payment: {}", event.getPaymentId().getValue());
   }
 
@@ -129,7 +129,7 @@ public class RiskAssessmentRuleEngine {
                 .build());
       }
     }
-    
+
     log.debug("Market risk analysis applied for payment: {}", event.getPaymentId().getValue());
   }
 
@@ -142,7 +142,7 @@ public class RiskAssessmentRuleEngine {
     if (event.getAmount() != null) {
       double amount = event.getAmount().getAmount().doubleValue();
       double operationalRiskThreshold = 1000000.0; // ZAR 1,000,000 threshold for operational risk
-      
+
       if (amount > operationalRiskThreshold) {
         failedRules.add(
             FailedRule.builder()
@@ -154,7 +154,7 @@ public class RiskAssessmentRuleEngine {
                 .build());
       }
     }
-    
+
     log.debug(
         "Operational risk evaluation applied for payment: {}", event.getPaymentId().getValue());
   }
@@ -168,7 +168,7 @@ public class RiskAssessmentRuleEngine {
     if (event.getAmount() != null) {
       double amount = event.getAmount().getAmount().doubleValue();
       double liquidityRiskThreshold = 1500000.0; // ZAR 1,500,000 threshold for liquidity risk
-      
+
       if (amount > liquidityRiskThreshold) {
         failedRules.add(
             FailedRule.builder()
@@ -180,9 +180,8 @@ public class RiskAssessmentRuleEngine {
                 .build());
       }
     }
-    
-    log.debug(
-        "Liquidity risk assessment applied for payment: {}", event.getPaymentId().getValue());
+
+    log.debug("Liquidity risk assessment applied for payment: {}", event.getPaymentId().getValue());
   }
 
   /** Execute counterparty risk analysis rule */
@@ -201,9 +200,10 @@ public class RiskAssessmentRuleEngine {
               .failedAt(Instant.now())
               .build());
     }
-    
-    log.debug("Counterparty risk analysis applied for payment: {}", event.getPaymentId().getValue());
-    
+
+    log.debug(
+        "Counterparty risk analysis applied for payment: {}", event.getPaymentId().getValue());
+
     // Add small delay to ensure execution time > 0
     try {
       Thread.sleep(1);
@@ -240,4 +240,3 @@ public class RiskAssessmentRuleEngine {
     return totalScore;
   }
 }
-

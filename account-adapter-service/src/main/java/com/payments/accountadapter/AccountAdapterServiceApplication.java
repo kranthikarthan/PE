@@ -1,7 +1,9 @@
 package com.payments.accountadapter;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
@@ -11,7 +13,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  * validation - Account status checking - Account holder verification - OAuth2 authentication -
  * Circuit breaker patterns
  */
-@SpringBootApplication
+@SpringBootApplication(
+    exclude = {ManagementWebSecurityAutoConfiguration.class, OAuth2ClientAutoConfiguration.class})
 @EnableFeignClients
 public class AccountAdapterServiceApplication {
 

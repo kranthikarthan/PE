@@ -6,7 +6,6 @@ import com.payments.contracts.events.PaymentInitiatedEvent;
 import com.payments.domain.shared.Money;
 import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
-import com.payments.domain.validation.RuleType;
 import com.payments.validation.service.RuleExecutionFacade.ValidationContext;
 import java.math.BigDecimal;
 import java.time.Instant;

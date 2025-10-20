@@ -22,15 +22,15 @@ scrape_configs:
   # Validation Service
   - job_name: 'validation-service'
     static_configs:
-      - targets: ['validation-service:8082']
-    metrics_path: '/validation-service/actuator/prometheus'
+      - targets: ['validation-service:18082']
+    metrics_path: '/actuator/prometheus'
     scrape_interval: 15s
 
   # Account Adapter Service
   - job_name: 'account-adapter-service'
     static_configs:
-      - targets: ['account-adapter-service:8083']
-    metrics_path: '/account-adapter-service/actuator/prometheus'
+      - targets: ['account-adapter-service:18083']
+    metrics_path: '/actuator/prometheus'
     scrape_interval: 15s
 
   # Routing Service

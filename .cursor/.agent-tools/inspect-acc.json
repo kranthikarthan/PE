@@ -1,0 +1,303 @@
+[
+    {
+        "Id": "8742638d1b0263e5f77f0427698dc7ed36acc49a0aadecd1e033bf29605946f5",
+        "Created": "2025-10-20T12:58:33.328293073Z",
+        "Path": "java",
+        "Args": [
+            "-jar",
+            "app.jar"
+        ],
+        "State": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 1,
+            "Error": "",
+            "StartedAt": "2025-10-20T13:03:12.958437631Z",
+            "FinishedAt": "2025-10-20T13:03:32.366882549Z",
+            "Health": {
+                "Status": "unhealthy",
+                "FailingStreak": 0,
+                "Log": [
+                    {
+                        "Start": "2025-10-20T12:58:47.428902492Z",
+                        "End": "2025-10-20T12:58:47.806799589Z",
+                        "ExitCode": 7,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\ncurl: (7) Failed to connect to localhost port 8083 after 0 ms: Couldn't connect to server\n"
+                    },
+                    {
+                        "Start": "2025-10-20T12:58:52.808481771Z",
+                        "End": "2025-10-20T12:58:53.167028388Z",
+                        "ExitCode": 7,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\ncurl: (7) Failed to connect to localhost port 8083 after 3 ms: Couldn't connect to server\n"
+                    },
+                    {
+                        "Start": "2025-10-20T13:03:18.233692422Z",
+                        "End": "2025-10-20T13:03:18.363748614Z",
+                        "ExitCode": 7,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\ncurl: (7) Failed to connect to localhost port 8083 after 0 ms: Couldn't connect to server\n"
+                    },
+                    {
+                        "Start": "2025-10-20T13:03:23.366794889Z",
+                        "End": "2025-10-20T13:03:23.733640923Z",
+                        "ExitCode": 7,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\ncurl: (7) Failed to connect to localhost port 8083 after 9 ms: Couldn't connect to server\n"
+                    },
+                    {
+                        "Start": "2025-10-20T13:03:28.734141185Z",
+                        "End": "2025-10-20T13:03:28.901793388Z",
+                        "ExitCode": 7,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\ncurl: (7) Failed to connect to localhost port 8083 after 1 ms: Couldn't connect to server\n"
+                    }
+                ]
+            }
+        },
+        "Image": "sha256:b7360ecbc64381d2f998617e79caf506abaccec91c618c0bba83e2a8e39eaad1",
+        "ResolvConfPath": "/var/lib/docker/containers/8742638d1b0263e5f77f0427698dc7ed36acc49a0aadecd1e033bf29605946f5/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/8742638d1b0263e5f77f0427698dc7ed36acc49a0aadecd1e033bf29605946f5/hostname",
+        "HostsPath": "/var/lib/docker/containers/8742638d1b0263e5f77f0427698dc7ed36acc49a0aadecd1e033bf29605946f5/hosts",
+        "LogPath": "/var/lib/docker/containers/8742638d1b0263e5f77f0427698dc7ed36acc49a0aadecd1e033bf29605946f5/8742638d1b0263e5f77f0427698dc7ed36acc49a0aadecd1e033bf29605946f5-json.log",
+        "Name": "/payments-account-adapter-service",
+        "RestartCount": 0,
+        "Driver": "overlayfs",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": null,
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "pe_payments-network",
+            "PortBindings": {
+                "8083/tcp": [
+                    {
+                        "HostIp": "",
+                        "HostPort": "8083"
+                    }
+                ]
+            },
+            "RestartPolicy": {
+                "Name": "no",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "ConsoleSize": [
+                0,
+                0
+            ],
+            "CapAdd": null,
+            "CapDrop": null,
+            "CgroupnsMode": "private",
+            "Dns": null,
+            "DnsOptions": null,
+            "DnsSearch": null,
+            "ExtraHosts": [],
+            "GroupAdd": null,
+            "IpcMode": "private",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "NanoCpus": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": null,
+            "BlkioDeviceReadBps": null,
+            "BlkioDeviceWriteBps": null,
+            "BlkioDeviceReadIOps": null,
+            "BlkioDeviceWriteIOps": null,
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpuRealtimePeriod": 0,
+            "CpuRealtimeRuntime": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": null,
+            "DeviceCgroupRules": null,
+            "DeviceRequests": null,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": null,
+            "OomKillDisable": null,
+            "PidsLimit": null,
+            "Ulimits": null,
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0,
+            "MaskedPaths": [
+                "/proc/asound",
+                "/proc/acpi",
+                "/proc/interrupts",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/sys/firmware",
+                "/sys/devices/virtual/powercap"
+            ],
+            "ReadonlyPaths": [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger"
+            ]
+        },
+        "GraphDriver": {
+            "Data": null,
+            "Name": "overlayfs"
+        },
+        "Mounts": [],
+        "Config": {
+            "Hostname": "8742638d1b02",
+            "Domainname": "",
+            "User": "appuser",
+            "AttachStdin": false,
+            "AttachStdout": true,
+            "AttachStderr": true,
+            "ExposedPorts": {
+                "8080/tcp": {},
+                "8083/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,metrics,prometheus",
+                "SPRING_PROFILES_ACTIVE=docker",
+                "SPRING_REDIS_PORT=6379",
+                "MANAGEMENT_SERVER_PORT=18083",
+                "SPRING_REDIS_HOST=redis",
+                "SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/account_adapter",
+                "SPRING_AUTOCONFIGURE_EXCLUDE=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration, org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration",
+                "MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always",
+                "SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092",
+                "SPRING_DATASOURCE_USERNAME=payments_user",
+                "SPRING_DATASOURCE_PASSWORD=payments_password",
+                "PATH=/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "JAVA_HOME=/opt/java/openjdk",
+                "LANG=en_US.UTF-8",
+                "LANGUAGE=en_US:en",
+                "LC_ALL=en_US.UTF-8",
+                "JAVA_VERSION=jdk-17.0.16+8"
+            ],
+            "Cmd": null,
+            "Healthcheck": {
+                "Test": [
+                    "CMD",
+                    "curl",
+                    "-f",
+                    "http://localhost:8083/account-adapter-service/actuator/health"
+                ],
+                "Interval": 30000000000,
+                "Timeout": 10000000000,
+                "StartPeriod": 60000000000,
+                "Retries": 5
+            },
+            "Image": "pe-account-adapter-service",
+            "Volumes": null,
+            "WorkingDir": "/app",
+            "Entrypoint": [
+                "java",
+                "-jar",
+                "app.jar"
+            ],
+            "OnBuild": null,
+            "Labels": {
+                "com.docker.compose.config-hash": "055a6472cccfe619d1554c008956a7aa5d36aa472834a3c983a656f57da2aec9",
+                "com.docker.compose.container-number": "1",
+                "com.docker.compose.depends_on": "postgres:service_healthy:false,redis:service_healthy:false,kafka:service_healthy:false",
+                "com.docker.compose.image": "sha256:b7360ecbc64381d2f998617e79caf506abaccec91c618c0bba83e2a8e39eaad1",
+                "com.docker.compose.oneoff": "False",
+                "com.docker.compose.project": "pe",
+                "com.docker.compose.project.config_files": "C:\\git\\clone\\PE\\docker-compose.yml",
+                "com.docker.compose.project.working_dir": "C:\\git\\clone\\PE",
+                "com.docker.compose.replace": "payments-account-adapter-service",
+                "com.docker.compose.service": "account-adapter-service",
+                "com.docker.compose.version": "2.39.4",
+                "org.opencontainers.image.ref.name": "ubuntu",
+                "org.opencontainers.image.version": "24.04"
+            }
+        },
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "",
+            "SandboxKey": "",
+            "Ports": {},
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "",
+            "Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "",
+            "IPPrefixLen": 0,
+            "IPv6Gateway": "",
+            "MacAddress": "",
+            "Networks": {
+                "pe_payments-network": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": [
+                        "payments-account-adapter-service",
+                        "account-adapter-service"
+                    ],
+                    "MacAddress": "",
+                    "DriverOpts": null,
+                    "GwPriority": 0,
+                    "NetworkID": "7ea58d2af0794dd2037b648ee6395e2980342015293c42cda353d483e94448fb",
+                    "EndpointID": "",
+                    "Gateway": "",
+                    "IPAddress": "",
+                    "IPPrefixLen": 0,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "DNSNames": [
+                        "payments-account-adapter-service",
+                        "account-adapter-service",
+                        "8742638d1b02"
+                    ]
+                }
+            }
+        },
+        "ImageManifestDescriptor": {
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "digest": "sha256:feb3a7f5712d582882634445a7e6fb0d3de66c89175189595791473f75a5e568",
+            "size": 2194,
+            "platform": {
+                "architecture": "amd64",
+                "os": "linux"
+            }
+        }
+    }
+]
