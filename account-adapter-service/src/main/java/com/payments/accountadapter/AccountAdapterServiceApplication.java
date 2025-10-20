@@ -14,7 +14,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  * Circuit breaker patterns
  */
 @SpringBootApplication(
-    exclude = {ManagementWebSecurityAutoConfiguration.class, OAuth2ClientAutoConfiguration.class})
+    exclude = {OAuth2ClientAutoConfiguration.class})
 @EnableFeignClients
 public class AccountAdapterServiceApplication {
 

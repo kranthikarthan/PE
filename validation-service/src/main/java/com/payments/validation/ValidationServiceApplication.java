@@ -14,7 +14,7 @@ import org.springframework.kafka.annotation.EnableKafka;
  * assessment
  */
 @SpringBootApplication(
-    exclude = {ManagementWebSecurityAutoConfiguration.class, OAuth2ClientAutoConfiguration.class})
+    exclude = {OAuth2ClientAutoConfiguration.class})
 @EnableKafka
 public class ValidationServiceApplication {
 
