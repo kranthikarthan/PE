@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Grid,
+  Box,
   Card,
   CardContent,
   Typography,
@@ -203,7 +203,7 @@ const ClearingSystemOnboarding: React.FC = () => {
       case 0:
         return (
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 label="System Name"
                 value={onboardingData.systemName}
@@ -212,7 +212,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 required
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <FormControl fullWidth required>
                 <InputLabel>System Type</InputLabel>
                 <Select
@@ -228,7 +228,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 label="Country"
                 value={onboardingData.country}
@@ -237,7 +237,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 required
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 label="Currency"
                 value={onboardingData.currency}
@@ -246,7 +246,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 required
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 label="Cut-off Time"
                 value={onboardingData.cutOffTime}
@@ -255,7 +255,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 placeholder="e.g., 14:00 EST"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 label="Settlement Time"
                 value={onboardingData.settlementTime}
@@ -269,7 +269,7 @@ const ClearingSystemOnboarding: React.FC = () => {
       case 1:
         return (
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 label="Participant ID"
                 value={onboardingData.participantId}
@@ -278,7 +278,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 required
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 label="Routing Number"
                 value={onboardingData.routingNumber}
@@ -286,7 +286,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 label="BIC Code"
                 value={onboardingData.bicCode}
@@ -294,7 +294,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 label="API Endpoint"
                 value={onboardingData.apiEndpoint}
@@ -304,7 +304,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 placeholder="https://api.clearing-system.com/v1"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <FormControl fullWidth required>
                 <InputLabel>Authentication Type</InputLabel>
                 <Select
@@ -319,7 +319,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 label="Webhook URL"
                 value={onboardingData.webhookUrl}
@@ -328,7 +328,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 placeholder="https://your-domain.com/webhooks"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <FormLabel component="legend">Supported Message Types</FormLabel>
               <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
                 {['MT103', 'MT202', 'MT205', 'MT940', 'MT950', 'ISO20022'].map((type) => (
@@ -362,7 +362,7 @@ const ClearingSystemOnboarding: React.FC = () => {
       case 2:
         return (
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <FormLabel component="legend">Compliance Requirements</FormLabel>
               <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
                 {['PCI DSS', 'GDPR', 'SOX', 'AML', 'KYC', 'ISO 27001', 'Basel III', 'MiFID II'].map((requirement) => (
@@ -391,7 +391,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 ))}
               </Box>
             </Grid>
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <Alert severity="warning">
                 Clearing systems require additional compliance certifications. Please ensure all requirements are met.
               </Alert>
@@ -401,7 +401,7 @@ const ClearingSystemOnboarding: React.FC = () => {
       case 3:
         return (
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 label="Max Transaction Amount"
                 value={onboardingData.riskSettings.maxTransactionAmount}
@@ -413,7 +413,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 placeholder="e.g., 1000000"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 label="Daily Limit"
                 value={onboardingData.riskSettings.dailyLimit}
@@ -425,7 +425,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 placeholder="e.g., 10000000"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 label="Monthly Limit"
                 value={onboardingData.riskSettings.monthlyLimit}
@@ -437,7 +437,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                 placeholder="e.g., 100000000"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Box display="flex" flexDirection="column" gap={2}>
                 <FormControlLabel
                   control={
@@ -470,7 +470,7 @@ const ClearingSystemOnboarding: React.FC = () => {
       case 4:
         return (
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <Typography variant="h6" gutterBottom>
                 Testing Checklist
               </Typography>
@@ -499,7 +499,7 @@ const ClearingSystemOnboarding: React.FC = () => {
       case 5:
         return (
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <Alert severity="success" sx={{ mb: 2 }}>
                 All tests completed successfully! Clearing system is ready for production.
               </Alert>
@@ -555,7 +555,7 @@ const ClearingSystemOnboarding: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Existing Clearing Systems */}
-        <Grid item xs={12} md={8}>
+        <Grid xs={12} md={8}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -629,7 +629,7 @@ const ClearingSystemOnboarding: React.FC = () => {
         </Grid>
 
         {/* Onboarding Wizard */}
-        <Grid item xs={12} md={4}>
+        <Grid xs={12} md={4}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -684,7 +684,7 @@ const ClearingSystemOnboarding: React.FC = () => {
         <DialogContent>
           {selectedSystem && (
             <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={6}>
+              <Grid xs={6}>
                 <TextField
                   label="System ID"
                   value={selectedSystem.id}
@@ -692,7 +692,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                   disabled
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid xs={6}>
                 <TextField
                   label="Name"
                   value={selectedSystem.name}
@@ -700,7 +700,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                   disabled
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid xs={6}>
                 <TextField
                   label="Type"
                   value={selectedSystem.type}
@@ -708,7 +708,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                   disabled
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid xs={6}>
                 <TextField
                   label="Status"
                   value={selectedSystem.status}
@@ -716,7 +716,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                   disabled
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid xs={6}>
                 <TextField
                   label="Country"
                   value={selectedSystem.country}
@@ -724,7 +724,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                   disabled
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid xs={6}>
                 <TextField
                   label="Currency"
                   value={selectedSystem.currency}
@@ -732,7 +732,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                   disabled
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid xs={6}>
                 <TextField
                   label="Cut-off Time"
                   value={selectedSystem.cutOffTime}
@@ -740,7 +740,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                   disabled
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid xs={6}>
                 <TextField
                   label="Settlement Time"
                   value={selectedSystem.settlementTime}

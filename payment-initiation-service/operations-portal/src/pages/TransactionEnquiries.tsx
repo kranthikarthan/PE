@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import {
-  Grid,
+  Box,
   Card,
   CardContent,
   Typography,
-  Box,
   Button,
   TextField,
   FormControl,
@@ -25,8 +24,8 @@ import {
   DialogContent,
   DialogActions,
   InputAdornment,
-  DatePicker,
 } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import {
   Search,
   Download,
@@ -169,8 +168,8 @@ const TransactionEnquiries: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               Search Criteria
             </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={3}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+              <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
                 <TextField
                   label="Payment ID"
                   value={searchCriteria.paymentId}
@@ -184,16 +183,16 @@ const TransactionEnquiries: React.FC = () => {
                     ),
                   }}
                 />
-              </Grid>
-              <Grid item xs={12} md={3}>
+              </Box>
+              <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
                 <TextField
                   label="Reference"
                   value={searchCriteria.reference}
                   onChange={(e) => setSearchCriteria({...searchCriteria, reference: e.target.value})}
                   fullWidth
                 />
-              </Grid>
-              <Grid item xs={12} md={3}>
+              </Box>
+              <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
                 <FormControl fullWidth>
                   <InputLabel>Status</InputLabel>
                   <Select
@@ -208,8 +207,8 @@ const TransactionEnquiries: React.FC = () => {
                     <MenuItem value="pending">Pending</MenuItem>
                   </Select>
                 </FormControl>
-              </Grid>
-              <Grid item xs={12} md={3}>
+              </Box>
+              <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
                 <Box display="flex" gap={1}>
                   <Button
                     variant="contained"
@@ -225,8 +224,8 @@ const TransactionEnquiries: React.FC = () => {
                     Filters
                   </Button>
                 </Box>
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           </CardContent>
         </Card>
 
@@ -311,80 +310,80 @@ const TransactionEnquiries: React.FC = () => {
           </DialogTitle>
           <DialogContent>
             {selectedTransaction && (
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Grid item xs={6}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
+                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
                   <TextField
                     label="Transaction ID"
                     value={selectedTransaction.id}
                     fullWidth
                     disabled
                   />
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
                   <TextField
                     label="Status"
                     value={selectedTransaction.status}
                     fullWidth
                     disabled
                   />
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
                   <TextField
                     label="Amount"
                     value={`${selectedTransaction.amount} ${selectedTransaction.currency}`}
                     fullWidth
                     disabled
                   />
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
                   <TextField
                     label="Reference"
                     value={selectedTransaction.reference}
                     fullWidth
                     disabled
                   />
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
                   <TextField
                     label="Source Account"
                     value={selectedTransaction.sourceAccount}
                     fullWidth
                     disabled
                   />
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
                   <TextField
                     label="Destination Account"
                     value={selectedTransaction.destinationAccount}
                     fullWidth
                     disabled
                   />
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
                   <TextField
                     label="Created At"
                     value={selectedTransaction.createdAt}
                     fullWidth
                     disabled
                   />
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
                   <TextField
                     label="Completed At"
                     value={selectedTransaction.completedAt || '-'}
                     fullWidth
                     disabled
                   />
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
                   <TextField
                     label="Processing Time"
                     value={selectedTransaction.processingTime || '-'}
                     fullWidth
                     disabled
                   />
-                </Grid>
-              </Grid>
+                </Box>
+              </Box>
             )}
           </DialogContent>
           <DialogActions>

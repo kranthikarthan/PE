@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import {
-  Grid,
+  Box,
   Card,
   CardContent,
   Typography,
-  Box,
   Button,
   Chip,
   Table,
@@ -34,7 +33,6 @@ import {
   Refresh,
   Build,
   Cancel,
-  Retry,
   Visibility,
   MoreVert,
   Search,
@@ -234,7 +232,7 @@ const PaymentRepair: React.FC = () => {
             <Box display="flex" gap={1}>
               <Button
                 variant="outlined"
-                startIcon={<Retry />}
+                startIcon={<Refresh />}
                 disabled={selectedPayments.length === 0}
                 onClick={handleBulkRetry}
               >
@@ -380,7 +378,7 @@ const PaymentRepair: React.FC = () => {
           <Box display="flex" gap={2}>
             <Button
               variant="contained"
-              startIcon={<Retry />}
+              startIcon={<Refresh />}
               disabled={selectedPayments.length === 0}
             >
               Bulk Retry ({selectedPayments.length} selected)
@@ -405,31 +403,31 @@ const PaymentRepair: React.FC = () => {
           {selectedPayment && (
             <Box sx={{ mt: 2 }}>
               <Grid container spacing={2}>
-                <Grid item xs={12}>
+                <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
                   <TextField
                     label="Payment ID"
                     value={selectedPayment.id}
                     fullWidth
                     disabled
                   />
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                   <TextField
                     label="Amount"
                     value={`${selectedPayment.amount} ${selectedPayment.currency}`}
                     fullWidth
                     disabled
                   />
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                   <TextField
                     label="Status"
                     value={selectedPayment.status}
                     fullWidth
                     disabled
                   />
-                </Grid>
-                <Grid item xs={12}>
+                </Box>
+                <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
                   <TextField
                     label="Repair Reason"
                     value={repairReason}
@@ -439,8 +437,8 @@ const PaymentRepair: React.FC = () => {
                     rows={3}
                     placeholder="Enter reason for repair action..."
                   />
-                </Grid>
-                <Grid item xs={12}>
+                </Box>
+                <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -450,7 +448,7 @@ const PaymentRepair: React.FC = () => {
                     }
                     label="Force retry (ignore validation checks)"
                   />
-                </Grid>
+                </Box>
               </Grid>
             </Box>
           )}

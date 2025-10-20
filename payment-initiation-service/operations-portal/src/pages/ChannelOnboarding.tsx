@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import {
-  Grid,
+  Box,
   Card,
   CardContent,
   Typography,
-  Box,
   Button,
   Stepper,
   Step,
@@ -167,8 +166,8 @@ const ChannelOnboarding: React.FC = () => {
     switch (step) {
       case 0:
         return (
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
               <TextField
                 label="Channel Name"
                 value={onboardingData.channelName}
@@ -176,8 +175,8 @@ const ChannelOnboarding: React.FC = () => {
                 fullWidth
                 required
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Box>
+            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
               <FormControl fullWidth required>
                 <InputLabel>Channel Type</InputLabel>
                 <Select
@@ -190,8 +189,8 @@ const ChannelOnboarding: React.FC = () => {
                   <MenuItem value="payment_provider">Payment Provider</MenuItem>
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Box>
+            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
               <TextField
                 label="Country"
                 value={onboardingData.country}
@@ -199,8 +198,8 @@ const ChannelOnboarding: React.FC = () => {
                 fullWidth
                 required
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Box>
+            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
               <TextField
                 label="Currency"
                 value={onboardingData.currency}
@@ -208,8 +207,8 @@ const ChannelOnboarding: React.FC = () => {
                 fullWidth
                 required
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Box>
+            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
               <TextField
                 label="Contact Person"
                 value={onboardingData.contactPerson}
@@ -217,8 +216,8 @@ const ChannelOnboarding: React.FC = () => {
                 fullWidth
                 required
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Box>
+            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
               <TextField
                 label="Email"
                 type="email"
@@ -227,8 +226,8 @@ const ChannelOnboarding: React.FC = () => {
                 fullWidth
                 required
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Box>
+            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
               <TextField
                 label="Phone"
                 value={onboardingData.phone}
@@ -236,13 +235,13 @@ const ChannelOnboarding: React.FC = () => {
                 fullWidth
                 required
               />
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         );
       case 1:
         return (
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
               <TextField
                 label="API Endpoint"
                 value={onboardingData.apiEndpoint}
@@ -251,8 +250,8 @@ const ChannelOnboarding: React.FC = () => {
                 required
                 placeholder="https://api.example.com/v1"
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Box>
+            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
               <FormControl fullWidth required>
                 <InputLabel>Authentication Type</InputLabel>
                 <Select
@@ -266,8 +265,8 @@ const ChannelOnboarding: React.FC = () => {
                   <MenuItem value="basic">Basic Auth</MenuItem>
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Box>
+            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
               <TextField
                 label="Webhook URL"
                 value={onboardingData.webhookUrl}
@@ -275,8 +274,8 @@ const ChannelOnboarding: React.FC = () => {
                 fullWidth
                 placeholder="https://your-domain.com/webhooks"
               />
-            </Grid>
-            <Grid item xs={12}>
+            </Box>
+            <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
               <FormLabel component="legend">Supported Payment Types</FormLabel>
               <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
                 {['Credit Card', 'Debit Card', 'Bank Transfer', 'Digital Wallet', 'Cryptocurrency'].map((type) => (
@@ -304,13 +303,13 @@ const ChannelOnboarding: React.FC = () => {
                   />
                 ))}
               </Box>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         );
       case 2:
         return (
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
               <FormLabel component="legend">Compliance Requirements</FormLabel>
               <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
                 {['PCI DSS', 'GDPR', 'SOX', 'AML', 'KYC', 'ISO 27001'].map((requirement) => (
@@ -338,18 +337,18 @@ const ChannelOnboarding: React.FC = () => {
                   />
                 ))}
               </Box>
-            </Grid>
-            <Grid item xs={12}>
+            </Box>
+            <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
               <Alert severity="info">
                 Please ensure all compliance requirements are met before proceeding to testing phase.
               </Alert>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         );
       case 3:
         return (
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
               <Typography variant="h6" gutterBottom>
                 Testing Checklist
               </Typography>
@@ -370,13 +369,13 @@ const ChannelOnboarding: React.FC = () => {
                   />
                 ))}
               </Box>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         );
       case 4:
         return (
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
               <Alert severity="success" sx={{ mb: 2 }}>
                 All tests completed successfully! Channel is ready for production.
               </Alert>
@@ -397,8 +396,8 @@ const ChannelOnboarding: React.FC = () => {
                 control={<Checkbox />}
                 label="Enable audit logging"
               />
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         );
       default:
         return 'Unknown step';
@@ -425,9 +424,9 @@ const ChannelOnboarding: React.FC = () => {
         </Button>
       </Box>
 
-      <Grid container spacing={3}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
         {/* Existing Channels */}
-        <Grid item xs={12} md={8}>
+        <Box sx={{ flex: '2 1 600px', minWidth: '600px' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -495,10 +494,10 @@ const ChannelOnboarding: React.FC = () => {
               </TableContainer>
             </CardContent>
           </Card>
-        </Grid>
+        </Box>
 
         {/* Onboarding Wizard */}
-        <Grid item xs={12} md={4}>
+        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -542,8 +541,7 @@ const ChannelOnboarding: React.FC = () => {
               )}
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </Box>
 
       {/* Channel Details Dialog */}
       <Dialog open={detailsDialogOpen} onClose={() => setDetailsDialogOpen(false)} maxWidth="md" fullWidth>
@@ -552,56 +550,56 @@ const ChannelOnboarding: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           {selectedChannel && (
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={6}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
+              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                 <TextField
                   label="Channel ID"
                   value={selectedChannel.id}
                   fullWidth
                   disabled
                 />
-              </Grid>
-              <Grid item xs={6}>
+              </Box>
+              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                 <TextField
                   label="Name"
                   value={selectedChannel.name}
                   fullWidth
                   disabled
                 />
-              </Grid>
-              <Grid item xs={6}>
+              </Box>
+              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                 <TextField
                   label="Type"
                   value={selectedChannel.type}
                   fullWidth
                   disabled
                 />
-              </Grid>
-              <Grid item xs={6}>
+              </Box>
+              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                 <TextField
                   label="Status"
                   value={selectedChannel.status}
                   fullWidth
                   disabled
                 />
-              </Grid>
-              <Grid item xs={6}>
+              </Box>
+              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                 <TextField
                   label="Country"
                   value={selectedChannel.country}
                   fullWidth
                   disabled
                 />
-              </Grid>
-              <Grid item xs={6}>
+              </Box>
+              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                 <TextField
                   label="Currency"
                   value={selectedChannel.currency}
                   fullWidth
                   disabled
                 />
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           )}
         </DialogContent>
         <DialogActions>

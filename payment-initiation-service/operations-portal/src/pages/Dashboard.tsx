@@ -1,10 +1,9 @@
 import React from 'react';
 import {
-  Grid,
+  Box,
   Card,
   CardContent,
   Typography,
-  Box,
   Chip,
   LinearProgress,
   List,
@@ -66,7 +65,7 @@ const Dashboard: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* System Health Overview */}
-        <Grid item xs={12} md={8}>
+        <Box sx={{ flex: '2 1 600px', minWidth: '600px' }}>
           <Card>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -107,10 +106,10 @@ const Dashboard: React.FC = () => {
               </List>
             </CardContent>
           </Card>
-        </Grid>
+        </Box>
 
         {/* Quick Stats */}
-        <Grid item xs={12} md={4}>
+        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -139,10 +138,10 @@ const Dashboard: React.FC = () => {
               </Box>
             </CardContent>
           </Card>
-        </Grid>
+        </Box>
 
         {/* Recent Alerts */}
-        <Grid item xs={12}>
+        <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -171,7 +170,7 @@ const Dashboard: React.FC = () => {
               </List>
             </CardContent>
           </Card>
-        </Grid>
+        </Box>
       </Grid>
     </Box>
   );

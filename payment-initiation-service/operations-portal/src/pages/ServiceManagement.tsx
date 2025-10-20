@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import {
-  Grid,
+  Box,
   Card,
   CardContent,
   Typography,
-  Box,
   Button,
   Chip,
   Table,
@@ -136,9 +135,9 @@ const ServiceManagement: React.FC = () => {
         </Button>
       </Box>
 
-      <Grid container spacing={3}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
         {/* Service Overview Cards */}
-        <Grid item xs={12} md={3}>
+        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" color="success.main">
@@ -149,8 +148,8 @@ const ServiceManagement: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
+        </Box>
+        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" color="error.main">
@@ -161,8 +160,8 @@ const ServiceManagement: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
+        </Box>
+        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" color="warning.main">
@@ -173,8 +172,8 @@ const ServiceManagement: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
+        </Box>
+        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
           <Card>
             <CardContent>
               <Typography variant="h6">
@@ -185,10 +184,10 @@ const ServiceManagement: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
+        </Box>
 
         {/* Services Table */}
-        <Grid item xs={12}>
+        <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -267,8 +266,7 @@ const ServiceManagement: React.FC = () => {
               </TableContainer>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </Box>
 
       {/* Service Details Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
@@ -277,16 +275,16 @@ const ServiceManagement: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           {selectedService && (
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={6}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
+              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                 <TextField
                   label="Service Name"
                   value={selectedService.name}
                   fullWidth
                   disabled
                 />
-              </Grid>
-              <Grid item xs={6}>
+              </Box>
+              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                 <FormControl fullWidth>
                   <InputLabel>Status</InputLabel>
                   <Select
@@ -303,24 +301,24 @@ const ServiceManagement: React.FC = () => {
                     <MenuItem value="error">Error</MenuItem>
                   </Select>
                 </FormControl>
-              </Grid>
-              <Grid item xs={6}>
+              </Box>
+              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                 <TextField
                   label="Uptime"
                   value={selectedService.uptime}
                   fullWidth
                   disabled
                 />
-              </Grid>
-              <Grid item xs={6}>
+              </Box>
+              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                 <TextField
                   label="Response Time"
                   value={selectedService.responseTime}
                   fullWidth
                   disabled
                 />
-              </Grid>
-              <Grid item xs={6}>
+              </Box>
+              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                 <TextField
                   label="Instances"
                   value={selectedService.instances}
@@ -331,16 +329,16 @@ const ServiceManagement: React.FC = () => {
                     instances: parseInt(e.target.value)
                   })}
                 />
-              </Grid>
-              <Grid item xs={6}>
+              </Box>
+              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
                 <TextField
                   label="Version"
                   value={selectedService.version}
                   fullWidth
                   disabled
                 />
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           )}
         </DialogContent>
         <DialogActions>
