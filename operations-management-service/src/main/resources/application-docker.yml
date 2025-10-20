@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/payments_operations
+    username: ${DB_USERNAME:payments}
+    password: ${DB_PASSWORD:payments}
+  
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: ${REDIS_PASSWORD:}
+
+app:
+  kubernetes:
+    namespace: ${K8S_NAMESPACE:payments}
+  
+  unleash:
+    api-url: ${UNLEASH_API_URL:http://unleash:4242/api}
