@@ -6,7 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.payments.notification.domain.model.*;
+import com.payments.domain.entities.*;
+import com.payments.domain.valueobjects.*;
 import com.payments.notification.dto.CreateTemplateRequest;
 import com.payments.notification.dto.SendNotificationRequest;
 import com.payments.notification.dto.UpdatePreferenceRequest;

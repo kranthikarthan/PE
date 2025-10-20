@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.payments.notification.domain.model.*;
+import com.payments.domain.entities.*;
+import com.payments.domain.valueobjects.*;
+import com.payments.audit.service.AuditService;
 import com.payments.notification.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
