@@ -15,9 +15,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.util.*;
+import com.payments.domain.shared.TenantId;
 
 /**
  * Test coverage analysis for NotificationService.
@@ -516,12 +517,12 @@ class NotificationCoverageAnalysisTest {
         .templateData("{\"amount\": 1000, \"currency\": \"ZAR\"}")
         .status(NotificationStatus.PENDING)
         .attempts(0)
-        .createdAt(LocalDateTime.now())
+        .createdAt(Instant.now())
         .build();
 
     template = NotificationTemplateEntity.builder()
         .id(UUID.randomUUID())
-        .tenantId("test-tenant")
+        .tenantId(TenantId.of("test-tenant"))
         .notificationType(NotificationType.PAYMENT_INITIATED)
         .name("Payment Initiated")
         .emailSubject("Payment Initiated")
@@ -529,14 +530,14 @@ class NotificationCoverageAnalysisTest {
         .pushTitle("Payment Initiated")
         .pushBody("Payment started")
         .smsTemplate("Payment: {{amount}} {{currency}}")
-        .active(true)
+            .isActive(true)
         .build();
 
     preferences = NotificationPreferenceEntity.builder()
         .id(UUID.randomUUID())
-        .tenantId("test-tenant")
+        .tenantId(TenantId.of("test-tenant"))
         .userId("test-user")
-        .preferredChannels(Set.of(NotificationChannel.EMAIL, NotificationChannel.SMS))
+        .channel(NotificationChannel.EMAIL)
         .transactionAlertsOptIn(true)
         .marketingOptIn(false)
         .systemNotificationsOptIn(true)

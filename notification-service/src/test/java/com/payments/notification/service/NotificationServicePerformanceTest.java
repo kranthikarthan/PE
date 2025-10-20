@@ -15,11 +15,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+import com.payments.domain.shared.TenantId;
 
 /**
  * Performance and load testing for NotificationService.
@@ -311,14 +313,14 @@ class NotificationServicePerformanceTest {
         .templateData("{\"amount\": 1000}")
         .status(NotificationStatus.PENDING)
         .attempts(0)
-        .createdAt(LocalDateTime.now())
+        .createdAt(Instant.now())
         .build();
   }
 
   private NotificationTemplateEntity createTestTemplate() {
     return NotificationTemplateEntity.builder()
         .id(UUID.randomUUID())
-        .tenantId("test-tenant")
+        .tenantId(TenantId.of("test-tenant"))
         .notificationType(NotificationType.PAYMENT_INITIATED)
         .name("Payment Initiated")
         .emailSubject("Payment Initiated")
@@ -326,16 +328,16 @@ class NotificationServicePerformanceTest {
         .pushTitle("Payment Initiated")
         .pushBody("Payment started")
         .smsTemplate("Payment: {{amount}} {{currency}}")
-        .active(true)
+            .isActive(true)
         .build();
   }
 
   private NotificationPreferenceEntity createTestPreferences() {
     return NotificationPreferenceEntity.builder()
         .id(UUID.randomUUID())
-        .tenantId("test-tenant")
+        .tenantId(TenantId.of("test-tenant"))
         .userId("test-user")
-        .preferredChannels(Set.of(NotificationChannel.EMAIL, NotificationChannel.SMS))
+        .channel(NotificationChannel.EMAIL)
         .transactionAlertsOptIn(true)
         .marketingOptIn(false)
         .systemNotificationsOptIn(true)
@@ -345,7 +347,7 @@ class NotificationServicePerformanceTest {
   private NotificationTemplateEntity createComplexTemplate() {
     return NotificationTemplateEntity.builder()
         .id(UUID.randomUUID())
-        .tenantId("test-tenant")
+        .tenantId(TenantId.of("test-tenant"))
         .notificationType(NotificationType.PAYMENT_INITIATED)
         .name("Complex Payment Template")
         .emailSubject("Payment {{type}} - {{amount}} {{currency}}")
@@ -353,7 +355,7 @@ class NotificationServicePerformanceTest {
         .pushTitle("Payment {{status}}")
         .pushBody("{{amount}} {{currency}} - {{status}}")
         .smsTemplate("Payment {{status}}: {{amount}} {{currency}}. ID: {{transactionId}}")
-        .active(true)
+            .isActive(true)
         .build();
   }
 

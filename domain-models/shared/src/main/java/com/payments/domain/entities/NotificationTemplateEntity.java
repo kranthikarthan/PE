@@ -315,6 +315,11 @@ public class NotificationTemplateEntity extends AggregateRoot<TemplateId> {
       return this;
     }
 
+    public NotificationTemplateEntityBuilder active(boolean active) {
+      this.templateEntity.isActive = active;
+      return this;
+    }
+
     public NotificationTemplateEntityBuilder createdAt(Instant createdAt) {
       this.templateEntity.createdAt = createdAt;
       return this;

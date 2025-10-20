@@ -252,6 +252,46 @@ public class NotificationPreferenceEntity extends AggregateRoot<PreferenceId> {
       return this;
     }
 
+    public NotificationPreferenceEntityBuilder transactionAlertsOptIn(boolean optIn) {
+      if (this.preferenceEntity.settings == null) {
+        this.preferenceEntity.settings = new java.util.HashMap<>();
+      }
+      this.preferenceEntity.settings.put("transactionAlertsOptIn", optIn);
+      return this;
+    }
+
+    public NotificationPreferenceEntityBuilder marketingOptIn(boolean optIn) {
+      if (this.preferenceEntity.settings == null) {
+        this.preferenceEntity.settings = new java.util.HashMap<>();
+      }
+      this.preferenceEntity.settings.put("marketingOptIn", optIn);
+      return this;
+    }
+
+    public NotificationPreferenceEntityBuilder systemNotificationsOptIn(boolean optIn) {
+      if (this.preferenceEntity.settings == null) {
+        this.preferenceEntity.settings = new java.util.HashMap<>();
+      }
+      this.preferenceEntity.settings.put("systemNotificationsOptIn", optIn);
+      return this;
+    }
+
+    public NotificationPreferenceEntityBuilder quietHoursStart(java.time.LocalTime start) {
+      if (this.preferenceEntity.settings == null) {
+        this.preferenceEntity.settings = new java.util.HashMap<>();
+      }
+      this.preferenceEntity.settings.put("quietHoursStart", start);
+      return this;
+    }
+
+    public NotificationPreferenceEntityBuilder quietHoursEnd(java.time.LocalTime end) {
+      if (this.preferenceEntity.settings == null) {
+        this.preferenceEntity.settings = new java.util.HashMap<>();
+      }
+      this.preferenceEntity.settings.put("quietHoursEnd", end);
+      return this;
+    }
+
     public NotificationPreferenceEntityBuilder settings(Map<String, Object> settings) {
       this.preferenceEntity.settings = settings;
       return this;

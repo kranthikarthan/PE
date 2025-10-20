@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payments.domain.entities.*;
 import com.payments.domain.valueobjects.*;
+import com.payments.domain.shared.TenantId;
 import com.payments.notification.repository.*;
 import com.payments.notification.service.NotificationService;
 import com.payments.notification.dto.SendNotificationRequest;
@@ -106,10 +107,10 @@ class NotificationIntegrationTest {
     assertEquals(NotificationStatus.PENDING, notification.getStatus());
 
     // 5. Process notification (simulate async processing)
-    notificationService.processNotification(notification.getId());
+    notificationService.processNotification(UUID.fromString(notification.getId()));
 
     // 6. Verify notification was processed
-    NotificationEntity processed = notificationRepository.findById(notification.getId()).orElseThrow();
+    NotificationEntity processed = notificationRepository.findById(UUID.fromString(notification.getId())).orElseThrow();
     assertNotNull(processed);
     // Status should be updated based on processing result
   }
@@ -207,10 +208,10 @@ class NotificationIntegrationTest {
     assertEquals(NotificationStatus.PENDING, notification.getStatus());
     
     // Process notification
-    notificationService.processNotification(notification.getId());
+    notificationService.processNotification(UUID.fromString(notification.getId()));
     
     // Verify - Status should be updated to reflect user opt-out
-    NotificationEntity processed = notificationRepository.findById(notification.getId()).orElseThrow();
+    NotificationEntity processed = notificationRepository.findById(UUID.fromString(notification.getId())).orElseThrow();
     // Status should reflect that notification was not sent due to user preferences
   }
 
@@ -241,10 +242,10 @@ class NotificationIntegrationTest {
     NotificationEntity notification = notifications.get(0);
     
     // Process notification
-    notificationService.processNotification(notification.getId());
+    notificationService.processNotification(UUID.fromString(notification.getId()));
     
     // Verify - Notification should respect quiet hours
-    NotificationEntity processed = notificationRepository.findById(notification.getId()).orElseThrow();
+    NotificationEntity processed = notificationRepository.findById(UUID.fromString(notification.getId())).orElseThrow();
     // Status should reflect quiet hours enforcement
   }
 
@@ -273,7 +274,7 @@ class NotificationIntegrationTest {
     
     // Process notification - should handle template not found
     assertThrows(Exception.class, () -> {
-      notificationService.processNotification(notification.getId());
+      notificationService.processNotification(UUID.fromString(notification.getId()));
     });
   }
 
@@ -309,7 +310,7 @@ class NotificationIntegrationTest {
     for (NotificationEntity notification : notifications) {
       CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
         try {
-          notificationService.processNotification(notification.getId());
+          notificationService.processNotification(UUID.fromString(notification.getId()));
         } catch (Exception e) {
           // Expected in concurrent processing
         }
@@ -424,7 +425,7 @@ class NotificationIntegrationTest {
   private NotificationTemplateEntity createPaymentTemplate() {
     return NotificationTemplateEntity.builder()
         .id(UUID.randomUUID())
-        .tenantId(tenantId)
+        .tenantId(TenantId.of(tenantId))
         .notificationType(NotificationType.PAYMENT_INITIATED)
         .name("Payment Initiated")
         .emailSubject("Payment Initiated - {{amount}} {{currency}}")
@@ -439,7 +440,7 @@ class NotificationIntegrationTest {
   private NotificationTemplateEntity createComplexTemplate() {
     return NotificationTemplateEntity.builder()
         .id(UUID.randomUUID())
-        .tenantId(tenantId)
+        .tenantId(TenantId.of(tenantId))
         .notificationType(NotificationType.PAYMENT_INITIATED)
         .name("Complex Payment Template")
         .emailSubject("Payment {{status}} - {{amount}} {{currency}}")
@@ -454,7 +455,7 @@ class NotificationIntegrationTest {
   private NotificationTemplateEntity createTemplateForTenant(String tenant) {
     return NotificationTemplateEntity.builder()
         .id(UUID.randomUUID())
-        .tenantId(tenant)
+        .tenantId(TenantId.of(tenant))
         .notificationType(NotificationType.PAYMENT_INITIATED)
         .name("Payment Template for " + tenant)
         .emailSubject("Payment Initiated")
@@ -469,9 +470,9 @@ class NotificationIntegrationTest {
   private NotificationPreferenceEntity createUserPreferences() {
     return NotificationPreferenceEntity.builder()
         .id(UUID.randomUUID())
-        .tenantId(tenantId)
+        .tenantId(TenantId.of(tenantId))
         .userId(userId)
-        .preferredChannels(Set.of(NotificationChannel.EMAIL, NotificationChannel.SMS))
+        .channel(NotificationChannel.EMAIL)
         .transactionAlertsOptIn(true)
         .marketingOptIn(false)
         .systemNotificationsOptIn(true)
@@ -481,9 +482,9 @@ class NotificationIntegrationTest {
   private NotificationPreferenceEntity createMultiChannelPreferences() {
     return NotificationPreferenceEntity.builder()
         .id(UUID.randomUUID())
-        .tenantId(tenantId)
+        .tenantId(TenantId.of(tenantId))
         .userId(userId)
-        .preferredChannels(Set.of(NotificationChannel.EMAIL, NotificationChannel.SMS, NotificationChannel.PUSH))
+        .channel(NotificationChannel.EMAIL)
         .transactionAlertsOptIn(true)
         .marketingOptIn(false)
         .systemNotificationsOptIn(true)
@@ -493,9 +494,9 @@ class NotificationIntegrationTest {
   private NotificationPreferenceEntity createOptedOutPreferences() {
     return NotificationPreferenceEntity.builder()
         .id(UUID.randomUUID())
-        .tenantId(tenantId)
+        .tenantId(TenantId.of(tenantId))
         .userId(userId)
-        .preferredChannels(Set.of(NotificationChannel.EMAIL))
+        .channel(NotificationChannel.EMAIL)
         .transactionAlertsOptIn(false) // User opted out
         .marketingOptIn(false)
         .systemNotificationsOptIn(true)
@@ -505,9 +506,9 @@ class NotificationIntegrationTest {
   private NotificationPreferenceEntity createQuietHoursPreferences() {
     return NotificationPreferenceEntity.builder()
         .id(UUID.randomUUID())
-        .tenantId(tenantId)
+        .tenantId(TenantId.of(tenantId))
         .userId(userId)
-        .preferredChannels(Set.of(NotificationChannel.EMAIL))
+        .channel(NotificationChannel.EMAIL)
         .transactionAlertsOptIn(true)
         .marketingOptIn(false)
         .systemNotificationsOptIn(true)
@@ -519,9 +520,9 @@ class NotificationIntegrationTest {
   private NotificationPreferenceEntity createPreferencesForUser(String tenant, String user) {
     return NotificationPreferenceEntity.builder()
         .id(UUID.randomUUID())
-        .tenantId(tenant)
+        .tenantId(TenantId.of(tenant))
         .userId(user)
-        .preferredChannels(Set.of(NotificationChannel.EMAIL))
+        .channel(NotificationChannel.EMAIL)
         .transactionAlertsOptIn(true)
         .marketingOptIn(false)
         .systemNotificationsOptIn(true)

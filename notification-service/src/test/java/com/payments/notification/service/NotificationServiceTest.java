@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 
 import com.payments.domain.entities.*;
 import com.payments.domain.valueobjects.*;
+import com.payments.domain.shared.TenantId;
 import com.payments.audit.service.AuditService;
 import com.payments.notification.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -54,22 +55,22 @@ class NotificationServiceTest {
     notification =
         NotificationEntity.builder()
             .id(notificationId)
-            .tenantId("tenant-123")
+            .tenantId(TenantId.of("tenant-123"))
             .userId("user-456")
-            .notificationType(NotificationType.PAYMENT_INITIATED)
+            .type(NotificationType.PAYMENT_INITIATED)
             .channelType(NotificationChannel.EMAIL)
             .recipientAddress("user@example.com")
             .templateData("{\"amount\": 1000, \"currency\": \"ZAR\"}")
             .status(NotificationStatus.PENDING)
             .attempts(0)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
     template =
         NotificationTemplateEntity.builder()
             .id(UUID.randomUUID())
-            .tenantId("tenant-123")
-            .notificationType(NotificationType.PAYMENT_INITIATED)
+            .tenantId(TenantId.of("tenant-123"))
+            .type(NotificationType.PAYMENT_INITIATED)
             .name("Payment Initiated")
             .emailSubject("Payment Initiated")
             .emailTemplate("Your payment of {{amount}} {{currency}} has been initiated.")
@@ -82,10 +83,9 @@ class NotificationServiceTest {
     preferences =
         NotificationPreferenceEntity.builder()
             .id(UUID.randomUUID())
-            .tenantId("tenant-123")
+            .tenantId(TenantId.of("tenant-123"))
             .userId("user-456")
-            .preferredChannels(
-                Set.of(NotificationChannel.EMAIL, NotificationChannel.SMS, NotificationChannel.PUSH))
+            .channel(NotificationChannel.EMAIL)
             .transactionAlertsOptIn(true)
             .marketingOptIn(false)
             .systemNotificationsOptIn(true)
@@ -98,10 +98,10 @@ class NotificationServiceTest {
     // Arrange
     when(notificationRepository.findById(notificationId)).thenReturn(Optional.of(notification));
     when(templateRepository.findActiveTemplateByTenantAndType(
-            notification.getTenantId(), notification.getNotificationType()))
+            notification.getTenantId().getValue(), notification.getType()))
         .thenReturn(Optional.of(template));
     when(preferenceRepository.findByTenantIdAndUserId(
-            notification.getTenantId(), notification.getUserId()))
+            notification.getTenantId().getValue(), notification.getUserId()))
         .thenReturn(Optional.of(preferences));
 
     // Act
@@ -110,9 +110,9 @@ class NotificationServiceTest {
     // Assert
     verify(notificationRepository).findById(notificationId);
     verify(templateRepository).findActiveTemplateByTenantAndType(
-        notification.getTenantId(), notification.getNotificationType());
+        notification.getTenantId().getValue(), notification.getType());
     verify(preferenceRepository).findByTenantIdAndUserId(
-        notification.getTenantId(), notification.getUserId());
+        notification.getTenantId().getValue(), notification.getUserId());
     verify(auditService).logNotificationSent(notification);
   }
 
@@ -134,7 +134,7 @@ class NotificationServiceTest {
     // Arrange
     when(notificationRepository.findById(notificationId)).thenReturn(Optional.of(notification));
     when(templateRepository.findActiveTemplateByTenantAndType(
-            notification.getTenantId(), notification.getNotificationType()))
+            notification.getTenantId().getValue(), notification.getType()))
         .thenReturn(Optional.empty());
 
     // Act & Assert
@@ -148,14 +148,14 @@ class NotificationServiceTest {
   void testProcessNotificationUserOptedOut() {
     // Arrange
     preferences.setTransactionAlertsOptIn(false);
-    notification.setNotificationType(NotificationType.PAYMENT_INITIATED);
+    notification.setType(NotificationType.PAYMENT_INITIATED);
 
     when(notificationRepository.findById(notificationId)).thenReturn(Optional.of(notification));
     when(templateRepository.findActiveTemplateByTenantAndType(
-            notification.getTenantId(), notification.getNotificationType()))
+            notification.getTenantId().getValue(), notification.getType()))
         .thenReturn(Optional.of(template));
     when(preferenceRepository.findByTenantIdAndUserId(
-            notification.getTenantId(), notification.getUserId()))
+            notification.getTenantId().getValue(), notification.getUserId()))
         .thenReturn(Optional.of(preferences));
 
     // Act
@@ -174,10 +174,10 @@ class NotificationServiceTest {
 
     when(notificationRepository.findById(notificationId)).thenReturn(Optional.of(notification));
     when(templateRepository.findActiveTemplateByTenantAndType(
-            notification.getTenantId(), notification.getNotificationType()))
+            notification.getTenantId().getValue(), notification.getType()))
         .thenReturn(Optional.of(template));
     when(preferenceRepository.findByTenantIdAndUserId(
-            notification.getTenantId(), notification.getUserId()))
+            notification.getTenantId().getValue(), notification.getUserId()))
         .thenReturn(Optional.of(preferences));
 
     // Act
@@ -267,10 +267,10 @@ class NotificationServiceTest {
 
     when(notificationRepository.findById(notificationId)).thenReturn(Optional.of(notification));
     when(templateRepository.findActiveTemplateByTenantAndType(
-            notification.getTenantId(), notification.getNotificationType()))
+            notification.getTenantId().getValue(), notification.getType()))
         .thenReturn(Optional.of(template));
     when(preferenceRepository.findByTenantIdAndUserId(
-            notification.getTenantId(), notification.getUserId()))
+            notification.getTenantId().getValue(), notification.getUserId()))
         .thenReturn(Optional.of(preferences));
 
     // Act

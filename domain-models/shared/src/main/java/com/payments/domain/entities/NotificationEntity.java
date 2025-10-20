@@ -399,4 +399,24 @@ public class NotificationEntity extends AggregateRoot<NotificationId> {
   public boolean isNotificationTypeAllowed(NotificationType allowedType) {
     return this.type != null && this.type.equals(allowedType);
   }
+
+  // Test compatibility methods - these are for testing purposes only
+  public void setNotificationType(NotificationType type) {
+    this.type = type;
+  }
+
+  public void setChannelType(NotificationChannel channel) {
+    this.channel = channel;
+  }
+
+  public void setRecipientAddress(String recipient) {
+    this.recipient = recipient;
+  }
+
+  public void setTemplateData(String templateData) {
+    // Convert template data to metadata
+    if (templateData != null && !templateData.isEmpty()) {
+      this.metadata = Map.of("templateData", templateData);
+    }
+  }
 }

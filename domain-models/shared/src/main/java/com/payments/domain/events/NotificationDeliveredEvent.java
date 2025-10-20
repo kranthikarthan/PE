@@ -33,4 +33,9 @@ public class NotificationDeliveredEvent implements DomainEvent {
   public String getEventType() {
     return "NotificationDelivered";
   }
+
+  @Override
+  public Instant getOccurredAt() {
+    return this.occurredAt;
+  }
 }

@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payments.domain.entities.*;
 import com.payments.domain.valueobjects.*;
+import com.payments.domain.shared.TenantId;
 import com.payments.notification.dto.CreateTemplateRequest;
 import com.payments.notification.dto.SendNotificationRequest;
 import com.payments.notification.dto.UpdatePreferenceRequest;
@@ -91,7 +92,7 @@ class NotificationControllerTest {
     NotificationTemplateEntity template =
         NotificationTemplateEntity.builder()
             .id(UUID.randomUUID())
-            .tenantId(tenantId)
+            .tenantId(TenantId.of(tenantId))
             .notificationType(NotificationType.PAYMENT_INITIATED)
             .name("Payment Initiated")
             .emailSubject("Payment Started")
@@ -144,7 +145,7 @@ class NotificationControllerTest {
     NotificationEntity notification =
         NotificationEntity.builder()
             .id(UUID.randomUUID())
-            .tenantId(tenantId)
+            .tenantId(TenantId.of(tenantId))
             .userId(userId)
             .notificationType(NotificationType.PAYMENT_INITIATED)
             .status(NotificationStatus.SENT)
@@ -183,7 +184,7 @@ class NotificationControllerTest {
         .perform(
             get("/api/notifications/statistics")
                 .header("X-Tenant-ID", tenantId)
-                .with(jwt().roles("ADMIN"))
+                .with(jwt().jwt(jwt -> jwt.claim("roles", "ADMIN")))
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.tenantId", equalTo(tenantId)))
@@ -197,7 +198,7 @@ class NotificationControllerTest {
     NotificationEntity notification =
         NotificationEntity.builder()
             .id(UUID.randomUUID())
-            .tenantId(tenantId)
+            .tenantId(TenantId.of(tenantId))
             .userId(userId)
             .notificationType(NotificationType.PAYMENT_INITIATED)
             .status(NotificationStatus.FAILED)
@@ -211,7 +212,7 @@ class NotificationControllerTest {
         .perform(
             post("/api/notifications/" + saved.getId() + "/retry")
                 .header("X-Tenant-ID", tenantId)
-                .with(jwt().roles("ADMIN"))
+                .with(jwt().jwt(jwt -> jwt.claim("roles", "ADMIN")))
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk());
   }
@@ -253,7 +254,7 @@ class NotificationControllerTest {
         .perform(
             post("/api/notifications/templates")
                 .header("X-Tenant-ID", tenantId)
-                .with(jwt().roles("ADMIN"))
+                .with(jwt().jwt(jwt -> jwt.claim("roles", "ADMIN")))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated())
@@ -268,7 +269,7 @@ class NotificationControllerTest {
     NotificationTemplateEntity template =
         NotificationTemplateEntity.builder()
             .id(UUID.randomUUID())
-            .tenantId(tenantId)
+            .tenantId(TenantId.of(tenantId))
             .notificationType(NotificationType.PAYMENT_INITIATED)
             .name("Payment Initiated")
             .emailSubject("Payment Started")
@@ -285,7 +286,7 @@ class NotificationControllerTest {
         .perform(
             delete("/api/notifications/templates/" + saved.getId())
                 .header("X-Tenant-ID", tenantId)
-                .with(jwt().roles("ADMIN"))
+                .with(jwt().jwt(jwt -> jwt.claim("roles", "ADMIN")))
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNoContent());
   }
@@ -301,9 +302,9 @@ class NotificationControllerTest {
     NotificationPreferenceEntity preferences =
         NotificationPreferenceEntity.builder()
             .id(UUID.randomUUID())
-            .tenantId(tenantId)
+            .tenantId(TenantId.of(tenantId))
             .userId(userId)
-            .preferredChannels(Set.of(NotificationChannel.EMAIL, NotificationChannel.SMS))
+            .channel(NotificationChannel.EMAIL)
             .transactionAlertsOptIn(true)
             .marketingOptIn(false)
             .systemNotificationsOptIn(true)
@@ -327,7 +328,7 @@ class NotificationControllerTest {
     // Arrange
     UpdatePreferenceRequest request =
         UpdatePreferenceRequest.builder()
-            .preferredChannels(Set.of(NotificationChannel.EMAIL))
+            .channel(NotificationChannel.EMAIL)
             .transactionAlertsOptIn(true)
             .marketingOptIn(false)
             .systemNotificationsOptIn(true)
@@ -369,7 +370,7 @@ class NotificationControllerTest {
         .perform(
             post("/api/notifications/templates")
                 .header("X-Tenant-ID", tenantId)
-                .with(jwt().roles("USER"))
+                .with(jwt().jwt(jwt -> jwt.claim("roles", "USER")))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
         .andExpect(status().isForbidden());

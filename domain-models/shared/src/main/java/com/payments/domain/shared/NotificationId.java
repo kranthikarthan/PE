@@ -12,4 +12,8 @@ public class NotificationId {
     }
     this.value = value;
   }
+
+  public String getValue() {
+    return this.value;
+  }
 }

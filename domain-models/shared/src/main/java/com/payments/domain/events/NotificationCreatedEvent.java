@@ -33,4 +33,9 @@ public class NotificationCreatedEvent implements DomainEvent {
   public String getEventType() {
     return "NotificationCreated";
   }
+
+  @Override
+  public Instant getOccurredAt() {
+    return this.occurredAt;
+  }
 }

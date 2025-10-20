@@ -21,7 +21,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalTime;
+import java.time.Instant;
 import java.util.*;
+import com.payments.domain.shared.TenantId;
 
 /**
  * Security testing for NotificationService.
@@ -125,7 +127,7 @@ class NotificationSecurityTest {
     // Test admin-only endpoints with user role
     mockMvc.perform(post("/api/notifications/templates")
             .header("X-Tenant-ID", tenantId)
-            .with(jwt().roles("USER"))
+                .with(jwt().jwt(jwt -> jwt.claim("roles", "USER")))
             .contentType(MediaType.APPLICATION_JSON)
             .content("{}"))
         .andExpect(status().isForbidden());
@@ -133,7 +135,7 @@ class NotificationSecurityTest {
     // Test admin-only endpoints with admin role
     mockMvc.perform(post("/api/notifications/templates")
             .header("X-Tenant-ID", tenantId)
-            .with(jwt().roles("ADMIN"))
+                .with(jwt().jwt(jwt -> jwt.claim("roles", "ADMIN")))
             .contentType(MediaType.APPLICATION_JSON)
             .content("{}"))
         .andExpect(status().isBadRequest()); // Bad request due to invalid content, not forbidden
@@ -316,7 +318,7 @@ class NotificationSecurityTest {
 
     mockMvc.perform(post("/api/notifications/templates")
             .header("X-Tenant-ID", tenantId)
-            .with(jwt().roles("ADMIN"))
+                .with(jwt().jwt(jwt -> jwt.claim("roles", "ADMIN")))
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated())
@@ -391,7 +393,7 @@ class NotificationSecurityTest {
         .templateData("{\"amount\": 1000}")
         .status(NotificationStatus.PENDING)
         .attempts(0)
-        .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
         .build();
   }
 
@@ -406,7 +408,7 @@ class NotificationSecurityTest {
         .templateData("{\"amount\": 1000, \"accountNumber\": \"1234567890\", \"routingNumber\": \"987654321\"}")
         .status(NotificationStatus.PENDING)
         .attempts(0)
-        .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
         .build();
   }
 }

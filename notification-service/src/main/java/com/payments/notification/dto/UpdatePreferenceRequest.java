@@ -17,6 +17,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdatePreferenceRequest {
+  // Single channel selection for update (consolidated model)
+  private NotificationChannel channel;
   private Set<NotificationChannel> preferredChannels;
   private Boolean transactionAlertsOptIn;
   private Boolean marketingOptIn;

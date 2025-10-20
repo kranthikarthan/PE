@@ -12,4 +12,8 @@ public class TemplateId {
     }
     this.value = value;
   }
+
+  public String getValue() {
+    return this.value;
+  }
 }
