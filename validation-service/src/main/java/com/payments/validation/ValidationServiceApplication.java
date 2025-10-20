@@ -1,9 +1,7 @@
 package com.payments.validation;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
 import org.springframework.kafka.annotation.EnableKafka;
 
 /**
@@ -14,7 +12,10 @@ import org.springframework.kafka.annotation.EnableKafka;
  * assessment
  */
 @SpringBootApplication(
-    exclude = {ManagementWebSecurityAutoConfiguration.class, OAuth2ClientAutoConfiguration.class})
+    exclude = {
+      org.springframework.boot.autoconfigure.security.oauth2.client.servlet
+          .OAuth2ClientAutoConfiguration.class
+    })
 @EnableKafka
 public class ValidationServiceApplication {
 
