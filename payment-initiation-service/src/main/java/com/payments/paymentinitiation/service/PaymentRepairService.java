@@ -2,7 +2,9 @@ package com.payments.paymentinitiation.service;
 
 import com.payments.contracts.payment.PaymentInitiationResponse;
 import com.payments.paymentinitiation.api.PaymentRepairController.*;
-import com.payments.paymentinitiation.entity.PaymentEntity;
+import com.payments.domain.payment.Payment;
+import com.payments.domain.payment.PaymentStatus;
+import com.payments.domain.shared.PaymentId;
 import com.payments.paymentinitiation.entity.PaymentRepairLogEntity;
 import com.payments.paymentinitiation.repository.PaymentRepository;
 import com.payments.paymentinitiation.repository.PaymentRepairLogRepository;
@@ -43,8 +45,8 @@ public class PaymentRepairService {
                 paymentId, retryRequest.getReason(), userId);
         
         // Find the payment
-        PaymentEntity payment = paymentRepository.findByPaymentIdAndTenantIdAndBusinessUnitId(
-            paymentId, tenantId, businessUnitId)
+        Payment payment = paymentRepository.findByIdAndTenantId(
+            PaymentId.of(paymentId), tenantId)
             .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
         
         // Validate payment can be retried
@@ -64,8 +66,7 @@ public class PaymentRepairService {
                 retryRequestData, correlationId, tenantId, businessUnitId);
             
             // Update the original payment status
-            payment.setStatus("RETRY_INITIATED");
-            payment.setLastUpdated(Instant.now());
+            payment.updateStatus(PaymentStatus.INITIATED, "Retry initiated by user: " + userId);
             paymentRepository.save(payment);
             
             // Log successful retry
@@ -92,8 +93,8 @@ public class PaymentRepairService {
                 paymentId, cancelRequest.getReason(), userId);
         
         // Find the payment
-        PaymentEntity payment = paymentRepository.findByPaymentIdAndTenantIdAndBusinessUnitId(
-            paymentId, tenantId, businessUnitId)
+        Payment payment = paymentRepository.findByIdAndTenantId(
+            PaymentId.of(paymentId), tenantId)
             .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
         
         // Validate payment can be cancelled
@@ -106,8 +107,7 @@ public class PaymentRepairService {
         
         try {
             // Update payment status to cancelled
-            payment.setStatus("CANCELLED");
-            payment.setLastUpdated(Instant.now());
+            payment.updateStatus(PaymentStatus.FAILED, "Cancelled by user: " + userId);
             paymentRepository.save(payment);
             
             // Log successful cancellation
@@ -115,9 +115,11 @@ public class PaymentRepairService {
             
             // Create response
             PaymentInitiationResponse response = PaymentInitiationResponse.builder()
-                .paymentId(paymentId)
-                .status("CANCELLED")
-                .message("Payment cancelled successfully")
+                .paymentId(payment.getId())
+                .status(com.payments.contracts.payment.PaymentStatus.FAILED)
+                .tenantContext(payment.getTenantContext())
+                .initiatedAt(payment.getInitiatedAt())
+                .errorMessage("Payment cancelled successfully")
                 .build();
             
             log.info("Payment cancelled successfully: {}", paymentId);
@@ -138,7 +140,7 @@ public class PaymentRepairService {
         log.info("Retrieving repair history for payment: {}", paymentId);
         
         // Verify payment exists
-        paymentRepository.findByPaymentIdAndTenantIdAndBusinessUnitId(paymentId, tenantId, businessUnitId)
+        paymentRepository.findByIdAndTenantId(PaymentId.of(paymentId), tenantId)
             .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
         
         // Get repair history
@@ -157,8 +159,8 @@ public class PaymentRepairService {
         log.info("Retrieving failed payments for tenant: {}, business unit: {}", tenantId, businessUnitId);
         
         PageRequest pageRequest = PageRequest.of(page, size);
-        List<PaymentEntity> failedPayments = paymentRepository.findByTenantIdAndBusinessUnitIdAndStatusIn(
-            tenantId, businessUnitId, List.of("FAILED", "TIMEOUT", "ERROR"), pageRequest);
+        List<Payment> failedPayments = paymentRepository.findByStatusAndTenantId(
+            PaymentStatus.FAILED, tenantId);
         
         return failedPayments.stream()
             .map(this::mapToPaymentResponse)
@@ -210,30 +212,34 @@ public class PaymentRepairService {
     /**
      * Check if payment can be retried
      */
-    private boolean canRetryPayment(PaymentEntity payment) {
-        return List.of("FAILED", "TIMEOUT", "ERROR", "RETRY_INITIATED").contains(payment.getStatus());
+    private boolean canRetryPayment(Payment payment) {
+        return payment.getStatus() == PaymentStatus.FAILED;
     }
 
     /**
      * Check if payment can be cancelled
      */
-    private boolean canCancelPayment(PaymentEntity payment) {
-        return List.of("PENDING", "PROCESSING", "VALIDATED").contains(payment.getStatus());
+    private boolean canCancelPayment(Payment payment) {
+        return payment.getStatus() == PaymentStatus.INITIATED || 
+               payment.getStatus() == PaymentStatus.VALIDATED;
     }
 
     /**
      * Create retry request from original payment
      */
     private com.payments.contracts.payment.PaymentInitiationRequest createRetryRequestFromPayment(
-            PaymentEntity payment, RetryRequest retryRequest) {
+            Payment payment, RetryRequest retryRequest) {
         return com.payments.contracts.payment.PaymentInitiationRequest.builder()
+            .paymentId(PaymentId.of(UUID.randomUUID().toString()))
+            .idempotencyKey(UUID.randomUUID().toString())
+            .sourceAccount(payment.getSourceAccount().getValue())
+            .destinationAccount(payment.getDestinationAccount().getValue())
             .amount(payment.getAmount())
-            .currency(payment.getCurrency())
-            .debtorAccount(payment.getDebtorAccount())
-            .creditorAccount(payment.getCreditorAccount())
-            .creditorName(payment.getCreditorName())
-            .paymentReference(payment.getPaymentReference())
-            .remittanceInformation(payment.getRemittanceInformation())
+            .reference(payment.getReference().getValue())
+            .paymentType(com.payments.contracts.payment.PaymentType.valueOf(payment.getPaymentType().name()))
+            .priority(com.payments.contracts.payment.Priority.valueOf(payment.getPriority().name()))
+            .tenantContext(payment.getTenantContext())
+            .initiatedBy("repair-service")
             .build();
     }
 
@@ -245,7 +251,7 @@ public class PaymentRepairService {
             PaymentRepairLogEntity repairLog = PaymentRepairLogEntity.builder()
                 .repairId(UUID.randomUUID().toString())
                 .paymentId(paymentId)
-                .action(action)
+                .action(PaymentRepairLogEntity.RepairAction.valueOf(action))
                 .performedBy(userId)
                 .reason(reason)
                 .result(result)
@@ -265,7 +271,7 @@ public class PaymentRepairService {
      */
     private RepairHistoryItem mapToRepairHistoryItem(PaymentRepairLogEntity repairLog) {
         return RepairHistoryItem.builder()
-            .action(repairLog.getAction())
+            .action(repairLog.getAction().name())
             .timestamp(repairLog.getTimestamp().toString())
             .performedBy(repairLog.getPerformedBy())
             .reason(repairLog.getReason())
@@ -276,19 +282,12 @@ public class PaymentRepairService {
     /**
      * Map payment entity to response
      */
-    private PaymentInitiationResponse mapToPaymentResponse(PaymentEntity payment) {
+    private PaymentInitiationResponse mapToPaymentResponse(Payment payment) {
         return PaymentInitiationResponse.builder()
-            .paymentId(payment.getPaymentId())
-            .status(payment.getStatus())
-            .amount(payment.getAmount())
-            .currency(payment.getCurrency())
-            .debtorAccount(payment.getDebtorAccount())
-            .creditorAccount(payment.getCreditorAccount())
-            .creditorName(payment.getCreditorName())
-            .paymentReference(payment.getPaymentReference())
-            .remittanceInformation(payment.getRemittanceInformation())
-            .createdAt(payment.getCreatedAt().toString())
-            .lastUpdated(payment.getLastUpdated().toString())
+            .paymentId(payment.getId())
+            .status(com.payments.contracts.payment.PaymentStatus.valueOf(payment.getStatus().name()))
+            .tenantContext(payment.getTenantContext())
+            .initiatedAt(payment.getInitiatedAt())
             .build();
     }
 }

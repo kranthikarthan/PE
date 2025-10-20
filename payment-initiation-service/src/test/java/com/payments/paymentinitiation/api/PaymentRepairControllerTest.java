@@ -1,6 +1,8 @@
 package com.payments.paymentinitiation.api;
 
 import com.payments.contracts.payment.PaymentInitiationResponse;
+import com.payments.domain.shared.PaymentId;
+import com.payments.domain.shared.TenantContext;
 import com.payments.paymentinitiation.service.PaymentRepairService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -49,9 +51,14 @@ class PaymentRepairControllerTest {
             .build();
 
         PaymentInitiationResponse mockResponse = PaymentInitiationResponse.builder()
-            .paymentId("payment-123")
-            .status("RETRY_INITIATED")
-            .message("Payment retry initiated successfully")
+            .paymentId(PaymentId.of("payment-123"))
+            .status(com.payments.contracts.payment.PaymentStatus.INITIATED)
+            .tenantContext(TenantContext.builder()
+                .tenantId("tenant-123")
+                .businessUnitId("business-unit-123")
+                .build())
+            .initiatedAt(Instant.now())
+            .errorMessage("Payment retry initiated successfully")
             .build();
         
         when(paymentRepairService.retryPayment(anyString(), any(), anyString(), anyString(), anyString(), anyString()))
@@ -82,9 +89,14 @@ class PaymentRepairControllerTest {
             .build();
 
         PaymentInitiationResponse mockResponse = PaymentInitiationResponse.builder()
-            .paymentId("payment-123")
-            .status("CANCELLED")
-            .message("Payment cancelled successfully")
+            .paymentId(PaymentId.of("payment-123"))
+            .status(com.payments.contracts.payment.PaymentStatus.FAILED)
+            .tenantContext(TenantContext.builder()
+                .tenantId("tenant-123")
+                .businessUnitId("business-unit-123")
+                .build())
+            .initiatedAt(Instant.now())
+            .errorMessage("Payment cancelled successfully")
             .build();
         
         when(paymentRepairService.cancelPayment(anyString(), any(), anyString(), anyString(), anyString(), anyString()))
@@ -148,16 +160,22 @@ class PaymentRepairControllerTest {
         // Given
         List<PaymentInitiationResponse> mockFailedPayments = List.of(
             PaymentInitiationResponse.builder()
-                .paymentId("payment-123")
-                .status("FAILED")
-                .amount(100.00)
-                .currency("USD")
+                .paymentId(PaymentId.of("payment-123"))
+                .status(com.payments.contracts.payment.PaymentStatus.FAILED)
+                .tenantContext(TenantContext.builder()
+                    .tenantId("tenant-123")
+                    .businessUnitId("business-unit-123")
+                    .build())
+                .initiatedAt(Instant.now())
                 .build(),
             PaymentInitiationResponse.builder()
-                .paymentId("payment-456")
-                .status("TIMEOUT")
-                .amount(200.00)
-                .currency("USD")
+                .paymentId(PaymentId.of("payment-456"))
+                .status(com.payments.contracts.payment.PaymentStatus.FAILED)
+                .tenantContext(TenantContext.builder()
+                    .tenantId("tenant-123")
+                    .businessUnitId("business-unit-123")
+                    .build())
+                .initiatedAt(Instant.now())
                 .build()
         );
         
