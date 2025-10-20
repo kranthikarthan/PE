@@ -1,0 +1,22 @@
+{
+  "paymentId": {
+    "value": "${paymentId}"
+  },
+  "idempotencyKey": "${idempotencyKey}",
+  "sourceAccount": "${fromAccount}",
+  "destinationAccount": "${toAccount}",
+  "amount": {
+    "amount": ${amount},
+    "currency": "${currency}"
+  },
+  "reference": "GTL-${reference}",
+  "paymentType": "EFT",
+  "priority": "NORMAL",
+  "tenantContext": {
+    "tenantId": "TENANT-TEST-001",
+    "businessUnitId": "BU-TEST-001"
+  },
+  "initiatedBy": "loadtest@gatling"
+}
+
+

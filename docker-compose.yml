@@ -283,6 +283,29 @@ services:
       - payments-network
 
   # =============================================================================
+  # DATABASE MIGRATIONS
+  # =============================================================================
+
+  # Database Migrations Service
+  migrations:
+    image: flyway/flyway:9.22
+    container_name: payments-migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/payment_initiation
+      FLYWAY_USER: payments_user
+      FLYWAY_PASSWORD: payments_password
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql
+      FLYWAY_CONNECT_RETRIES: 10
+    volumes:
+      - ./database-migrations:/flyway/sql
+    command: migrate
+    networks:
+      - payments-network
+
+  # =============================================================================
   # MONITORING & OBSERVABILITY
   # =============================================================================
 

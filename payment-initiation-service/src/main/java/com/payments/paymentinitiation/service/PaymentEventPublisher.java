@@ -40,7 +40,7 @@ public class PaymentEventPublisher {
     event.setEventId(UUID.randomUUID());
     event.setEventType("payment.payment.initiated.v1");
     event.setTimestamp(Instant.now());
-    event.setCorrelationId(UUID.fromString(correlationId));
+    event.setCorrelationId(parseCorrelationId(correlationId));
     event.setSource("PaymentInitiationService");
     event.setVersion("1.0.0");
     event.setTenantId(payment.getTenantContext().getTenantId());
@@ -79,7 +79,7 @@ public class PaymentEventPublisher {
     event.setEventId(UUID.randomUUID());
     event.setEventType("payment.payment.validated.v1");
     event.setTimestamp(Instant.now());
-    event.setCorrelationId(UUID.fromString(correlationId));
+    event.setCorrelationId(parseCorrelationId(correlationId));
     event.setSource("PaymentInitiationService");
     event.setVersion("1.0.0");
     event.setTenantId(payment.getTenantContext().getTenantId());
@@ -110,7 +110,7 @@ public class PaymentEventPublisher {
     event.setEventId(UUID.randomUUID());
     event.setEventType("payment.payment.failed.v1");
     event.setTimestamp(Instant.now());
-    event.setCorrelationId(UUID.fromString(correlationId));
+    event.setCorrelationId(parseCorrelationId(correlationId));
     event.setSource("PaymentInitiationService");
     event.setVersion("1.0.0");
     event.setTenantId(payment.getTenantContext().getTenantId());
@@ -139,7 +139,7 @@ public class PaymentEventPublisher {
     event.setEventId(UUID.randomUUID());
     event.setEventType("payment.payment.completed.v1");
     event.setTimestamp(Instant.now());
-    event.setCorrelationId(UUID.fromString(correlationId));
+    event.setCorrelationId(parseCorrelationId(correlationId));
     event.setSource("PaymentInitiationService");
     event.setVersion("1.0.0");
     event.setTenantId(payment.getTenantContext().getTenantId());
@@ -171,6 +171,18 @@ public class PaymentEventPublisher {
       case FAILED -> publishPaymentFailedEvent(payment, reason, payment.getId().getValue());
       case COMPLETED -> publishPaymentCompletedEvent(payment, payment.getId().getValue());
       default -> log.debug("No specific event to publish for status: {}", newStatus);
+    }
+  }
+
+  private UUID parseCorrelationId(String correlationId) {
+    if (correlationId == null || correlationId.isBlank()) {
+      return UUID.randomUUID();
+    }
+    try {
+      return UUID.fromString(correlationId);
+    } catch (IllegalArgumentException ex) {
+      // Fall back to a name-based UUID to preserve trace continuity even with non-UUID inputs
+      return UUID.nameUUIDFromBytes(correlationId.getBytes());
     }
   }
 }

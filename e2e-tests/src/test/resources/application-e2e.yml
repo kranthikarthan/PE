@@ -1,0 +1,94 @@
+# E2E Test Configuration
+spring:
+  profiles:
+    active: e2e
+  
+  # Test Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/payments_e2e_test
+    username: payments_test
+    password: payments_test
+    driver-class-name: org.postgresql.Driver
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+  
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: e2e-test-consumer
+      auto-offset-reset: earliest
+    producer:
+      acks: all
+      retries: 3
+  
+  # Redis Configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 1
+      timeout: 2000ms
+
+# Test Configuration
+test:
+  # Test Data Configuration
+  data:
+    tenant-id: TENANT-TEST-001
+    test-account-id: ACC-TEST-001
+    test-user-id: USER-TEST-001
+  
+  # Test Timeouts
+  timeouts:
+    payment-processing: 30s
+    event-propagation: 10s
+    api-response: 5s
+  
+  # Test URLs
+  urls:
+    payment-initiation: http://localhost:8081
+    validation: http://localhost:8082
+    account-adapter: http://localhost:8083
+    routing: http://localhost:8084
+    transaction-processing: http://localhost:8085
+    saga-orchestrator: http://localhost:8086
+  
+  # External Service Mocking
+  external-services:
+    core-banking:
+      base-url: http://localhost:8089
+      timeout: 5000ms
+    fraud-api:
+      base-url: http://localhost:8090
+      timeout: 3000ms
+    clearing-systems:
+      samos: http://localhost:8091
+      bankservafrica: http://localhost:8092
+      rtc: http://localhost:8093
+      payshap: http://localhost:8094
+      swift: http://localhost:8095
+
+# Logging Configuration
+logging:
+  level:
+    com.payments: DEBUG
+    org.springframework: INFO
+    org.testcontainers: INFO
+    io.cucumber: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Allure Configuration
+allure:
+  results:
+    directory: target/allure-results
+  report:
+    directory: target/allure-report

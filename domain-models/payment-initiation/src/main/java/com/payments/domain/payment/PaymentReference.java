@@ -2,14 +2,14 @@ package com.payments.domain.payment;
 
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Value;
 
 @Embeddable
-@Value
-@NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
+@Data
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // For JPA
 public class PaymentReference {
-  String value;
+  private String value;
 
   private PaymentReference(String value) {
     if (value == null || value.isBlank()) {
