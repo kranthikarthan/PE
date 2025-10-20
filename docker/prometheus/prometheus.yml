@@ -16,40 +16,40 @@ scrape_configs:
   - job_name: 'payment-initiation-service'
     static_configs:
       - targets: ['payment-initiation-service:8080']
-    metrics_path: '/actuator/prometheus'
+    metrics_path: '/payment-initiation/actuator/prometheus'
     scrape_interval: 15s
 
   # Validation Service
   - job_name: 'validation-service'
     static_configs:
-      - targets: ['validation-service:8080']
-    metrics_path: '/actuator/prometheus'
+      - targets: ['validation-service:8082']
+    metrics_path: '/validation-service/actuator/prometheus'
     scrape_interval: 15s
 
   # Account Adapter Service
   - job_name: 'account-adapter-service'
     static_configs:
-      - targets: ['account-adapter-service:8080']
-    metrics_path: '/actuator/prometheus'
+      - targets: ['account-adapter-service:8083']
+    metrics_path: '/account-adapter-service/actuator/prometheus'
     scrape_interval: 15s
 
   # Routing Service
   - job_name: 'routing-service'
     static_configs:
-      - targets: ['routing-service:8080']
-    metrics_path: '/actuator/prometheus'
+      - targets: ['routing-service:8084']
+    metrics_path: '/routing-service/actuator/prometheus'
     scrape_interval: 15s
 
   # Transaction Processing Service
   - job_name: 'transaction-processing-service'
     static_configs:
-      - targets: ['transaction-processing-service:8080']
-    metrics_path: '/actuator/prometheus'
+      - targets: ['transaction-processing-service:8084']
+    metrics_path: '/transaction-processing/actuator/prometheus'
     scrape_interval: 15s
 
   # Saga Orchestrator Service
   - job_name: 'saga-orchestrator'
     static_configs:
-      - targets: ['saga-orchestrator:8080']
-    metrics_path: '/actuator/prometheus'
+      - targets: ['saga-orchestrator:8086']
+    metrics_path: '/saga-orchestrator/actuator/prometheus'
     scrape_interval: 15s

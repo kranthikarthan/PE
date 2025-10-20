@@ -1,0 +1,29 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/api/v1/payments",
+    "headers": {
+      "Content-Type": {
+        "equalTo": "application/xml"
+      },
+      "Authorization": {
+        "matches": "Bearer .*"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "matchesXPath": "//Document[@xmlns='urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08']"
+      }
+    ]
+  },
+  "response": {
+    "status": 400,
+    "headers": {
+      "Content-Type": "application/xml",
+      "X-SAMOS-Error-Code": "INVALID_REQUEST",
+      "X-SAMOS-Timestamp": "{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.002.001.12\">\n  <FIToFIPmtStsRpt>\n    <GrpHdr>\n      <MsgId>{{randomValue length=36 type='ALPHANUMERIC'}}</MsgId>\n      <CreDtTm>{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}</CreDtTm>\n      <InstgAgt>\n        <FinInstnId>\n          <BICFI>SARBZAJJ</BICFI>\n        </FinInstnId>\n      </InstgAgt>\n    </GrpHdr>\n    <OrgnlGrpInfAndSts>\n      <OrgnlMsgId>{{jsonPath '$.request.body'}}</OrgnlMsgId>\n      <OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId>\n      <OrgnlCreDtTm>{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}</OrgnlCreDtTm>\n    </OrgnlGrpInfAndSts>\n    <TxInfAndSts>\n      <StsId>{{randomValue length=36 type='ALPHANUMERIC'}}</StsId>\n      <OrgnlTxId>{{jsonPath '$.request.body'}}</OrgnlTxId>\n      <TxSts>RJCT</TxSts>\n      <StsRsnInf>\n        <Orgtr>\n          <Nm>South African Reserve Bank</Nm>\n        </Orgtr>\n        <Rsn>\n          <Cd>NARR</Cd>\n          <Prtry>Invalid payment request format or missing required fields</Prtry>\n        </Rsn>\n      </StsRsnInf>\n      <ChrgsInf>\n        <Amt>\n          <InstdAmt Ccy=\"ZAR\">0.00</InstdAmt>\n        </Amt>\n        <Agt>\n          <FinInstnId>\n            <BICFI>SARBZAJJ</BICFI>\n          </FinInstnId>\n        </Agt>\n      </ChrgsInf>\n      <RjctRsnInf>\n        <Orgtr>\n          <Nm>South African Reserve Bank</Nm>\n        </Orgtr>\n        <Rsn>\n          <Cd>NARR</Cd>\n          <Prtry>Payment rejected due to validation failure</Prtry>\n        </Rsn>\n      </RjctRsnInf>\n    </TxInfAndSts>\n  </FIToFIPmtStsRpt>\n</Document>",
+    "transformers": ["response-template"]
+  }
+}

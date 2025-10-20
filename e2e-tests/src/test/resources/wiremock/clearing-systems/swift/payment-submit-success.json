@@ -1,0 +1,35 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/api/v1/swift/messages",
+    "headers": {
+      "Content-Type": {
+        "equalTo": "application/xml"
+      },
+      "Authorization": {
+        "matches": "Bearer .*"
+      },
+      "X-SWIFT-Client-ID": {
+        "matches": ".*"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "matchesXPath": "//Document[@xmlns='urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08']"
+      },
+      {
+        "matchesXPath": "//CdtTrfTxInf//Amt[@Ccy]"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/xml",
+      "X-SWIFT-Response-ID": "{{randomValue length=36 type='ALPHANUMERIC'}}",
+      "X-SWIFT-Timestamp": "{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.002.001.12\">\n  <FIToFIPmtStsRpt>\n    <GrpHdr>\n      <MsgId>{{randomValue length=36 type='ALPHANUMERIC'}}</MsgId>\n      <CreDtTm>{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}</CreDtTm>\n      <InstgAgt>\n        <FinInstnId>\n          <BICFI>SWIFTNET</BICFI>\n        </FinInstnId>\n      </InstgAgt>\n      <InstdAgt>\n        <FinInstnId>\n          <BICFI>{{jsonPath '$.request.body'}}</BICFI>\n        </FinInstnId>\n      </InstdAgt>\n    </GrpHdr>\n    <OrgnlGrpInfAndSts>\n      <OrgnlMsgId>{{jsonPath '$.request.body'}}</OrgnlMsgId>\n      <OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId>\n      <OrgnlCreDtTm>{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}</OrgnlCreDtTm>\n    </OrgnlGrpInfAndSts>\n    <TxInfAndSts>\n      <StsId>{{randomValue length=36 type='ALPHANUMERIC'}}</StsId>\n      <OrgnlTxId>{{jsonPath '$.request.body'}}</OrgnlTxId>\n      <TxSts>ACSC</TxSts>\n      <StsRsnInf>\n        <Orgtr>\n          <Nm>SWIFT Network</Nm>\n        </Orgtr>\n        <Rsn>\n          <Cd>NARR</Cd>\n          <Prtry>SWIFT message successfully processed and delivered</Prtry>\n        </Rsn>\n      </StsRsnInf>\n      <ChrgsInf>\n        <Amt>\n          <InstdAmt Ccy=\"{{jsonPath '$.request.body'}}\">0.00</InstdAmt>\n        </Amt>\n        <Agt>\n          <FinInstnId>\n            <BICFI>SWIFTNET</BICFI>\n          </FinInstnId>\n        </Agt>\n      </ChrgsInf>\n      <AccptncDtTm>{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}</AccptncDtTm>\n      <AcctSvcrRef>{{randomValue length=20 type='ALPHANUMERIC'}}</AcctSvcrRef>\n      <ClrSysRef>{{randomValue length=16 type='ALPHANUMERIC'}}</ClrSysRef>\n    </TxInfAndSts>\n    <SplmtryData>\n      <PlcAndNm>SWIFT</PlcAndNm>\n      <Envlp>\n        <Any>\n          <swift:MessageInfo xmlns:swift=\"urn:swift:xsd:swift\">\n            <swift:MessageType>MT103</swift:MessageType>\n            <swift:MessagePriority>N</swift:MessagePriority>\n            <swift:DeliveryMonitoring>1</swift:DeliveryMonitoring>\n            <swift:ObsolescencePeriod>003</swift:ObsolescencePeriod>\n          </swift:MessageInfo>\n        </Any>\n      </Envlp>\n    </SplmtryData>\n  </FIToFIPmtStsRpt>\n</Document>",
+    "transformers": ["response-template"]
+  }
+}

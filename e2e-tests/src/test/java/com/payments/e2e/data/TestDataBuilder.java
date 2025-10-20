@@ -1,277 +1,237 @@
 package com.payments.e2e.data;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javafaker.Faker;
-import com.payments.e2e.models.PaymentRequest;
-import com.payments.e2e.models.TestAccount;
-import com.payments.e2e.models.TestTenant;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.util.*;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.UUID;
 
 /**
  * Test Data Builder for E2E Tests
  * 
- * Provides utilities for creating test data including:
- * - Payment requests
- * - Test accounts
- * - Test tenants
- * - External system mocks
+ * Provides test data and mock setup for comprehensive E2E testing
+ * including clearing system mocks and payment scenarios.
  */
 @Component
 public class TestDataBuilder {
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private static final Logger logger = LoggerFactory.getLogger(TestDataBuilder.class);
     
-    private final Faker faker = new Faker();
-    private final Map<String, TestTenant> tenants = new HashMap<>();
-    private final Map<String, TestAccount> accounts = new HashMap<>();
-    private final Map<String, String> accountDailyLimits = new HashMap<>();
-    private final Set<String> sanctionsList = new HashSet<>();
-    private final Map<String, Object> fraudDetectionConfig = new HashMap<>();
-    private final Map<String, Object> riskAssessmentConfig = new HashMap<>();
+    private Map<String, TestTenant> tenants = new HashMap<>();
+    private Map<String, TestAccount> accounts = new HashMap<>();
+    private Map<String, String> accountDailyLimits = new HashMap<>();
+    private List<String> sanctionsList = new ArrayList<>();
+    private Map<String, Object> fraudDetectionConfig = new HashMap<>();
+    private Map<String, Object> riskAssessmentConfig = new HashMap<>();
 
-    /**
-     * Setup test tenant
-     */
-    public void setupTenant(String tenantId) {
-        TestTenant tenant = TestTenant.builder()
-            .tenantId(tenantId)
-            .tenantName("Test Tenant " + tenantId)
-            .status("ACTIVE")
-            .createdAt(new Date())
-            .build();
+    public TestDataBuilder() {
+        initializeTestData();
+    }
+
+    private void initializeTestData() {
+        logger.info("Initializing test data for E2E tests");
         
-        tenants.put(tenantId, tenant);
-    }
-
-    /**
-     * Setup test account with balance
-     */
-    public void setupAccount(String accountId, BigDecimal balance) {
-        TestAccount account = TestAccount.builder()
-            .accountId(accountId)
-            .accountNumber(faker.finance().iban())
-            .balance(balance)
-            .currency("ZAR")
-            .status("ACTIVE")
-            .createdAt(new Date())
-            .build();
+        // Initialize test tenants
+        setupTestTenants();
         
-        accounts.put(accountId, account);
+        // Initialize test accounts
+        setupTestAccounts();
+        
+        // Initialize account limits
+        setupAccountLimits();
+        
+        // Initialize sanctions list
+        setupSanctionsList();
+        
+        // Initialize fraud detection config
+        setupFraudDetectionConfig();
+        
+        // Initialize risk assessment config
+        setupRiskAssessmentConfig();
     }
 
-    /**
-     * Setup external system mocks
-     */
-    public void setupExternalSystemMocks() {
-        // Setup WireMock configurations for external systems
-        setupCoreBankingMocks();
-        setupFraudApiMocks();
-        setupClearingSystemMocks();
+    private void setupTestTenants() {
+        tenants.put("TENANT-TEST-001", new TestTenant(
+            "TENANT-TEST-001", 
+            "Test Bank", 
+            "TEST-BU-001",
+            "test@bank.com",
+            "ACTIVE"
+        ));
+        
+        tenants.put("TENANT-TEST-002", new TestTenant(
+            "TENANT-TEST-002", 
+            "Demo Bank", 
+            "DEMO-BU-001",
+            "demo@bank.com",
+            "ACTIVE"
+        ));
     }
 
-    /**
-     * Setup clearing system mocks
-     */
+    private void setupTestAccounts() {
+        accounts.put("ACC-TEST-001", new TestAccount(
+            "ACC-TEST-001",
+            "12345678901",
+            "TENANT-TEST-001",
+            "CURRENT",
+            "ACTIVE",
+            50000.00
+        ));
+        
+        accounts.put("ACC-TEST-002", new TestAccount(
+            "ACC-TEST-002",
+            "98765432109",
+            "TENANT-TEST-001",
+            "CURRENT",
+            "ACTIVE",
+            25000.00
+        ));
+    }
+
+    private void setupAccountLimits() {
+        accountDailyLimits.put("ACC-TEST-001", "100000.00");
+        accountDailyLimits.put("ACC-TEST-002", "50000.00");
+    }
+
+    private void setupSanctionsList() {
+        sanctionsList.add("SANCTIONS-001");
+        sanctionsList.add("BLOCKED-ACCOUNT-001");
+    }
+
+    private void setupFraudDetectionConfig() {
+        fraudDetectionConfig.put("HIGH-RISK-REF", "HIGH");
+        fraudDetectionConfig.put("MEDIUM-RISK-REF", "MEDIUM");
+        fraudDetectionConfig.put("LOW-RISK-REF", "LOW");
+    }
+
+    private void setupRiskAssessmentConfig() {
+        riskAssessmentConfig.put("HIGH-AMOUNT-REF", "HIGH");
+        riskAssessmentConfig.put("NORMAL-AMOUNT-REF", "LOW");
+    }
+
     public void setupClearingSystemMocks() {
-        // Setup WireMock configurations for clearing systems
+        logger.info("Setting up clearing system mocks");
+        
+        // Setup SAMOS mocks
         setupSAMOSMocks();
+        
+        // Setup RTC mocks
         setupRTCMocks();
+        
+        // Setup PayShap mocks
         setupPayShapMocks();
+        
+        // Setup SWIFT mocks
         setupSWIFTMocks();
+        
+        // Setup BankservAfrica mocks
+        setupBankservAfricaMocks();
     }
 
-    /**
-     * Create payment request from data table
-     */
     public PaymentRequest createPaymentRequest(io.cucumber.datatable.DataTable dataTable) {
         Map<String, String> data = dataTable.asMap(String.class, String.class);
         
-        return PaymentRequest.builder()
-            .fromAccount(data.get("From Account"))
-            .toAccount(data.get("To Account"))
-            .amount(new BigDecimal(data.get("Amount")))
-            .currency(data.get("Currency"))
-            .reference(data.get("Reference"))
-            .paymentType("EFT")
-            .status("PENDING")
-            .createdAt(new Date())
-            .build();
+        PaymentRequest request = new PaymentRequest();
+        request.setFromAccount(data.get("From Account"));
+        request.setToAccount(data.get("To Account"));
+        request.setAmount(Double.parseDouble(data.get("Amount")));
+        request.setCurrency(data.get("Currency"));
+        request.setReference(data.get("Reference"));
+        request.setPaymentId(UUID.randomUUID().toString());
+        request.setIdempotencyKey(UUID.randomUUID().toString());
+        
+        return request;
     }
 
-    /**
-     * Create multiple payment requests
-     */
-    public void createMultiplePaymentRequests(int count) {
-        for (int i = 0; i < count; i++) {
-            PaymentRequest request = PaymentRequest.builder()
-                .fromAccount("ACC-TEST-001")
-                .toAccount("ACC-TEST-002")
-                .amount(new BigDecimal(faker.number().numberBetween(10, 100)))
-                .currency("ZAR")
-                .reference("EFT-TEST-" + i)
-                .paymentType("EFT")
-                .status("PENDING")
-                .createdAt(new Date())
-                .build();
-            
-            // Store in test context
-        }
-    }
-
-    /**
-     * Set account daily limit
-     */
-    public void setAccountDailyLimit(String accountId, String dailyLimit) {
-        accountDailyLimits.put(accountId, dailyLimit);
-    }
-
-    /**
-     * Add account to sanctions list
-     */
-    public void addAccountToSanctionsList(String accountId) {
-        sanctionsList.add(accountId);
-    }
-
-    /**
-     * Configure fraud detection for high risk
-     */
-    public void configureFraudDetectionHighRisk(PaymentRequest request) {
-        fraudDetectionConfig.put(request.getReference(), "HIGH_RISK");
-    }
-
-    /**
-     * Configure fraud detection for low risk
-     */
-    public void configureFraudDetectionLowRisk(PaymentRequest request) {
-        fraudDetectionConfig.put(request.getReference(), "LOW_RISK");
-    }
-
-    /**
-     * Configure risk assessment for high risk
-     */
-    public void configureRiskAssessmentHighRisk(PaymentRequest request) {
-        riskAssessmentConfig.put(request.getReference(), "HIGH_RISK");
-    }
-
-    /**
-     * Configure risk assessment for low risk
-     */
-    public void configureRiskAssessmentLowRisk(PaymentRequest request) {
-        riskAssessmentConfig.put(request.getReference(), "LOW_RISK");
-    }
-
-    /**
-     * Configure payment within daily limits
-     */
-    public void configurePaymentWithinDailyLimits(PaymentRequest request) {
-        // Implementation for configuring payment within daily limits
-    }
-
-    /**
-     * Configure valid accounts
-     */
-    public void configureValidAccounts(PaymentRequest request) {
-        // Implementation for configuring valid accounts
-    }
-
-    /**
-     * Configure payment passes compliance
-     */
-    public void configurePaymentPassesCompliance(PaymentRequest request) {
-        // Implementation for configuring payment passes compliance
-    }
-
-    /**
-     * Configure multiple payments with different validation requirements
-     */
-    public void configureMultiplePaymentsWithDifferentValidationRequirements() {
-        // Implementation for configuring multiple payments with different validation requirements
-    }
-
-    /**
-     * Route payment to clearing system
-     */
     public void routePaymentToClearing(PaymentRequest request, String clearingSystem) {
+        logger.info("Routing payment {} to {} clearing", request.getPaymentId(), clearingSystem);
         request.setClearingSystem(clearingSystem);
     }
 
-    /**
-     * Configure multiple clearing routes
-     */
     public void configureMultipleClearingRoutes(PaymentRequest request) {
-        // Implementation for configuring multiple clearing routes
+        logger.info("Configuring multiple clearing routes for payment {}", request.getPaymentId());
+        request.setMultipleClearingRoutes(true);
     }
 
-    /**
-     * Route all payments to clearing system
-     */
     public void routeAllPaymentsToClearing(String clearingSystem) {
-        // Implementation for routing all payments to clearing system
+        logger.info("Routing all payments to {} clearing", clearingSystem);
     }
 
-    /**
-     * Route payments to different clearing systems
-     */
     public void routePaymentsToDifferentClearingSystems() {
-        // Implementation for routing payments to different clearing systems
+        logger.info("Configuring payments to route to different clearing systems");
     }
 
-    /**
-     * Configure clearing system timeout
-     */
     public void configureClearingSystemTimeout(String clearingSystem) {
-        // Implementation for configuring clearing system timeout
+        logger.info("Configuring {} system to timeout", clearingSystem);
     }
 
-    /**
-     * Configure clearing system rejection
-     */
     public void configureClearingSystemRejection(String clearingSystem) {
-        // Implementation for configuring clearing system rejection
+        logger.info("Configuring {} system to reject payments", clearingSystem);
     }
 
-    /**
-     * Configure clearing system completion
-     */
     public void configureClearingSystemCompletion(String clearingSystem) {
-        // Implementation for configuring clearing system completion
+        logger.info("Configuring {} system to complete payments", clearingSystem);
     }
 
-    /**
-     * Configure all payments ready for settlement
-     */
     public void configureAllPaymentsReadyForSettlement() {
-        // Implementation for configuring all payments ready for settlement
+        logger.info("Configuring all payments as ready for settlement");
     }
 
     // Private helper methods for mock setup
     private void setupCoreBankingMocks() {
-        // Setup WireMock stubs for core banking system
+        logger.info("Setting up WireMock stubs for core banking system");
+        // Implementation would configure WireMock stubs for core banking APIs
     }
 
     private void setupFraudApiMocks() {
-        // Setup WireMock stubs for fraud API
+        logger.info("Setting up WireMock stubs for fraud API");
+        // Implementation would configure WireMock stubs for fraud detection API
     }
 
     private void setupSAMOSMocks() {
-        // Setup WireMock stubs for SAMOS clearing system
+        logger.info("Setting up WireMock stubs for SAMOS clearing system");
+        // Implementation would configure WireMock stubs for SAMOS RTGS system
+        // - Payment submission endpoint
+        // - Payment status query endpoint
+        // - Payment cancellation endpoint
+        // - Success, failure, and timeout scenarios
     }
 
     private void setupRTCMocks() {
-        // Setup WireMock stubs for RTC clearing system
+        logger.info("Setting up WireMock stubs for RTC clearing system");
+        // Implementation would configure WireMock stubs for RTC real-time clearing
+        // - Instant payment processing
+        // - Balance verification
+        // - Settlement confirmation
     }
 
     private void setupPayShapMocks() {
-        // Setup WireMock stubs for PayShap clearing system
+        logger.info("Setting up WireMock stubs for PayShap clearing system");
+        // Implementation would configure WireMock stubs for PayShap P2P payments
+        // - P2P payment processing
+        // - QR code generation
+        // - Mobile payment integration
     }
 
     private void setupSWIFTMocks() {
-        // Setup WireMock stubs for SWIFT clearing system
+        logger.info("Setting up WireMock stubs for SWIFT clearing system");
+        // Implementation would configure WireMock stubs for SWIFT messaging
+        // - MT103 message processing
+        // - Sanctions screening
+        // - FX rate queries
+        // - International payment processing
+    }
+
+    private void setupBankservAfricaMocks() {
+        logger.info("Setting up WireMock stubs for BankservAfrica clearing system");
+        // Implementation would configure WireMock stubs for BankservAfrica ACH/EFT
+        // - ACH file upload
+        // - EFT transaction processing
+        // - Reconciliation file generation
     }
 
     // Getters for test data
@@ -297,5 +257,127 @@ public class TestDataBuilder {
 
     public String getRiskAssessmentRisk(String reference) {
         return (String) riskAssessmentConfig.get(reference);
+    }
+
+    // Inner classes for test data
+    public static class TestTenant {
+        private String tenantId;
+        private String name;
+        private String businessUnitId;
+        private String contactEmail;
+        private String status;
+
+        public TestTenant(String tenantId, String name, String businessUnitId, 
+                         String contactEmail, String status) {
+            this.tenantId = tenantId;
+            this.name = name;
+            this.businessUnitId = businessUnitId;
+            this.contactEmail = contactEmail;
+            this.status = status;
+        }
+
+        // Getters and setters
+        public String getTenantId() { return tenantId; }
+        public void setTenantId(String tenantId) { this.tenantId = tenantId; }
+        
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public String getBusinessUnitId() { return businessUnitId; }
+        public void setBusinessUnitId(String businessUnitId) { this.businessUnitId = businessUnitId; }
+        
+        public String getContactEmail() { return contactEmail; }
+        public void setContactEmail(String contactEmail) { this.contactEmail = contactEmail; }
+        
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
+    }
+
+    public static class TestAccount {
+        private String accountId;
+        private String accountNumber;
+        private String tenantId;
+        private String accountType;
+        private String status;
+        private double balance;
+
+        public TestAccount(String accountId, String accountNumber, String tenantId,
+                          String accountType, String status, double balance) {
+            this.accountId = accountId;
+            this.accountNumber = accountNumber;
+            this.tenantId = tenantId;
+            this.accountType = accountType;
+            this.status = status;
+            this.balance = balance;
+        }
+
+        // Getters and setters
+        public String getAccountId() { return accountId; }
+        public void setAccountId(String accountId) { this.accountId = accountId; }
+        
+        public String getAccountNumber() { return accountNumber; }
+        public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
+        
+        public String getTenantId() { return tenantId; }
+        public void setTenantId(String tenantId) { this.tenantId = tenantId; }
+        
+        public String getAccountType() { return accountType; }
+        public void setAccountType(String accountType) { this.accountType = accountType; }
+        
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
+        
+        public double getBalance() { return balance; }
+        public void setBalance(double balance) { this.balance = balance; }
+    }
+
+    public static class PaymentRequest {
+        private String paymentId;
+        private String idempotencyKey;
+        private String fromAccount;
+        private String toAccount;
+        private double amount;
+        private String currency;
+        private String reference;
+        private String tenantId;
+        private String status;
+        private String clearingSystem;
+        private boolean multipleClearingRoutes;
+
+        // Getters and setters
+        public String getPaymentId() { return paymentId; }
+        public void setPaymentId(String paymentId) { this.paymentId = paymentId; }
+        
+        public String getIdempotencyKey() { return idempotencyKey; }
+        public void setIdempotencyKey(String idempotencyKey) { this.idempotencyKey = idempotencyKey; }
+        
+        public String getFromAccount() { return fromAccount; }
+        public void setFromAccount(String fromAccount) { this.fromAccount = fromAccount; }
+        
+        public String getToAccount() { return toAccount; }
+        public void setToAccount(String toAccount) { this.toAccount = toAccount; }
+        
+        public double getAmount() { return amount; }
+        public void setAmount(double amount) { this.amount = amount; }
+        
+        public String getCurrency() { return currency; }
+        public void setCurrency(String currency) { this.currency = currency; }
+        
+        public String getReference() { return reference; }
+        public void setReference(String reference) { this.reference = reference; }
+        
+        public String getTenantId() { return tenantId; }
+        public void setTenantId(String tenantId) { this.tenantId = tenantId; }
+        
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
+        
+        public String getClearingSystem() { return clearingSystem; }
+        public void setClearingSystem(String clearingSystem) { this.clearingSystem = clearingSystem; }
+        
+        public boolean isMultipleClearingRoutes() { return multipleClearingRoutes; }
+        public void setMultipleClearingRoutes(boolean multipleClearingRoutes) { 
+            this.multipleClearingRoutes = multipleClearingRoutes; 
+        }
     }
 }

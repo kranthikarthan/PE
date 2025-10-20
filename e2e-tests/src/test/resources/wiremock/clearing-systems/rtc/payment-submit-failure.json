@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/api/v1/rtc/payments",
+    "headers": {
+      "Content-Type": {
+        "equalTo": "application/json"
+      },
+      "Authorization": {
+        "matches": "Bearer .*"
+      }
+    }
+  },
+  "response": {
+    "status": 400,
+    "headers": {
+      "Content-Type": "application/json",
+      "X-RTC-Error-Code": "VALIDATION_ERROR",
+      "X-RTC-Timestamp": "{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}"
+    },
+    "body": "{\n  \"responseId\": \"{{randomValue length=36 type='ALPHANUMERIC'}}\",\n  \"paymentId\": \"{{jsonPath '$.paymentId'}}\",\n  \"status\": \"FAILED\",\n  \"statusCode\": \"RJCT\",\n  \"statusDescription\": \"Payment rejected due to validation failure\",\n  \"errorCode\": \"INVALID_ACCOUNT\",\n  \"errorMessage\": \"Invalid beneficiary account number or bank code\",\n  \"processingTime\": \"{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}\",\n  \"reference\": \"{{jsonPath '$.reference'}}\",\n  \"amount\": {\n    \"value\": \"{{jsonPath '$.amount.value'}}\",\n    \"currency\": \"{{jsonPath '$.amount.currency'}}\"\n  },\n  \"clearingSystem\": {\n    \"name\": \"RTC\",\n    \"operator\": \"BankservAfrica\",\n    \"version\": \"1.0\"\n  },\n  \"rejectionDetails\": {\n    \"reason\": \"Account validation failed\",\n    \"field\": \"beneficiary.accountNumber\",\n    \"expectedFormat\": \"11-digit account number\",\n    \"providedValue\": \"{{jsonPath '$.beneficiary.accountNumber'}}\"\n  },\n  \"metadata\": {\n    \"clearingSessionId\": \"{{randomValue length=20 type='ALPHANUMERIC'}}\",\n    \"processingBatch\": \"{{now format='yyyyMMdd'}}\",\n    \"sequenceNumber\": \"{{randomValue length=6 type='NUMERIC'}}\"\n  }\n}",
+    "transformers": ["response-template"]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/api/v1/ach/files",
+    "headers": {
+      "Content-Type": {
+        "equalTo": "multipart/form-data"
+      },
+      "Authorization": {
+        "matches": "Bearer .*"
+      }
+    }
+  },
+  "response": {
+    "status": 400,
+    "headers": {
+      "Content-Type": "application/json",
+      "X-BankservAfrica-Error-Code": "VALIDATION_ERROR",
+      "X-BankservAfrica-Timestamp": "{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}"
+    },
+    "body": "{\n  \"responseId\": \"{{randomValue length=36 type='ALPHANUMERIC'}}\",\n  \"fileId\": \"{{randomValue length=20 type='ALPHANUMERIC'}}\",\n  \"status\": \"FAILED\",\n  \"statusCode\": \"REJECTED\",\n  \"statusDescription\": \"ACH file rejected due to validation failure\",\n  \"errorCode\": \"INVALID_FILE_FORMAT\",\n  \"errorMessage\": \"ACH file format validation failed\",\n  \"uploadTime\": \"{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}\",\n  \"fileName\": \"{{jsonPath '$.fileName'}}\",\n  \"fileSize\": \"{{jsonPath '$.fileSize'}}\",\n  \"clearingSystem\": {\n    \"name\": \"BankservAfrica ACH\",\n    \"operator\": \"BankservAfrica\",\n    \"version\": \"1.0\",\n    \"serviceType\": \"ACH\"\n  },\n  \"validationResults\": {\n    \"fileFormatValid\": false,\n    \"recordCountValid\": false,\n    \"amountsBalanced\": false,\n    \"duplicateCheck\": \"FAILED\",\n    \"sanctionsCheck\": \"PENDING\"\n  },\n  \"validationErrors\": [\n    {\n      \"field\": \"fileFormat\",\n      \"error\": \"Invalid ACH file format\",\n      \"expectedFormat\": \"Fixed-width ASCII format\",\n      \"lineNumber\": 1\n    },\n    {\n      \"field\": \"recordCount\",\n      \"error\": \"Record count mismatch\",\n      \"expectedCount\": \"{{jsonPath '$.expectedRecordCount'}}\",\n      \"actualCount\": \"{{jsonPath '$.actualRecordCount'}}\"\n    }\n  ],\n  \"metadata\": {\n    \"clearingSessionId\": \"{{randomValue length=20 type='ALPHANUMERIC'}}\",\n    \"processingBatch\": \"{{now format='yyyyMMdd'}}\",\n    \"sequenceNumber\": \"{{randomValue length=6 type='NUMERIC'}}\",\n    \"apiVersion\": \"1.0\"\n  }\n}",
+    "transformers": ["response-template"]
+  }
+}

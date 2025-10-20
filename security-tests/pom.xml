@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.payments</groupId>
+  <artifactId>security-tests</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <name>Payments Engine Security Tests</name>
+  <description>Comprehensive security testing framework for the Payments Engine</description>
+
+  <properties>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <sonar.version>4.8.0.3126</sonar.version>
+    <owasp.zap.version>2.12.0</owasp.zap.version>
+    <trivy.version>0.50.0</trivy.version>
+    <junit.version>5.10.1</junit.version>
+    <testcontainers.version>1.19.3</testcontainers.version>
+  </properties>
+
+  <dependencies>
+    <!-- JUnit 5 for test execution -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- TestContainers for infrastructure testing -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- OWASP ZAP API Client -->
+    <dependency>
+      <groupId>org.zaproxy</groupId>
+      <artifactId>zap-clientapi</artifactId>
+      <version>${owasp.zap.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- HTTP Client for security testing -->
+    <dependency>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
+      <version>5.3.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- JSON processing for security reports -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.16.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Logging -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>2.0.9</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.4.14</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Maven Surefire Plugin for test execution -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.5</version>
+        <configuration>
+          <includes>
+            <include>**/*SecurityTest.java</include>
+            <include>**/*SecurityScanTest.java</include>
+          </includes>
+          <systemPropertyVariables>
+            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
+      <!-- SonarQube Scanner Plugin -->
+      <plugin>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+        <version>${sonar.version}</version>
+        <executions>
+          <execution>
+            <id>sonar-security-scan</id>
+            <phase>test</phase>
+            <goals>
+              <goal>sonar</goal>
+            </goals>
+            <configuration>
+              <sonar.projectKey>payments-engine-security</sonar.projectKey>
+              <sonar.projectName>Payments Engine Security Tests</sonar.projectName>
+              <sonar.projectVersion>1.0.0</sonar.projectVersion>
+              <sonar.sources>../</sonar.sources>
+              <sonar.java.binaries>../*/target/classes</sonar.java.binaries>
+              <sonar.java.libraries>../*/target/lib/*.jar</sonar.java.libraries>
+              <sonar.exclusions>
+                **/target/**,**/node_modules/**,**/coverage/**,**/test/**
+              </sonar.exclusions>
+              <sonar.coverage.exclusions>
+                **/*Test.java,**/*Tests.java,**/*IT.java
+              </sonar.coverage.exclusions>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Trivy Security Scanner Plugin -->
+      <plugin>
+        <groupId>org.cyclonedx</groupId>
+        <artifactId>cyclonedx-maven-plugin</artifactId>
+        <version>2.7.9</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>make-sbom</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Maven Failsafe Plugin for integration tests -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>3.2.5</version>
+        <executions>
+          <execution>
+            <id>security-integration-tests</id>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>**/*SecurityIT.java</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Maven Compiler Plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <source>17</source>
+          <target>17</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <!-- SonarQube Security Scan Profile -->
+    <profile>
+      <id>sonar-security</id>
+      <activation>
+        <property>
+          <name>sonar.security</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonarsource.scanner.maven</groupId>
+            <artifactId>sonar-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sonar-security-scan</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>sonar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- OWASP ZAP Security Scan Profile -->
+    <profile>
+      <id>zap-security</id>
+      <activation>
+        <property>
+          <name>zap.security</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <includes>
+                <include>**/*ZapSecurityTest.java</include>
+              </includes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Trivy Container Scan Profile -->
+    <profile>
+      <id>trivy-security</id>
+      <activation>
+        <property>
+          <name>trivy.security</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <includes>
+                <include>**/*TrivySecurityTest.java</include>
+              </includes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

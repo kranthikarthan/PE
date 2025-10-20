@@ -1,0 +1,38 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/api/v1/payshap/payments",
+    "headers": {
+      "Content-Type": {
+        "equalTo": "application/json"
+      },
+      "Authorization": {
+        "matches": "Bearer .*"
+      },
+      "X-PayShap-Client-ID": {
+        "matches": ".*"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$.paymentId"
+      },
+      {
+        "matchesJsonPath": "$.amount"
+      },
+      {
+        "matchesJsonPath": "$.currency"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "X-PayShap-Response-ID": "{{randomValue length=36 type='ALPHANUMERIC'}}",
+      "X-PayShap-Timestamp": "{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}"
+    },
+    "body": "{\n  \"responseId\": \"{{randomValue length=36 type='ALPHANUMERIC'}}\",\n  \"paymentId\": \"{{jsonPath '$.paymentId'}}\",\n  \"status\": \"SUCCESS\",\n  \"statusCode\": \"ACSC\",\n  \"statusDescription\": \"PayShap payment successfully processed\",\n  \"processingTime\": \"{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}\",\n  \"settlementTime\": \"{{now format='yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\''}}\",\n  \"reference\": \"{{jsonPath '$.reference'}}\",\n  \"amount\": {\n    \"value\": \"{{jsonPath '$.amount.value'}}\",\n    \"currency\": \"{{jsonPath '$.amount.currency'}}\"\n  },\n  \"fees\": {\n    \"value\": \"2.50\",\n    \"currency\": \"ZAR\"\n  },\n  \"clearingSystem\": {\n    \"name\": \"PayShap\",\n    \"operator\": \"BankservAfrica\",\n    \"version\": \"2.0\",\n    \"serviceType\": \"P2P\"\n  },\n  \"participants\": {\n    \"originator\": {\n      \"bankCode\": \"{{jsonPath '$.originator.bankCode'}}\",\n      \"accountNumber\": \"{{jsonPath '$.originator.accountNumber'}}\",\n      \"mobileNumber\": \"{{jsonPath '$.originator.mobileNumber'}}\"\n    },\n    \"beneficiary\": {\n      \"bankCode\": \"{{jsonPath '$.beneficiary.bankCode'}}\",\n      \"accountNumber\": \"{{jsonPath '$.beneficiary.accountNumber'}}\",\n      \"mobileNumber\": \"{{jsonPath '$.beneficiary.mobileNumber'}}\"\n    }\n  },\n  \"payShapDetails\": {\n    \"transactionType\": \"P2P\",\n    \"instantSettlement\": true,\n    \"qrCode\": \"{{randomValue length=50 type='ALPHANUMERIC'}}\",\n    \"deepLink\": \"payshap://payment/{{jsonPath '$.paymentId'}}\"\n  },\n  \"metadata\": {\n    \"clearingSessionId\": \"{{randomValue length=20 type='ALPHANUMERIC'}}\",\n    \"processingBatch\": \"{{now format='yyyyMMdd'}}\",\n    \"sequenceNumber\": \"{{randomValue length=6 type='NUMERIC'}}\",\n    \"apiVersion\": \"2.0\"\n  }\n}",
+    "transformers": ["response-template"]
+  }
+}

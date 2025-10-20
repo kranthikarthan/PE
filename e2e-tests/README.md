@@ -1,301 +1,256 @@
-# E2E Testing Framework
+# E2E Testing Framework - WireMock Stubs Implementation
 
 ## Overview
 
-This module provides comprehensive End-to-End (E2E) testing for the Payments Engine. It implements a BDD approach using Cucumber to test complete payment flows across all 22 microservices.
+This document describes the comprehensive WireMock stub implementations for clearing systems in the Payments Engine E2E testing framework.
 
-## Features
-
-- **BDD Testing**: Cucumber-based feature files with Gherkin syntax
-- **Multi-Service Testing**: Tests complete payment flows across all services
-- **Async Testing**: Awaitility for event propagation and async operations
-- **External System Mocking**: WireMock for core banking, fraud API, and clearing systems
-- **Test Data Management**: Dedicated test tenants and accounts
-- **Performance Testing**: High-volume payment processing tests
-- **Multi-Tenant Testing**: Tenant isolation and data separation validation
-
-## Test Coverage
-
-### Payment Types Tested
-- **EFT** (Electronic Funds Transfer) - Domestic retail payments
-- **RTC** (Real-Time Clearing) - Instant payments
-- **PayShap** - P2P instant payments
-- **SWIFT** - International payments
-- **Batch** - Bulk payment processing
-
-### Test Scenarios
-- **Happy Path**: Successful payment processing
-- **Failure Scenarios**: Insufficient balance, fraud rejection, timeouts, compensation
-- **Multi-Tenant**: Tenant isolation and data separation
-- **Performance**: High-volume concurrent processing
-- **Integration**: Cross-service communication and event propagation
-
-## Test Structure
+## WireMock Stub Files Structure
 
 ```
-e2e-tests/
-├── src/test/java/com/payments/e2e/
-│   ├── features/                          # Cucumber feature files
-│   │   ├── payment-initiation.feature     # EFT payment processing
-│   │   ├── payment-validation.feature     # Business rules validation
-│   │   ├── payment-processing.feature     # Transaction processing
-│   │   ├── payment-clearing.feature       # Clearing system integration
-│   │   └── payment-settlement.feature     # Settlement processing
-│   ├── step-definitions/                  # Step definition classes
-│   │   ├── PaymentStepDefinitions.java    # Payment flow steps
-│   │   ├── ValidationStepDefinitions.java # Validation steps
-│   │   └── ClearingStepDefinitions.java   # Clearing steps
-│   ├── services/                          # Service interaction classes
-│   │   ├── PaymentService.java            # Payment API interactions
-│   │   ├── ValidationService.java         # Validation API interactions
-│   │   ├── ClearingService.java           # Clearing API interactions
-│   │   ├── AccountService.java            # Account API interactions
-│   │   └── NotificationService.java       # Notification API interactions
-│   ├── models/                            # Test data models
-│   │   ├── PaymentRequest.java            # Payment request model
-│   │   ├── PaymentResponse.java           # Payment response model
-│   │   ├── ValidationResponse.java        # Validation response model
-│   │   └── ClearingResponse.java          # Clearing response model
-│   ├── data/                              # Test data management
-│   │   └── TestDataBuilder.java           # Test data creation utilities
-│   ├── config/                            # Test configuration
-│   │   └── E2ETestConfiguration.java     # Test infrastructure setup
-│   └── E2ETestRunner.java                 # Test execution runner
-├── src/test/resources/
-│   ├── application-e2e.yml                # E2E test configuration
-│   ├── wiremock/                          # WireMock stubs
-│   │   ├── core-banking/                  # Core banking mocks
-│   │   ├── fraud-api/                     # Fraud API mocks
-│   │   └── clearing-systems/              # Clearing system mocks
-│   └── test-data/                         # Test data files
-│       ├── test-tenants.json              # Test tenant data
-│       ├── test-accounts.json             # Test account data
-│       └── payment-templates.json         # Payment template data
-└── pom.xml                                # Maven configuration
+e2e-tests/src/test/resources/wiremock/clearing-systems/
+├── samos/
+│   ├── payment-submit-success.json
+│   ├── payment-submit-failure.json
+│   └── payment-submit-timeout.json
+├── rtc/
+│   ├── payment-submit-success.json
+│   └── payment-submit-failure.json
+├── payshap/
+│   └── payment-submit-success.json
+├── swift/
+│   └── payment-submit-success.json
+└── bankservafrica/
+    ├── ach-file-upload-success.json
+    └── ach-file-upload-failure.json
 ```
 
-## Running Tests
+## Clearing Systems Implemented
 
-### Prerequisites
-- Java 21+
-- Maven 3.8+
-- Docker (for TestContainers)
-- All Payment Engine services running
+### 1. SAMOS (South African Multiple Option Settlement)
+- **Purpose**: RTGS (Real-Time Gross Settlement) system
+- **Endpoints**: `/api/v1/payments`
+- **Format**: XML (ISO 20022)
+- **Scenarios**: Success, Failure, Timeout
+- **Response Time**: 30 seconds (timeout scenario)
 
-### Execution Commands
+### 2. RTC (Real-Time Clearing)
+- **Purpose**: Real-time payment processing
+- **Endpoints**: `/api/v1/rtc/payments`
+- **Format**: JSON
+- **Scenarios**: Success, Failure
+- **Response Time**: 5 seconds
 
+### 3. PayShap
+- **Purpose**: P2P (Person-to-Person) payments
+- **Endpoints**: `/api/v1/payshap/payments`
+- **Format**: JSON
+- **Scenarios**: Success
+- **Features**: QR codes, mobile integration
+
+### 4. SWIFT
+- **Purpose**: International payments
+- **Endpoints**: `/api/v1/swift/messages`
+- **Format**: XML (ISO 20022)
+- **Scenarios**: Success
+- **Features**: MT103 messages, sanctions screening
+
+### 5. BankservAfrica
+- **Purpose**: ACH/EFT processing
+- **Endpoints**: `/api/v1/ach/files`
+- **Format**: Multipart form data
+- **Scenarios**: Success, Failure
+- **Features**: File upload, batch processing
+
+## WireMock Stub Features
+
+### Request Matching
+- **Method**: POST for all payment submissions
+- **Headers**: Content-Type, Authorization, Client-ID
+- **Body Patterns**: JSON path matching, XPath matching for XML
+- **URL Patterns**: Specific endpoints for each clearing system
+
+### Response Templates
+- **Dynamic Values**: Random UUIDs, timestamps, reference numbers
+- **JSON Path Extraction**: Extract values from request body
+- **Date Formatting**: ISO 8601 timestamps
+- **Response Transformers**: Template-based response generation
+
+### Scenario Coverage
+- **Success Scenarios**: Successful payment processing
+- **Failure Scenarios**: Validation errors, rejection reasons
+- **Timeout Scenarios**: Delayed responses for timeout testing
+- **Error Handling**: Proper HTTP status codes and error messages
+
+## Integration Test Coverage
+
+### TestDataBuilder Enhancements
+- **Clearing System Mocks**: Setup methods for each clearing system
+- **Test Data Generation**: Payment requests, account data, tenant context
+- **Mock Configuration**: WireMock stub setup and teardown
+
+### ClearingService Implementation
+- **Payment Routing**: Route payments to appropriate clearing systems
+- **Response Processing**: Handle clearing system responses
+- **Status Tracking**: Track payment status through clearing process
+- **Fee Calculation**: Calculate clearing fees for each system
+
+### NotificationService Integration
+- **Event Publishing**: Send clearing events and notifications
+- **Status Updates**: Track payment status changes
+- **System Alerts**: Handle clearing system alerts and errors
+
+## Usage Examples
+
+### Running E2E Tests
 ```bash
 # Run all E2E tests
-mvn test -Dtest=E2ETestRunner
+mvn test -f e2e-tests/pom.xml
 
-# Run specific feature
-mvn test -Dtest=E2ETestRunner -Dcucumber.options="--tags @payment-initiation"
+# Run specific clearing system tests
+mvn test -f e2e-tests/pom.xml -Dtest=ClearingAdapterIntegrationTest
 
 # Run with specific profile
-mvn test -Dspring.profiles.active=e2e
-
-# Generate Allure report
-mvn allure:report
+mvn test -f e2e-tests/pom.xml -Dspring.profiles.active=e2e
 ```
 
-### Test Execution Flow
-
-1. **Setup Phase**
-   - Start TestContainers (PostgreSQL, Kafka, Redis)
-   - Start WireMock servers for external systems
-   - Initialize test data (tenants, accounts)
-   - Verify all services are healthy
-
-2. **Test Execution**
-   - Execute Cucumber scenarios
-   - Use Awaitility for async assertions
-   - Mock external system responses
-   - Validate event propagation
-
-3. **Cleanup Phase**
-   - Stop TestContainers
-   - Stop WireMock servers
-   - Clean up test data
-   - Generate reports
-
-## Test Data Management
-
-### Test Tenants
-- **TENANT-TEST-001**: Primary test tenant
-- **TENANT-TEST-002**: Secondary test tenant for isolation testing
-
-### Test Accounts
-- **ACC-TEST-001**: Source account (balance: 1000.00)
-- **ACC-TEST-002**: Destination account (balance: 500.00)
-- **ACC-TEST-003**: Multi-tenant source account
-- **ACC-TEST-004**: Multi-tenant destination account
-
-### Test Data Isolation
-- Each test uses unique payment IDs
-- Test data is cleaned up after each test
-- No shared state between tests
-- Independent test execution
-
-## External System Mocking
-
-### Core Banking System
-- Account balance queries
-- Account validation
-- Balance updates
-- Account locking/unlocking
-
-### Fraud Detection API
-- Risk score calculation
-- Fraud detection rules
-- Risk assessment responses
-
-### Clearing Systems
-- SAMOS clearing
-- RTC clearing
-- PayShap clearing
-- SWIFT clearing
-- Clearing acknowledgments
-- Clearing rejections
-
-## Performance Testing
-
-### Load Scenarios
-- **Sustained Load**: 1000 TPS for 10 minutes
-- **Peak Load**: 2000 TPS for 5 minutes
-- **Spike Load**: 5000 TPS for 1 minute
-- **Endurance Load**: 1000 TPS for 24 hours
-
-### Performance Targets
-- **Throughput**: 1000+ TPS sustained
-- **Latency**: p95 < 3 seconds, p99 < 5 seconds
-- **Error Rate**: < 1% under normal load
-- **Availability**: 99.95% uptime
-
-## Reporting
-
-### Allure Reports
-- Test execution results
-- Step-by-step execution details
-- Screenshots and attachments
-- Test trends and analytics
-
-### Test Metrics
-- Test execution time
-- Success/failure rates
-- Performance metrics
-- Coverage reports
-
-## Configuration
-
-### Application Properties
-```yaml
-# Test Configuration
-test:
-  data:
-    tenant-id: TENANT-TEST-001
-    test-account-id: ACC-TEST-001
-    test-user-id: USER-TEST-001
-  
-  timeouts:
-    payment-processing: 30s
-    event-propagation: 10s
-    api-response: 5s
-  
-  urls:
-    payment-initiation: http://localhost:8081
-    validation: http://localhost:8082
-    account-adapter: http://localhost:8083
-    routing: http://localhost:8084
-    transaction-processing: http://localhost:8085
-    saga-orchestrator: http://localhost:8086
+### WireMock Configuration
+```java
+@Bean
+public WireMockServer clearingSystemMock() {
+    return new WireMockServer(
+        WireMockConfiguration.options()
+            .port(8091)
+            .usingFilesUnderDirectory("src/test/resources/wiremock/clearing-systems")
+    );
+}
 ```
 
-### Test Tags
-- `@payment-initiation`: EFT payment processing tests
-- `@payment-validation`: Business rules validation tests
-- `@payment-processing`: Transaction processing tests
-- `@payment-clearing`: Clearing system integration tests
-- `@payment-settlement`: Settlement processing tests
-- `@happy-path`: Successful payment scenarios
-- `@failure-scenario`: Error and failure scenarios
-- `@multi-tenant`: Tenant isolation tests
-- `@performance`: High-volume processing tests
+### Test Data Setup
+```java
+@BeforeEach
+void setUp() {
+    testDataBuilder.setupClearingSystemMocks();
+    notificationService.clearNotifications();
+}
+```
+
+## Response Templates
+
+### SAMOS Success Response
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.002.001.12">
+  <FIToFIPmtStsRpt>
+    <GrpHdr>
+      <MsgId>{{randomValue length=36 type='ALPHANUMERIC'}}</MsgId>
+      <CreDtTm>{{now format='yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\''}}</CreDtTm>
+    </GrpHdr>
+    <TxInfAndSts>
+      <TxSts>ACSC</TxSts>
+      <StsRsnInf>
+        <Rsn>
+          <Cd>NARR</Cd>
+          <Prtry>Payment successfully processed and settled</Prtry>
+        </Rsn>
+      </StsRsnInf>
+    </TxInfAndSts>
+  </FIToFIPmtStsRpt>
+</Document>
+```
+
+### RTC Success Response
+```json
+{
+  "responseId": "{{randomValue length=36 type='ALPHANUMERIC'}}",
+  "paymentId": "{{jsonPath '$.paymentId'}}",
+  "status": "SUCCESS",
+  "statusCode": "ACSC",
+  "statusDescription": "RTC payment successfully processed",
+  "processingTime": "{{now format='yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\''}}",
+  "settlementTime": "{{now format='yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\''}}",
+  "fees": {
+    "value": "2.50",
+    "currency": "ZAR"
+  }
+}
+```
+
+## Testing Scenarios
+
+### 1. Payment Initiation Flow
+- Create payment request
+- Route to appropriate clearing system
+- Verify clearing system response
+- Check notification events
+
+### 2. Multiple Clearing Systems
+- Test payment routing to different systems
+- Verify system-specific responses
+- Check fee calculations
+- Validate notification events
+
+### 3. Error Handling
+- Test validation failures
+- Test system timeouts
+- Test rejection scenarios
+- Verify error notifications
+
+### 4. Integration Testing
+- Test end-to-end payment flows
+- Verify clearing system integration
+- Check notification delivery
+- Validate status tracking
+
+## Best Practices
+
+### WireMock Stub Design
+- Use realistic response templates
+- Include proper error scenarios
+- Test timeout conditions
+- Validate request matching
+
+### Test Data Management
+- Use consistent test data
+- Clean up after tests
+- Isolate test scenarios
+- Verify mock behavior
+
+### Integration Testing
+- Test real integration points
+- Verify end-to-end flows
+- Check error handling
+- Validate notifications
 
 ## Troubleshooting
 
 ### Common Issues
+1. **WireMock not starting**: Check port configuration
+2. **Stub not matching**: Verify request patterns
+3. **Response not generated**: Check template syntax
+4. **Test failures**: Verify mock setup
 
-1. **TestContainers Not Starting**
-   - Ensure Docker is running
-   - Check Docker daemon status
-   - Verify TestContainers configuration
+### Debugging Tips
+- Enable WireMock logging
+- Check request/response logs
+- Verify stub matching
+- Test individual scenarios
 
-2. **WireMock Not Responding**
-   - Check WireMock server status
-   - Verify stub configurations
-   - Check port availability
+## Future Enhancements
 
-3. **Service Health Checks Failing**
-   - Ensure all Payment Engine services are running
-   - Check service URLs in configuration
-   - Verify network connectivity
+### Planned Features
+- **Performance Testing**: Load testing with WireMock
+- **Chaos Engineering**: Simulate system failures
+- **Contract Testing**: API contract validation
+- **Monitoring Integration**: Metrics and alerting
 
-4. **Async Assertions Timing Out**
-   - Increase timeout values in configuration
-   - Check event propagation
-   - Verify Kafka connectivity
+### Additional Clearing Systems
+- **Visa Direct**: International card payments
+- **Mastercard Send**: P2P card payments
+- **Ripple**: Cryptocurrency payments
+- **Stellar**: Cross-border payments
 
-### Debug Mode
-```bash
-# Enable debug logging
-mvn test -Dlogging.level.com.payments=DEBUG
+## Conclusion
 
-# Run single scenario
-mvn test -Dtest=E2ETestRunner -Dcucumber.options="--tags @eft-success"
-```
+The WireMock stub implementation provides comprehensive testing coverage for all clearing systems in the Payments Engine. The framework supports realistic testing scenarios, proper error handling, and integration with the broader E2E testing infrastructure.
 
-## Best Practices
-
-1. **Test Isolation**
-   - Use unique payment IDs for each test
-   - Clean up test data after each test
-   - Avoid shared state between tests
-
-2. **Async Testing**
-   - Use Awaitility for async assertions
-   - Set appropriate timeout values
-   - Poll for status changes
-
-3. **External System Mocking**
-   - Mock all external dependencies
-   - Use realistic response data
-   - Test different response scenarios
-
-4. **Performance Testing**
-   - Start with low load and increase gradually
-   - Monitor system resources during tests
-   - Validate performance targets
-
-5. **Error Handling**
-   - Test both success and failure scenarios
-   - Validate error messages and codes
-   - Test compensation flows
-
-## Contributing
-
-When adding new E2E tests:
-
-1. Create feature files in `src/test/java/com/payments/e2e/features/`
-2. Implement step definitions in `src/test/java/com/payments/e2e/stepdefinitions/`
-3. Add service interactions in `src/test/java/com/payments/e2e/services/`
-4. Update test data builders as needed
-5. Add appropriate test tags
-6. Update documentation
-
-## Support
-
-For issues with E2E tests:
-- Check test logs for detailed error messages
-- Verify service health and connectivity
-- Review test configuration
-- Consult the troubleshooting section
+The implementation follows best practices for test automation, provides clear documentation, and supports the full range of payment processing scenarios required for production readiness.

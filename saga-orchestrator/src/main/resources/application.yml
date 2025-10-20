@@ -3,7 +3,7 @@ spring:
     name: saga-orchestrator-service
   
   datasource:
-    url: jdbc:postgresql://localhost:5432/payments_engine
+    url: jdbc:postgresql://postgres:5432/payments_engine
     username: ${DB_USERNAME:payments_user}
     password: ${DB_PASSWORD:payments_password}
     driver-class-name: org.postgresql.Driver
@@ -28,7 +28,7 @@ spring:
     
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       timeout: 2000
@@ -53,7 +53,7 @@ spring:
       fail-on-unknown-properties: false
       
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -75,7 +75,7 @@ spring:
         spring.json.trusted.packages: "*"
 
 server:
-  port: 8085
+  port: 8086
   servlet:
     context-path: /saga-orchestrator
 

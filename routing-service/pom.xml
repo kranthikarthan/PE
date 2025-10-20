@@ -144,6 +144,10 @@
         </dependency>
 
         <!-- Redis support is included in the main testcontainers module -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
