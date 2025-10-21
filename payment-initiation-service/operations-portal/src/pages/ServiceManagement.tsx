@@ -23,6 +23,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Grid,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -275,16 +276,16 @@ const ServiceManagement: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           {selectedService && (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Service Name"
                   value={selectedService.name}
                   fullWidth
                   disabled
                 />
-              </Box>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                   <InputLabel>Status</InputLabel>
                   <Select
@@ -301,24 +302,24 @@ const ServiceManagement: React.FC = () => {
                     <MenuItem value="error">Error</MenuItem>
                   </Select>
                 </FormControl>
-              </Box>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Uptime"
                   value={selectedService.uptime}
                   fullWidth
                   disabled
                 />
-              </Box>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Response Time"
                   value={selectedService.responseTime}
                   fullWidth
                   disabled
                 />
-              </Box>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Instances"
                   value={selectedService.instances}
@@ -329,16 +330,16 @@ const ServiceManagement: React.FC = () => {
                     instances: parseInt(e.target.value)
                   })}
                 />
-              </Box>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Version"
                   value={selectedService.version}
                   fullWidth
                   disabled
                 />
-              </Box>
-            </Box>
+              </Grid>
+            </Grid>
           )}
         </DialogContent>
         <DialogActions>

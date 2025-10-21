@@ -11,6 +11,7 @@ import {
   ListItemText,
   ListItemIcon,
   IconButton,
+  Grid,
 } from '@mui/material';
 import {
   TrendingUp,
@@ -65,7 +66,7 @@ const Dashboard: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* System Health Overview */}
-        <Box sx={{ flex: '2 1 600px', minWidth: '600px' }}>
+        <Grid item xs={12} md={8}>
           <Card>
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -106,10 +107,10 @@ const Dashboard: React.FC = () => {
               </List>
             </CardContent>
           </Card>
-        </Box>
+        </Grid>
 
         {/* Quick Stats */}
-        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+        <Grid item xs={12} md={4}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -138,10 +139,10 @@ const Dashboard: React.FC = () => {
               </Box>
             </CardContent>
           </Card>
-        </Box>
+        </Grid>
 
         {/* Recent Alerts */}
-        <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
+        <Grid item xs={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -170,7 +171,7 @@ const Dashboard: React.FC = () => {
               </List>
             </CardContent>
           </Card>
-        </Box>
+        </Grid>
       </Grid>
     </Box>
   );

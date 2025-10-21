@@ -28,6 +28,7 @@ import {
   Alert,
   Tabs,
   Tab,
+  Grid,
 } from '@mui/material';
 import {
   Refresh,
@@ -403,31 +404,31 @@ const PaymentRepair: React.FC = () => {
           {selectedPayment && (
             <Box sx={{ mt: 2 }}>
               <Grid container spacing={2}>
-                <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
+                <Grid item xs={12}>
                   <TextField
                     label="Payment ID"
                     value={selectedPayment.id}
                     fullWidth
                     disabled
                   />
-                </Box>
-                <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <TextField
                     label="Amount"
                     value={`${selectedPayment.amount} ${selectedPayment.currency}`}
                     fullWidth
                     disabled
                   />
-                </Box>
-                <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <TextField
                     label="Status"
                     value={selectedPayment.status}
                     fullWidth
                     disabled
                   />
-                </Box>
-                <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
+                </Grid>
+                <Grid item xs={12}>
                   <TextField
                     label="Repair Reason"
                     value={repairReason}
@@ -437,8 +438,8 @@ const PaymentRepair: React.FC = () => {
                     rows={3}
                     placeholder="Enter reason for repair action..."
                   />
-                </Box>
-                <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
+                </Grid>
+                <Grid item xs={12}>
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -448,7 +449,7 @@ const PaymentRepair: React.FC = () => {
                     }
                     label="Force retry (ignore validation checks)"
                   />
-                </Box>
+                </Grid>
               </Grid>
             </Box>
           )}

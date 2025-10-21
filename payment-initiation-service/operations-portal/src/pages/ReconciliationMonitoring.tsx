@@ -27,6 +27,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Grid,
 } from '@mui/material';
 import {
   Refresh,
@@ -213,7 +214,7 @@ const ReconciliationMonitoring: React.FC = () => {
 
       {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" mb={1}>
@@ -227,8 +228,8 @@ const ReconciliationMonitoring: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Box>
-        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" mb={1}>
@@ -242,8 +243,8 @@ const ReconciliationMonitoring: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Box>
-        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" mb={1}>
@@ -257,8 +258,8 @@ const ReconciliationMonitoring: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Box>
-        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" mb={1}>
@@ -272,8 +273,8 @@ const ReconciliationMonitoring: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Box>
-            </Box>
+        </Grid>
+      </Grid>
 
       <Card>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -444,7 +445,7 @@ const ReconciliationMonitoring: React.FC = () => {
             Performance Metrics
           </Typography>
           <Grid container spacing={3}>
-            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+            <Grid item xs={12} sm={6} md={3}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -458,8 +459,8 @@ const ReconciliationMonitoring: React.FC = () => {
                   </Typography>
                 </CardContent>
               </Card>
-            </Box>
-            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -473,8 +474,8 @@ const ReconciliationMonitoring: React.FC = () => {
                   </Typography>
                 </CardContent>
               </Card>
-            </Box>
-            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -488,8 +489,8 @@ const ReconciliationMonitoring: React.FC = () => {
                   </Typography>
                 </CardContent>
               </Card>
-            </Box>
-            <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -503,8 +504,8 @@ const ReconciliationMonitoring: React.FC = () => {
                   </Typography>
                 </CardContent>
               </Card>
-            </Box>
-          </Box>
+            </Grid>
+          </Grid>
         </TabPanel>
       </Card>
 
@@ -516,71 +517,71 @@ const ReconciliationMonitoring: React.FC = () => {
         <DialogContent>
           {selectedBatch && (
             <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Batch ID"
                   value={selectedBatch.id}
                   fullWidth
                   disabled
                 />
-              </Box>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Status"
                   value={selectedBatch.status}
                   fullWidth
                   disabled
                 />
-              </Box>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Total Records"
                   value={selectedBatch.totalRecords.toLocaleString()}
                   fullWidth
                   disabled
                 />
-              </Box>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Processed Records"
                   value={selectedBatch.processedRecords.toLocaleString()}
                   fullWidth
                   disabled
                 />
-              </Box>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Matched Records"
                   value={selectedBatch.matchedRecords.toLocaleString()}
                   fullWidth
                   disabled
                 />
-              </Box>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Unmatched Records"
                   value={selectedBatch.unmatchedRecords.toLocaleString()}
                   fullWidth
                   disabled
                 />
-              </Box>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Error Records"
                   value={selectedBatch.errorRecords.toLocaleString()}
                   fullWidth
                   disabled
                 />
-              </Box>
-              <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Progress"
                   value={`${selectedBatch.progress}%`}
                   fullWidth
                   disabled
                 />
-              </Box>
-            </Box>
+              </Grid>
+            </Grid>
           )}
         </DialogContent>
         <DialogActions>
