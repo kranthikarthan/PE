@@ -13,23 +13,26 @@
     {
       "name": "payshap.environment.development",
       "type": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig",
+      "sourceMethod": "public com.payments.payshapadapter.config.PayShapEnvironmentConfig.Development getDevelopment() "
     },
     {
       "name": "payshap.environment.environment-settings",
       "type": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings",
       "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig",
-      "sourceMethod": "getEnvironmentSettings()"
+      "sourceMethod": "public com.payments.payshapadapter.config.PayShapEnvironmentConfig.EnvironmentSettings getEnvironmentSettings() "
     },
     {
       "name": "payshap.environment.production",
       "type": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig",
+      "sourceMethod": "public com.payments.payshapadapter.config.PayShapEnvironmentConfig.Production getProduction() "
     },
     {
       "name": "payshap.environment.staging",
       "type": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig",
+      "sourceMethod": "public com.payments.payshapadapter.config.PayShapEnvironmentConfig.Staging getStaging() "
     }
   ],
   "properties": [
@@ -87,8 +90,7 @@
     {
       "name": "payshap.environment.debug-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig",
-      "defaultValue": false
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
     },
     {
       "name": "payshap.environment.development.amount-limit",
@@ -108,8 +110,7 @@
     {
       "name": "payshap.environment.development.encryption-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development",
-      "defaultValue": false
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development"
     },
     {
       "name": "payshap.environment.development.endpoint",
@@ -129,8 +130,7 @@
     {
       "name": "payshap.environment.development.mock-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development",
-      "defaultValue": false
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development"
     },
     {
       "name": "payshap.environment.development.processing-window-end",
@@ -145,14 +145,12 @@
     {
       "name": "payshap.environment.development.retry-attempts",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development",
-      "defaultValue": 0
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development"
     },
     {
       "name": "payshap.environment.development.timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development",
-      "defaultValue": 0
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Development"
     },
     {
       "name": "payshap.environment.environment",
@@ -177,8 +175,7 @@
     {
       "name": "payshap.environment.environment-settings.encryption-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings",
-      "defaultValue": false
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings"
     },
     {
       "name": "payshap.environment.environment-settings.endpoint",
@@ -198,8 +195,7 @@
     {
       "name": "payshap.environment.environment-settings.mock-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings",
-      "defaultValue": false
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings"
     },
     {
       "name": "payshap.environment.environment-settings.processing-window-end",
@@ -214,14 +210,12 @@
     {
       "name": "payshap.environment.environment-settings.retry-attempts",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings",
-      "defaultValue": 0
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings"
     },
     {
       "name": "payshap.environment.environment-settings.timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings",
-      "defaultValue": 0
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$EnvironmentSettings"
     },
     {
       "name": "payshap.environment.locale",
@@ -236,8 +230,7 @@
     {
       "name": "payshap.environment.metrics-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig",
-      "defaultValue": false
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
     },
     {
       "name": "payshap.environment.production.amount-limit",
@@ -257,8 +250,7 @@
     {
       "name": "payshap.environment.production.encryption-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production",
-      "defaultValue": false
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production"
     },
     {
       "name": "payshap.environment.production.endpoint",
@@ -278,8 +270,7 @@
     {
       "name": "payshap.environment.production.mock-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production",
-      "defaultValue": false
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production"
     },
     {
       "name": "payshap.environment.production.processing-window-end",
@@ -294,14 +285,12 @@
     {
       "name": "payshap.environment.production.retry-attempts",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production",
-      "defaultValue": 0
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production"
     },
     {
       "name": "payshap.environment.production.timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production",
-      "defaultValue": 0
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Production"
     },
     {
       "name": "payshap.environment.region",
@@ -326,8 +315,7 @@
     {
       "name": "payshap.environment.staging.encryption-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging",
-      "defaultValue": false
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging"
     },
     {
       "name": "payshap.environment.staging.endpoint",
@@ -347,8 +335,7 @@
     {
       "name": "payshap.environment.staging.mock-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging",
-      "defaultValue": false
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging"
     },
     {
       "name": "payshap.environment.staging.processing-window-end",
@@ -363,14 +350,12 @@
     {
       "name": "payshap.environment.staging.retry-attempts",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging",
-      "defaultValue": 0
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging"
     },
     {
       "name": "payshap.environment.staging.timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging",
-      "defaultValue": 0
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig$Staging"
     },
     {
       "name": "payshap.environment.timezone",
@@ -380,8 +365,7 @@
     {
       "name": "payshap.environment.tracing-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig",
-      "defaultValue": false
+      "sourceType": "com.payments.payshapadapter.config.PayShapEnvironmentConfig"
     }
   ],
   "hints": []

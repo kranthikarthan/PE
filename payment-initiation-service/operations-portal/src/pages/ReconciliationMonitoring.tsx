@@ -5,6 +5,7 @@ import {
   CardContent,
   Typography,
   Button,
+  Chip,
   Table,
   TableBody,
   TableCell,
@@ -12,167 +13,110 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Chip,
-  LinearProgress,
-  Alert,
-  Tabs,
-  Tab,
   IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
+  LinearProgress,
+  Alert,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid,
 } from '@mui/material';
+import { GridLegacy as Grid } from '@mui/material';
 import {
   Refresh,
-  PlayArrow,
-  Pause,
-  Stop,
   Visibility,
-  Download,
   Warning,
   CheckCircle,
   Error,
+  TrendingUp,
+  TrendingDown,
 } from '@mui/icons-material';
 
 interface ReconciliationBatch {
   id: string;
-  name: string;
-  status: 'running' | 'completed' | 'failed' | 'paused';
+  batchName: string;
+  status: 'completed' | 'processing' | 'failed' | 'pending';
   startTime: string;
   endTime?: string;
   totalRecords: number;
   processedRecords: number;
-  matchedRecords: number;
-  unmatchedRecords: number;
-  errorRecords: number;
-  progress: number;
+  failedRecords: number;
+  successRate: number;
+  processingTime?: string;
 }
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`reconciliation-tabpanel-${index}`}
-      aria-labelledby={`reconciliation-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
+interface PerformanceMetric {
+  name: string;
+  value: string;
+  trend: 'up' | 'down' | 'stable';
+  change: string;
 }
 
 const ReconciliationMonitoring: React.FC = () => {
-  const [tabValue, setTabValue] = useState(0);
   const [selectedBatch, setSelectedBatch] = useState<ReconciliationBatch | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
-  const [reconciliationBatches] = useState<ReconciliationBatch[]>([
+  const [batches] = useState<ReconciliationBatch[]>([
     {
       id: 'BATCH-001',
-      name: 'Daily Reconciliation - 2025-10-20',
-      status: 'running',
-      startTime: '2025-10-20 02:00:00',
-      totalRecords: 10000,
-      processedRecords: 7500,
-      matchedRecords: 7200,
-      unmatchedRecords: 250,
-      errorRecords: 50,
-      progress: 75,
+      batchName: 'Daily Reconciliation - 2025-10-20',
+      status: 'completed',
+      startTime: '2025-10-20 00:00:00',
+      endTime: '2025-10-20 02:30:00',
+      totalRecords: 15000,
+      processedRecords: 14985,
+      failedRecords: 15,
+      successRate: 99.9,
+      processingTime: '2h 30m',
     },
     {
       id: 'BATCH-002',
-      name: 'Hourly Reconciliation - 2025-10-20 10:00',
-      status: 'completed',
+      batchName: 'Hourly Reconciliation - 2025-10-20 10:00',
+      status: 'processing',
       startTime: '2025-10-20 10:00:00',
-      endTime: '2025-10-20 10:15:00',
       totalRecords: 5000,
-      processedRecords: 5000,
-      matchedRecords: 4950,
-      unmatchedRecords: 40,
-      errorRecords: 10,
-      progress: 100,
+      processedRecords: 3200,
+      failedRecords: 0,
+      successRate: 100,
     },
     {
       id: 'BATCH-003',
-      name: 'Daily Reconciliation - 2025-10-19',
+      batchName: 'Daily Reconciliation - 2025-10-19',
       status: 'failed',
-      startTime: '2025-10-19 02:00:00',
-      endTime: '2025-10-19 02:30:00',
-      totalRecords: 8000,
-      processedRecords: 3000,
-      matchedRecords: 2800,
-      unmatchedRecords: 150,
-      errorRecords: 50,
-      progress: 37.5,
+      startTime: '2025-10-19 00:00:00',
+      endTime: '2025-10-19 00:45:00',
+      totalRecords: 12000,
+      processedRecords: 8500,
+      failedRecords: 3500,
+      successRate: 70.8,
+      processingTime: '45m',
     },
   ]);
 
-  const [exceptions] = useState([
-    {
-      id: '1',
-      batchId: 'BATCH-001',
-      type: 'Amount Mismatch',
-      description: 'Payment amount differs between systems',
-      severity: 'high',
-      count: 15,
-      lastOccurrence: '2025-10-20 11:30:00',
-    },
-    {
-      id: '2',
-      batchId: 'BATCH-001',
-      type: 'Missing Transaction',
-      description: 'Transaction found in source but not in target',
-      severity: 'medium',
-      count: 8,
-      lastOccurrence: '2025-10-20 11:25:00',
-    },
-    {
-      id: '3',
-      batchId: 'BATCH-002',
-      type: 'Duplicate Transaction',
-      description: 'Same transaction processed multiple times',
-      severity: 'low',
-      count: 3,
-      lastOccurrence: '2025-10-20 10:10:00',
-    },
+  const [performanceMetrics] = useState<PerformanceMetric[]>([
+    { name: 'Average Processing Time', value: '1h 45m', trend: 'down', change: '-15%' },
+    { name: 'Success Rate', value: '99.2%', trend: 'up', change: '+0.3%' },
+    { name: 'Records per Hour', value: '8,500', trend: 'up', change: '+12%' },
+    { name: 'Error Rate', value: '0.8%', trend: 'down', change: '-0.2%' },
   ]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'running': return 'info';
       case 'completed': return 'success';
+      case 'processing': return 'info';
       case 'failed': return 'error';
-      case 'paused': return 'warning';
+      case 'pending': return 'warning';
       default: return 'default';
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'high': return 'error';
-      case 'medium': return 'warning';
-      case 'low': return 'info';
-      default: return 'default';
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'up': return <TrendingUp color="success" />;
+      case 'down': return <TrendingDown color="error" />;
+      default: return <CheckCircle color="info" />;
     }
-  };
-
-  const handleBatchAction = (batchId: string, action: string) => {
-    console.log(`Action ${action} on batch ${batchId}`);
   };
 
   const handleViewDetails = (batch: ReconciliationBatch) => {
@@ -180,47 +124,69 @@ const ReconciliationMonitoring: React.FC = () => {
     setDetailsDialogOpen(true);
   };
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
-
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Box>
           <Typography variant="h4" gutterBottom>
-            Reconciliation & Monitoring
+            Reconciliation Monitoring
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
-            Monitor reconciliation processes and exception handling
+            Monitor reconciliation processes and handle exceptions
           </Typography>
         </Box>
-        <Box display="flex" gap={2}>
-          <Button
-            variant="outlined"
-            startIcon={<Download />}
-          >
-            Export Report
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<Refresh />}
-            onClick={() => window.location.reload()}
-          >
-            Refresh
-          </Button>
-        </Box>
+        <Button
+          variant="contained"
+          startIcon={<Refresh />}
+          onClick={() => window.location.reload()}
+        >
+          Refresh
+        </Button>
       </Box>
 
-      {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
+      <Grid container spacing={3}>
+        {/* Performance Metrics */}
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Performance Metrics
+              </Typography>
+              <Grid container spacing={2}>
+                {performanceMetrics.map((metric, index) => (
+                  <Grid item xs={12} sm={6} md={3} key={index}>
+                    <Box textAlign="center" p={2}>
+                      <Box display="flex" alignItems="center" justifyContent="center" mb={1}>
+                        {getTrendIcon(metric.trend)}
+                      </Box>
+                      <Typography variant="h6" fontWeight="bold">
+                        {metric.value}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {metric.name}
+                      </Typography>
+                      <Typography 
+                        variant="caption" 
+                        color={metric.trend === 'up' ? 'success.main' : metric.trend === 'down' ? 'error.main' : 'text.secondary'}
+                      >
+                        {metric.change}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Summary Cards */}
         <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" mb={1}>
-                <CheckCircle color="success" sx={{ mr: 1 }} />
-                <Typography variant="h6">
-                  {reconciliationBatches.filter(b => b.status === 'completed').length}
+                <CheckCircle color="success" />
+                <Typography variant="h6" sx={{ ml: 1 }}>
+                  {batches.filter(b => b.status === 'completed').length}
                 </Typography>
               </Box>
               <Typography variant="body2" color="text.secondary">
@@ -233,13 +199,13 @@ const ReconciliationMonitoring: React.FC = () => {
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" mb={1}>
-                <PlayArrow color="info" sx={{ mr: 1 }} />
-                <Typography variant="h6">
-                  {reconciliationBatches.filter(b => b.status === 'running').length}
+                <Warning color="warning" />
+                <Typography variant="h6" sx={{ ml: 1 }}>
+                  {batches.filter(b => b.status === 'processing').length}
                 </Typography>
               </Box>
               <Typography variant="body2" color="text.secondary">
-                Running Batches
+                Processing Batches
               </Typography>
             </CardContent>
           </Card>
@@ -248,9 +214,9 @@ const ReconciliationMonitoring: React.FC = () => {
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" mb={1}>
-                <Error color="error" sx={{ mr: 1 }} />
-                <Typography variant="h6">
-                  {reconciliationBatches.filter(b => b.status === 'failed').length}
+                <Error color="error" />
+                <Typography variant="h6" sx={{ ml: 1 }}>
+                  {batches.filter(b => b.status === 'failed').length}
                 </Typography>
               </Box>
               <Typography variant="body2" color="text.secondary">
@@ -263,251 +229,98 @@ const ReconciliationMonitoring: React.FC = () => {
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" mb={1}>
-                <Warning color="warning" sx={{ mr: 1 }} />
-                <Typography variant="h6">
-                  {exceptions.reduce((sum, ex) => sum + ex.count, 0)}
+                <CheckCircle color="info" />
+                <Typography variant="h6" sx={{ ml: 1 }}>
+                  {batches.reduce((sum, b) => sum + b.totalRecords, 0).toLocaleString()}
                 </Typography>
               </Box>
               <Typography variant="body2" color="text.secondary">
-                Total Exceptions
+                Total Records
               </Typography>
             </CardContent>
           </Card>
         </Grid>
+
+        {/* Reconciliation Batches */}
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Reconciliation Batches
+              </Typography>
+              <TableContainer component={Paper} variant="outlined">
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Batch ID</TableCell>
+                      <TableCell>Batch Name</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Start Time</TableCell>
+                      <TableCell>End Time</TableCell>
+                      <TableCell>Total Records</TableCell>
+                      <TableCell>Processed</TableCell>
+                      <TableCell>Failed</TableCell>
+                      <TableCell>Success Rate</TableCell>
+                      <TableCell>Processing Time</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {batches.map((batch) => (
+                      <TableRow key={batch.id}>
+                        <TableCell>
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            {batch.id}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>{batch.batchName}</TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={batch.status.toUpperCase()} 
+                            color={getStatusColor(batch.status) as any}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>{batch.startTime}</TableCell>
+                        <TableCell>{batch.endTime || '-'}</TableCell>
+                        <TableCell>{batch.totalRecords.toLocaleString()}</TableCell>
+                        <TableCell>{batch.processedRecords.toLocaleString()}</TableCell>
+                        <TableCell>
+                          <Typography color={batch.failedRecords > 0 ? 'error' : 'text.secondary'}>
+                            {batch.failedRecords.toLocaleString()}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Typography variant="body2">
+                              {batch.successRate.toFixed(1)}%
+                            </Typography>
+                            <LinearProgress 
+                              variant="determinate" 
+                              value={batch.successRate} 
+                              sx={{ width: 50, height: 4 }}
+                              color={batch.successRate >= 95 ? 'success' : batch.successRate >= 80 ? 'warning' : 'error'}
+                            />
+                          </Box>
+                        </TableCell>
+                        <TableCell>{batch.processingTime || '-'}</TableCell>
+                        <TableCell>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleViewDetails(batch)}
+                          >
+                            <Visibility />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
-
-      <Card>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={tabValue} onChange={handleTabChange}>
-            <Tab label="Reconciliation Batches" />
-            <Tab label="Exception Monitoring" />
-            <Tab label="Performance Metrics" />
-          </Tabs>
-        </Box>
-
-        <TabPanel value={tabValue} index={0}>
-          <Typography variant="h6" gutterBottom>
-            Reconciliation Batches
-          </Typography>
-          <TableContainer component={Paper} variant="outlined">
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Batch ID</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Progress</TableCell>
-                  <TableCell>Total Records</TableCell>
-                  <TableCell>Matched</TableCell>
-                  <TableCell>Unmatched</TableCell>
-                  <TableCell>Errors</TableCell>
-                  <TableCell>Start Time</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {reconciliationBatches.map((batch) => (
-                  <TableRow key={batch.id}>
-                    <TableCell>
-                      <Typography variant="subtitle2" fontWeight="bold">
-                        {batch.id}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{batch.name}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={batch.status.toUpperCase()} 
-                        color={getStatusColor(batch.status) as any}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <LinearProgress 
-                          variant="determinate" 
-                          value={batch.progress} 
-                          sx={{ width: 100 }}
-                        />
-                        <Typography variant="caption">
-                          {batch.progress}%
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>{batch.totalRecords.toLocaleString()}</TableCell>
-                    <TableCell>
-                      <Typography color="success.main" fontWeight="bold">
-                        {batch.matchedRecords.toLocaleString()}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography color="warning.main" fontWeight="bold">
-                        {batch.unmatchedRecords.toLocaleString()}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography color="error.main" fontWeight="bold">
-                        {batch.errorRecords.toLocaleString()}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{batch.startTime}</TableCell>
-                    <TableCell>
-                      <Box display="flex" gap={1}>
-                        {batch.status === 'running' && (
-                          <IconButton
-                            size="small"
-                            onClick={() => handleBatchAction(batch.id, 'pause')}
-                            color="warning"
-                          >
-                            <Pause />
-                          </IconButton>
-                        )}
-                        {batch.status === 'paused' && (
-                          <IconButton
-                            size="small"
-                            onClick={() => handleBatchAction(batch.id, 'resume')}
-                            color="success"
-                          >
-                            <PlayArrow />
-                          </IconButton>
-                        )}
-                        {batch.status === 'running' && (
-                          <IconButton
-                            size="small"
-                            onClick={() => handleBatchAction(batch.id, 'stop')}
-                            color="error"
-                          >
-                            <Stop />
-                          </IconButton>
-                        )}
-                        <IconButton
-                          size="small"
-                          onClick={() => handleViewDetails(batch)}
-                        >
-                          <Visibility />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </TabPanel>
-
-        <TabPanel value={tabValue} index={1}>
-          <Typography variant="h6" gutterBottom>
-            Exception Monitoring
-          </Typography>
-          <TableContainer component={Paper} variant="outlined">
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Exception Type</TableCell>
-                  <TableCell>Description</TableCell>
-                  <TableCell>Severity</TableCell>
-                  <TableCell>Count</TableCell>
-                  <TableCell>Last Occurrence</TableCell>
-                  <TableCell>Batch ID</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {exceptions.map((exception) => (
-                  <TableRow key={exception.id}>
-                    <TableCell>
-                      <Typography variant="subtitle2" fontWeight="bold">
-                        {exception.type}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{exception.description}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={exception.severity.toUpperCase()} 
-                        color={getSeverityColor(exception.severity) as any}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography fontWeight="bold">
-                        {exception.count}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{exception.lastOccurrence}</TableCell>
-                    <TableCell>{exception.batchId}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </TabPanel>
-
-        <TabPanel value={tabValue} index={2}>
-          <Typography variant="h6" gutterBottom>
-            Performance Metrics
-          </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Processing Speed
-                  </Typography>
-                  <Typography variant="h4" color="primary">
-                    1,250 records/min
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Average processing rate
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Match Rate
-                  </Typography>
-                  <Typography variant="h4" color="success.main">
-                    98.5%
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Average match rate
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Error Rate
-                  </Typography>
-                  <Typography variant="h4" color="error.main">
-                    0.8%
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Average error rate
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Average Processing Time
-                  </Typography>
-                  <Typography variant="h4" color="info.main">
-                    12.5 min
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Per batch
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </TabPanel>
-      </Card>
 
       {/* Batch Details Dialog */}
       <Dialog open={detailsDialogOpen} onClose={() => setDetailsDialogOpen(false)} maxWidth="md" fullWidth>
@@ -533,7 +346,31 @@ const ReconciliationMonitoring: React.FC = () => {
                   disabled
                 />
               </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Batch Name"
+                  value={selectedBatch.batchName}
+                  fullWidth
+                  disabled
+                />
+              </Grid>
               <Grid item xs={12} md={6}>
+                <TextField
+                  label="Start Time"
+                  value={selectedBatch.startTime}
+                  fullWidth
+                  disabled
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="End Time"
+                  value={selectedBatch.endTime || '-'}
+                  fullWidth
+                  disabled
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
                 <TextField
                   label="Total Records"
                   value={selectedBatch.totalRecords.toLocaleString()}
@@ -541,7 +378,7 @@ const ReconciliationMonitoring: React.FC = () => {
                   disabled
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <TextField
                   label="Processed Records"
                   value={selectedBatch.processedRecords.toLocaleString()}
@@ -549,38 +386,37 @@ const ReconciliationMonitoring: React.FC = () => {
                   disabled
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <TextField
-                  label="Matched Records"
-                  value={selectedBatch.matchedRecords.toLocaleString()}
+                  label="Failed Records"
+                  value={selectedBatch.failedRecords.toLocaleString()}
                   fullWidth
                   disabled
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
-                  label="Unmatched Records"
-                  value={selectedBatch.unmatchedRecords.toLocaleString()}
+                  label="Success Rate"
+                  value={`${selectedBatch.successRate.toFixed(1)}%`}
                   fullWidth
                   disabled
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
-                  label="Error Records"
-                  value={selectedBatch.errorRecords.toLocaleString()}
+                  label="Processing Time"
+                  value={selectedBatch.processingTime || '-'}
                   fullWidth
                   disabled
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Progress"
-                  value={`${selectedBatch.progress}%`}
-                  fullWidth
-                  disabled
-                />
-              </Grid>
+              {selectedBatch.failedRecords > 0 && (
+                <Grid item xs={12}>
+                  <Alert severity="warning">
+                    This batch has {selectedBatch.failedRecords} failed records that require attention.
+                  </Alert>
+                </Grid>
+              )}
             </Grid>
           )}
         </DialogContent>

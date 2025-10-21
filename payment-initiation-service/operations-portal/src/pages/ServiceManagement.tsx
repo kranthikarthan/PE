@@ -23,8 +23,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Grid,
 } from '@mui/material';
+import { GridLegacy as Grid } from '@mui/material';
 import {
   PlayArrow,
   Pause,
@@ -136,9 +136,9 @@ const ServiceManagement: React.FC = () => {
         </Button>
       </Box>
 
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+      <Grid container spacing={3}>
         {/* Service Overview Cards */}
-        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Typography variant="h6" color="success.main">
@@ -149,8 +149,8 @@ const ServiceManagement: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Box>
-        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Typography variant="h6" color="error.main">
@@ -161,8 +161,8 @@ const ServiceManagement: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Box>
-        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Typography variant="h6" color="warning.main">
@@ -173,8 +173,8 @@ const ServiceManagement: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Box>
-        <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Typography variant="h6">
@@ -185,10 +185,10 @@ const ServiceManagement: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Box>
+        </Grid>
 
         {/* Services Table */}
-        <Box sx={{ flex: '1 1 100%', minWidth: '100%' }}>
+        <Grid item xs={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -267,7 +267,8 @@ const ServiceManagement: React.FC = () => {
               </TableContainer>
             </CardContent>
           </Card>
-        </Box>
+        </Grid>
+      </Grid>
 
       {/* Service Details Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>

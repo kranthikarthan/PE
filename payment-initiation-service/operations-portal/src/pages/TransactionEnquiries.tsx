@@ -25,6 +25,7 @@ import {
   DialogActions,
   InputAdornment,
 } from '@mui/material';
+import { GridLegacy as Grid } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import {
   Search,
@@ -118,7 +119,6 @@ const TransactionEnquiries: React.FC = () => {
   };
 
   const handleSearch = () => {
-    // Implement search logic
     console.log('Search criteria:', searchCriteria);
   };
 
@@ -128,7 +128,6 @@ const TransactionEnquiries: React.FC = () => {
   };
 
   const handleExport = () => {
-    // Implement export logic
     console.log('Export transactions');
   };
 
@@ -168,8 +167,8 @@ const TransactionEnquiries: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               Search Criteria
             </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-              <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={3}>
                 <TextField
                   label="Payment ID"
                   value={searchCriteria.paymentId}
@@ -183,16 +182,16 @@ const TransactionEnquiries: React.FC = () => {
                     ),
                   }}
                 />
-              </Box>
-              <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+              </Grid>
+              <Grid item xs={12} md={3}>
                 <TextField
                   label="Reference"
                   value={searchCriteria.reference}
                   onChange={(e) => setSearchCriteria({...searchCriteria, reference: e.target.value})}
                   fullWidth
                 />
-              </Box>
-              <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+              </Grid>
+              <Grid item xs={12} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>Status</InputLabel>
                   <Select
@@ -207,8 +206,8 @@ const TransactionEnquiries: React.FC = () => {
                     <MenuItem value="pending">Pending</MenuItem>
                   </Select>
                 </FormControl>
-              </Box>
-              <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+              </Grid>
+              <Grid item xs={12} md={3}>
                 <Box display="flex" gap={1}>
                   <Button
                     variant="contained"
@@ -224,8 +223,8 @@ const TransactionEnquiries: React.FC = () => {
                     Filters
                   </Button>
                 </Box>
-              </Box>
-            </Box>
+              </Grid>
+            </Grid>
           </CardContent>
         </Card>
 
@@ -310,80 +309,80 @@ const TransactionEnquiries: React.FC = () => {
           </DialogTitle>
           <DialogContent>
             {selectedTransaction && (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
-                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+              <Grid container spacing={2} sx={{ mt: 1 }}>
+                <Grid item xs={12} md={6}>
                   <TextField
                     label="Transaction ID"
                     value={selectedTransaction.id}
                     fullWidth
                     disabled
                   />
-                </Box>
-                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <TextField
                     label="Status"
                     value={selectedTransaction.status}
                     fullWidth
                     disabled
                   />
-                </Box>
-                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <TextField
                     label="Amount"
                     value={`${selectedTransaction.amount} ${selectedTransaction.currency}`}
                     fullWidth
                     disabled
                   />
-                </Box>
-                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <TextField
                     label="Reference"
                     value={selectedTransaction.reference}
                     fullWidth
                     disabled
                   />
-                </Box>
-                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <TextField
                     label="Source Account"
                     value={selectedTransaction.sourceAccount}
                     fullWidth
                     disabled
                   />
-                </Box>
-                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <TextField
                     label="Destination Account"
                     value={selectedTransaction.destinationAccount}
                     fullWidth
                     disabled
                   />
-                </Box>
-                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <TextField
                     label="Created At"
                     value={selectedTransaction.createdAt}
                     fullWidth
                     disabled
                   />
-                </Box>
-                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <TextField
                     label="Completed At"
                     value={selectedTransaction.completedAt || '-'}
                     fullWidth
                     disabled
                   />
-                </Box>
-                <Box sx={{ flex: '1 1 300px', minWidth: '300px' }}>
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <TextField
                     label="Processing Time"
                     value={selectedTransaction.processingTime || '-'}
                     fullWidth
                     disabled
                   />
-                </Box>
-              </Box>
+                </Grid>
+              </Grid>
             )}
           </DialogContent>
           <DialogActions>

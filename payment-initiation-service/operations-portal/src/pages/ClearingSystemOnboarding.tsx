@@ -16,11 +16,6 @@ import {
   MenuItem,
   Checkbox,
   FormControlLabel,
-  RadioGroup,
-  Radio,
-  FormLabel,
-  Alert,
-  Chip,
   Table,
   TableBody,
   TableCell,
@@ -28,14 +23,15 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Chip,
   IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Switch,
-  Grid,
+  Alert,
 } from '@mui/material';
+import { GridLegacy as Grid } from '@mui/material';
 import {
   Add,
   Edit,
@@ -44,109 +40,88 @@ import {
   CheckCircle,
   Warning,
   Error,
-  Settings,
 } from '@mui/icons-material';
 
 interface ClearingSystem {
   id: string;
   name: string;
-  type: 'ach' | 'wire' | 'rtgs' | 'swift' | 'faster_payments';
-  status: 'active' | 'inactive' | 'pending' | 'maintenance';
-  country: string;
-  currency: string;
-  cutOffTime: string;
-  settlementTime: string;
+  type: string;
+  status: 'active' | 'inactive' | 'pending';
+  endpoint: string;
   createdAt: string;
   lastUpdated: string;
 }
 
 const ClearingSystemOnboarding: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
-  const [clearingSystems, setClearingSystems] = useState<ClearingSystem[]>([
+  const [onboardingDialogOpen, setOnboardingDialogOpen] = useState(false);
+  const [selectedSystem, setSelectedSystem] = useState<ClearingSystem | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+
+  const [clearingSystems] = useState<ClearingSystem[]>([
     {
       id: 'CS-001',
-      name: 'ACH Network',
-      type: 'ach',
+      name: 'SAMOS Clearing System',
+      type: 'SAMOS',
       status: 'active',
-      country: 'United States',
-      currency: 'USD',
-      cutOffTime: '14:00 EST',
-      settlementTime: 'T+1',
+      endpoint: 'https://samos.payments.com/api',
       createdAt: '2025-10-15 09:00:00',
       lastUpdated: '2025-10-20 14:30:00',
     },
     {
       id: 'CS-002',
-      name: 'Faster Payments',
-      type: 'faster_payments',
+      name: 'BankservAfrica Clearing',
+      type: 'BankservAfrica',
       status: 'active',
-      country: 'United Kingdom',
-      currency: 'GBP',
-      cutOffTime: '18:00 GMT',
-      settlementTime: 'Real-time',
-      createdAt: '2025-10-10 11:15:00',
-      lastUpdated: '2025-10-18 16:45:00',
+      endpoint: 'https://bankserv.payments.com/api',
+      createdAt: '2025-10-10 10:15:00',
+      lastUpdated: '2025-10-19 16:45:00',
     },
     {
       id: 'CS-003',
-      name: 'SWIFT Network',
-      type: 'swift',
+      name: 'RTC Clearing Network',
+      type: 'RTC',
       status: 'pending',
-      country: 'Global',
-      currency: 'Multi',
-      cutOffTime: '17:00 CET',
-      settlementTime: 'T+1',
-      createdAt: '2025-10-20 10:30:00',
-      lastUpdated: '2025-10-20 10:30:00',
+      endpoint: 'https://rtc.payments.com/api',
+      createdAt: '2025-10-20 11:20:00',
+      lastUpdated: '2025-10-20 11:20:00',
+    },
+    {
+      id: 'CS-004',
+      name: 'PayShap Clearing',
+      type: 'PayShap',
+      status: 'active',
+      endpoint: 'https://payshap.payments.com/api',
+      createdAt: '2025-10-12 08:30:00',
+      lastUpdated: '2025-10-18 12:15:00',
     },
   ]);
 
-  const [selectedSystem, setSelectedSystem] = useState<ClearingSystem | null>(null);
-  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const [onboardingDialogOpen, setOnboardingDialogOpen] = useState(false);
-
-  const [onboardingData, setOnboardingData] = useState({
+  const [formData, setFormData] = useState({
     systemName: '',
     systemType: '',
-    country: '',
-    currency: '',
-    cutOffTime: '',
-    settlementTime: '',
-    participantId: '',
-    routingNumber: '',
-    bicCode: '',
-    contactPerson: '',
-    email: '',
-    phone: '',
-    apiEndpoint: '',
-    authenticationType: '',
+    endpoint: '',
+    description: '',
+    authentication: '',
+    messageFormat: '',
     webhookUrl: '',
-    supportedMessageTypes: [] as string[],
-    complianceRequirements: [] as string[],
-    riskSettings: {
-      maxTransactionAmount: '',
-      dailyLimit: '',
-      monthlyLimit: '',
-      fraudDetection: false,
-      realTimeMonitoring: false,
-    },
+    enableLogging: false,
+    enableMonitoring: false,
   });
 
   const steps = [
     'System Information',
-    'Technical Configuration',
-    'Compliance & Security',
-    'Risk Management',
+    'Configuration',
+    'Message Format',
     'Testing & Validation',
-    'Go Live',
+    'Deployment',
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'success';
-      case 'inactive': return 'default';
+      case 'inactive': return 'error';
       case 'pending': return 'warning';
-      case 'maintenance': return 'info';
       default: return 'default';
     }
   };
@@ -161,31 +136,16 @@ const ClearingSystemOnboarding: React.FC = () => {
 
   const handleReset = () => {
     setActiveStep(0);
-    setOnboardingData({
+    setFormData({
       systemName: '',
       systemType: '',
-      country: '',
-      currency: '',
-      cutOffTime: '',
-      settlementTime: '',
-      participantId: '',
-      routingNumber: '',
-      bicCode: '',
-      contactPerson: '',
-      email: '',
-      phone: '',
-      apiEndpoint: '',
-      authenticationType: '',
+      endpoint: '',
+      description: '',
+      authentication: '',
+      messageFormat: '',
       webhookUrl: '',
-      supportedMessageTypes: [],
-      complianceRequirements: [],
-      riskSettings: {
-        maxTransactionAmount: '',
-        dailyLimit: '',
-        monthlyLimit: '',
-        fraudDetection: false,
-        realTimeMonitoring: false,
-      },
+      enableLogging: false,
+      enableMonitoring: false,
     });
   };
 
@@ -196,341 +156,7 @@ const ClearingSystemOnboarding: React.FC = () => {
 
   const handleStartOnboarding = () => {
     setOnboardingDialogOpen(true);
-  };
-
-  const getStepContent = (step: number) => {
-    switch (step) {
-      case 0:
-        return (
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="System Name"
-                value={onboardingData.systemName}
-                onChange={(e) => setOnboardingData({...onboardingData, systemName: e.target.value})}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth required>
-                <InputLabel>System Type</InputLabel>
-                <Select
-                  value={onboardingData.systemType}
-                  label="System Type"
-                  onChange={(e) => setOnboardingData({...onboardingData, systemType: e.target.value})}
-                >
-                  <MenuItem value="ach">ACH</MenuItem>
-                  <MenuItem value="wire">Wire Transfer</MenuItem>
-                  <MenuItem value="rtgs">RTGS</MenuItem>
-                  <MenuItem value="swift">SWIFT</MenuItem>
-                  <MenuItem value="faster_payments">Faster Payments</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Country"
-                value={onboardingData.country}
-                onChange={(e) => setOnboardingData({...onboardingData, country: e.target.value})}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Currency"
-                value={onboardingData.currency}
-                onChange={(e) => setOnboardingData({...onboardingData, currency: e.target.value})}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Cut-off Time"
-                value={onboardingData.cutOffTime}
-                onChange={(e) => setOnboardingData({...onboardingData, cutOffTime: e.target.value})}
-                fullWidth
-                placeholder="e.g., 14:00 EST"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Settlement Time"
-                value={onboardingData.settlementTime}
-                onChange={(e) => setOnboardingData({...onboardingData, settlementTime: e.target.value})}
-                fullWidth
-                placeholder="e.g., T+1, Real-time"
-              />
-            </Grid>
-          </Grid>
-        );
-      case 1:
-        return (
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Participant ID"
-                value={onboardingData.participantId}
-                onChange={(e) => setOnboardingData({...onboardingData, participantId: e.target.value})}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Routing Number"
-                value={onboardingData.routingNumber}
-                onChange={(e) => setOnboardingData({...onboardingData, routingNumber: e.target.value})}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="BIC Code"
-                value={onboardingData.bicCode}
-                onChange={(e) => setOnboardingData({...onboardingData, bicCode: e.target.value})}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="API Endpoint"
-                value={onboardingData.apiEndpoint}
-                onChange={(e) => setOnboardingData({...onboardingData, apiEndpoint: e.target.value})}
-                fullWidth
-                required
-                placeholder="https://api.clearing-system.com/v1"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth required>
-                <InputLabel>Authentication Type</InputLabel>
-                <Select
-                  value={onboardingData.authenticationType}
-                  label="Authentication Type"
-                  onChange={(e) => setOnboardingData({...onboardingData, authenticationType: e.target.value})}
-                >
-                  <MenuItem value="api_key">API Key</MenuItem>
-                  <MenuItem value="oauth2">OAuth 2.0</MenuItem>
-                  <MenuItem value="jwt">JWT</MenuItem>
-                  <MenuItem value="certificate">Certificate</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Webhook URL"
-                value={onboardingData.webhookUrl}
-                onChange={(e) => setOnboardingData({...onboardingData, webhookUrl: e.target.value})}
-                fullWidth
-                placeholder="https://your-domain.com/webhooks"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormLabel component="legend">Supported Message Types</FormLabel>
-              <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-                {['MT103', 'MT202', 'MT205', 'MT940', 'MT950', 'ISO20022'].map((type) => (
-                  <FormControlLabel
-                    key={type}
-                    control={
-                      <Checkbox
-                        checked={onboardingData.supportedMessageTypes.includes(type)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setOnboardingData({
-                              ...onboardingData,
-                              supportedMessageTypes: [...onboardingData.supportedMessageTypes, type]
-                            });
-                          } else {
-                            setOnboardingData({
-                              ...onboardingData,
-                              supportedMessageTypes: onboardingData.supportedMessageTypes.filter(t => t !== type)
-                            });
-                          }
-                        }}
-                      />
-                    }
-                    label={type}
-                  />
-                ))}
-              </Box>
-            </Grid>
-          </Grid>
-        );
-      case 2:
-        return (
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <FormLabel component="legend">Compliance Requirements</FormLabel>
-              <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-                {['PCI DSS', 'GDPR', 'SOX', 'AML', 'KYC', 'ISO 27001', 'Basel III', 'MiFID II'].map((requirement) => (
-                  <FormControlLabel
-                    key={requirement}
-                    control={
-                      <Checkbox
-                        checked={onboardingData.complianceRequirements.includes(requirement)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setOnboardingData({
-                              ...onboardingData,
-                              complianceRequirements: [...onboardingData.complianceRequirements, requirement]
-                            });
-                          } else {
-                            setOnboardingData({
-                              ...onboardingData,
-                              complianceRequirements: onboardingData.complianceRequirements.filter(r => r !== requirement)
-                            });
-                          }
-                        }}
-                      />
-                    }
-                    label={requirement}
-                  />
-                ))}
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Alert severity="warning">
-                Clearing systems require additional compliance certifications. Please ensure all requirements are met.
-              </Alert>
-            </Grid>
-          </Grid>
-        );
-      case 3:
-        return (
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Max Transaction Amount"
-                value={onboardingData.riskSettings.maxTransactionAmount}
-                onChange={(e) => setOnboardingData({
-                  ...onboardingData,
-                  riskSettings: {...onboardingData.riskSettings, maxTransactionAmount: e.target.value}
-                })}
-                fullWidth
-                placeholder="e.g., 1000000"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Daily Limit"
-                value={onboardingData.riskSettings.dailyLimit}
-                onChange={(e) => setOnboardingData({
-                  ...onboardingData,
-                  riskSettings: {...onboardingData.riskSettings, dailyLimit: e.target.value}
-                })}
-                fullWidth
-                placeholder="e.g., 10000000"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Monthly Limit"
-                value={onboardingData.riskSettings.monthlyLimit}
-                onChange={(e) => setOnboardingData({
-                  ...onboardingData,
-                  riskSettings: {...onboardingData.riskSettings, monthlyLimit: e.target.value}
-                })}
-                fullWidth
-                placeholder="e.g., 100000000"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Box display="flex" flexDirection="column" gap={2}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={onboardingData.riskSettings.fraudDetection}
-                      onChange={(e) => setOnboardingData({
-                        ...onboardingData,
-                        riskSettings: {...onboardingData.riskSettings, fraudDetection: e.target.checked}
-                      })}
-                    />
-                  }
-                  label="Enable Fraud Detection"
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={onboardingData.riskSettings.realTimeMonitoring}
-                      onChange={(e) => setOnboardingData({
-                        ...onboardingData,
-                        riskSettings: {...onboardingData.riskSettings, realTimeMonitoring: e.target.checked}
-                      })}
-                    />
-                  }
-                  label="Enable Real-time Monitoring"
-                />
-              </Box>
-            </Grid>
-          </Grid>
-        );
-      case 4:
-        return (
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                Testing Checklist
-              </Typography>
-              <Box display="flex" flexDirection="column" gap={2}>
-                {[
-                  'API connectivity test',
-                  'Authentication validation',
-                  'Message format validation',
-                  'Settlement process test',
-                  'Cut-off time validation',
-                  'Error handling validation',
-                  'Performance testing',
-                  'Security testing',
-                  'Compliance validation',
-                ].map((test, index) => (
-                  <FormControlLabel
-                    key={index}
-                    control={<Checkbox />}
-                    label={test}
-                  />
-                ))}
-              </Box>
-            </Grid>
-          </Grid>
-        );
-      case 5:
-        return (
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Alert severity="success" sx={{ mb: 2 }}>
-                All tests completed successfully! Clearing system is ready for production.
-              </Alert>
-              <Typography variant="h6" gutterBottom>
-                Go Live Configuration
-              </Typography>
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Enable real-time monitoring"
-              />
-              <br />
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Set up alerting for failures"
-              />
-              <br />
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Enable audit logging"
-              />
-              <br />
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Enable settlement reporting"
-              />
-            </Grid>
-          </Grid>
-        );
-      default:
-        return 'Unknown step';
-    }
+    handleReset();
   };
 
   return (
@@ -541,7 +167,7 @@ const ClearingSystemOnboarding: React.FC = () => {
             Clearing System Onboarding
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
-            Onboard new clearing systems and manage existing ones
+            Manage clearing systems and integration processes
           </Typography>
         </Box>
         <Button
@@ -555,7 +181,7 @@ const ClearingSystemOnboarding: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Existing Clearing Systems */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -569,9 +195,9 @@ const ClearingSystemOnboarding: React.FC = () => {
                       <TableCell>Name</TableCell>
                       <TableCell>Type</TableCell>
                       <TableCell>Status</TableCell>
-                      <TableCell>Country</TableCell>
-                      <TableCell>Currency</TableCell>
-                      <TableCell>Cut-off Time</TableCell>
+                      <TableCell>Endpoint</TableCell>
+                      <TableCell>Created At</TableCell>
+                      <TableCell>Last Updated</TableCell>
                       <TableCell>Actions</TableCell>
                     </TableRow>
                   </TableHead>
@@ -584,12 +210,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                           </Typography>
                         </TableCell>
                         <TableCell>{system.name}</TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={system.type.replace('_', ' ').toUpperCase()} 
-                            size="small"
-                          />
-                        </TableCell>
+                        <TableCell>{system.type}</TableCell>
                         <TableCell>
                           <Chip 
                             label={system.status.toUpperCase()} 
@@ -597,9 +218,13 @@ const ClearingSystemOnboarding: React.FC = () => {
                             size="small"
                           />
                         </TableCell>
-                        <TableCell>{system.country}</TableCell>
-                        <TableCell>{system.currency}</TableCell>
-                        <TableCell>{system.cutOffTime}</TableCell>
+                        <TableCell>
+                          <Typography variant="caption" noWrap sx={{ maxWidth: 200 }}>
+                            {system.endpoint}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>{system.createdAt}</TableCell>
+                        <TableCell>{system.lastUpdated}</TableCell>
                         <TableCell>
                           <Box display="flex" gap={1}>
                             <IconButton
@@ -610,9 +235,6 @@ const ClearingSystemOnboarding: React.FC = () => {
                             </IconButton>
                             <IconButton size="small">
                               <Edit />
-                            </IconButton>
-                            <IconButton size="small">
-                              <Settings />
                             </IconButton>
                             <IconButton size="small">
                               <Delete />
@@ -627,64 +249,261 @@ const ClearingSystemOnboarding: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
+      </Grid>
 
-        {/* Onboarding Wizard */}
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                New Clearing System Onboarding
-              </Typography>
-              <Stepper activeStep={activeStep} orientation="vertical">
-                {steps.map((label, index) => (
-                  <Step key={label}>
-                    <StepLabel>{label}</StepLabel>
-                    <StepContent>
-                      {getStepContent(index)}
-                      <Box sx={{ mb: 2 }}>
-                        <div>
-                          <Button
-                            variant="contained"
-                            onClick={handleNext}
-                            sx={{ mt: 1, mr: 1 }}
-                          >
-                            {index === steps.length - 1 ? 'Finish' : 'Continue'}
-                          </Button>
-                          <Button
-                            disabled={index === 0}
-                            onClick={handleBack}
-                            sx={{ mt: 1, mr: 1 }}
-                          >
-                            Back
-                          </Button>
-                        </div>
-                      </Box>
-                    </StepContent>
-                  </Step>
-                ))}
-              </Stepper>
-              {activeStep === steps.length && (
-                <Box>
-                  <Typography>All steps completed - you&apos;re finished</Typography>
-                  <Button onClick={handleReset} sx={{ mt: 1, mr: 1 }}>
-                    Reset
+      {/* Onboarding Dialog */}
+      <Dialog open={onboardingDialogOpen} onClose={() => setOnboardingDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          Clearing System Onboarding Process
+        </DialogTitle>
+        <DialogContent>
+          <Stepper activeStep={activeStep} orientation="vertical">
+            <Step>
+              <StepLabel>System Information</StepLabel>
+              <StepContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="System Name"
+                      value={formData.systemName}
+                      onChange={(e) => setFormData({...formData, systemName: e.target.value})}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>System Type</InputLabel>
+                      <Select
+                        value={formData.systemType}
+                        label="System Type"
+                        onChange={(e) => setFormData({...formData, systemType: e.target.value})}
+                      >
+                        <MenuItem value="SAMOS">SAMOS</MenuItem>
+                        <MenuItem value="BankservAfrica">BankservAfrica</MenuItem>
+                        <MenuItem value="RTC">RTC</MenuItem>
+                        <MenuItem value="PayShap">PayShap</MenuItem>
+                        <MenuItem value="SWIFT">SWIFT</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      fullWidth
+                      multiline
+                      rows={3}
+                    />
+                  </Grid>
+                </Grid>
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Continue
+                  </Button>
+                  <Button
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Back
                   </Button>
                 </Box>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+              </StepContent>
+            </Step>
+
+            <Step>
+              <StepLabel>Configuration</StepLabel>
+              <StepContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Endpoint URL"
+                      value={formData.endpoint}
+                      onChange={(e) => setFormData({...formData, endpoint: e.target.value})}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Webhook URL"
+                      value={formData.webhookUrl}
+                      onChange={(e) => setFormData({...formData, webhookUrl: e.target.value})}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Authentication Method</InputLabel>
+                      <Select
+                        value={formData.authentication}
+                        label="Authentication Method"
+                        onChange={(e) => setFormData({...formData, authentication: e.target.value})}
+                      >
+                        <MenuItem value="OAuth2">OAuth 2.0</MenuItem>
+                        <MenuItem value="API Key">API Key</MenuItem>
+                        <MenuItem value="Certificate">Certificate</MenuItem>
+                        <MenuItem value="Basic">Basic Auth</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </Grid>
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Continue
+                  </Button>
+                  <Button
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Back
+                  </Button>
+                </Box>
+              </StepContent>
+            </Step>
+
+            <Step>
+              <StepLabel>Message Format</StepLabel>
+              <StepContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <InputLabel>Message Format</InputLabel>
+                      <Select
+                        value={formData.messageFormat}
+                        label="Message Format"
+                        onChange={(e) => setFormData({...formData, messageFormat: e.target.value})}
+                      >
+                        <MenuItem value="ISO20022">ISO 20022</MenuItem>
+                        <MenuItem value="ISO8583">ISO 8583</MenuItem>
+                        <MenuItem value="JSON">JSON</MenuItem>
+                        <MenuItem value="XML">XML</MenuItem>
+                        <MenuItem value="Fixed Width">Fixed Width</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={formData.enableLogging}
+                          onChange={(e) => setFormData({...formData, enableLogging: e.target.checked})}
+                        />
+                      }
+                      label="Enable Message Logging"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={formData.enableMonitoring}
+                          onChange={(e) => setFormData({...formData, enableMonitoring: e.target.checked})}
+                        />
+                      }
+                      label="Enable Performance Monitoring"
+                    />
+                  </Grid>
+                </Grid>
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Continue
+                  </Button>
+                  <Button
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Back
+                  </Button>
+                </Box>
+              </StepContent>
+            </Step>
+
+            <Step>
+              <StepLabel>Testing & Validation</StepLabel>
+              <StepContent>
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  This step will validate the clearing system configuration and perform connectivity tests.
+                </Alert>
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Run Tests
+                  </Button>
+                  <Button
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Back
+                  </Button>
+                </Box>
+              </StepContent>
+            </Step>
+
+            <Step>
+              <StepLabel>Deployment</StepLabel>
+              <StepContent>
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  Clearing system configuration is ready for deployment. Review the settings and deploy when ready.
+                </Alert>
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={() => setOnboardingDialogOpen(false)}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Deploy System
+                  </Button>
+                  <Button
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Back
+                  </Button>
+                </Box>
+              </StepContent>
+            </Step>
+          </Stepper>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOnboardingDialogOpen(false)}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={activeStep === steps.length - 1 ? () => setOnboardingDialogOpen(false) : handleNext}
+          >
+            {activeStep === steps.length - 1 ? 'Complete' : 'Next'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* System Details Dialog */}
       <Dialog open={detailsDialogOpen} onClose={() => setDetailsDialogOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>
-          Clearing System Details - {selectedSystem?.id}
+          System Details - {selectedSystem?.id}
         </DialogTitle>
         <DialogContent>
           {selectedSystem && (
             <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={6}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="System ID"
                   value={selectedSystem.id}
@@ -692,23 +511,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                   disabled
                 />
               </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  label="Name"
-                  value={selectedSystem.name}
-                  fullWidth
-                  disabled
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  label="Type"
-                  value={selectedSystem.type}
-                  fullWidth
-                  disabled
-                />
-              </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Status"
                   value={selectedSystem.status}
@@ -716,34 +519,42 @@ const ClearingSystemOnboarding: React.FC = () => {
                   disabled
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12}>
                 <TextField
-                  label="Country"
-                  value={selectedSystem.country}
+                  label="System Name"
+                  value={selectedSystem.name}
                   fullWidth
                   disabled
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12} md={6}>
                 <TextField
-                  label="Currency"
-                  value={selectedSystem.currency}
+                  label="Type"
+                  value={selectedSystem.type}
                   fullWidth
                   disabled
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12} md={6}>
                 <TextField
-                  label="Cut-off Time"
-                  value={selectedSystem.cutOffTime}
+                  label="Endpoint"
+                  value={selectedSystem.endpoint}
                   fullWidth
                   disabled
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12} md={6}>
                 <TextField
-                  label="Settlement Time"
-                  value={selectedSystem.settlementTime}
+                  label="Created At"
+                  value={selectedSystem.createdAt}
+                  fullWidth
+                  disabled
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Last Updated"
+                  value={selectedSystem.lastUpdated}
                   fullWidth
                   disabled
                 />
@@ -755,35 +566,6 @@ const ClearingSystemOnboarding: React.FC = () => {
           <Button onClick={() => setDetailsDialogOpen(false)}>Close</Button>
           <Button variant="contained" onClick={() => setDetailsDialogOpen(false)}>
             Edit System
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Onboarding Dialog */}
-      <Dialog open={onboardingDialogOpen} onClose={() => setOnboardingDialogOpen(false)} maxWidth="lg" fullWidth>
-        <DialogTitle>
-          Clearing System Onboarding Wizard
-        </DialogTitle>
-        <DialogContent>
-          <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-          {getStepContent(activeStep)}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOnboardingDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleBack} disabled={activeStep === 0}>
-            Back
-          </Button>
-          <Button
-            variant="contained"
-            onClick={activeStep === steps.length - 1 ? () => setOnboardingDialogOpen(false) : handleNext}
-          >
-            {activeStep === steps.length - 1 ? 'Complete' : 'Next'}
           </Button>
         </DialogActions>
       </Dialog>

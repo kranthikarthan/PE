@@ -16,11 +16,6 @@ import {
   MenuItem,
   Checkbox,
   FormControlLabel,
-  RadioGroup,
-  Radio,
-  FormLabel,
-  Alert,
-  Chip,
   Table,
   TableBody,
   TableCell,
@@ -28,13 +23,15 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Chip,
   IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Grid,
+  Alert,
 } from '@mui/material';
+import { GridLegacy as Grid } from '@mui/material';
 import {
   Add,
   Edit,
@@ -48,82 +45,74 @@ import {
 interface Channel {
   id: string;
   name: string;
-  type: 'bank' | 'fintech' | 'payment_provider';
-  status: 'active' | 'inactive' | 'pending' | 'suspended';
-  country: string;
-  currency: string;
+  type: string;
+  status: 'active' | 'inactive' | 'pending';
+  endpoint: string;
   createdAt: string;
   lastUpdated: string;
 }
 
 const ChannelOnboarding: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
-  const [channels, setChannels] = useState<Channel[]>([
+  const [onboardingDialogOpen, setOnboardingDialogOpen] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+
+  const [channels] = useState<Channel[]>([
     {
       id: 'CH-001',
-      name: 'Bank of America',
-      type: 'bank',
+      name: 'Mobile Banking App',
+      type: 'Mobile',
       status: 'active',
-      country: 'United States',
-      currency: 'USD',
+      endpoint: 'https://api.payments.com/mobile',
       createdAt: '2025-10-15 09:00:00',
       lastUpdated: '2025-10-20 14:30:00',
     },
     {
       id: 'CH-002',
-      name: 'Stripe',
-      type: 'payment_provider',
+      name: 'Web Portal',
+      type: 'Web',
       status: 'active',
-      country: 'United States',
-      currency: 'USD',
-      createdAt: '2025-10-10 11:15:00',
-      lastUpdated: '2025-10-18 16:45:00',
+      endpoint: 'https://api.payments.com/web',
+      createdAt: '2025-10-10 10:15:00',
+      lastUpdated: '2025-10-19 16:45:00',
     },
     {
       id: 'CH-003',
-      name: 'Revolut',
-      type: 'fintech',
+      name: 'API Gateway',
+      type: 'API',
       status: 'pending',
-      country: 'United Kingdom',
-      currency: 'GBP',
-      createdAt: '2025-10-20 10:30:00',
-      lastUpdated: '2025-10-20 10:30:00',
+      endpoint: 'https://api.payments.com/gateway',
+      createdAt: '2025-10-20 11:20:00',
+      lastUpdated: '2025-10-20 11:20:00',
     },
   ]);
 
-  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
-  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const [onboardingDialogOpen, setOnboardingDialogOpen] = useState(false);
-
-  const [onboardingData, setOnboardingData] = useState({
+  const [formData, setFormData] = useState({
     channelName: '',
     channelType: '',
-    country: '',
-    currency: '',
-    contactPerson: '',
-    email: '',
-    phone: '',
-    apiEndpoint: '',
-    authenticationType: '',
+    endpoint: '',
+    description: '',
+    authentication: '',
+    rateLimit: '',
     webhookUrl: '',
-    supportedPaymentTypes: [] as string[],
-    complianceRequirements: [] as string[],
+    enableLogging: false,
+    enableMonitoring: false,
   });
 
   const steps = [
     'Channel Information',
-    'Technical Configuration',
-    'Compliance & Security',
+    'Configuration',
+    'Security Settings',
     'Testing & Validation',
-    'Go Live',
+    'Deployment',
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'success';
-      case 'inactive': return 'default';
+      case 'inactive': return 'error';
       case 'pending': return 'warning';
-      case 'suspended': return 'error';
       default: return 'default';
     }
   };
@@ -138,19 +127,16 @@ const ChannelOnboarding: React.FC = () => {
 
   const handleReset = () => {
     setActiveStep(0);
-    setOnboardingData({
+    setFormData({
       channelName: '',
       channelType: '',
-      country: '',
-      currency: '',
-      contactPerson: '',
-      email: '',
-      phone: '',
-      apiEndpoint: '',
-      authenticationType: '',
+      endpoint: '',
+      description: '',
+      authentication: '',
+      rateLimit: '',
       webhookUrl: '',
-      supportedPaymentTypes: [],
-      complianceRequirements: [],
+      enableLogging: false,
+      enableMonitoring: false,
     });
   };
 
@@ -161,248 +147,7 @@ const ChannelOnboarding: React.FC = () => {
 
   const handleStartOnboarding = () => {
     setOnboardingDialogOpen(true);
-  };
-
-  const getStepContent = (step: number) => {
-    switch (step) {
-      case 0:
-        return (
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Channel Name"
-                value={onboardingData.channelName}
-                onChange={(e) => setOnboardingData({...onboardingData, channelName: e.target.value})}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth required>
-                <InputLabel>Channel Type</InputLabel>
-                <Select
-                  value={onboardingData.channelType}
-                  label="Channel Type"
-                  onChange={(e) => setOnboardingData({...onboardingData, channelType: e.target.value})}
-                >
-                  <MenuItem value="bank">Bank</MenuItem>
-                  <MenuItem value="fintech">Fintech</MenuItem>
-                  <MenuItem value="payment_provider">Payment Provider</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Country"
-                value={onboardingData.country}
-                onChange={(e) => setOnboardingData({...onboardingData, country: e.target.value})}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Currency"
-                value={onboardingData.currency}
-                onChange={(e) => setOnboardingData({...onboardingData, currency: e.target.value})}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Contact Person"
-                value={onboardingData.contactPerson}
-                onChange={(e) => setOnboardingData({...onboardingData, contactPerson: e.target.value})}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Email"
-                type="email"
-                value={onboardingData.email}
-                onChange={(e) => setOnboardingData({...onboardingData, email: e.target.value})}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Phone"
-                value={onboardingData.phone}
-                onChange={(e) => setOnboardingData({...onboardingData, phone: e.target.value})}
-                fullWidth
-                required
-              />
-            </Grid>
-          </Grid>
-        );
-      case 1:
-        return (
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                label="API Endpoint"
-                value={onboardingData.apiEndpoint}
-                onChange={(e) => setOnboardingData({...onboardingData, apiEndpoint: e.target.value})}
-                fullWidth
-                required
-                placeholder="https://api.example.com/v1"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth required>
-                <InputLabel>Authentication Type</InputLabel>
-                <Select
-                  value={onboardingData.authenticationType}
-                  label="Authentication Type"
-                  onChange={(e) => setOnboardingData({...onboardingData, authenticationType: e.target.value})}
-                >
-                  <MenuItem value="api_key">API Key</MenuItem>
-                  <MenuItem value="oauth2">OAuth 2.0</MenuItem>
-                  <MenuItem value="jwt">JWT</MenuItem>
-                  <MenuItem value="basic">Basic Auth</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Webhook URL"
-                value={onboardingData.webhookUrl}
-                onChange={(e) => setOnboardingData({...onboardingData, webhookUrl: e.target.value})}
-                fullWidth
-                placeholder="https://your-domain.com/webhooks"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormLabel component="legend">Supported Payment Types</FormLabel>
-              <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-                {['Credit Card', 'Debit Card', 'Bank Transfer', 'Digital Wallet', 'Cryptocurrency'].map((type) => (
-                  <FormControlLabel
-                    key={type}
-                    control={
-                      <Checkbox
-                        checked={onboardingData.supportedPaymentTypes.includes(type)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setOnboardingData({
-                              ...onboardingData,
-                              supportedPaymentTypes: [...onboardingData.supportedPaymentTypes, type]
-                            });
-                          } else {
-                            setOnboardingData({
-                              ...onboardingData,
-                              supportedPaymentTypes: onboardingData.supportedPaymentTypes.filter(t => t !== type)
-                            });
-                          }
-                        }}
-                      />
-                    }
-                    label={type}
-                  />
-                ))}
-              </Box>
-            </Grid>
-          </Grid>
-        );
-      case 2:
-        return (
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <FormLabel component="legend">Compliance Requirements</FormLabel>
-              <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-                {['PCI DSS', 'GDPR', 'SOX', 'AML', 'KYC', 'ISO 27001'].map((requirement) => (
-                  <FormControlLabel
-                    key={requirement}
-                    control={
-                      <Checkbox
-                        checked={onboardingData.complianceRequirements.includes(requirement)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setOnboardingData({
-                              ...onboardingData,
-                              complianceRequirements: [...onboardingData.complianceRequirements, requirement]
-                            });
-                          } else {
-                            setOnboardingData({
-                              ...onboardingData,
-                              complianceRequirements: onboardingData.complianceRequirements.filter(r => r !== requirement)
-                            });
-                          }
-                        }}
-                      />
-                    }
-                    label={requirement}
-                  />
-                ))}
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Alert severity="info">
-                Please ensure all compliance requirements are met before proceeding to testing phase.
-              </Alert>
-            </Grid>
-          </Grid>
-        );
-      case 3:
-        return (
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
-                Testing Checklist
-              </Typography>
-              <Box display="flex" flexDirection="column" gap={2}>
-                {[
-                  'API connectivity test',
-                  'Authentication validation',
-                  'Payment processing test',
-                  'Webhook delivery test',
-                  'Error handling validation',
-                  'Performance testing',
-                  'Security testing',
-                ].map((test, index) => (
-                  <FormControlLabel
-                    key={index}
-                    control={<Checkbox />}
-                    label={test}
-                  />
-                ))}
-              </Box>
-            </Grid>
-          </Grid>
-        );
-      case 4:
-        return (
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Alert severity="success" sx={{ mb: 2 }}>
-                All tests completed successfully! Channel is ready for production.
-              </Alert>
-              <Typography variant="h6" gutterBottom>
-                Go Live Configuration
-              </Typography>
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Enable real-time monitoring"
-              />
-              <br />
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Set up alerting for failures"
-              />
-              <br />
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Enable audit logging"
-              />
-            </Grid>
-          </Grid>
-        );
-      default:
-        return 'Unknown step';
-    }
+    handleReset();
   };
 
   return (
@@ -413,7 +158,7 @@ const ChannelOnboarding: React.FC = () => {
             Channel Onboarding
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
-            Onboard new payment channels and manage existing ones
+            Manage payment channels and onboarding processes
           </Typography>
         </Box>
         <Button
@@ -427,7 +172,7 @@ const ChannelOnboarding: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Existing Channels */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -441,8 +186,8 @@ const ChannelOnboarding: React.FC = () => {
                       <TableCell>Name</TableCell>
                       <TableCell>Type</TableCell>
                       <TableCell>Status</TableCell>
-                      <TableCell>Country</TableCell>
-                      <TableCell>Currency</TableCell>
+                      <TableCell>Endpoint</TableCell>
+                      <TableCell>Created At</TableCell>
                       <TableCell>Last Updated</TableCell>
                       <TableCell>Actions</TableCell>
                     </TableRow>
@@ -456,12 +201,7 @@ const ChannelOnboarding: React.FC = () => {
                           </Typography>
                         </TableCell>
                         <TableCell>{channel.name}</TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={channel.type.replace('_', ' ').toUpperCase()} 
-                            size="small"
-                          />
-                        </TableCell>
+                        <TableCell>{channel.type}</TableCell>
                         <TableCell>
                           <Chip 
                             label={channel.status.toUpperCase()} 
@@ -469,8 +209,12 @@ const ChannelOnboarding: React.FC = () => {
                             size="small"
                           />
                         </TableCell>
-                        <TableCell>{channel.country}</TableCell>
-                        <TableCell>{channel.currency}</TableCell>
+                        <TableCell>
+                          <Typography variant="caption" noWrap sx={{ maxWidth: 200 }}>
+                            {channel.endpoint}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>{channel.createdAt}</TableCell>
                         <TableCell>{channel.lastUpdated}</TableCell>
                         <TableCell>
                           <Box display="flex" gap={1}>
@@ -496,54 +240,243 @@ const ChannelOnboarding: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
+      </Grid>
 
-        {/* Onboarding Wizard */}
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                New Channel Onboarding
-              </Typography>
-              <Stepper activeStep={activeStep} orientation="vertical">
-                {steps.map((label, index) => (
-                  <Step key={label}>
-                    <StepLabel>{label}</StepLabel>
-                    <StepContent>
-                      {getStepContent(index)}
-                      <Box sx={{ mb: 2 }}>
-                        <div>
-                          <Button
-                            variant="contained"
-                            onClick={handleNext}
-                            sx={{ mt: 1, mr: 1 }}
-                          >
-                            {index === steps.length - 1 ? 'Finish' : 'Continue'}
-                          </Button>
-                          <Button
-                            disabled={index === 0}
-                            onClick={handleBack}
-                            sx={{ mt: 1, mr: 1 }}
-                          >
-                            Back
-                          </Button>
-                        </div>
-                      </Box>
-                    </StepContent>
-                  </Step>
-                ))}
-              </Stepper>
-              {activeStep === steps.length && (
-                <Box>
-                  <Typography>All steps completed - you&apos;re finished</Typography>
-                  <Button onClick={handleReset} sx={{ mt: 1, mr: 1 }}>
-                    Reset
+      {/* Onboarding Dialog */}
+      <Dialog open={onboardingDialogOpen} onClose={() => setOnboardingDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          Channel Onboarding Process
+        </DialogTitle>
+        <DialogContent>
+          <Stepper activeStep={activeStep} orientation="vertical">
+            <Step>
+              <StepLabel>Channel Information</StepLabel>
+              <StepContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Channel Name"
+                      value={formData.channelName}
+                      onChange={(e) => setFormData({...formData, channelName: e.target.value})}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Channel Type</InputLabel>
+                      <Select
+                        value={formData.channelType}
+                        label="Channel Type"
+                        onChange={(e) => setFormData({...formData, channelType: e.target.value})}
+                      >
+                        <MenuItem value="Mobile">Mobile</MenuItem>
+                        <MenuItem value="Web">Web</MenuItem>
+                        <MenuItem value="API">API</MenuItem>
+                        <MenuItem value="POS">POS</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      fullWidth
+                      multiline
+                      rows={3}
+                    />
+                  </Grid>
+                </Grid>
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Continue
+                  </Button>
+                  <Button
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Back
                   </Button>
                 </Box>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+              </StepContent>
+            </Step>
+
+            <Step>
+              <StepLabel>Configuration</StepLabel>
+              <StepContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Endpoint URL"
+                      value={formData.endpoint}
+                      onChange={(e) => setFormData({...formData, endpoint: e.target.value})}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Rate Limit (requests/minute)"
+                      value={formData.rateLimit}
+                      onChange={(e) => setFormData({...formData, rateLimit: e.target.value})}
+                      fullWidth
+                      type="number"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Webhook URL"
+                      value={formData.webhookUrl}
+                      onChange={(e) => setFormData({...formData, webhookUrl: e.target.value})}
+                      fullWidth
+                    />
+                  </Grid>
+                </Grid>
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Continue
+                  </Button>
+                  <Button
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Back
+                  </Button>
+                </Box>
+              </StepContent>
+            </Step>
+
+            <Step>
+              <StepLabel>Security Settings</StepLabel>
+              <StepContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <InputLabel>Authentication Method</InputLabel>
+                      <Select
+                        value={formData.authentication}
+                        label="Authentication Method"
+                        onChange={(e) => setFormData({...formData, authentication: e.target.value})}
+                      >
+                        <MenuItem value="OAuth2">OAuth 2.0</MenuItem>
+                        <MenuItem value="API Key">API Key</MenuItem>
+                        <MenuItem value="JWT">JWT Token</MenuItem>
+                        <MenuItem value="Basic">Basic Auth</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={formData.enableLogging}
+                          onChange={(e) => setFormData({...formData, enableLogging: e.target.checked})}
+                        />
+                      }
+                      label="Enable Request/Response Logging"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={formData.enableMonitoring}
+                          onChange={(e) => setFormData({...formData, enableMonitoring: e.target.checked})}
+                        />
+                      }
+                      label="Enable Performance Monitoring"
+                    />
+                  </Grid>
+                </Grid>
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Continue
+                  </Button>
+                  <Button
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Back
+                  </Button>
+                </Box>
+              </StepContent>
+            </Step>
+
+            <Step>
+              <StepLabel>Testing & Validation</StepLabel>
+              <StepContent>
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  This step will validate the channel configuration and perform connectivity tests.
+                </Alert>
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Run Tests
+                  </Button>
+                  <Button
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Back
+                  </Button>
+                </Box>
+              </StepContent>
+            </Step>
+
+            <Step>
+              <StepLabel>Deployment</StepLabel>
+              <StepContent>
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  Channel configuration is ready for deployment. Review the settings and deploy when ready.
+                </Alert>
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={() => setOnboardingDialogOpen(false)}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Deploy Channel
+                  </Button>
+                  <Button
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    sx={{ mt: 1, mr: 1 }}
+                  >
+                    Back
+                  </Button>
+                </Box>
+              </StepContent>
+            </Step>
+          </Stepper>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOnboardingDialogOpen(false)}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={activeStep === steps.length - 1 ? () => setOnboardingDialogOpen(false) : handleNext}
+          >
+            {activeStep === steps.length - 1 ? 'Complete' : 'Next'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Channel Details Dialog */}
       <Dialog open={detailsDialogOpen} onClose={() => setDetailsDialogOpen(false)} maxWidth="md" fullWidth>
@@ -563,7 +496,15 @@ const ChannelOnboarding: React.FC = () => {
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
-                  label="Name"
+                  label="Status"
+                  value={selectedChannel.status}
+                  fullWidth
+                  disabled
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Channel Name"
                   value={selectedChannel.name}
                   fullWidth
                   disabled
@@ -579,24 +520,24 @@ const ChannelOnboarding: React.FC = () => {
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
-                  label="Status"
-                  value={selectedChannel.status}
+                  label="Endpoint"
+                  value={selectedChannel.endpoint}
                   fullWidth
                   disabled
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
-                  label="Country"
-                  value={selectedChannel.country}
+                  label="Created At"
+                  value={selectedChannel.createdAt}
                   fullWidth
                   disabled
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
-                  label="Currency"
-                  value={selectedChannel.currency}
+                  label="Last Updated"
+                  value={selectedChannel.lastUpdated}
                   fullWidth
                   disabled
                 />
@@ -611,36 +552,7 @@ const ChannelOnboarding: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Onboarding Dialog */}
-      <Dialog open={onboardingDialogOpen} onClose={() => setOnboardingDialogOpen(false)} maxWidth="lg" fullWidth>
-        <DialogTitle>
-          Channel Onboarding Wizard
-        </DialogTitle>
-        <DialogContent>
-          <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-          {getStepContent(activeStep)}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOnboardingDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleBack} disabled={activeStep === 0}>
-            Back
-          </Button>
-          <Button
-            variant="contained"
-            onClick={activeStep === steps.length - 1 ? () => setOnboardingDialogOpen(false) : handleNext}
-          >
-            {activeStep === steps.length - 1 ? 'Complete' : 'Next'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-            </Grid>
+    </Box>
   );
 };
 

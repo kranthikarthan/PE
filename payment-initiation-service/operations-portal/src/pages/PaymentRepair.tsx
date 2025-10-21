@@ -28,8 +28,8 @@ import {
   Alert,
   Tabs,
   Tab,
-  Grid,
 } from '@mui/material';
+import { GridLegacy as Grid } from '@mui/material';
 import {
   Refresh,
   Build,
@@ -174,7 +174,6 @@ const PaymentRepair: React.FC = () => {
   };
 
   const handleBulkRetry = () => {
-    // Implement bulk retry logic
     console.log('Bulk retry for payments:', selectedPayments);
   };
 
@@ -402,56 +401,54 @@ const PaymentRepair: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           {selectedPayment && (
-            <Box sx={{ mt: 2 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <TextField
-                    label="Payment ID"
-                    value={selectedPayment.id}
-                    fullWidth
-                    disabled
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Amount"
-                    value={`${selectedPayment.amount} ${selectedPayment.currency}`}
-                    fullWidth
-                    disabled
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Status"
-                    value={selectedPayment.status}
-                    fullWidth
-                    disabled
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    label="Repair Reason"
-                    value={repairReason}
-                    onChange={(e) => setRepairReason(e.target.value)}
-                    fullWidth
-                    multiline
-                    rows={3}
-                    placeholder="Enter reason for repair action..."
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={forceRetry}
-                        onChange={(e) => setForceRetry(e.target.checked)}
-                      />
-                    }
-                    label="Force retry (ignore validation checks)"
-                  />
-                </Grid>
+            <Grid container spacing={2} sx={{ mt: 2 }}>
+              <Grid item xs={12}>
+                <TextField
+                  label="Payment ID"
+                  value={selectedPayment.id}
+                  fullWidth
+                  disabled
+                />
               </Grid>
-            </Box>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Amount"
+                  value={`${selectedPayment.amount} ${selectedPayment.currency}`}
+                  fullWidth
+                  disabled
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Status"
+                  value={selectedPayment.status}
+                  fullWidth
+                  disabled
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Repair Reason"
+                  value={repairReason}
+                  onChange={(e) => setRepairReason(e.target.value)}
+                  fullWidth
+                  multiline
+                  rows={3}
+                  placeholder="Enter reason for repair action..."
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={forceRetry}
+                      onChange={(e) => setForceRetry(e.target.checked)}
+                    />
+                  }
+                  label="Force retry (ignore validation checks)"
+                />
+              </Grid>
+            </Grid>
           )}
         </DialogContent>
         <DialogActions>

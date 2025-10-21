@@ -13,23 +13,26 @@
     {
       "name": "swift.environment.development",
       "type": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Development",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig"
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig",
+      "sourceMethod": "public com.payments.swiftadapter.config.SwiftEnvironmentConfig.Development getDevelopment() "
     },
     {
       "name": "swift.environment.environment-settings",
       "type": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$EnvironmentSettings",
       "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig",
-      "sourceMethod": "getEnvironmentSettings()"
+      "sourceMethod": "public com.payments.swiftadapter.config.SwiftEnvironmentConfig.EnvironmentSettings getEnvironmentSettings() "
     },
     {
       "name": "swift.environment.production",
       "type": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Production",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig"
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig",
+      "sourceMethod": "public com.payments.swiftadapter.config.SwiftEnvironmentConfig.Production getProduction() "
     },
     {
       "name": "swift.environment.staging",
       "type": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Staging",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig"
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig",
+      "sourceMethod": "public com.payments.swiftadapter.config.SwiftEnvironmentConfig.Staging getStaging() "
     }
   ],
   "properties": [
@@ -82,8 +85,7 @@
     {
       "name": "swift.environment.debug-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig",
-      "defaultValue": false
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig"
     },
     {
       "name": "swift.environment.development.api-version",
@@ -98,8 +100,7 @@
     {
       "name": "swift.environment.development.encryption-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Development",
-      "defaultValue": false
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Development"
     },
     {
       "name": "swift.environment.development.endpoint",
@@ -119,8 +120,7 @@
     {
       "name": "swift.environment.development.mock-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Development",
-      "defaultValue": false
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Development"
     },
     {
       "name": "swift.environment.development.processing-window-end",
@@ -135,14 +135,12 @@
     {
       "name": "swift.environment.development.retry-attempts",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Development",
-      "defaultValue": 0
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Development"
     },
     {
       "name": "swift.environment.development.timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Development",
-      "defaultValue": 0
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Development"
     },
     {
       "name": "swift.environment.environment",
@@ -162,8 +160,7 @@
     {
       "name": "swift.environment.environment-settings.encryption-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$EnvironmentSettings",
-      "defaultValue": false
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$EnvironmentSettings"
     },
     {
       "name": "swift.environment.environment-settings.endpoint",
@@ -183,8 +180,7 @@
     {
       "name": "swift.environment.environment-settings.mock-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$EnvironmentSettings",
-      "defaultValue": false
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$EnvironmentSettings"
     },
     {
       "name": "swift.environment.environment-settings.processing-window-end",
@@ -199,14 +195,12 @@
     {
       "name": "swift.environment.environment-settings.retry-attempts",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$EnvironmentSettings",
-      "defaultValue": 0
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$EnvironmentSettings"
     },
     {
       "name": "swift.environment.environment-settings.timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$EnvironmentSettings",
-      "defaultValue": 0
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$EnvironmentSettings"
     },
     {
       "name": "swift.environment.locale",
@@ -221,8 +215,7 @@
     {
       "name": "swift.environment.metrics-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig",
-      "defaultValue": false
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig"
     },
     {
       "name": "swift.environment.production.api-version",
@@ -237,8 +230,7 @@
     {
       "name": "swift.environment.production.encryption-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Production",
-      "defaultValue": false
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Production"
     },
     {
       "name": "swift.environment.production.endpoint",
@@ -258,8 +250,7 @@
     {
       "name": "swift.environment.production.mock-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Production",
-      "defaultValue": false
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Production"
     },
     {
       "name": "swift.environment.production.processing-window-end",
@@ -274,14 +265,12 @@
     {
       "name": "swift.environment.production.retry-attempts",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Production",
-      "defaultValue": 0
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Production"
     },
     {
       "name": "swift.environment.production.timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Production",
-      "defaultValue": 0
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Production"
     },
     {
       "name": "swift.environment.region",
@@ -301,8 +290,7 @@
     {
       "name": "swift.environment.staging.encryption-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Staging",
-      "defaultValue": false
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Staging"
     },
     {
       "name": "swift.environment.staging.endpoint",
@@ -322,8 +310,7 @@
     {
       "name": "swift.environment.staging.mock-mode",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Staging",
-      "defaultValue": false
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Staging"
     },
     {
       "name": "swift.environment.staging.processing-window-end",
@@ -338,14 +325,12 @@
     {
       "name": "swift.environment.staging.retry-attempts",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Staging",
-      "defaultValue": 0
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Staging"
     },
     {
       "name": "swift.environment.staging.timeout-seconds",
       "type": "java.lang.Integer",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Staging",
-      "defaultValue": 0
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig$Staging"
     },
     {
       "name": "swift.environment.timezone",
@@ -355,8 +340,7 @@
     {
       "name": "swift.environment.tracing-enabled",
       "type": "java.lang.Boolean",
-      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig",
-      "defaultValue": false
+      "sourceType": "com.payments.swiftadapter.config.SwiftEnvironmentConfig"
     }
   ],
   "hints": []

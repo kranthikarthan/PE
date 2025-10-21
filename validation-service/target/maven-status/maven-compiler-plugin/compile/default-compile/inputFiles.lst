@@ -10,6 +10,7 @@ C:\git\clone\PE\validation-service\src\main\java\com\payments\contracts\validati
 C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\config\EventTopicsConfig.java
 C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\config\KafkaConfig.java
 C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\config\KafkaHeaderInterceptor.java
+C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\config\ManagementSecurityConfig.java
 C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\config\RuleEngineConfig.java
 C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\config\SecurityConfig.java
 C:\git\clone\PE\validation-service\src\main\java\com\payments\validation\consumer\PaymentEventConsumer.java

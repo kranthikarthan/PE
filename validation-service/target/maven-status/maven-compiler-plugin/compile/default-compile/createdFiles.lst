@@ -12,6 +12,7 @@ com\payments\validation\util\HeaderExtractor$HeaderContext.class
 com\payments\validation\repository\ValidationResultRepository.class
 com\payments\validation\service\TenantContextService.class
 com\payments\validation\service\FraudDetectionRuleEngine.class
+com\payments\validation\config\ManagementSecurityConfig.class
 com\payments\validation\service\ComplianceRuleEngine.class
 com\payments\validation\config\KafkaConfig.class
 com\payments\validation\service\ValidationResultService$ValidationStatistics.class

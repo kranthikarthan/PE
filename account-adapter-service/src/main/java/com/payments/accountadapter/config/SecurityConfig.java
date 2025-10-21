@@ -14,7 +14,7 @@ public class SecurityConfig {
     http.csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(
             auth -> auth.requestMatchers("/actuator/**").permitAll().anyRequest().permitAll())
-        .httpBasic(Customizer.withDefaults())
+        .httpBasic(httpBasic -> httpBasic.disable())
         .formLogin(form -> form.disable())
         .oauth2Login(oauth -> oauth.disable())
         .oauth2Client(oauth -> oauth.disable())

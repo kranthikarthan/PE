@@ -11,8 +11,8 @@ import {
   ListItemText,
   ListItemIcon,
   IconButton,
-  Grid,
 } from '@mui/material';
+import { GridLegacy as Grid } from '@mui/material';
 import {
   TrendingUp,
   TrendingDown,
