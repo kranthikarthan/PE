@@ -342,7 +342,7 @@ export const channelFixtures: Channel[] = [
   {
     id: 'channel-1',
     name: 'Bank API Channel',
-    type: ChannelType.API,
+    type: ChannelType.BANK_API,
     status: OnboardingStatus.COMPLETED,
     endpoint: 'https://api.bank.com/v1',
     description: 'Primary bank API channel',
@@ -359,7 +359,7 @@ export const channelFixtures: Channel[] = [
   {
     id: 'channel-2',
     name: 'Card Network Channel',
-    type: ChannelType.API,
+    type: ChannelType.BANK_API,
     status: OnboardingStatus.PENDING,
     endpoint: 'https://api.cardnetwork.com/v1',
     description: 'Card network integration channel',
