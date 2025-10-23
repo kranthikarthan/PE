@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: operations-portal
+  namespace: operations-portal
+  labels:
+    app: operations-portal
+    version: v1.0.0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: operations-portal
+  template:
+    metadata:
+      labels:
+        app: operations-portal
+        version: v1.0.0
+    spec:
+      containers:
+      - name: operations-portal
+        image: operations-portal:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: operations-portal-config
+              key: NODE_ENV
+        - name: REACT_APP_API_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: operations-portal-config
+              key: REACT_APP_API_BASE_URL
+        - name: REACT_APP_AUTH_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: operations-portal-config
+              key: REACT_APP_AUTH_SERVICE_URL
+        - name: REACT_APP_OPERATIONS_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: operations-portal-config
+              key: REACT_APP_OPERATIONS_SERVICE_URL
+        - name: REACT_APP_PAYMENT_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: operations-portal-config
+              key: REACT_APP_PAYMENT_SERVICE_URL
+        - name: REACT_APP_TRANSACTION_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: operations-portal-config
+              key: REACT_APP_TRANSACTION_SERVICE_URL
+        - name: REACT_APP_RECONCILIATION_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: operations-portal-config
+              key: REACT_APP_RECONCILIATION_SERVICE_URL
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: operations-portal-secret
+              key: JWT_SECRET
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: operations-portal-secret
+              key: API_KEY
+        - name: ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: operations-portal-secret
+              key: ENCRYPTION_KEY
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 1001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        fsGroup: 1001
+        runAsNonRoot: true
+        runAsUser: 1001
+      restartPolicy: Always

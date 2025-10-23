@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: operations-portal
+  labels:
+    name: operations-portal
+    app: operations-portal
+    environment: production

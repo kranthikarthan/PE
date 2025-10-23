@@ -3,7 +3,10 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Box } from '@mui/material';
+import { AuthProvider, TenantProvider, NotificationProvider } from '@contexts';
+import { PrivateRoute, GlobalErrorBoundary } from '@components';
 import Navbar from './components/Navbar';
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ServiceManagement from './pages/ServiceManagement';
 import PaymentRepair from './pages/PaymentRepair';
@@ -59,25 +62,40 @@ const theme = createTheme({
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-          <Navbar />
-          <Box component="main" sx={{ flexGrow: 1, p: 3, ml: '240px' }}>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/services" element={<ServiceManagement />} />
-              <Route path="/payment-repair" element={<PaymentRepair />} />
-              <Route path="/transactions" element={<TransactionEnquiries />} />
-              <Route path="/reconciliation" element={<ReconciliationMonitoring />} />
-              <Route path="/channel-onboarding" element={<ChannelOnboarding />} />
-              <Route path="/clearing-onboarding" element={<ClearingSystemOnboarding />} />
-            </Routes>
-          </Box>
-        </Box>
-      </Router>
-    </ThemeProvider>
+    <GlobalErrorBoundary>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <AuthProvider>
+          <TenantProvider>
+            <NotificationProvider>
+              <Router>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/*" element={
+                    <PrivateRoute>
+                      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+                        <Navbar />
+                        <Box component="main" sx={{ flexGrow: 1, p: 3, ml: '240px' }}>
+                          <Routes>
+                            <Route path="/" element={<Dashboard />} />
+                            <Route path="/services" element={<ServiceManagement />} />
+                            <Route path="/payment-repair" element={<PaymentRepair />} />
+                            <Route path="/transactions" element={<TransactionEnquiries />} />
+                            <Route path="/reconciliation" element={<ReconciliationMonitoring />} />
+                            <Route path="/channel-onboarding" element={<ChannelOnboarding />} />
+                            <Route path="/clearing-onboarding" element={<ClearingSystemOnboarding />} />
+                          </Routes>
+                        </Box>
+                      </Box>
+                    </PrivateRoute>
+                  } />
+                </Routes>
+              </Router>
+            </NotificationProvider>
+          </TenantProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </GlobalErrorBoundary>
   );
 }
 

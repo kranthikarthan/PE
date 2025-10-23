@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  operations-portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:8080"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_BASE_URL=http://localhost:8080
+      - REACT_APP_AUTH_SERVICE_URL=http://localhost:8081
+      - REACT_APP_OPERATIONS_SERVICE_URL=http://localhost:8082
+      - REACT_APP_PAYMENT_SERVICE_URL=http://localhost:8083
+      - REACT_APP_TRANSACTION_SERVICE_URL=http://localhost:8084
+      - REACT_APP_RECONCILIATION_SERVICE_URL=http://localhost:8085
+    depends_on:
+      - nginx
+    networks:
+      - operations-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - operations-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Mock services for development
+  mock-auth-service:
+    image: mockserver/mockserver:latest
+    ports:
+      - "8081:1080"
+    environment:
+      - MOCKSERVER_INITIALIZATION_JSON_PATH=/config/mock-auth.json
+    volumes:
+      - ./mocks/mock-auth.json:/config/mock-auth.json:ro
+    networks:
+      - operations-network
+    restart: unless-stopped
+
+  mock-operations-service:
+    image: mockserver/mockserver:latest
+    ports:
+      - "8082:1080"
+    environment:
+      - MOCKSERVER_INITIALIZATION_JSON_PATH=/config/mock-operations.json
+    volumes:
+      - ./mocks/mock-operations.json:/config/mock-operations.json:ro
+    networks:
+      - operations-network
+    restart: unless-stopped
+
+  mock-payment-service:
+    image: mockserver/mockserver:latest
+    ports:
+      - "8083:1080"
+    environment:
+      - MOCKSERVER_INITIALIZATION_JSON_PATH=/config/mock-payment.json
+    volumes:
+      - ./mocks/mock-payment.json:/config/mock-payment.json:ro
+    networks:
+      - operations-network
+    restart: unless-stopped
+
+  mock-transaction-service:
+    image: mockserver/mockserver:latest
+    ports:
+      - "8084:1080"
+    environment:
+      - MOCKSERVER_INITIALIZATION_JSON_PATH=/config/mock-transaction.json
+    volumes:
+      - ./mocks/mock-transaction.json:/config/mock-transaction.json:ro
+    networks:
+      - operations-network
+    restart: unless-stopped
+
+  mock-reconciliation-service:
+    image: mockserver/mockserver:latest
+    ports:
+      - "8085:1080"
+    environment:
+      - MOCKSERVER_INITIALIZATION_JSON_PATH=/config/mock-reconciliation.json
+    volumes:
+      - ./mocks/mock-reconciliation.json:/config/mock-reconciliation.json:ro
+    networks:
+      - operations-network
+    restart: unless-stopped
+
+networks:
+  operations-network:
+    driver: bridge
+
+volumes:
+  nginx-ssl:
+    driver: local

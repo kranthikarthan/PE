@@ -1,0 +1,12 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: operations-portal-pdb
+  namespace: operations-portal
+  labels:
+    app: operations-portal
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: operations-portal
