@@ -57,5 +57,10 @@
   "devDependencies": {
     "@craco/craco": "^7.1.0",
     "msw": "^2.11.6"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
