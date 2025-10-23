@@ -684,6 +684,44 @@ export const handlers = [
     });
   }),
 
+  // Create Channel API
+  http.post('*/tenant/v1/channels', async ({ request }) => {
+    const channelData = await request.json();
+    
+    // Generate a new channel ID
+    const newChannelId = `CH-${String(Date.now()).slice(-6)}`;
+    
+    const newChannel = {
+      id: String(Date.now()),
+      channelId: newChannelId,
+      name: channelData.name,
+      type: channelData.type,
+      status: 'PENDING',
+      endpoint: channelData.endpoint,
+      description: channelData.description || '',
+      authentication: channelData.authentication,
+      rateLimit: channelData.rateLimit || 1000,
+      webhookUrl: channelData.webhookUrl || '',
+      enableLogging: channelData.enableLogging || true,
+      enableMonitoring: channelData.enableMonitoring || true,
+      timeout: 30000,
+      retryCount: 3,
+      isActive: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      tenantId: channelData.tenantId || 'TENANT-001',
+      businessUnitId: channelData.businessUnitId || 'BU-001',
+    };
+    
+    return HttpResponse.json({
+      success: true,
+      data: newChannel,
+      message: 'Channel created successfully',
+      timestamp: new Date().toISOString(),
+      correlationId: 'mock-correlation-id',
+    });
+  }),
+
   // Clearing Systems API
   http.get('*/tenant/v1/clearing-systems', async ({ request }) => {
     const clearingSystems = [
