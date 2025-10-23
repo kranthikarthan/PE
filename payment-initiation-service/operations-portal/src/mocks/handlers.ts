@@ -452,6 +452,24 @@ export const handlers = [
     });
   }),
 
+  // Logo handler (to prevent 404 errors)
+  http.get('*/logo192.png', async ({ request }) => {
+    return HttpResponse.text('', {
+      headers: {
+        'Content-Type': 'image/png',
+      },
+    });
+  }),
+
+  // Route handler for clearing-onboarding (React Router fallback)
+  http.get('*/clearing-onboarding', async ({ request }) => {
+    return HttpResponse.text('', {
+      headers: {
+        'Content-Type': 'text/html',
+      },
+    });
+  }),
+
   // Reconciliation Service APIs
   http.get('*/api/reconciliation/v1/batches', async ({ request }) => {
     const url = new URL(request.url);
@@ -666,6 +684,105 @@ export const handlers = [
     });
   }),
 
+  // Clearing Systems API
+  http.get('*/tenant/v1/clearing-systems', async ({ request }) => {
+    const clearingSystems = [
+      {
+        id: '1',
+        systemId: 'CS-001',
+        name: 'SAMOS Clearing System',
+        type: 'DOMESTIC',
+        status: 'ACTIVE',
+        endpoint: 'https://api.samos.com/v1',
+        authenticationMethod: 'API_KEY',
+        supportedCurrencies: ['USD', 'EUR'],
+        processingTime: 30000,
+        retryCount: 3,
+        isActive: true,
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
+        updatedAt: new Date(Date.now() - 3600000).toISOString(),
+        tenantId: 'TENANT-001',
+        businessUnitId: 'BU-001',
+      },
+      {
+        id: '2',
+        systemId: 'CS-002',
+        name: 'BankservAfrica Clearing',
+        type: 'DOMESTIC',
+        status: 'ACTIVE',
+        endpoint: 'https://api.bankservafrica.com/v2',
+        authenticationMethod: 'OAUTH2',
+        supportedCurrencies: ['USD', 'ZAR'],
+        processingTime: 45000,
+        retryCount: 2,
+        isActive: true,
+        createdAt: new Date(Date.now() - 172800000).toISOString(),
+        updatedAt: new Date(Date.now() - 7200000).toISOString(),
+        tenantId: 'TENANT-001',
+        businessUnitId: 'BU-001',
+      },
+      {
+        id: '3',
+        systemId: 'CS-003',
+        name: 'RTC Clearing System',
+        type: 'REAL_TIME',
+        status: 'INACTIVE',
+        endpoint: 'https://api.rtc.com/v1',
+        authenticationMethod: 'JWT',
+        supportedCurrencies: ['USD'],
+        processingTime: 15000,
+        retryCount: 5,
+        isActive: false,
+        createdAt: new Date(Date.now() - 259200000).toISOString(),
+        updatedAt: new Date(Date.now() - 10800000).toISOString(),
+        tenantId: 'TENANT-001',
+        businessUnitId: 'BU-001',
+      },
+      {
+        id: '4',
+        systemId: 'CS-004',
+        name: 'PayShap Clearing',
+        type: 'INSTANT',
+        status: 'ACTIVE',
+        endpoint: 'https://api.payshap.com/v1',
+        authenticationMethod: 'API_KEY',
+        supportedCurrencies: ['USD', 'EUR', 'GBP'],
+        processingTime: 5000,
+        retryCount: 3,
+        isActive: true,
+        createdAt: new Date(Date.now() - 345600000).toISOString(),
+        updatedAt: new Date(Date.now() - 14400000).toISOString(),
+        tenantId: 'TENANT-001',
+        businessUnitId: 'BU-001',
+      },
+      {
+        id: '5',
+        systemId: 'CS-005',
+        name: 'SWIFT Network',
+        type: 'INTERNATIONAL',
+        status: 'ACTIVE',
+        endpoint: 'https://api.swift.com/v1',
+        authenticationMethod: 'CERTIFICATE',
+        supportedCurrencies: ['USD', 'EUR', 'GBP', 'JPY', 'CHF'],
+        processingTime: 120000,
+        retryCount: 2,
+        isActive: true,
+        createdAt: new Date(Date.now() - 432000000).toISOString(),
+        updatedAt: new Date(Date.now() - 18000000).toISOString(),
+        tenantId: 'TENANT-001',
+        businessUnitId: 'BU-001',
+      },
+    ];
+    
+    return HttpResponse.json({
+      success: true,
+      data: clearingSystems,
+      message: 'Clearing systems retrieved successfully',
+      timestamp: new Date().toISOString(),
+      correlationId: 'mock-correlation-id',
+    });
+  }),
+
   http.get(`${config.apiBaseUrl}/ops/v1/services/alerts`, async ({ request }) => {
     const alerts = [
       {
@@ -759,11 +876,11 @@ export const handlers = [
     );
 
     return HttpResponse.json({
-      content: payments,
-      totalElements: 100,
-      totalPages: 5,
-      size,
-      number: page,
+        content: payments,
+        totalElements: 100,
+        totalPages: 5,
+        size,
+        number: page,
     });
   }),
 
@@ -794,20 +911,20 @@ export const handlers = [
     );
 
     return HttpResponse.json({
-      content: transactions,
-      totalElements: 200,
-      totalPages: 10,
-      size,
-      number: page,
+        content: transactions,
+        totalElements: 200,
+        totalPages: 10,
+        size,
+        number: page,
     });
   }),
 
   http.get(`${config.apiBaseUrl}/transactions/v1/metrics`, async ({ request }) => {
     return HttpResponse.json({
-      totalTransactions: 10000,
-      successRate: 0.95,
-      failedTransactions: 500,
-      averageProcessingTime: 1500,
+        totalTransactions: 10000,
+        successRate: 0.95,
+        failedTransactions: 500,
+        averageProcessingTime: 1500,
     });
   }),
 
@@ -828,36 +945,36 @@ export const handlers = [
     );
 
     return HttpResponse.json({
-      content: batches,
-      totalElements: 50,
-      totalPages: 3,
-      size,
-      number: page,
+        content: batches,
+        totalElements: 50,
+        totalPages: 3,
+        size,
+        number: page,
     });
   }),
 
   http.get(`${config.apiBaseUrl}/reconciliation/v1/metrics`, async ({ request }) => {
     return HttpResponse.json({
-      totalBatches: 50,
-      successRate: 0.92,
-      failedBatches: 4,
-      averageProcessingTime: 1800,
-      detailedMetrics: [
-        {
-          name: 'Processing Time',
-          value: '1.8s',
-          unit: 'seconds',
-          trend: 'down',
-          description: 'Average batch processing time',
-        },
-        {
-          name: 'Success Rate',
-          value: '92%',
-          unit: 'percentage',
-          trend: 'up',
-          description: 'Batch processing success rate',
-        },
-      ],
+        totalBatches: 50,
+        successRate: 0.92,
+        failedBatches: 4,
+        averageProcessingTime: 1800,
+        detailedMetrics: [
+          {
+            name: 'Processing Time',
+            value: '1.8s',
+            unit: 'seconds',
+            trend: 'down',
+            description: 'Average batch processing time',
+          },
+          {
+            name: 'Success Rate',
+            value: '92%',
+            unit: 'percentage',
+            trend: 'up',
+            description: 'Batch processing success rate',
+          },
+        ],
     });
   }),
 
