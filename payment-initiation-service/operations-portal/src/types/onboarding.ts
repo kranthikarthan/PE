@@ -5,11 +5,11 @@
  */
 
 export enum ChannelType {
-  MOBILE = 'MOBILE',
-  WEB = 'WEB',
-  API = 'API',
-  POS = 'POS',
-  ATM = 'ATM',
+  BANK_API = 'BANK_API',
+  CARD_NETWORK = 'CARD_NETWORK',
+  DIGITAL_WALLET = 'DIGITAL_WALLET',
+  MOBILE_MONEY = 'MOBILE_MONEY',
+  CRYPTOCURRENCY = 'CRYPTOCURRENCY',
 }
 
 export enum ClearingSystemType {

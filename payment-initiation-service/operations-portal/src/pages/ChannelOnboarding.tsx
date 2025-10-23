@@ -91,7 +91,7 @@ const ChannelOnboarding: React.FC = () => {
   const [testResult, setTestResult] = useState<ChannelTestResult | null>(null);
   const [formData, setFormData] = useState<ChannelFormData>({
     name: '',
-    type: 'BANK_API',
+    type: ChannelType.BANK_API,
     description: '',
     endpoint: '',
     authentication: AuthenticationMethod.API_KEY,
@@ -143,7 +143,7 @@ const ChannelOnboarding: React.FC = () => {
     setActiveStep(0);
     setFormData({
       name: '',
-      type: 'BANK_API',
+      type: ChannelType.BANK_API,
       description: '',
       endpoint: '',
       authentication: AuthenticationMethod.API_KEY,
@@ -368,11 +368,11 @@ const ChannelOnboarding: React.FC = () => {
                       onChange={(e) => handleFormChange('type', e.target.value)}
                       label="Channel Type"
                     >
-                      <MenuItem value="BANK_API">Bank API</MenuItem>
-                      <MenuItem value="CARD_NETWORK">Card Network</MenuItem>
-                      <MenuItem value="DIGITAL_WALLET">Digital Wallet</MenuItem>
-                      <MenuItem value="MOBILE_MONEY">Mobile Money</MenuItem>
-                      <MenuItem value="CRYPTOCURRENCY">Cryptocurrency</MenuItem>
+                      <MenuItem value={ChannelType.BANK_API}>Bank API</MenuItem>
+                      <MenuItem value={ChannelType.CARD_NETWORK}>Card Network</MenuItem>
+                      <MenuItem value={ChannelType.DIGITAL_WALLET}>Digital Wallet</MenuItem>
+                      <MenuItem value={ChannelType.MOBILE_MONEY}>Mobile Money</MenuItem>
+                      <MenuItem value={ChannelType.CRYPTOCURRENCY}>Cryptocurrency</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
