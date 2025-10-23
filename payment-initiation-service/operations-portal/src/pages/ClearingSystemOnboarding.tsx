@@ -37,7 +37,6 @@ import {
   DialogContent,
   DialogActions,
   Alert,
-  Grid2 as Grid,
   Skeleton,
   Tooltip,
   CircularProgress,
@@ -46,6 +45,7 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
+import { Grid } from '@mui/material';
 import {
   Add,
   Edit,
@@ -58,34 +58,31 @@ import {
   Stop,
   Refresh,
   Save,
-  TestTube,
+  Science,
   CloudUpload,
   AccountBalance,
   CreditCard,
   Payment,
 } from '@mui/icons-material';
-import { useApi } from '@hooks';
-import { getOperationsManagementService } from '@services';
-import { ClearingSystem, ClearingSystemConfiguration, ClearingSystemTestResult } from '@types/onboarding';
-import { useNotification } from '@contexts';
-import { usePermissions } from '@hooks/usePermissions';
+import { useApi } from '../hooks';
+import { getTenantManagementService } from '../services';
+import { ClearingSystem, ClearingSystemConfiguration, ClearingSystemTestResult, ClearingSystemType, AuthenticationMethod, MessageFormat } from '../types/onboarding';
+import { useNotification } from '../contexts';
+import { usePermissions } from '../hooks/usePermissions';
 
 interface ClearingSystemFormData {
   name: string;
-  type: 'SAMOS' | 'BANKSERV_AFRICA' | 'RTC' | 'PAYSHAP' | 'SWIFT';
+  type: ClearingSystemType;
   description: string;
   endpoint: string;
-  authentication: {
-    type: string;
-    credentials: Record<string, string>;
-  };
-  messageFormat: {
-    format: string;
-    version: string;
-    encoding: string;
-  };
-  configuration: Record<string, any>;
-  isActive: boolean;
+  authentication: AuthenticationMethod;
+  messageFormat: MessageFormat;
+  rateLimit?: number;
+  webhookUrl?: string;
+  enableLogging: boolean;
+  enableMonitoring: boolean;
+  tenantId: string;
+  businessUnitId: string;
 }
 
 interface TabPanelProps {
@@ -121,46 +118,43 @@ const ClearingSystemOnboarding: React.FC = () => {
   const [testResult, setTestResult] = useState<ClearingSystemTestResult | null>(null);
   const [formData, setFormData] = useState<ClearingSystemFormData>({
     name: '',
-    type: 'SAMOS',
+    type: ClearingSystemType.SAMOS,
     description: '',
     endpoint: '',
-    authentication: {
-      type: 'API_KEY',
-      credentials: {},
-    },
-    messageFormat: {
-      format: 'ISO20022',
-      version: '1.0',
-      encoding: 'UTF-8',
-    },
-    configuration: {},
-    isActive: false,
+    authentication: AuthenticationMethod.API_KEY,
+    messageFormat: MessageFormat.ISO20022,
+    rateLimit: 100,
+    webhookUrl: '',
+    enableLogging: true,
+    enableMonitoring: true,
+    tenantId: '',
+    businessUnitId: '',
   });
 
   // API hooks
   const clearingSystemsApi = useApi(
-    () => getOperationsManagementService().getAllClearingSystems(),
+    () => getTenantManagementService().getAllClearingSystems(),
     { immediate: true, showNotifications: false }
   );
 
   const testConnectionApi = useApi(
-    (systemId: string) => getOperationsManagementService().testClearingSystemConnection(systemId),
+    (systemId: string) => getTenantManagementService().testClearingSystem(systemId),
     { immediate: false, showNotifications: true }
   );
 
   const saveSystemApi = useApi(
-    (systemData: ClearingSystemFormData) => getOperationsManagementService().createClearingSystem(systemData),
+    (systemData: ClearingSystemFormData) => getTenantManagementService().createClearingSystem(systemData),
     { immediate: false, showNotifications: true }
   );
 
   const updateSystemApi = useApi(
-    (systemId: string, systemData: ClearingSystemFormData) => 
-      getOperationsManagementService().updateClearingSystem(systemId, systemData),
+    (systemId: string, systemData: ClearingSystemFormData) =>
+      getTenantManagementService().updateClearingSystem(systemId, systemData),
     { immediate: false, showNotifications: true }
   );
 
   const deleteSystemApi = useApi(
-    (systemId: string) => getOperationsManagementService().deleteClearingSystem(systemId),
+    (systemId: string) => getTenantManagementService().deleteClearingSystem(systemId),
     { immediate: false, showNotifications: true }
   );
 
@@ -182,20 +176,17 @@ const ClearingSystemOnboarding: React.FC = () => {
     setActiveStep(0);
     setFormData({
       name: '',
-      type: 'SAMOS',
+      type: ClearingSystemType.SAMOS,
       description: '',
       endpoint: '',
-      authentication: {
-        type: 'API_KEY',
-        credentials: {},
-      },
-      messageFormat: {
-        format: 'ISO20022',
-        version: '1.0',
-        encoding: 'UTF-8',
-      },
-      configuration: {},
-      isActive: false,
+      authentication: AuthenticationMethod.API_KEY,
+      messageFormat: MessageFormat.ISO20022,
+      rateLimit: 100,
+      webhookUrl: '',
+      enableLogging: true,
+      enableMonitoring: true,
+      tenantId: '',
+      businessUnitId: '',
     });
   };
 
@@ -207,23 +198,17 @@ const ClearingSystemOnboarding: React.FC = () => {
     }));
   };
 
-  const handleAuthChange = (field: string, value: any) => {
+  const handleAuthChange = (value: AuthenticationMethod) => {
     setFormData(prev => ({
       ...prev,
-      authentication: {
-        ...prev.authentication,
-        [field]: value,
-      },
+      authentication: value,
     }));
   };
 
-  const handleMessageFormatChange = (field: string, value: any) => {
+  const handleMessageFormatChange = (value: MessageFormat) => {
     setFormData(prev => ({
       ...prev,
-      messageFormat: {
-        ...prev.messageFormat,
-        [field]: value,
-      },
+      messageFormat: value,
     }));
   };
 
@@ -290,20 +275,17 @@ const ClearingSystemOnboarding: React.FC = () => {
     setSelectedSystem(system);
     setFormData({
       name: system.name,
-      type: system.type as any,
+      type: system.type,
       description: system.description || '',
       endpoint: system.endpoint,
-      authentication: system.authentication || {
-        type: 'API_KEY',
-        credentials: {},
-      },
-      messageFormat: system.messageFormat || {
-        format: 'ISO20022',
-        version: '1.0',
-        encoding: 'UTF-8',
-      },
-      configuration: system.configuration || {},
-      isActive: system.status === 'active',
+      authentication: system.authentication,
+      messageFormat: system.messageFormat,
+      rateLimit: system.rateLimit,
+      webhookUrl: system.webhookUrl,
+      enableLogging: system.enableLogging,
+      enableMonitoring: system.enableMonitoring,
+      tenantId: system.tenantId,
+      businessUnitId: system.businessUnitId,
     });
     setSystemDialogOpen(true);
   };
@@ -488,73 +470,24 @@ const ClearingSystemOnboarding: React.FC = () => {
                     <FormControl fullWidth required>
                       <InputLabel>Authentication Type</InputLabel>
                       <Select
-                        value={formData.authentication.type}
-                        onChange={(e) => handleAuthChange('type', e.target.value)}
+                        value={formData.authentication}
+                        onChange={(e) => handleAuthChange(e.target.value as AuthenticationMethod)}
                         label="Authentication Type"
                       >
-                        <MenuItem value="API_KEY">API Key</MenuItem>
-                        <MenuItem value="OAUTH2">OAuth 2.0</MenuItem>
-                        <MenuItem value="BASIC_AUTH">Basic Authentication</MenuItem>
-                        <MenuItem value="CERTIFICATE">Certificate</MenuItem>
+                        <MenuItem value={AuthenticationMethod.API_KEY}>API Key</MenuItem>
+                        <MenuItem value={AuthenticationMethod.OAUTH2}>OAuth 2.0</MenuItem>
+                        <MenuItem value={AuthenticationMethod.BASIC}>Basic Authentication</MenuItem>
+                        <MenuItem value={AuthenticationMethod.CERTIFICATE}>Certificate</MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="API Key / Username"
-                      value={formData.authentication.credentials.apiKey || ''}
-                      onChange={(e) => handleAuthChange('credentials', {
-                        ...formData.authentication.credentials,
-                        apiKey: e.target.value,
-                      })}
-                      required
-                    />
+                  <Grid size={{ xs: 12 }}>
+                    <Alert severity="info">
+                      Authentication method selected: {formData.authentication.replace('_', ' ')}
+                      <br />
+                      <strong>Note:</strong> Credentials will be configured separately through the clearing system management interface.
+                    </Alert>
                   </Grid>
-                  {formData.authentication.type === 'BASIC_AUTH' && (
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <TextField
-                        fullWidth
-                        label="Password"
-                        type="password"
-                        value={formData.authentication.credentials.password || ''}
-                        onChange={(e) => handleAuthChange('credentials', {
-                          ...formData.authentication.credentials,
-                          password: e.target.value,
-                        })}
-                        required
-                      />
-                    </Grid>
-                  )}
-                  {formData.authentication.type === 'OAUTH2' && (
-                    <>
-                      <Grid size={{ xs: 12, md: 6 }}>
-                        <TextField
-                          fullWidth
-                          label="Client ID"
-                          value={formData.authentication.credentials.clientId || ''}
-                          onChange={(e) => handleAuthChange('credentials', {
-                            ...formData.authentication.credentials,
-                            clientId: e.target.value,
-                          })}
-                          required
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, md: 6 }}>
-                        <TextField
-                          fullWidth
-                          label="Client Secret"
-                          type="password"
-                          value={formData.authentication.credentials.clientSecret || ''}
-                          onChange={(e) => handleAuthChange('credentials', {
-                            ...formData.authentication.credentials,
-                            clientSecret: e.target.value,
-                          })}
-                          required
-                        />
-                      </Grid>
-                    </>
-                  )}
                 </Grid>
               )}
 
@@ -569,42 +502,19 @@ const ClearingSystemOnboarding: React.FC = () => {
                       Configure message format for {formData.type} clearing system
                     </Alert>
                   </Grid>
-                  <Grid size={{ xs: 12, md: 4 }}>
+                  <Grid size={{ xs: 12 }}>
                     <FormControl fullWidth required>
                       <InputLabel>Message Format</InputLabel>
                       <Select
-                        value={formData.messageFormat.format}
-                        onChange={(e) => handleMessageFormatChange('format', e.target.value)}
+                        value={formData.messageFormat}
+                        onChange={(e) => handleMessageFormatChange(e.target.value as MessageFormat)}
                         label="Message Format"
                       >
-                        <MenuItem value="ISO20022">ISO 20022</MenuItem>
-                        <MenuItem value="ISO8583">ISO 8583</MenuItem>
-                        <MenuItem value="XML">XML</MenuItem>
-                        <MenuItem value="JSON">JSON</MenuItem>
-                        <MenuItem value="FIX">FIX Protocol</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <TextField
-                      fullWidth
-                      label="Format Version"
-                      value={formData.messageFormat.version}
-                      onChange={(e) => handleMessageFormatChange('version', e.target.value)}
-                      required
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <FormControl fullWidth required>
-                      <InputLabel>Encoding</InputLabel>
-                      <Select
-                        value={formData.messageFormat.encoding}
-                        onChange={(e) => handleMessageFormatChange('encoding', e.target.value)}
-                        label="Encoding"
-                      >
-                        <MenuItem value="UTF-8">UTF-8</MenuItem>
-                        <MenuItem value="ASCII">ASCII</MenuItem>
-                        <MenuItem value="EBCDIC">EBCDIC</MenuItem>
+                        <MenuItem value={MessageFormat.ISO20022}>ISO 20022</MenuItem>
+                        <MenuItem value={MessageFormat.ISO8583}>ISO 8583</MenuItem>
+                        <MenuItem value={MessageFormat.XML}>XML</MenuItem>
+                        <MenuItem value={MessageFormat.JSON}>JSON</MenuItem>
+                        <MenuItem value={MessageFormat.FIXED_WIDTH}>Fixed Width</MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>
@@ -625,60 +535,35 @@ const ClearingSystemOnboarding: React.FC = () => {
                   <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       fullWidth
-                      label="Timeout (seconds)"
+                      label="Rate Limit"
                       type="number"
-                      value={formData.configuration.timeout || 30}
-                      onChange={(e) => handleFormChange('configuration', {
-                        ...formData.configuration,
-                        timeout: parseInt(e.target.value),
-                      })}
+                      value={formData.rateLimit || 100}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        rateLimit: parseInt(e.target.value)
+                      }))}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       fullWidth
-                      label="Retry Attempts"
-                      type="number"
-                      value={formData.configuration.retryAttempts || 3}
-                      onChange={(e) => handleFormChange('configuration', {
-                        ...formData.configuration,
-                        retryAttempts: parseInt(e.target.value),
-                      })}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="Batch Size"
-                      type="number"
-                      value={formData.configuration.batchSize || 100}
-                      onChange={(e) => handleFormChange('configuration', {
-                        ...formData.configuration,
-                        batchSize: parseInt(e.target.value),
-                      })}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="Processing Interval (minutes)"
-                      type="number"
-                      value={formData.configuration.processingInterval || 15}
-                      onChange={(e) => handleFormChange('configuration', {
-                        ...formData.configuration,
-                        processingInterval: parseInt(e.target.value),
-                      })}
+                      label="Webhook URL"
+                      value={formData.webhookUrl || ''}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        webhookUrl: e.target.value
+                      }))}
                     />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
                     <FormControlLabel
                       control={
                         <Checkbox
-                          checked={formData.configuration.enableLogging || false}
-                          onChange={(e) => handleFormChange('configuration', {
-                            ...formData.configuration,
-                            enableLogging: e.target.checked,
-                          })}
+                          checked={formData.enableLogging}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            enableLogging: e.target.checked
+                          }))}
                         />
                       }
                       label="Enable Detailed Logging"
@@ -688,11 +573,11 @@ const ClearingSystemOnboarding: React.FC = () => {
                     <FormControlLabel
                       control={
                         <Checkbox
-                          checked={formData.configuration.enableMonitoring || false}
-                          onChange={(e) => handleFormChange('configuration', {
-                            ...formData.configuration,
-                            enableMonitoring: e.target.checked,
-                          })}
+                          checked={formData.enableMonitoring}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            enableMonitoring: e.target.checked
+                          }))}
                         />
                       }
                       label="Enable Performance Monitoring"
@@ -715,7 +600,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                   <Grid size={{ xs: 12 }}>
                     <Button
                       variant="contained"
-                      startIcon={<TestTube />}
+                      startIcon={<Science />}
                       onClick={() => handleTestConnection('test')}
                       disabled={!formData.name || !formData.endpoint}
                       fullWidth
@@ -746,17 +631,6 @@ const ClearingSystemOnboarding: React.FC = () => {
                     <Alert severity="warning" sx={{ mb: 2 }}>
                       Review all settings before deploying the clearing system
                     </Alert>
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formData.isActive}
-                          onChange={(e) => handleFormChange('isActive', e.target.checked)}
-                        />
-                      }
-                      label="Activate Clearing System Immediately"
-                    />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
                     <Button
@@ -850,7 +724,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2">
-                            {system.messageFormat?.format || 'N/A'}
+                            {system.messageFormat || 'N/A'}
                           </Typography>
                         </TableCell>
                         <TableCell>
@@ -933,7 +807,7 @@ const ClearingSystemOnboarding: React.FC = () => {
                         />
                       </Box>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        {system.type} • {system.messageFormat?.format || 'N/A'}
+                        {system.type} • {system.messageFormat || 'N/A'}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         Last updated: {formatDate(system.updatedAt || system.createdAt)}

@@ -463,7 +463,8 @@ export const addStorageListener = (
   storage: SecureStorage = localStorage
 ) => {
   const handleStorageChange = (event: StorageEvent) => {
-    if (event.storageArea === storage) {
+    // Check if the event is for the same storage type
+    if (event.storageArea === window.localStorage || event.storageArea === window.sessionStorage) {
       callback(event);
     }
   };

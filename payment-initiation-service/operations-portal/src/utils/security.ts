@@ -292,7 +292,7 @@ export const logSecurityEvent = (event: string, details: Record<string, any>): v
   };
 
   // Send to security monitoring service
-  if (typeof window !== 'undefined' && window.fetch) {
+  if (typeof window !== 'undefined') {
     fetch('/api/security/events', {
       method: 'POST',
       headers: {

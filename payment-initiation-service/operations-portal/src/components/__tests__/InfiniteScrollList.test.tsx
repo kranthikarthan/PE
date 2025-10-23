@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { InfiniteScrollList } from '../InfiniteScrollList';
+import InfiniteScrollList from '../InfiniteScrollList';
 
 describe('InfiniteScrollList', () => {
   const mockItems = Array.from({ length: 100 }, (_, i) => ({

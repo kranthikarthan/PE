@@ -85,10 +85,12 @@ export interface ClearingSystem {
   description?: string;
   authentication: AuthenticationMethod;
   messageFormat: MessageFormat;
+  rateLimit?: number;
   webhookUrl?: string;
   enableLogging: boolean;
   enableMonitoring: boolean;
   createdAt: string;
+  updatedAt?: string;
   lastUpdated: string;
   tenantId: string;
   businessUnitId: string;
@@ -101,6 +103,7 @@ export interface ClearingSystemOnboardingRequest {
   description?: string;
   authentication: AuthenticationMethod;
   messageFormat: MessageFormat;
+  rateLimit?: number;
   webhookUrl?: string;
   enableLogging: boolean;
   enableMonitoring: boolean;
@@ -121,6 +124,39 @@ export interface OnboardingValidationResult {
   errors: string[];
   warnings: string[];
   testResults: OnboardingTestResult[];
+}
+
+export interface ChannelConfiguration {
+  timeout?: number;
+  retryAttempts?: number;
+  enableLogging?: boolean;
+  enableMonitoring?: boolean;
+  rateLimit?: number;
+  webhookUrl?: string;
+}
+
+export interface ClearingSystemConfiguration {
+  timeout?: number;
+  retryAttempts?: number;
+  enableLogging?: boolean;
+  enableMonitoring?: boolean;
+  rateLimit?: number;
+  webhookUrl?: string;
+  messageFormat?: MessageFormat;
+}
+
+export interface ChannelTestResult {
+  success: boolean;
+  message: string;
+  details?: Record<string, any>;
+  timestamp: string;
+}
+
+export interface ClearingSystemTestResult {
+  success: boolean;
+  message: string;
+  details?: Record<string, any>;
+  timestamp: string;
 }
 
 export interface OnboardingStep {

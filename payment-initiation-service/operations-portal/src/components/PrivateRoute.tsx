@@ -22,7 +22,7 @@ export function PrivateRoute({
   requiredPermissions = [], 
   requiredRoles = [],
   fallback 
-}: PrivateRouteProps) {
+}: PrivateRouteProps): React.ReactElement {
   const { isAuthenticated, isLoading, user, hasPermission, hasAnyRole } = useAuth();
   const location = useLocation();
 
@@ -57,7 +57,10 @@ export function PrivateRoute({
     );
     
     if (!hasRequiredPermissions) {
-      return fallback || (
+      if (fallback) {
+        return <React.Fragment>{fallback}</React.Fragment>;
+      }
+      return (
         <Box 
           display="flex" 
           justifyContent="center" 
@@ -82,7 +85,10 @@ export function PrivateRoute({
     const hasRequiredRoles = hasAnyRole(requiredRoles as any);
     
     if (!hasRequiredRoles) {
-      return fallback || (
+      if (fallback) {
+        return <React.Fragment>{fallback}</React.Fragment>;
+      }
+      return (
         <Box 
           display="flex" 
           justifyContent="center" 
@@ -102,7 +108,7 @@ export function PrivateRoute({
     }
   }
 
-  return <>{children}</>;
+  return <React.Fragment>{children}</React.Fragment>;
 }
 
 export default PrivateRoute;

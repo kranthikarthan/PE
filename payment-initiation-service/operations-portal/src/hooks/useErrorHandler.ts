@@ -3,8 +3,9 @@
  */
 
 import { useCallback, useRef } from 'react';
-import { errorHandler, AppError, ErrorContext } from '../utils/errorTypes';
-import { useNotification } from './useNotification';
+import { AppError, ErrorContext } from '../utils/errorTypes';
+import { errorHandler } from '../utils/errorHandler';
+import { useNotification } from '../contexts';
 
 interface UseErrorHandlerOptions {
   enableNotifications?: boolean;
@@ -13,7 +14,7 @@ interface UseErrorHandlerOptions {
 }
 
 export const useErrorHandler = (options: UseErrorHandlerOptions = {}) => {
-  const { showNotification } = useNotification();
+  const { showError } = useNotification();
   const errorCountRef = useRef(0);
   const lastErrorRef = useRef<AppError | null>(null);
 
@@ -48,11 +49,11 @@ export const useErrorHandler = (options: UseErrorHandlerOptions = {}) => {
     // Show user notification if enabled
     if (mergedOptions.enableNotifications && appError.userMessage) {
       const severity = getNotificationSeverity(appError.severity);
-      showNotification(appError.userMessage, severity);
+      showError('Error', appError.userMessage);
     }
 
     return appError;
-  }, [showNotification, options]);
+  }, [showError, options]);
 
   const handleAsyncError = useCallback(async <T>(
     asyncFn: () => Promise<T>,
@@ -75,11 +76,8 @@ export const useErrorHandler = (options: UseErrorHandlerOptions = {}) => {
   ) => {
     return handleError(error, {
       ...context,
-      details: {
-        endpoint,
-        method,
-        ...context?.details
-      }
+      url: endpoint,
+      timestamp: new Date()
     });
   }, [handleError]);
 
@@ -91,11 +89,8 @@ export const useErrorHandler = (options: UseErrorHandlerOptions = {}) => {
   ) => {
     return handleError(error, {
       ...context,
-      details: {
-        field,
-        value,
-        ...context?.details
-      }
+      url: window.location.href,
+      timestamp: new Date()
     });
   }, [handleError]);
 
@@ -106,10 +101,8 @@ export const useErrorHandler = (options: UseErrorHandlerOptions = {}) => {
   ) => {
     return handleError(error, {
       ...context,
-      details: {
-        url,
-        ...context?.details
-      }
+      url: url,
+      timestamp: new Date()
     });
   }, [handleError]);
 

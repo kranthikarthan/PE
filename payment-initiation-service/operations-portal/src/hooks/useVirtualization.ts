@@ -2,7 +2,7 @@
  * Custom hooks for virtualization and performance optimization
  */
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 interface VirtualizationOptions {
   itemHeight: number;
@@ -17,6 +17,7 @@ interface VirtualizationResult<T> {
   endIndex: number;
   totalHeight: number;
   offsetY: number;
+  containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 /**

@@ -5,8 +5,8 @@
  * Provides convenient methods for permission-based UI rendering.
  */
 
-import { useAuth } from '@contexts/AuthContext';
-import { Permission, UserRole } from '@types/auth';
+import { useAuth } from '../contexts/AuthContext';
+import { Permission, UserRole } from '../types/auth';
 
 /**
  * Hook for checking user permissions
@@ -123,6 +123,13 @@ export function usePermissions() {
   };
 
   /**
+   * Check if user can view reconciliation
+   */
+  const canViewReconciliation = (): boolean => {
+    return can(Permission.RECONCILIATION_VIEW);
+  };
+
+  /**
    * Check if user can manage reconciliation
    */
   const canManageReconciliation = (): boolean => {
@@ -130,10 +137,24 @@ export function usePermissions() {
   };
 
   /**
+   * Check if user can view channels
+   */
+  const canViewChannels = (): boolean => {
+    return can(Permission.CHANNEL_VIEW);
+  };
+
+  /**
    * Check if user can manage channels
    */
   const canManageChannels = (): boolean => {
     return can(Permission.CHANNEL_MANAGE);
+  };
+
+  /**
+   * Check if user can view clearing systems
+   */
+  const canViewClearingSystems = (): boolean => {
+    return can(Permission.CLEARING_SYSTEM_VIEW);
   };
 
   /**
@@ -218,8 +239,11 @@ export function usePermissions() {
     canViewTransactions,
     canSearchTransactions,
     canExport,
+    canViewReconciliation,
     canManageReconciliation,
+    canViewChannels,
     canManageChannels,
+    canViewClearingSystems,
     canManageClearingSystems,
     canManageUsers,
     canManageTenants,

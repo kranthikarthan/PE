@@ -6,9 +6,9 @@
  */
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { TenantContextType } from '@types/auth';
-import { config } from '@config/environment';
-import { STORAGE_KEYS } from '@constants';
+import { TenantContextType } from '../types/auth';
+import { config } from '../config/environment';
+import { STORAGE_KEYS } from '../constants';
 
 // Tenant State Interface
 interface TenantState {

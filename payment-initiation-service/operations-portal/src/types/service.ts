@@ -30,6 +30,13 @@ export interface ServiceHealth {
   metrics: ServiceMetrics;
 }
 
+export interface ServiceHealthSummary {
+  totalServices: number;
+  healthyServices: number;
+  unhealthyServices: number;
+  overallHealth: 'HEALTHY' | 'DEGRADED' | 'UNHEALTHY';
+}
+
 export interface ServiceMetrics {
   requestsPerSecond: number;
   errorRate: number;

@@ -28,7 +28,6 @@ import {
   LinearProgress,
   Alert,
   TextField,
-  Grid2 as Grid,
   Skeleton,
   Tooltip,
   CircularProgress,
@@ -39,6 +38,7 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
+import { Grid } from '@mui/material';
 import {
   Refresh,
   Visibility,
@@ -54,11 +54,11 @@ import {
   Assessment,
   Timeline,
 } from '@mui/icons-material';
-import { useApi, usePagination } from '@hooks';
-import { getReconciliationService } from '@services';
-import { ReconciliationBatch, PerformanceMetric, ReconciliationException } from '@types/reconciliation';
-import { useNotification } from '@contexts';
-import { usePermissions } from '@hooks/usePermissions';
+import { useApi, usePagination } from '../hooks';
+import { getReconciliationService } from '../services';
+import { ReconciliationBatch, PerformanceMetric, ReconciliationException, ReconciliationBatchStatus, ReconciliationPerformanceMetric } from '../types/reconciliation';
+import { useNotification } from '../contexts';
+import { usePermissions } from '../hooks/usePermissions';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -100,7 +100,7 @@ const ReconciliationMonitoring: React.FC = () => {
   const batchesApi = useApi(
     () => getReconciliationService().getReconciliationBatches({
       page: pagination.currentPage,
-      size: pagination.size,
+      size: pagination.pageSize,
     }),
     { immediate: true, showNotifications: false }
   );
@@ -422,7 +422,7 @@ const ReconciliationMonitoring: React.FC = () => {
                           <LinearProgress 
                             variant="determinate" 
                             value={(batch.processedRecords / batch.totalRecords) * 100}
-                            color={batch.status === 'failed' ? 'error' : 'primary'}
+                            color={batch.status === ReconciliationBatchStatus.FAILED ? 'error' : 'primary'}
                           />
                         </Box>
                       </TableCell>
@@ -443,7 +443,7 @@ const ReconciliationMonitoring: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <Box display="flex" gap={1}>
-                          {batch.status === 'pending' && (
+                          {batch.status === ReconciliationBatchStatus.PENDING && (
                             <Tooltip title="Start Batch">
                               <IconButton
                                 size="small"
@@ -454,7 +454,7 @@ const ReconciliationMonitoring: React.FC = () => {
                               </IconButton>
                             </Tooltip>
                           )}
-                          {batch.status === 'processing' && (
+                          {batch.status === ReconciliationBatchStatus.PROCESSING && (
                             <>
                               <Tooltip title="Pause Batch">
                                 <IconButton
@@ -580,7 +580,7 @@ const ReconciliationMonitoring: React.FC = () => {
             <Alert severity="error" sx={{ mb: 2 }}>
               Failed to load exceptions: {exceptionsApi.error}
             </Alert>
-          ) : exceptionsApi.data?.length === 0 ? (
+          ) : !exceptionsApi.data?.content || exceptionsApi.data.content.length === 0 ? (
             <Alert severity="info">
               No reconciliation exceptions found
             </Alert>
@@ -599,7 +599,7 @@ const ReconciliationMonitoring: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {exceptionsApi.data?.map((exception: ReconciliationException) => (
+                  {exceptionsApi.data?.content?.map((exception: ReconciliationException) => (
                     <TableRow key={exception.id}>
                       <TableCell>
                         <Typography variant="body2" fontWeight="medium">
@@ -613,7 +613,7 @@ const ReconciliationMonitoring: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <Chip 
-                          label={exception.type} 
+                          label={exception.exceptionType} 
                           size="small" 
                           color="default"
                         />
@@ -628,7 +628,7 @@ const ReconciliationMonitoring: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {exception.message}
+                          {exception.description}
                         </Typography>
                       </TableCell>
                       <TableCell>

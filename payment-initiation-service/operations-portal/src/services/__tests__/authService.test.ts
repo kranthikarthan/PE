@@ -5,7 +5,7 @@
  * Tests authentication operations with mocked responses.
  */
 
-import { rest } from 'msw';
+import { http } from 'msw';
 import { server } from '../../mocks/server';
 import { AuthService } from '../authService';
 import { fixtures } from '../../test-utils/fixtures';
@@ -39,7 +39,7 @@ describe('AuthService', () => {
 
       // Mock server to return error
       server.use(
-        rest.post('*/auth/login', (req, res, ctx) => {
+        http.post('*/auth/login', (req, res, ctx) => {
           return res(
             ctx.status(401),
             ctx.json({ message: 'Invalid credentials' })
@@ -58,7 +58,7 @@ describe('AuthService', () => {
 
       // Mock server to return network error
       server.use(
-        rest.post('*/auth/login', (req, res, ctx) => {
+        http.post('*/auth/login', (req, res, ctx) => {
           return res.networkError('Network Error');
         })
       );
@@ -77,7 +77,7 @@ describe('AuthService', () => {
     it('should handle logout errors', async () => {
       // Mock server to return error
       server.use(
-        rest.post('*/auth/logout', (req, res, ctx) => {
+        http.post('*/auth/logout', (req, res, ctx) => {
           return res(
             ctx.status(500),
             ctx.json({ message: 'Internal server error' })
@@ -100,7 +100,7 @@ describe('AuthService', () => {
     it('should handle unauthorized access', async () => {
       // Mock server to return unauthorized
       server.use(
-        rest.get('*/auth/me', (req, res, ctx) => {
+        http.get('*/auth/me', (req, res, ctx) => {
           return res(
             ctx.status(401),
             ctx.json({ message: 'Unauthorized' })
@@ -125,7 +125,7 @@ describe('AuthService', () => {
     it('should handle refresh token errors', async () => {
       // Mock server to return error
       server.use(
-        rest.post('*/auth/refresh', (req, res, ctx) => {
+        http.post('*/auth/refresh', (req, res, ctx) => {
           return res(
             ctx.status(401),
             ctx.json({ message: 'Invalid refresh token' })
@@ -147,7 +147,7 @@ describe('AuthService', () => {
     it('should reject invalid token', async () => {
       // Mock server to return error
       server.use(
-        rest.post('*/auth/validate', (req, res, ctx) => {
+        http.post('*/auth/validate', (req, res, ctx) => {
           return res(
             ctx.status(401),
             ctx.json({ message: 'Invalid token' })

@@ -14,9 +14,9 @@ import {
   TransactionExportResponse,
   TransactionStatus,
   TransactionType
-} from '@types/transaction';
-import { ApiResponse, PagedResponse, PaginationParams } from '@types/api';
-import { API_ENDPOINTS } from '@constants';
+} from '../types/transaction';
+import { ApiResponse, PagedResponse, PaginationParams } from '../types/api';
+import { API_ENDPOINTS } from '../constants';
 
 export class TransactionProcessingService extends BaseApiClient {
   constructor(httpClient: HttpClient) {

@@ -19,6 +19,7 @@ export {
   getTransactionProcessingService,
   getReconciliationService,
   getAuthService,
+  getTenantManagementService,
   SERVICE_NAMES
 } from './serviceFactory';
 
@@ -28,6 +29,7 @@ export { OperationsManagementService } from './operationsManagementService';
 export { TransactionProcessingService } from './transactionProcessingService';
 export { ReconciliationService } from './reconciliationService';
 export { AuthService } from './authService';
+export { TenantManagementService } from './tenantManagementService';
 
 // Re-export service factory as default
 export { default } from './serviceFactory';

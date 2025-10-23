@@ -111,7 +111,7 @@ export class ClientEncryption {
     result.set(iv);
     result.set(new Uint8Array(encrypted), iv.length);
     
-    return btoa(String.fromCharCode(...result));
+    return btoa(String.fromCharCode.apply(null, Array.from(result)));
   }
   
   async decrypt(encryptedData: string, key: CryptoKey): Promise<string> {

@@ -106,11 +106,10 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={loading ? undefined : handleClose}
       maxWidth={maxWidth}
       fullWidth={fullWidth}
       disableEscapeKeyDown={loading}
-      disableBackdropClick={loading}
     >
       <DialogTitle>
         <Box display="flex" alignItems="center" gap={1}>

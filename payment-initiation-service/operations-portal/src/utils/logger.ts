@@ -97,8 +97,12 @@ class Logger {
   private getUserId(): string | undefined {
     try {
       // Try to get from localStorage or sessionStorage
-      const user = localStorage.getItem('user');
-      return user?.id;
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        return user?.id;
+      }
+      return undefined;
     } catch {
       return undefined;
     }
@@ -109,7 +113,7 @@ class Logger {
    */
   private getSessionId(): string | undefined {
     try {
-      return sessionStorage.getItem('sessionId');
+      return sessionStorage.getItem('sessionId') || undefined;
     } catch {
       return undefined;
     }
@@ -120,7 +124,7 @@ class Logger {
    */
   private getRequestId(): string | undefined {
     try {
-      return sessionStorage.getItem('requestId');
+      return sessionStorage.getItem('requestId') || undefined;
     } catch {
       return undefined;
     }

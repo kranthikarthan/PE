@@ -38,12 +38,17 @@ export interface ReconciliationBatch {
 }
 
 export interface ReconciliationMetrics {
+  totalBatches: number;
+  completedBatches: number;
+  processingBatches: number;
+  failedBatches: number;
   averageProcessingTime: string;
   successRate: number;
   recordsPerHour: number;
   errorRate: number;
-  trend: 'UP' | 'DOWN' | 'STABLE';
+  trend: 'up' | 'down' | 'stable';
   change: string;
+  detailedMetrics?: PerformanceMetric[];
 }
 
 export interface ReconciliationException {
@@ -85,7 +90,17 @@ export interface ReconciliationSearchCriteria {
 export interface ReconciliationPerformanceMetric {
   name: string;
   value: string;
-  trend: 'UP' | 'DOWN' | 'STABLE';
+  trend: 'up' | 'down' | 'stable';
   change: string;
   unit?: string;
+  description: string;
+}
+
+export interface PerformanceMetric {
+  name: string;
+  value: string;
+  unit?: string;
+  trend: 'up' | 'down' | 'stable';
+  change: string;
+  description: string;
 }

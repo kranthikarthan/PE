@@ -18,9 +18,9 @@ import {
   PaymentMetrics,
   PaymentStatus,
   Currency
-} from '@types/payment';
-import { ApiResponse, PagedResponse, PaginationParams } from '@types/api';
-import { API_ENDPOINTS } from '@constants';
+} from '../types/payment';
+import { ApiResponse, PagedResponse, PaginationParams } from '../types/api';
+import { API_ENDPOINTS } from '../constants';
 
 export class PaymentInitiationService extends BaseApiClient {
   constructor(httpClient: HttpClient) {

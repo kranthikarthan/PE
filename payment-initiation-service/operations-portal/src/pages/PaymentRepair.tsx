@@ -35,12 +35,12 @@ import {
   Alert,
   Tabs,
   Tab,
-  Grid2 as Grid,
   Skeleton,
   Tooltip,
   CircularProgress,
   LinearProgress,
 } from '@mui/material';
+import { Grid } from '@mui/material';
 import {
   Refresh,
   Build,
@@ -49,7 +49,7 @@ import {
   MoreVert,
   Search,
   FilterList,
-  Retry,
+  Replay,
   Delete,
   Download,
   Warning,
@@ -57,11 +57,11 @@ import {
   Error,
   Info,
 } from '@mui/icons-material';
-import { useApi, usePagination } from '@hooks';
-import { getPaymentInitiationService } from '@services';
-import { Payment, PaymentStatus, PaymentRepairLog } from '@types/payment';
-import { useNotification } from '@contexts';
-import { usePermissions } from '@hooks/usePermissions';
+import { useApi, usePagination } from '../hooks';
+import { getPaymentInitiationService } from '../services';
+import { Payment, PaymentStatus, PaymentRepairLog } from '../types/payment';
+import { useNotification } from '../contexts';
+import { usePermissions } from '../hooks/usePermissions';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -129,7 +129,7 @@ const PaymentRepair: React.FC = () => {
     if (selected) {
       setSelectedPayments(prev => [...prev, paymentId]);
     } else {
-      setSelectedPayments(prev => prev.filter(id => id !== paymentId);
+      setSelectedPayments(prev => prev.filter(id => id !== paymentId));
     }
   };
 
@@ -458,7 +458,7 @@ const PaymentRepair: React.FC = () => {
                               onClick={() => handleIndividualRepair(payment.id, 'RETRY')}
                               disabled={!canManagePayments()}
                             >
-                              <Retry />
+                              <Replay />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Cancel Payment">
@@ -518,7 +518,7 @@ const PaymentRepair: React.FC = () => {
                   <Box display="flex" flexDirection="column" gap={2}>
                     <Button
                       variant="contained"
-                      startIcon={<Retry />}
+                      startIcon={<Replay />}
                       onClick={() => handleRepairAction('RETRY')}
                       disabled={selectedPayments.length === 0 || !canManagePayments()}
                       fullWidth

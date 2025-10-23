@@ -76,7 +76,7 @@ export const SecureInput: React.FC<SecureInputProps> = ({
         }
       } catch (validationError) {
         setError('Validation failed');
-        onValidationError?.(validationError.message);
+        onValidationError?.((validationError as Error).message);
       } finally {
         setIsValidating(false);
       }
@@ -209,7 +209,7 @@ export const SecureTextArea: React.FC<SecureTextAreaProps> = ({
         }
       } catch (validationError) {
         setError('Validation failed');
-        onValidationError?.(validationError.message);
+        onValidationError?.((validationError as Error).message);
       } finally {
         setIsValidating(false);
       }
@@ -359,7 +359,7 @@ export const SecurePasswordInput: React.FC<SecurePasswordInputProps> = ({
         }
       } catch (validationError) {
         setError('Validation failed');
-        onValidationError?.(validationError.message);
+        onValidationError?.((validationError as Error).message);
       } finally {
         setIsValidating(false);
       }

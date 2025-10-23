@@ -20,7 +20,7 @@ export const useTimeout = (options: UseTimeoutOptions = {}) => {
   } = options;
 
   const [activeTimeouts, setActiveTimeouts] = useState<Set<string>>(new Set());
-  const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const timeoutRefs = useRef<Map<string, number>>(new Map());
   const { handleError } = useErrorHandler();
 
   const createTimeout = useCallback((
@@ -31,7 +31,7 @@ export const useTimeout = (options: UseTimeoutOptions = {}) => {
     return new Promise((resolve, reject) => {
       const timeoutId = `${operation}-${Date.now()}`;
       
-      const timeoutHandle = setTimeout(() => {
+      const timeoutHandle = window.setTimeout(() => {
         // Remove from active timeouts
         setActiveTimeouts(prev => {
           const newSet = new Set(prev);
@@ -58,8 +58,8 @@ export const useTimeout = (options: UseTimeoutOptions = {}) => {
         
         // Handle timeout error
         handleError(timeoutError, {
-          source: 'useTimeout',
-          details: { operation, timeout }
+          url: window.location.href,
+          timestamp: new Date()
         });
         
         // Call timeout callback
@@ -83,7 +83,7 @@ export const useTimeout = (options: UseTimeoutOptions = {}) => {
       
       // Return cleanup function
       return () => {
-        clearTimeout(timeoutHandle);
+        window.clearTimeout(timeoutHandle);
         setActiveTimeouts(prev => {
           const newSet = new Set(prev);
           newSet.delete(timeoutId);
@@ -115,14 +115,14 @@ export const useTimeout = (options: UseTimeoutOptions = {}) => {
     }
   }, [createTimeout, defaultTimeout]);
 
-  const clearTimeout = useCallback((operation: string) => {
+  const clearTimeoutByOperation = useCallback((operation: string) => {
     const timeoutId = Array.from(timeoutRefs.current.keys())
       .find(id => id.startsWith(operation));
     
     if (timeoutId) {
       const timeoutHandle = timeoutRefs.current.get(timeoutId);
       if (timeoutHandle) {
-        clearTimeout(timeoutHandle);
+        window.clearTimeout(timeoutHandle);
         timeoutRefs.current.delete(timeoutId);
       }
       
@@ -136,7 +136,7 @@ export const useTimeout = (options: UseTimeoutOptions = {}) => {
 
   const clearAllTimeouts = useCallback(() => {
     timeoutRefs.current.forEach((timeoutHandle) => {
-      clearTimeout(timeoutHandle);
+      window.clearTimeout(timeoutHandle);
     });
     
     timeoutRefs.current.clear();
@@ -150,7 +150,7 @@ export const useTimeout = (options: UseTimeoutOptions = {}) => {
   return {
     createTimeout,
     withTimeout,
-    clearTimeout,
+    clearTimeoutByOperation,
     clearAllTimeouts,
     getActiveTimeouts,
     activeTimeouts: activeTimeouts.size

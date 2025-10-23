@@ -37,13 +37,13 @@ import {
   DialogContent,
   DialogActions,
   Alert,
-  Grid2 as Grid,
   Skeleton,
   Tooltip,
   CircularProgress,
   LinearProgress,
   Divider,
 } from '@mui/material';
+import { Grid } from '@mui/material';
 import {
   Add,
   Edit,
@@ -56,26 +56,28 @@ import {
   Stop,
   Refresh,
   Save,
-  TestTube,
+  Science,
   CloudUpload,
 } from '@mui/icons-material';
-import { useApi } from '@hooks';
-import { getTenantManagementService } from '@services';
-import { Channel, ChannelConfiguration, ChannelTestResult } from '@types/onboarding';
-import { useNotification } from '@contexts';
-import { usePermissions } from '@hooks/usePermissions';
+import { useApi } from '../hooks';
+import { getTenantManagementService } from '../services';
+import { Channel, ChannelConfiguration, ChannelTestResult } from '../types/onboarding';
+import { useNotification } from '../contexts';
+import { usePermissions } from '../hooks/usePermissions';
+import { ChannelType, AuthenticationMethod } from '../types/onboarding';
 
 interface ChannelFormData {
   name: string;
-  type: string;
+  type: ChannelType;
   description: string;
   endpoint: string;
-  authentication: {
-    type: string;
-    credentials: Record<string, string>;
-  };
-  configuration: Record<string, any>;
-  isActive: boolean;
+  authentication: AuthenticationMethod;
+  rateLimit?: number;
+  webhookUrl?: string;
+  enableLogging: boolean;
+  enableMonitoring: boolean;
+  tenantId: string;
+  businessUnitId: string;
 }
 
 const ChannelOnboarding: React.FC = () => {
@@ -89,15 +91,16 @@ const ChannelOnboarding: React.FC = () => {
   const [testResult, setTestResult] = useState<ChannelTestResult | null>(null);
   const [formData, setFormData] = useState<ChannelFormData>({
     name: '',
-    type: '',
+    type: ChannelType.API,
     description: '',
     endpoint: '',
-    authentication: {
-      type: 'API_KEY',
-      credentials: {},
-    },
-    configuration: {},
-    isActive: false,
+    authentication: AuthenticationMethod.API_KEY,
+    rateLimit: 100,
+    webhookUrl: '',
+    enableLogging: true,
+    enableMonitoring: true,
+    tenantId: '',
+    businessUnitId: '',
   });
 
   // API hooks
@@ -140,15 +143,16 @@ const ChannelOnboarding: React.FC = () => {
     setActiveStep(0);
     setFormData({
       name: '',
-      type: '',
+      type: ChannelType.API,
       description: '',
       endpoint: '',
-      authentication: {
-        type: 'API_KEY',
-        credentials: {},
-      },
-      configuration: {},
-      isActive: false,
+      authentication: AuthenticationMethod.API_KEY,
+      rateLimit: 100,
+      webhookUrl: '',
+      enableLogging: true,
+      enableMonitoring: true,
+      tenantId: '',
+      businessUnitId: '',
     });
   };
 
@@ -160,13 +164,10 @@ const ChannelOnboarding: React.FC = () => {
     }));
   };
 
-  const handleAuthChange = (field: string, value: any) => {
+  const handleAuthChange = (value: AuthenticationMethod) => {
     setFormData(prev => ({
       ...prev,
-      authentication: {
-        ...prev.authentication,
-        [field]: value,
-      },
+      authentication: value,
     }));
   };
 
@@ -236,12 +237,13 @@ const ChannelOnboarding: React.FC = () => {
       type: channel.type,
       description: channel.description || '',
       endpoint: channel.endpoint,
-      authentication: channel.authentication || {
-        type: 'API_KEY',
-        credentials: {},
-      },
-      configuration: channel.configuration || {},
-      isActive: channel.status === 'active',
+      authentication: channel.authentication,
+      rateLimit: channel.rateLimit,
+      webhookUrl: channel.webhookUrl,
+      enableLogging: channel.enableLogging,
+      enableMonitoring: channel.enableMonitoring,
+      tenantId: channel.tenantId,
+      businessUnitId: channel.businessUnitId,
     });
     setChannelDialogOpen(true);
   };
@@ -404,73 +406,24 @@ const ChannelOnboarding: React.FC = () => {
                   <FormControl fullWidth required>
                     <InputLabel>Authentication Type</InputLabel>
                     <Select
-                      value={formData.authentication.type}
-                      onChange={(e) => handleAuthChange('type', e.target.value)}
+                      value={formData.authentication}
+                      onChange={(e) => handleAuthChange(e.target.value as AuthenticationMethod)}
                       label="Authentication Type"
                     >
-                      <MenuItem value="API_KEY">API Key</MenuItem>
-                      <MenuItem value="OAUTH2">OAuth 2.0</MenuItem>
-                      <MenuItem value="BASIC_AUTH">Basic Authentication</MenuItem>
-                      <MenuItem value="JWT">JWT Token</MenuItem>
+                      <MenuItem value={AuthenticationMethod.API_KEY}>API Key</MenuItem>
+                      <MenuItem value={AuthenticationMethod.OAUTH2}>OAuth 2.0</MenuItem>
+                      <MenuItem value={AuthenticationMethod.BASIC}>Basic Authentication</MenuItem>
+                      <MenuItem value={AuthenticationMethod.JWT}>JWT Token</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="API Key / Username"
-                    value={formData.authentication.credentials.apiKey || ''}
-                    onChange={(e) => handleAuthChange('credentials', {
-                      ...formData.authentication.credentials,
-                      apiKey: e.target.value,
-                    })}
-                    required
-                  />
+                <Grid size={{ xs: 12 }}>
+                  <Alert severity="info">
+                    Authentication method selected: {formData.authentication.replace('_', ' ')}
+                    <br />
+                    <strong>Note:</strong> Credentials will be configured separately through the channel management interface.
+                  </Alert>
                 </Grid>
-                {formData.authentication.type === 'BASIC_AUTH' && (
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="Password"
-                      type="password"
-                      value={formData.authentication.credentials.password || ''}
-                      onChange={(e) => handleAuthChange('credentials', {
-                        ...formData.authentication.credentials,
-                        password: e.target.value,
-                      })}
-                      required
-                    />
-                  </Grid>
-                )}
-                {formData.authentication.type === 'OAUTH2' && (
-                  <>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <TextField
-                        fullWidth
-                        label="Client ID"
-                        value={formData.authentication.credentials.clientId || ''}
-                        onChange={(e) => handleAuthChange('credentials', {
-                          ...formData.authentication.credentials,
-                          clientId: e.target.value,
-                        })}
-                        required
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <TextField
-                        fullWidth
-                        label="Client Secret"
-                        type="password"
-                        value={formData.authentication.credentials.clientSecret || ''}
-                        onChange={(e) => handleAuthChange('credentials', {
-                          ...formData.authentication.credentials,
-                          clientSecret: e.target.value,
-                        })}
-                        required
-                      />
-                    </Grid>
-                  </>
-                )}
               </Grid>
             )}
 
@@ -488,36 +441,35 @@ const ChannelOnboarding: React.FC = () => {
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
-                    label="Timeout (seconds)"
+                    label="Rate Limit"
                     type="number"
-                    value={formData.configuration.timeout || 30}
-                    onChange={(e) => handleFormChange('configuration', {
-                      ...formData.configuration,
-                      timeout: parseInt(e.target.value),
-                    })}
+                    value={formData.rateLimit || 100}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      rateLimit: parseInt(e.target.value)
+                    }))}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
-                    label="Retry Attempts"
-                    type="number"
-                    value={formData.configuration.retryAttempts || 3}
-                    onChange={(e) => handleFormChange('configuration', {
-                      ...formData.configuration,
-                      retryAttempts: parseInt(e.target.value),
-                    })}
+                    label="Webhook URL"
+                    value={formData.webhookUrl || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      webhookUrl: e.target.value
+                    }))}
                   />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                   <FormControlLabel
                     control={
                       <Checkbox
-                        checked={formData.configuration.enableLogging || false}
-                        onChange={(e) => handleFormChange('configuration', {
-                          ...formData.configuration,
-                          enableLogging: e.target.checked,
-                        })}
+                        checked={formData.enableLogging}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          enableLogging: e.target.checked
+                        }))}
                       />
                     }
                     label="Enable Detailed Logging"
@@ -527,11 +479,11 @@ const ChannelOnboarding: React.FC = () => {
                   <FormControlLabel
                     control={
                       <Checkbox
-                        checked={formData.configuration.enableMonitoring || false}
-                        onChange={(e) => handleFormChange('configuration', {
-                          ...formData.configuration,
-                          enableMonitoring: e.target.checked,
-                        })}
+                        checked={formData.enableMonitoring}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          enableMonitoring: e.target.checked
+                        }))}
                       />
                     }
                     label="Enable Performance Monitoring"
@@ -554,7 +506,7 @@ const ChannelOnboarding: React.FC = () => {
                 <Grid size={{ xs: 12 }}>
                   <Button
                     variant="contained"
-                    startIcon={<TestTube />}
+                    startIcon={<Science />}
                     onClick={() => handleTestConnection('test')}
                     disabled={!formData.name || !formData.endpoint}
                     fullWidth
@@ -585,17 +537,6 @@ const ChannelOnboarding: React.FC = () => {
                   <Alert severity="warning" sx={{ mb: 2 }}>
                     Review all settings before deploying the channel
                   </Alert>
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={formData.isActive}
-                        onChange={(e) => handleFormChange('isActive', e.target.checked)}
-                      />
-                    }
-                    label="Activate Channel Immediately"
-                  />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                   <Button

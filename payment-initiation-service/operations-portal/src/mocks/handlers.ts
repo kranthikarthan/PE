@@ -5,8 +5,8 @@
  * Provides realistic responses for testing and development.
  */
 
-import { rest } from 'msw';
-import { API_BASE_URL } from '@config/environment';
+import { http, HttpResponse } from 'msw';
+import config from '@config/environment';
 
 // Mock data generators
 const generateServiceHealth = (id: string, name: string, status: string) => ({
@@ -62,32 +62,10 @@ const generateReconciliationBatch = (id: string) => ({
 
 export const handlers = [
   // Authentication endpoints
-  rest.post(`${API_BASE_URL}/auth/login`, (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
-        token: 'mock-jwt-token',
-        user: {
-          id: '1',
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john.doe@example.com',
-          tenantId: 'tenant-1',
-          businessUnitId: 'bu-1',
-          roles: ['ADMIN', 'OPERATOR'],
-        },
-      })
-    );
-  }),
-
-  rest.post(`${API_BASE_URL}/auth/logout`, (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json({ message: 'Logged out successfully' }));
-  }),
-
-  rest.get(`${API_BASE_URL}/auth/me`, (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
+  http.post(`${config.apiBaseUrl}/auth/login`, async ({ request }) => {
+    return HttpResponse.json({
+      token: 'mock-jwt-token',
+      user: {
         id: '1',
         firstName: 'John',
         lastName: 'Doe',
@@ -95,12 +73,28 @@ export const handlers = [
         tenantId: 'tenant-1',
         businessUnitId: 'bu-1',
         roles: ['ADMIN', 'OPERATOR'],
-      })
-    );
+      },
+    });
+  }),
+
+  http.post(`${config.apiBaseUrl}/auth/logout`, async ({ request }) => {
+    return HttpResponse.json({ message: 'Logged out successfully' });
+  }),
+
+  http.get(`${config.apiBaseUrl}/auth/me`, async ({ request }) => {
+    return HttpResponse.json({
+      id: '1',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@example.com',
+      tenantId: 'tenant-1',
+      businessUnitId: 'bu-1',
+      roles: ['ADMIN', 'OPERATOR'],
+    });
   }),
 
   // Operations Management Service
-  rest.get(`${API_BASE_URL}/ops/v1/services/health`, (req, res, ctx) => {
+  http.get(`${config.apiBaseUrl}/ops/v1/services/health`, async ({ request }) => {
     const services = [
       generateServiceHealth('1', 'Payment Initiation Service', 'UP'),
       generateServiceHealth('2', 'Saga Orchestrator', 'UP'),
@@ -109,22 +103,19 @@ export const handlers = [
       generateServiceHealth('5', 'Operations Management Service', 'UP'),
     ];
 
-    return res(ctx.status(200), ctx.json(services));
+    return HttpResponse.json(services);
   }),
 
-  rest.get(`${API_BASE_URL}/ops/v1/services/health/summary`, (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
-        totalServices: 5,
-        healthyServices: 4,
-        unhealthyServices: 1,
-        overallHealth: 'HEALTHY',
-      })
-    );
+  http.get(`${config.apiBaseUrl}/ops/v1/services/health/summary`, async ({ request }) => {
+    return HttpResponse.json({
+      totalServices: 5,
+      healthyServices: 4,
+      unhealthyServices: 1,
+      overallHealth: 'HEALTHY',
+    });
   }),
 
-  rest.get(`${API_BASE_URL}/ops/v1/services/alerts`, (req, res, ctx) => {
+  http.get(`${config.apiBaseUrl}/ops/v1/services/alerts`, async ({ request }) => {
     const alerts = [
       {
         id: '1',
@@ -142,10 +133,10 @@ export const handlers = [
       },
     ];
 
-    return res(ctx.status(200), ctx.json(alerts));
+    return HttpResponse.json(alerts);
   }),
 
-  rest.get(`${API_BASE_URL}/ops/v1/circuit-breakers`, (req, res, ctx) => {
+  http.get(`${config.apiBaseUrl}/ops/v1/circuit-breakers`, async ({ request }) => {
     const circuitBreakers = [
       {
         name: 'payment-service',
@@ -161,10 +152,10 @@ export const handlers = [
       },
     ];
 
-    return res(ctx.status(200), ctx.json(circuitBreakers));
+    return HttpResponse.json(circuitBreakers);
   }),
 
-  rest.get(`${API_BASE_URL}/ops/v1/feature-flags`, (req, res, ctx) => {
+  http.get(`${config.apiBaseUrl}/ops/v1/feature-flags`, async ({ request }) => {
     const featureFlags = [
       {
         name: 'ENABLE_NEW_UI',
@@ -178,10 +169,10 @@ export const handlers = [
       },
     ];
 
-    return res(ctx.status(200), ctx.json(featureFlags));
+    return HttpResponse.json(featureFlags);
   }),
 
-  rest.get(`${API_BASE_URL}/ops/v1/pods`, (req, res, ctx) => {
+  http.get(`${config.apiBaseUrl}/ops/v1/pods`, async ({ request }) => {
     const pods = [
       {
         name: 'payment-service-pod-1',
@@ -203,147 +194,123 @@ export const handlers = [
       },
     ];
 
-    return res(ctx.status(200), ctx.json(pods));
+    return HttpResponse.json(pods);
   }),
 
   // Payment Initiation Service
-  rest.get(`${API_BASE_URL}/payments/v1/failed`, (req, res, ctx) => {
-    const page = parseInt(req.url.searchParams.get('page') || '0');
-    const size = parseInt(req.url.searchParams.get('size') || '20');
+  http.get(`${config.apiBaseUrl}/payments/v1/failed`, async ({ request }) => {
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '0');
+    const size = parseInt(url.searchParams.get('size') || '20');
     
     const payments = Array.from({ length: size }, (_, i) => 
       generatePayment(`payment-${page * size + i}`)
     );
 
-    return res(
-      ctx.status(200),
-      ctx.json({
-        content: payments,
-        totalElements: 100,
-        totalPages: 5,
-        size,
-        number: page,
-      })
-    );
+    return HttpResponse.json({
+      content: payments,
+      totalElements: 100,
+      totalPages: 5,
+      size,
+      number: page,
+    });
   }),
 
-  rest.post(`${API_BASE_URL}/payments/v1/retry`, (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({ message: 'Payment retry initiated successfully' })
-    );
+  http.post(`${config.apiBaseUrl}/payments/v1/retry`, async ({ request }) => {
+    return HttpResponse.json({ message: 'Payment retry initiated successfully' });
   }),
 
-  rest.post(`${API_BASE_URL}/payments/v1/cancel`, (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({ message: 'Payment cancelled successfully' })
-    );
+  http.post(`${config.apiBaseUrl}/payments/v1/cancel`, async ({ request }) => {
+    return HttpResponse.json({ message: 'Payment cancelled successfully' });
   }),
 
-  rest.post(`${API_BASE_URL}/payments/v1/bulk-retry`, (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({ message: 'Bulk retry initiated successfully' })
-    );
+  http.post(`${config.apiBaseUrl}/payments/v1/bulk-retry`, async ({ request }) => {
+    return HttpResponse.json({ message: 'Bulk retry initiated successfully' });
   }),
 
-  rest.post(`${API_BASE_URL}/payments/v1/bulk-cancel`, (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({ message: 'Bulk cancel initiated successfully' })
-    );
+  http.post(`${config.apiBaseUrl}/payments/v1/bulk-cancel`, async ({ request }) => {
+    return HttpResponse.json({ message: 'Bulk cancel initiated successfully' });
   }),
 
   // Transaction Processing Service
-  rest.get(`${API_BASE_URL}/transactions/v1/search`, (req, res, ctx) => {
-    const page = parseInt(req.url.searchParams.get('page') || '0');
-    const size = parseInt(req.url.searchParams.get('size') || '20');
+  http.get(`${config.apiBaseUrl}/transactions/v1/search`, async ({ request }) => {
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '0');
+    const size = parseInt(url.searchParams.get('size') || '20');
     
     const transactions = Array.from({ length: size }, (_, i) => 
       generateTransaction(`transaction-${page * size + i}`)
     );
 
-    return res(
-      ctx.status(200),
-      ctx.json({
-        content: transactions,
-        totalElements: 200,
-        totalPages: 10,
-        size,
-        number: page,
-      })
-    );
+    return HttpResponse.json({
+      content: transactions,
+      totalElements: 200,
+      totalPages: 10,
+      size,
+      number: page,
+    });
   }),
 
-  rest.get(`${API_BASE_URL}/transactions/v1/metrics`, (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
-        totalTransactions: 10000,
-        successRate: 0.95,
-        failedTransactions: 500,
-        averageProcessingTime: 1500,
-      })
-    );
+  http.get(`${config.apiBaseUrl}/transactions/v1/metrics`, async ({ request }) => {
+    return HttpResponse.json({
+      totalTransactions: 10000,
+      successRate: 0.95,
+      failedTransactions: 500,
+      averageProcessingTime: 1500,
+    });
   }),
 
-  rest.get(`${API_BASE_URL}/transactions/v1/:id`, (req, res, ctx) => {
-    const { id } = req.params;
+  http.get(`${config.apiBaseUrl}/transactions/v1/:id`, async ({ params }) => {
+    const { id } = params;
     const transaction = generateTransaction(id as string);
-    return res(ctx.status(200), ctx.json(transaction));
+    return HttpResponse.json(transaction);
   }),
 
   // Reconciliation Service
-  rest.get(`${API_BASE_URL}/reconciliation/v1/batches`, (req, res, ctx) => {
-    const page = parseInt(req.url.searchParams.get('page') || '0');
-    const size = parseInt(req.url.searchParams.get('size') || '20');
+  http.get(`${config.apiBaseUrl}/reconciliation/v1/batches`, async ({ request }) => {
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '0');
+    const size = parseInt(url.searchParams.get('size') || '20');
     
     const batches = Array.from({ length: size }, (_, i) => 
       generateReconciliationBatch(`batch-${page * size + i}`)
     );
 
-    return res(
-      ctx.status(200),
-      ctx.json({
-        content: batches,
-        totalElements: 50,
-        totalPages: 3,
-        size,
-        number: page,
-      })
-    );
+    return HttpResponse.json({
+      content: batches,
+      totalElements: 50,
+      totalPages: 3,
+      size,
+      number: page,
+    });
   }),
 
-  rest.get(`${API_BASE_URL}/reconciliation/v1/metrics`, (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
-        totalBatches: 50,
-        successRate: 0.92,
-        failedBatches: 4,
-        averageProcessingTime: 1800,
-        detailedMetrics: [
-          {
-            name: 'Processing Time',
-            value: '1.8s',
-            unit: 'seconds',
-            trend: 'down',
-            description: 'Average batch processing time',
-          },
-          {
-            name: 'Success Rate',
-            value: '92%',
-            unit: 'percentage',
-            trend: 'up',
-            description: 'Batch processing success rate',
-          },
-        ],
-      })
-    );
+  http.get(`${config.apiBaseUrl}/reconciliation/v1/metrics`, async ({ request }) => {
+    return HttpResponse.json({
+      totalBatches: 50,
+      successRate: 0.92,
+      failedBatches: 4,
+      averageProcessingTime: 1800,
+      detailedMetrics: [
+        {
+          name: 'Processing Time',
+          value: '1.8s',
+          unit: 'seconds',
+          trend: 'down',
+          description: 'Average batch processing time',
+        },
+        {
+          name: 'Success Rate',
+          value: '92%',
+          unit: 'percentage',
+          trend: 'up',
+          description: 'Batch processing success rate',
+        },
+      ],
+    });
   }),
 
-  rest.get(`${API_BASE_URL}/reconciliation/v1/exceptions`, (req, res, ctx) => {
+  http.get(`${config.apiBaseUrl}/reconciliation/v1/exceptions`, async ({ request }) => {
     const exceptions = [
       {
         id: '1',
@@ -363,11 +330,11 @@ export const handlers = [
       },
     ];
 
-    return res(ctx.status(200), ctx.json(exceptions));
+    return HttpResponse.json(exceptions);
   }),
 
   // Tenant Management Service
-  rest.get(`${API_BASE_URL}/tenant/v1/channels`, (req, res, ctx) => {
+  http.get(`${config.apiBaseUrl}/tenant/v1/channels`, async ({ request }) => {
     const channels = [
       {
         id: '1',
@@ -403,10 +370,10 @@ export const handlers = [
       },
     ];
 
-    return res(ctx.status(200), ctx.json(channels));
+    return HttpResponse.json(channels);
   }),
 
-  rest.get(`${API_BASE_URL}/ops/v1/clearing-systems`, (req, res, ctx) => {
+  http.get(`${config.apiBaseUrl}/ops/v1/clearing-systems`, async ({ request }) => {
     const clearingSystems = [
       {
         id: '1',
@@ -436,27 +403,27 @@ export const handlers = [
       },
     ];
 
-    return res(ctx.status(200), ctx.json(clearingSystems));
+    return HttpResponse.json(clearingSystems);
   }),
 
   // Error handlers
-  rest.get('*', (req, res, ctx) => {
-    console.warn(`Unhandled GET request: ${req.url}`);
-    return res(ctx.status(404), ctx.json({ message: 'Not found' }));
+  http.get('*', async ({ request }) => {
+    console.warn(`Unhandled GET request: ${request.url}`);
+    return HttpResponse.json({ message: 'Not found' }, { status: 404 });
   }),
 
-  rest.post('*', (req, res, ctx) => {
-    console.warn(`Unhandled POST request: ${req.url}`);
-    return res(ctx.status(404), ctx.json({ message: 'Not found' }));
+  http.post('*', async ({ request }) => {
+    console.warn(`Unhandled POST request: ${request.url}`);
+    return HttpResponse.json({ message: 'Not found' }, { status: 404 });
   }),
 
-  rest.put('*', (req, res, ctx) => {
-    console.warn(`Unhandled PUT request: ${req.url}`);
-    return res(ctx.status(404), ctx.json({ message: 'Not found' }));
+  http.put('*', async ({ request }) => {
+    console.warn(`Unhandled PUT request: ${request.url}`);
+    return HttpResponse.json({ message: 'Not found' }, { status: 404 });
   }),
 
-  rest.delete('*', (req, res, ctx) => {
-    console.warn(`Unhandled DELETE request: ${req.url}`);
-    return res(ctx.status(404), ctx.json({ message: 'Not found' }));
+  http.delete('*', async ({ request }) => {
+    console.warn(`Unhandled DELETE request: ${request.url}`);
+    return HttpResponse.json({ message: 'Not found' }, { status: 404 });
   }),
 ];

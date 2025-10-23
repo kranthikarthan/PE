@@ -37,7 +37,9 @@ export enum Permission {
   RECONCILIATION_MANAGE = 'RECONCILIATION_MANAGE',
   
   // Onboarding
+  CHANNEL_VIEW = 'CHANNEL_VIEW',
   CHANNEL_MANAGE = 'CHANNEL_MANAGE',
+  CLEARING_SYSTEM_VIEW = 'CLEARING_SYSTEM_VIEW',
   CLEARING_SYSTEM_MANAGE = 'CLEARING_SYSTEM_MANAGE',
   
   // System Administration
@@ -60,6 +62,7 @@ export interface User {
   lastLoginAt?: string;
   createdAt: string;
   updatedAt: string;
+  lastLogin?: string; // For backward compatibility
 }
 
 export interface LoginRequest {
@@ -75,6 +78,11 @@ export interface LoginResponse {
   refreshToken: string;
   expiresIn: number;
   tokenType: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
 }
 
 export interface RefreshTokenRequest {
@@ -96,6 +104,7 @@ export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  error: string | null;
   login: (credentials: LoginRequest) => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;

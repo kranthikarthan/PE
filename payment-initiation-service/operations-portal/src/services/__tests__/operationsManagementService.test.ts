@@ -5,7 +5,7 @@
  * Tests service health, circuit breakers, and feature flags operations.
  */
 
-import { rest } from 'msw';
+import { http } from 'msw';
 import { server } from '../../mocks/server';
 import { OperationsManagementService } from '../operationsManagementService';
 import { fixtures } from '../../test-utils/fixtures';
@@ -29,7 +29,7 @@ describe('OperationsManagementService', () => {
     it('should handle API errors', async () => {
       // Mock server to return error
       server.use(
-        rest.get('*/ops/v1/services/health', (req, res, ctx) => {
+        http.get('*/ops/v1/services/health', (req, res, ctx) => {
           return res(
             ctx.status(500),
             ctx.json({ message: 'Internal server error' })
@@ -53,7 +53,7 @@ describe('OperationsManagementService', () => {
     it('should handle summary API errors', async () => {
       // Mock server to return error
       server.use(
-        rest.get('*/ops/v1/services/health/summary', (req, res, ctx) => {
+        http.get('*/ops/v1/services/health/summary', (req, res, ctx) => {
           return res(
             ctx.status(500),
             ctx.json({ message: 'Internal server error' })
@@ -77,7 +77,7 @@ describe('OperationsManagementService', () => {
     it('should handle alerts API errors', async () => {
       // Mock server to return error
       server.use(
-        rest.get('*/ops/v1/services/alerts', (req, res, ctx) => {
+        http.get('*/ops/v1/services/alerts', (req, res, ctx) => {
           return res(
             ctx.status(500),
             ctx.json({ message: 'Internal server error' })
@@ -101,7 +101,7 @@ describe('OperationsManagementService', () => {
     it('should handle circuit breaker API errors', async () => {
       // Mock server to return error
       server.use(
-        rest.get('*/ops/v1/circuit-breakers', (req, res, ctx) => {
+        http.get('*/ops/v1/circuit-breakers', (req, res, ctx) => {
           return res(
             ctx.status(500),
             ctx.json({ message: 'Internal server error' })
@@ -123,7 +123,7 @@ describe('OperationsManagementService', () => {
     it('should handle circuit breaker open errors', async () => {
       // Mock server to return error
       server.use(
-        rest.post('*/ops/v1/circuit-breakers/payment-service/open', (req, res, ctx) => {
+        http.post('*/ops/v1/circuit-breakers/payment-service/open', (req, res, ctx) => {
           return res(
             ctx.status(500),
             ctx.json({ message: 'Failed to open circuit breaker' })
@@ -147,7 +147,7 @@ describe('OperationsManagementService', () => {
     it('should handle circuit breaker close errors', async () => {
       // Mock server to return error
       server.use(
-        rest.post('*/ops/v1/circuit-breakers/payment-service/close', (req, res, ctx) => {
+        http.post('*/ops/v1/circuit-breakers/payment-service/close', (req, res, ctx) => {
           return res(
             ctx.status(500),
             ctx.json({ message: 'Failed to close circuit breaker' })
@@ -173,7 +173,7 @@ describe('OperationsManagementService', () => {
     it('should handle feature flags API errors', async () => {
       // Mock server to return error
       server.use(
-        rest.get('*/ops/v1/feature-flags', (req, res, ctx) => {
+        http.get('*/ops/v1/feature-flags', (req, res, ctx) => {
           return res(
             ctx.status(500),
             ctx.json({ message: 'Internal server error' })
@@ -195,7 +195,7 @@ describe('OperationsManagementService', () => {
     it('should handle feature flag toggle errors', async () => {
       // Mock server to return error
       server.use(
-        rest.put('*/ops/v1/feature-flags/ENABLE_NEW_UI', (req, res, ctx) => {
+        http.put('*/ops/v1/feature-flags/ENABLE_NEW_UI', (req, res, ctx) => {
           return res(
             ctx.status(500),
             ctx.json({ message: 'Failed to update feature flag' })
@@ -221,7 +221,7 @@ describe('OperationsManagementService', () => {
     it('should handle pods API errors', async () => {
       // Mock server to return error
       server.use(
-        rest.get('*/ops/v1/pods', (req, res, ctx) => {
+        http.get('*/ops/v1/pods', (req, res, ctx) => {
           return res(
             ctx.status(500),
             ctx.json({ message: 'Internal server error' })
@@ -243,7 +243,7 @@ describe('OperationsManagementService', () => {
     it('should handle pod restart errors', async () => {
       // Mock server to return error
       server.use(
-        rest.post('*/ops/v1/pods/payment-service-pod-1/restart', (req, res, ctx) => {
+        http.post('*/ops/v1/pods/payment-service-pod-1/restart', (req, res, ctx) => {
           return res(
             ctx.status(500),
             ctx.json({ message: 'Failed to restart pod' })
@@ -273,7 +273,7 @@ describe('OperationsManagementService', () => {
     it('should handle service control errors', async () => {
       // Mock server to return error
       server.use(
-        rest.post('*/ops/v1/services/payment-service/control', (req, res, ctx) => {
+        http.post('*/ops/v1/services/payment-service/control', (req, res, ctx) => {
           return res(
             ctx.status(500),
             ctx.json({ message: 'Failed to control service' })

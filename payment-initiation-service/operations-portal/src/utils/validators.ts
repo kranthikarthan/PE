@@ -231,7 +231,7 @@ export const isFutureDate = (date: string | Date | null | undefined): boolean =>
   if (!isValidDate(date)) return false;
   
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return dateObj.getTime() > Date.now();
+  return dateObj ? dateObj.getTime() > Date.now() : false;
 };
 
 /**
@@ -241,7 +241,7 @@ export const isPastDate = (date: string | Date | null | undefined): boolean => {
   if (!isValidDate(date)) return false;
   
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return dateObj.getTime() < Date.now();
+  return dateObj ? dateObj.getTime() < Date.now() : false;
 };
 
 /**
@@ -251,6 +251,8 @@ export const isValidAge = (birthDate: string | Date | null | undefined, minAge: 
   if (!isValidDate(birthDate)) return false;
   
   const birth = typeof birthDate === 'string' ? new Date(birthDate) : birthDate;
+  if (!birth) return false;
+  
   const today = new Date();
   const age = today.getFullYear() - birth.getFullYear();
   const monthDiff = today.getMonth() - birth.getMonth();
@@ -462,13 +464,13 @@ export const validateForm = (data: Record<string, any>, rules: Record<string, an
           }
           break;
         case 'minLength':
-          if (value && !hasMinLength(value, ruleValue)) {
+          if (value && typeof ruleValue === 'number' && !hasMinLength(value, ruleValue)) {
             fieldValid = false;
             errorMessage = `${field} must be at least ${ruleValue} characters`;
           }
           break;
         case 'maxLength':
-          if (value && !hasMaxLength(value, ruleValue)) {
+          if (value && typeof ruleValue === 'number' && !hasMaxLength(value, ruleValue)) {
             fieldValid = false;
             errorMessage = `${field} must be no more than ${ruleValue} characters`;
           }
@@ -486,9 +488,12 @@ export const validateForm = (data: Record<string, any>, rules: Record<string, an
           }
           break;
         case 'range':
-          if (value && !isInRange(value, ruleValue.min, ruleValue.max)) {
-            fieldValid = false;
-            errorMessage = `${field} must be between ${ruleValue.min} and ${ruleValue.max}`;
+          if (value && typeof ruleValue === 'object' && ruleValue !== null && 'min' in ruleValue && 'max' in ruleValue) {
+            const rangeValue = ruleValue as { min: number; max: number };
+            if (!isInRange(value, rangeValue.min, rangeValue.max)) {
+              fieldValid = false;
+              errorMessage = `${field} must be between ${rangeValue.min} and ${rangeValue.max}`;
+            }
           }
           break;
       }

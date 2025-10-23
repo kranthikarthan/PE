@@ -1,0 +1,426 @@
+$ cd C:\git\clone\PE\payment-initiation-service\operations-portal
+$ npm start
+(node:11152) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:11152) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+Starting the development server...
+
+Compiled with warnings.
+
+[eslint] 
+src\components\DataTable.tsx
+  Line 8:27:  'useMemo' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 22:3:  'Tooltip' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 23:3:  'Chip' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 25:3:  'CircularProgress' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 40:3:  'FilterList' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 42:3:  'Download' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 43:3:  'Refresh' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 44:3:  'Visibility' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 45:3:  'Edit' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 46:3:  'Delete' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 47:3:  'ArrowUpward' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 48:3:  'ArrowDownward' is defined but never used     @typescript-eslint/no-unused-vars
+
+src\components\DateRangePicker.tsx
+  Line 12:3:   'Button' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 34:18:  'DateRange' is already defined      @typescript-eslint/no-redeclare
+
+src\components\ErrorBoundary.tsx
+  Line 25:3:  'ExpandMore' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 26:3:  'ExpandLess' is defined but never used  @typescript-eslint/no-unused-vars
+
+src\components\GlobalErrorBoundary.tsx
+  Line 17:20:  'ErrorType' is defined but never used  @typescript-eslint/no-unused-vars
+
+src\components\InfiniteScrollList.tsx
+  Line 41:23:  'infiniteScrollRef' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\components\MemoizedComponent.tsx
+  Line 5:38:  'ComponentProps' is defined but never used  @typescript-eslint/no-unused-vars
+
+src\components\PrivateRoute.tsx
+  Line 26:39:  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\components\StatusChip.tsx
+  Line 20:3:  'Schedule' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 21:3:  'Cancel' is defined but never used    @typescript-eslint/no-unused-vars
+
+src\components\VirtualizedList.tsx
+  Line 6:15:  'List' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 6:21:  'ListItem' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 6:31:  'ListItemProps' is defined but never used      @typescript-eslint/no-unused-vars
+  Line 42:7:  'endIndex' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\contexts\AuthContext.tsx
+  Line 18:10:  'STORAGE_KEYS' is defined but never used             @typescript-eslint/no-unused-vars
+  Line 257:9:  'updateUser' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  Line 262:9:  'updateActivity' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 267:9:  'clearError' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+src\contexts\TenantContext.tsx
+  Line 147:9:  'clearError' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\hooks\useApi.ts
+  Line 10:10:  'ApiResponse' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 50:22:  'showSuccess' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\hooks\useErrorHandler.ts
+  Line 22:5:   'enableNotifications' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 23:5:   'enableLogging' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  Line 24:5:   'enableReporting' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  Line 51:13:  'severity' is assigned a value but never used             @typescript-eslint/no-unused-vars
+
+src\hooks\useMemoization.ts
+  Line 14:10:   React Hook useMemo has a missing dependency: 'calculation'. Either include it or remove the dependency array                                                        react-hooks/exhaustive-deps
+  Line 24:10:   React Hook useCallback has a missing dependency: 'callback'. Either include it or remove the dependency array                                                       react-hooks/exhaustive-deps
+  Line 34:32:   React Hook useMemo was passed a dependency list that is not an array literal. This means we can't statically verify whether you've passed the correct dependencies  react-hooks/exhaustive-deps
+  Line 34:32:   React Hook useMemo has a missing dependency: 'object'. Either include it or remove the dependency array                                                             react-hooks/exhaustive-deps
+  Line 44:31:   React Hook useMemo was passed a dependency list that is not an array literal. This means we can't statically verify whether you've passed the correct dependencies  react-hooks/exhaustive-deps
+  Line 44:31:   React Hook useMemo has a missing dependency: 'array'. Either include it or remove the dependency array                                                              react-hooks/exhaustive-deps
+  Line 97:30:   React Hook useMemo was passed a dependency list that is not an array literal. This means we can't statically verify whether you've passed the correct dependencies  react-hooks/exhaustive-deps
+  Line 97:30:   React Hook useMemo has a missing dependency: 'data'. Either include it or remove the dependency array                                                               react-hooks/exhaustive-deps
+  Line 121:31:  React Hook useMemo has a spread element in its dependency array. This means we can't statically verify whether you've passed the correct dependencies               react-hooks/exhaustive-deps
+  Line 145:29:  React Hook useMemo has a spread element in its dependency array. This means we can't statically verify whether you've passed the correct dependencies               react-hooks/exhaustive-deps
+  Line 176:39:  React Hook useMemo has a spread element in its dependency array. This means we can't statically verify whether you've passed the correct dependencies               react-hooks/exhaustive-deps
+  Line 186:10:  React Hook useMemo has a missing dependency: 'computation'. Either include it or remove the dependency array                                                        react-hooks/exhaustive-deps
+  Line 196:10:  React Hook useCallback has a missing dependency: 'handler'. Either include it or remove the dependency array                                                        react-hooks/exhaustive-deps
+
+src\hooks\useRetry.ts
+  Line 57:23:   Function declared in a loop contains unsafe references to variable(s) 'attempt', 'attempt'                    no-loop-func
+  Line 79:23:   Function declared in a loop contains unsafe references to variable(s) 'attempt', 'attempt', 'lastError'       no-loop-func
+  Line 114:6:   React Hook useCallback has a missing dependency: 'options'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  Line 128:23:  Function declared in a loop contains unsafe references to variable(s) 'attempt', 'attempt'                    no-loop-func
+  Line 150:23:  Function declared in a loop contains unsafe references to variable(s) 'attempt', 'attempt', 'lastError'       no-loop-func
+  Line 182:6:   React Hook useCallback has a missing dependency: 'options'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\hooks\useTimeout.ts
+  Line 18:5:  'enableNotifications' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\hooks\useVirtualization.ts
+  Line 5:38:    'useMemo' is defined but never used                  @typescript-eslint/no-unused-vars
+  Line 30:54:   'threshold' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  Line 123:10:  'windowStart' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 123:23:  'setWindowStart' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\pages\ChannelOnboarding.tsx
+  Line 8:27:   'useEffect' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 18:3:   'StepContent' is defined but never used                   @typescript-eslint/no-unused-vars
+  Line 42:3:   'CircularProgress' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 43:3:   'LinearProgress' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 44:3:   'Divider' is defined but never used                       @typescript-eslint/no-unused-vars
+  Line 56:3:   'Stop' is defined but never used                          @typescript-eslint/no-unused-vars
+  Line 57:3:   'Refresh' is defined but never used                       @typescript-eslint/no-unused-vars
+  Line 58:3:   'Save' is defined but never used                          @typescript-eslint/no-unused-vars
+  Line 64:19:  'ChannelConfiguration' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 85:30:  'canViewChannels' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  Line 87:10:  'channels' is assigned a value but never used             @typescript-eslint/no-unused-vars
+  Line 87:20:  'setChannels' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  Line 89:10:  'channelDialogOpen' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  Line 192:9:  'handleUpdateChannel' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\pages\ClearingSystemOnboarding.tsx
+  Line 8:27:    'useEffect' is defined but never used                        @typescript-eslint/no-unused-vars
+  Line 18:3:    'StepContent' is defined but never used                      @typescript-eslint/no-unused-vars
+  Line 42:3:    'CircularProgress' is defined but never used                 @typescript-eslint/no-unused-vars
+  Line 43:3:    'LinearProgress' is defined but never used                   @typescript-eslint/no-unused-vars
+  Line 44:3:    'Divider' is defined but never used                          @typescript-eslint/no-unused-vars
+  Line 58:3:    'Stop' is defined but never used                             @typescript-eslint/no-unused-vars
+  Line 59:3:    'Refresh' is defined but never used                          @typescript-eslint/no-unused-vars
+  Line 60:3:    'Save' is defined but never used                             @typescript-eslint/no-unused-vars
+  Line 69:26:   'ClearingSystemConfiguration' is defined but never used      @typescript-eslint/no-unused-vars
+  Line 111:37:  'canViewClearingSystems' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 114:10:  'clearingSystems' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  Line 114:27:  'setClearingSystems' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  Line 116:10:  'systemDialogOpen' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  Line 233:9:   'handleUpdateSystem' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+src\pages\Dashboard.tsx
+  Line 20:3:   'TrendingDown' is defined but never used                                                                                                               @typescript-eslint/no-unused-vars
+  Line 32:11:  'showError' is assigned a value but never used                                                                                                         @typescript-eslint/no-unused-vars
+  Line 33:10:  'refreshInterval' is assigned a value but never used                                                                                                   @typescript-eslint/no-unused-vars
+  Line 66:6:   React Hook useEffect has missing dependencies: 'alertsApi', 'healthSummaryApi', and 'servicesApi'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\PaymentRepair.tsx
+  Line 8:27:   'useEffect' is defined but never used                  @typescript-eslint/no-unused-vars
+  Line 40:3:   'CircularProgress' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 49:3:   'MoreVert' is defined but never used                   @typescript-eslint/no-unused-vars
+  Line 53:3:   'Delete' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 60:18:  'usePagination' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 62:34:  'PaymentRepairLog' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 89:30:  'canViewPayments' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  Line 105:9:  'repairHistoryApi' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\pages\ReconciliationMonitoring.tsx
+  Line 34:3:    'FormControl' is defined but never used                                                                                                             @typescript-eslint/no-unused-vars
+  Line 35:3:    'InputLabel' is defined but never used                                                                                                              @typescript-eslint/no-unused-vars
+  Line 36:3:    'Select' is defined but never used                                                                                                                  @typescript-eslint/no-unused-vars
+  Line 37:3:    'MenuItem' is defined but never used                                                                                                                @typescript-eslint/no-unused-vars
+  Line 59:102:  'ReconciliationPerformanceMetric' is defined but never used                                                                                         @typescript-eslint/no-unused-vars
+  Line 90:10:   'selectedMetric' is assigned a value but never used                                                                                                 @typescript-eslint/no-unused-vars
+  Line 90:26:   'setSelectedMetric' is assigned a value but never used                                                                                              @typescript-eslint/no-unused-vars
+  Line 132:6:   React Hook useEffect has missing dependencies: 'batchesApi', 'exceptionsApi', and 'metricsApi'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\ServiceManagement.tsx
+  Line 30:3:   'FormControl' is defined but never used                                                                                                                                   @typescript-eslint/no-unused-vars
+  Line 31:3:   'InputLabel' is defined but never used                                                                                                                                    @typescript-eslint/no-unused-vars
+  Line 32:3:   'Select' is defined but never used                                                                                                                                        @typescript-eslint/no-unused-vars
+  Line 33:3:   'MenuItem' is defined but never used                                                                                                                                      @typescript-eslint/no-unused-vars
+  Line 36:3:   'CircularProgress' is defined but never used                                                                                                                              @typescript-eslint/no-unused-vars
+  Line 44:3:   'Pause' is defined but never used                                                                                                                                         @typescript-eslint/no-unused-vars
+  Line 47:3:   'Settings' is defined but never used                                                                                                                                      @typescript-eslint/no-unused-vars
+  Line 49:3:   'MoreVert' is defined but never used                                                                                                                                      @typescript-eslint/no-unused-vars
+  Line 50:3:   'PowerSettingsNew' is defined but never used                                                                                                                              @typescript-eslint/no-unused-vars
+  Line 64:30:  'canManageChannels' is assigned a value but never used                                                                                                                    @typescript-eslint/no-unused-vars
+  Line 102:6:  React Hook useEffect has missing dependencies: 'circuitBreakersApi', 'featureFlagsApi', 'podsApi', and 'servicesApi'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\TransactionEnquiries.tsx
+  Line 33:3:   'InputAdornment' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+  Line 39:3:   'LinearProgress' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+  Line 58:33:  'useSearchApi' is defined but never used                                                                                         @typescript-eslint/no-unused-vars
+  Line 66:11:  'canViewTransactions' is assigned a value but never used                                                                         @typescript-eslint/no-unused-vars
+  Line 66:32:  'canSearchTransactions' is assigned a value but never used                                                                       @typescript-eslint/no-unused-vars
+  Line 101:6:  React Hook useEffect has missing dependencies: 'pagination' and 'searchApi'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  Line 108:6:  React Hook useEffect has a missing dependency: 'pagination'. Either include it or remove the dependency array                    react-hooks/exhaustive-deps
+
+src\services\authService.ts
+  Line 19:10:  'ApiResponse' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 23:3:   Useless constructor                      @typescript-eslint/no-useless-constructor
+
+src\services\operationsManagementService.ts
+  Line 22:10:  'ApiResponse' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 22:23:  'PaginationParams' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 26:3:   Useless constructor                           @typescript-eslint/no-useless-constructor
+
+src\services\paymentInitiationService.ts
+  Line 22:10:  'ApiResponse' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 26:3:   Useless constructor                      @typescript-eslint/no-useless-constructor
+
+src\services\reconciliationService.ts
+  Line 15:3:   'ReconciliationPerformanceMetric' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 19:10:  'ApiResponse' is defined but never used                      @typescript-eslint/no-unused-vars
+  Line 23:3:   Useless constructor                                          @typescript-eslint/no-useless-constructor
+
+src\services\tenantManagementService.ts
+  Line 17:10:  'ApiResponse' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 17:23:  'PaginationParams' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 20:3:   Useless constructor                           @typescript-eslint/no-useless-constructor
+
+src\services\transactionProcessingService.ts
+  Line 18:10:  'ApiResponse' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 22:3:   Useless constructor                      @typescript-eslint/no-useless-constructor
+
+src\utils\errorHandler.ts
+  Line 7:3:  'AnyError' is defined but never used  @typescript-eslint/no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src\components\DataTable.tsx
+  Line 8:27:  'useMemo' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 22:3:  'Tooltip' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 23:3:  'Chip' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 25:3:  'CircularProgress' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 40:3:  'FilterList' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 42:3:  'Download' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 43:3:  'Refresh' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 44:3:  'Visibility' is defined but never used        @typescript-eslint/no-unused-vars
+  Line 45:3:  'Edit' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 46:3:  'Delete' is defined but never used            @typescript-eslint/no-unused-vars
+  Line 47:3:  'ArrowUpward' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 48:3:  'ArrowDownward' is defined but never used     @typescript-eslint/no-unused-vars
+
+src\components\DateRangePicker.tsx
+  Line 12:3:   'Button' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 34:18:  'DateRange' is already defined      @typescript-eslint/no-redeclare
+
+src\components\ErrorBoundary.tsx
+  Line 25:3:  'ExpandMore' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 26:3:  'ExpandLess' is defined but never used  @typescript-eslint/no-unused-vars
+
+src\components\GlobalErrorBoundary.tsx
+  Line 17:20:  'ErrorType' is defined but never used  @typescript-eslint/no-unused-vars
+
+src\components\InfiniteScrollList.tsx
+  Line 41:23:  'infiniteScrollRef' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\components\MemoizedComponent.tsx
+  Line 5:38:  'ComponentProps' is defined but never used  @typescript-eslint/no-unused-vars
+
+src\components\PrivateRoute.tsx
+  Line 26:39:  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\components\StatusChip.tsx
+  Line 20:3:  'Schedule' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 21:3:  'Cancel' is defined but never used    @typescript-eslint/no-unused-vars
+
+src\components\VirtualizedList.tsx
+  Line 6:15:  'List' is defined but never used               @typescript-eslint/no-unused-vars
+  Line 6:21:  'ListItem' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 6:31:  'ListItemProps' is defined but never used      @typescript-eslint/no-unused-vars
+  Line 42:7:  'endIndex' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\contexts\AuthContext.tsx
+  Line 18:10:  'STORAGE_KEYS' is defined but never used             @typescript-eslint/no-unused-vars
+  Line 257:9:  'updateUser' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  Line 262:9:  'updateActivity' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 267:9:  'clearError' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+src\contexts\TenantContext.tsx
+  Line 147:9:  'clearError' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\hooks\useApi.ts
+  Line 10:10:  'ApiResponse' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 50:22:  'showSuccess' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\hooks\useErrorHandler.ts
+  Line 22:5:   'enableNotifications' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 23:5:   'enableLogging' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  Line 24:5:   'enableReporting' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  Line 51:13:  'severity' is assigned a value but never used             @typescript-eslint/no-unused-vars
+
+src\hooks\useMemoization.ts
+  Line 14:10:   React Hook useMemo has a missing dependency: 'calculation'. Either include it or remove the dependency array                                                        react-hooks/exhaustive-deps
+  Line 24:10:   React Hook useCallback has a missing dependency: 'callback'. Either include it or remove the dependency array                                                       react-hooks/exhaustive-deps
+  Line 34:32:   React Hook useMemo was passed a dependency list that is not an array literal. This means we can't statically verify whether you've passed the correct dependencies  react-hooks/exhaustive-deps
+  Line 34:32:   React Hook useMemo has a missing dependency: 'object'. Either include it or remove the dependency array                                                             react-hooks/exhaustive-deps
+  Line 44:31:   React Hook useMemo was passed a dependency list that is not an array literal. This means we can't statically verify whether you've passed the correct dependencies  react-hooks/exhaustive-deps
+  Line 44:31:   React Hook useMemo has a missing dependency: 'array'. Either include it or remove the dependency array                                                              react-hooks/exhaustive-deps
+  Line 97:30:   React Hook useMemo was passed a dependency list that is not an array literal. This means we can't statically verify whether you've passed the correct dependencies  react-hooks/exhaustive-deps
+  Line 97:30:   React Hook useMemo has a missing dependency: 'data'. Either include it or remove the dependency array                                                               react-hooks/exhaustive-deps
+  Line 121:31:  React Hook useMemo has a spread element in its dependency array. This means we can't statically verify whether you've passed the correct dependencies               react-hooks/exhaustive-deps
+  Line 145:29:  React Hook useMemo has a spread element in its dependency array. This means we can't statically verify whether you've passed the correct dependencies               react-hooks/exhaustive-deps
+  Line 176:39:  React Hook useMemo has a spread element in its dependency array. This means we can't statically verify whether you've passed the correct dependencies               react-hooks/exhaustive-deps
+  Line 186:10:  React Hook useMemo has a missing dependency: 'computation'. Either include it or remove the dependency array                                                        react-hooks/exhaustive-deps
+  Line 196:10:  React Hook useCallback has a missing dependency: 'handler'. Either include it or remove the dependency array                                                        react-hooks/exhaustive-deps
+
+src\hooks\useRetry.ts
+  Line 57:23:   Function declared in a loop contains unsafe references to variable(s) 'attempt', 'attempt'                    no-loop-func
+  Line 79:23:   Function declared in a loop contains unsafe references to variable(s) 'attempt', 'attempt', 'lastError'       no-loop-func
+  Line 114:6:   React Hook useCallback has a missing dependency: 'options'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  Line 128:23:  Function declared in a loop contains unsafe references to variable(s) 'attempt', 'attempt'                    no-loop-func
+  Line 150:23:  Function declared in a loop contains unsafe references to variable(s) 'attempt', 'attempt', 'lastError'       no-loop-func
+  Line 182:6:   React Hook useCallback has a missing dependency: 'options'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\hooks\useTimeout.ts
+  Line 18:5:  'enableNotifications' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\hooks\useVirtualization.ts
+  Line 5:38:    'useMemo' is defined but never used                  @typescript-eslint/no-unused-vars
+  Line 30:54:   'threshold' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  Line 123:10:  'windowStart' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  Line 123:23:  'setWindowStart' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\pages\ChannelOnboarding.tsx
+  Line 8:27:   'useEffect' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 18:3:   'StepContent' is defined but never used                   @typescript-eslint/no-unused-vars
+  Line 42:3:   'CircularProgress' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 43:3:   'LinearProgress' is defined but never used                @typescript-eslint/no-unused-vars
+  Line 44:3:   'Divider' is defined but never used                       @typescript-eslint/no-unused-vars
+  Line 56:3:   'Stop' is defined but never used                          @typescript-eslint/no-unused-vars
+  Line 57:3:   'Refresh' is defined but never used                       @typescript-eslint/no-unused-vars
+  Line 58:3:   'Save' is defined but never used                          @typescript-eslint/no-unused-vars
+  Line 64:19:  'ChannelConfiguration' is defined but never used          @typescript-eslint/no-unused-vars
+  Line 85:30:  'canViewChannels' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  Line 87:10:  'channels' is assigned a value but never used             @typescript-eslint/no-unused-vars
+  Line 87:20:  'setChannels' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  Line 89:10:  'channelDialogOpen' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  Line 192:9:  'handleUpdateChannel' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\pages\ClearingSystemOnboarding.tsx
+  Line 8:27:    'useEffect' is defined but never used                        @typescript-eslint/no-unused-vars
+  Line 18:3:    'StepContent' is defined but never used                      @typescript-eslint/no-unused-vars
+  Line 42:3:    'CircularProgress' is defined but never used                 @typescript-eslint/no-unused-vars
+  Line 43:3:    'LinearProgress' is defined but never used                   @typescript-eslint/no-unused-vars
+  Line 44:3:    'Divider' is defined but never used                          @typescript-eslint/no-unused-vars
+  Line 58:3:    'Stop' is defined but never used                             @typescript-eslint/no-unused-vars
+  Line 59:3:    'Refresh' is defined but never used                          @typescript-eslint/no-unused-vars
+  Line 60:3:    'Save' is defined but never used                             @typescript-eslint/no-unused-vars
+  Line 69:26:   'ClearingSystemConfiguration' is defined but never used      @typescript-eslint/no-unused-vars
+  Line 111:37:  'canViewClearingSystems' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  Line 114:10:  'clearingSystems' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  Line 114:27:  'setClearingSystems' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  Line 116:10:  'systemDialogOpen' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  Line 233:9:   'handleUpdateSystem' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+src\pages\Dashboard.tsx
+  Line 20:3:   'TrendingDown' is defined but never used                                                                                                               @typescript-eslint/no-unused-vars
+  Line 32:11:  'showError' is assigned a value but never used                                                                                                         @typescript-eslint/no-unused-vars
+  Line 33:10:  'refreshInterval' is assigned a value but never used                                                                                                   @typescript-eslint/no-unused-vars
+  Line 66:6:   React Hook useEffect has missing dependencies: 'alertsApi', 'healthSummaryApi', and 'servicesApi'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\PaymentRepair.tsx
+  Line 8:27:   'useEffect' is defined but never used                  @typescript-eslint/no-unused-vars
+  Line 40:3:   'CircularProgress' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 49:3:   'MoreVert' is defined but never used                   @typescript-eslint/no-unused-vars
+  Line 53:3:   'Delete' is defined but never used                     @typescript-eslint/no-unused-vars
+  Line 60:18:  'usePagination' is defined but never used              @typescript-eslint/no-unused-vars
+  Line 62:34:  'PaymentRepairLog' is defined but never used           @typescript-eslint/no-unused-vars
+  Line 89:30:  'canViewPayments' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  Line 105:9:  'repairHistoryApi' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+src\pages\ReconciliationMonitoring.tsx
+  Line 34:3:    'FormControl' is defined but never used                                                                                                             @typescript-eslint/no-unused-vars
+  Line 35:3:    'InputLabel' is defined but never used                                                                                                              @typescript-eslint/no-unused-vars
+  Line 36:3:    'Select' is defined but never used                                                                                                                  @typescript-eslint/no-unused-vars
+  Line 37:3:    'MenuItem' is defined but never used                                                                                                                @typescript-eslint/no-unused-vars
+  Line 59:102:  'ReconciliationPerformanceMetric' is defined but never used                                                                                         @typescript-eslint/no-unused-vars
+  Line 90:10:   'selectedMetric' is assigned a value but never used                                                                                                 @typescript-eslint/no-unused-vars
+  Line 90:26:   'setSelectedMetric' is assigned a value but never used                                                                                              @typescript-eslint/no-unused-vars
+  Line 132:6:   React Hook useEffect has missing dependencies: 'batchesApi', 'exceptionsApi', and 'metricsApi'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\ServiceManagement.tsx
+  Line 30:3:   'FormControl' is defined but never used                                                                                                                                   @typescript-eslint/no-unused-vars
+  Line 31:3:   'InputLabel' is defined but never used                                                                                                                                    @typescript-eslint/no-unused-vars
+  Line 32:3:   'Select' is defined but never used                                                                                                                                        @typescript-eslint/no-unused-vars
+  Line 33:3:   'MenuItem' is defined but never used                                                                                                                                      @typescript-eslint/no-unused-vars
+  Line 36:3:   'CircularProgress' is defined but never used                                                                                                                              @typescript-eslint/no-unused-vars
+  Line 44:3:   'Pause' is defined but never used                                                                                                                                         @typescript-eslint/no-unused-vars
+  Line 47:3:   'Settings' is defined but never used                                                                                                                                      @typescript-eslint/no-unused-vars
+  Line 49:3:   'MoreVert' is defined but never used                                                                                                                                      @typescript-eslint/no-unused-vars
+  Line 50:3:   'PowerSettingsNew' is defined but never used                                                                                                                              @typescript-eslint/no-unused-vars
+  Line 64:30:  'canManageChannels' is assigned a value but never used                                                                                                                    @typescript-eslint/no-unused-vars
+  Line 102:6:  React Hook useEffect has missing dependencies: 'circuitBreakersApi', 'featureFlagsApi', 'podsApi', and 'servicesApi'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\TransactionEnquiries.tsx
+  Line 33:3:   'InputAdornment' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+  Line 39:3:   'LinearProgress' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+  Line 58:33:  'useSearchApi' is defined but never used                                                                                         @typescript-eslint/no-unused-vars
+  Line 66:11:  'canViewTransactions' is assigned a value but never used                                                                         @typescript-eslint/no-unused-vars
+  Line 66:32:  'canSearchTransactions' is assigned a value but never used                                                                       @typescript-eslint/no-unused-vars
+  Line 101:6:  React Hook useEffect has missing dependencies: 'pagination' and 'searchApi'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  Line 108:6:  React Hook useEffect has a missing dependency: 'pagination'. Either include it or remove the dependency array                    react-hooks/exhaustive-deps
+
+src\services\authService.ts
+  Line 19:10:  'ApiResponse' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 23:3:   Useless constructor                      @typescript-eslint/no-useless-constructor
+
+src\services\operationsManagementService.ts
+  Line 22:10:  'ApiResponse' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 22:23:  'PaginationParams' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 26:3:   Useless constructor                           @typescript-eslint/no-useless-constructor
+
+src\services\paymentInitiationService.ts
+  Line 22:10:  'ApiResponse' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 26:3:   Useless constructor                      @typescript-eslint/no-useless-constructor
+
+src\services\reconciliationService.ts
+  Line 15:3:   'ReconciliationPerformanceMetric' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 19:10:  'ApiResponse' is defined but never used                      @typescript-eslint/no-unused-vars
+  Line 23:3:   Useless constructor                                          @typescript-eslint/no-useless-constructor
+
+src\services\tenantManagementService.ts
+  Line 17:10:  'ApiResponse' is defined but never used       @typescript-eslint/no-unused-vars
+  Line 17:23:  'PaginationParams' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 20:3:   Useless constructor                           @typescript-eslint/no-useless-constructor
+
+src\services\transactionProcessingService.ts
+  Line 18:10:  'ApiResponse' is defined but never used  @typescript-eslint/no-unused-vars
+  Line 22:3:   Useless constructor                      @typescript-eslint/no-useless-constructor
+
+src\utils\errorHandler.ts
+  Line 7:3:  'AnyError' is defined but never used  @typescript-eslint/no-unused-vars
+
+webpack compiled with 1 warning
+No issues found

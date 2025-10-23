@@ -15,9 +15,9 @@ import {
   LogoutRequest,
   UserRole,
   Permission
-} from '@types/auth';
-import { ApiResponse } from '@types/api';
-import { API_ENDPOINTS } from '@constants';
+} from '../types/auth';
+import { ApiResponse } from '../types/api';
+import { API_ENDPOINTS } from '../constants';
 
 export class AuthService extends BaseApiClient {
   constructor(httpClient: HttpClient) {

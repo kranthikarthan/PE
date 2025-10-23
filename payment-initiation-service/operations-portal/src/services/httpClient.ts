@@ -6,8 +6,8 @@
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { config } from '@config/environment';
-import { ApiResponse, ErrorResponse, TenantContext } from '@types/api';
+import { config } from '../config/environment';
+import { ApiResponse, ErrorResponse, TenantContext } from '../types/api';
 
 /**
  * HTTP Client class with retry logic and interceptors
@@ -55,9 +55,9 @@ export class HttpClient {
         }
 
         // Add request timestamp
-        config.metadata = { startTime: Date.now() };
+        (config as any).metadata = { startTime: Date.now() };
 
-        if (config.enableDebugLogging) {
+        if ((config as any).enableDebugLogging) {
           console.log(`[HTTP Request] ${config.method?.toUpperCase()} ${config.url}`, {
             headers: config.headers,
             data: config.data,
@@ -75,9 +75,9 @@ export class HttpClient {
     // Response interceptor
     this.instance.interceptors.response.use(
       (response: AxiosResponse) => {
-        const duration = Date.now() - (response.config.metadata?.startTime || 0);
+        const duration = Date.now() - ((response.config as any).metadata?.startTime || 0);
         
-        if (response.config.enableDebugLogging) {
+        if ((response.config as any).enableDebugLogging) {
           console.log(`[HTTP Response] ${response.config.method?.toUpperCase()} ${response.config.url}`, {
             status: response.status,
             duration: `${duration}ms`,
@@ -197,8 +197,8 @@ export class HttpClient {
     
     const retryableStatuses = [408, 429, 500, 502, 503, 504];
     const isNetworkError = !error.response;
-    const isRetryableStatus = error.response?.status && retryableStatuses.includes(error.response.status);
-    
+    const isRetryableStatus = error.response?.status ? retryableStatuses.includes(error.response.status) : false;
+
     return isNetworkError || isRetryableStatus;
   }
 
@@ -206,8 +206,9 @@ export class HttpClient {
    * Retry request with exponential backoff
    */
   private async retryRequest(config: AxiosRequestConfig): Promise<AxiosResponse> {
-    const delay = this.retryDelay * Math.pow(2, (config._retryCount || 0));
-    config._retryCount = (config._retryCount || 0) + 1;
+    const retryCount = (config as any)._retryCount || 0;
+    const delay = this.retryDelay * Math.pow(2, retryCount);
+    (config as any)._retryCount = retryCount + 1;
 
     await new Promise(resolve => setTimeout(resolve, delay));
     return this.instance(config);
@@ -221,13 +222,13 @@ export class HttpClient {
     
     if (response?.data) {
       return {
-        error: response.data.error || 'Request failed',
-        message: response.data.message || error.message,
+        error: (response.data as any)?.error || 'Request failed',
+        message: (response.data as any)?.message || error.message,
         status: response.status,
         timestamp: new Date().toISOString(),
         path: error.config?.url || '',
         correlationId: response.headers['x-correlation-id'],
-        details: response.data.details,
+        details: (response.data as any)?.details,
       };
     }
 

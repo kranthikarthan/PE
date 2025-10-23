@@ -11,10 +11,10 @@ import {
   ListItemText,
   ListItemIcon,
   IconButton,
-  Grid2 as Grid,
   Skeleton,
   Alert,
 } from '@mui/material';
+import { Grid } from '@mui/material';
 import {
   TrendingUp,
   TrendingDown,
@@ -23,10 +23,10 @@ import {
   Refresh,
   MoreVert,
 } from '@mui/icons-material';
-import { useApi } from '@hooks';
-import { getOperationsManagementService } from '@services';
-import { ServiceHealth } from '@types/service';
-import { useNotification } from '@contexts';
+import { useApi } from '../hooks';
+import { getOperationsManagementService } from '../services';
+import { ServiceHealth } from '../types/service';
+import { useNotification } from '../contexts';
 
 const Dashboard: React.FC = () => {
   const { showError } = useNotification();

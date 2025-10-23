@@ -3,8 +3,8 @@
  */
 
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { VirtualizedList } from '../VirtualizedList';
+import { render, screen, act } from '@testing-library/react';
+import VirtualizedList from '../VirtualizedList';
 
 describe('VirtualizedList', () => {
   const mockItems = Array.from({ length: 100 }, (_, i) => ({

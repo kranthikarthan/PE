@@ -36,6 +36,9 @@ export { default as MetricCard } from './MetricCard';
 export { default as GlobalErrorBoundary } from './GlobalErrorBoundary';
 export type { MetricCardProps, MetricTrend, MetricStatus } from './MetricCard';
 
+// Private Route
+export { default as PrivateRoute } from './PrivateRoute';
+
 // Performance Optimization Components
 export * from './LazyComponents';
 export { default as SuspenseWrapper } from './SuspenseWrapper';

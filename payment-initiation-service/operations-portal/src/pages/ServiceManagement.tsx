@@ -31,7 +31,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Grid2 as Grid,
   Skeleton,
   Alert,
   CircularProgress,
@@ -39,6 +38,7 @@ import {
   Switch,
   FormControlLabel,
 } from '@mui/material';
+import { Grid } from '@mui/material';
 import {
   PlayArrow,
   Pause,
@@ -53,11 +53,11 @@ import {
   CheckCircle,
   Error,
 } from '@mui/icons-material';
-import { useApi } from '@hooks';
-import { getOperationsManagementService } from '@services';
-import { ServiceHealth, CircuitBreakerInfo } from '@types/service';
-import { useNotification } from '@contexts';
-import { usePermissions } from '@hooks/usePermissions';
+import { useApi } from '../hooks';
+import { getOperationsManagementService } from '../services';
+import { ServiceHealth, CircuitBreakerInfo } from '../types/service';
+import { useNotification } from '../contexts';
+import { usePermissions } from '../hooks/usePermissions';
 
 const ServiceManagement: React.FC = () => {
   const { showSuccess, showError } = useNotification();

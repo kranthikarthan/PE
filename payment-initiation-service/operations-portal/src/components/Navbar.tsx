@@ -135,7 +135,7 @@ const Navbar: React.FC = () => {
             </Avatar>
           </IconButton>
           <Box sx={{ ml: 1, flexGrow: 1, minWidth: 0 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500, truncate: true }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {user?.firstName} {user?.lastName}
             </Typography>
             <Typography variant="caption" sx={{ opacity: 0.8, display: 'block' }}>

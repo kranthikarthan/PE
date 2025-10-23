@@ -11,7 +11,6 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { BrowserRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Context providers
 import { AuthProvider } from '@contexts/AuthContext';
@@ -31,18 +30,6 @@ const testTheme = createTheme({
   },
 });
 
-// Create test query client
-const createTestQueryClient = () =>
-  new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-      mutations: {
-        retry: false,
-      },
-    },
-  });
 
 // Mock user data
 const mockUser = {
@@ -65,50 +52,28 @@ const mockTenant = {
 
 // Custom render function with providers
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
-  initialAuthState?: {
-    isAuthenticated: boolean;
-    user?: typeof mockUser;
-    token?: string;
-  };
-  initialTenantState?: {
-    tenantId?: string;
-    businessUnitId?: string;
-  };
   initialRoute?: string;
-  queryClient?: QueryClient;
 }
 
 const AllTheProviders: React.FC<{
   children: React.ReactNode;
-  initialAuthState?: CustomRenderOptions['initialAuthState'];
-  initialTenantState?: CustomRenderOptions['initialTenantState'];
-  queryClient?: QueryClient;
 }> = ({
   children,
-  initialAuthState = { isAuthenticated: false },
-  initialTenantState = { tenantId: 'tenant-1', businessUnitId: 'bu-1' },
-  queryClient = createTestQueryClient(),
 }) => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ThemeProvider theme={testTheme}>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <AuthProvider
-              initialAuthState={initialAuthState}
-            >
-              <TenantProvider
-                initialTenantState={initialTenantState}
-              >
-                <NotificationProvider>
-                  {children}
-                </NotificationProvider>
-              </TenantProvider>
-            </AuthProvider>
-          </LocalizationProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <ThemeProvider theme={testTheme}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <AuthProvider>
+            <TenantProvider>
+              <NotificationProvider>
+                {children}
+              </NotificationProvider>
+            </TenantProvider>
+          </AuthProvider>
+        </LocalizationProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   );
 };
 
@@ -117,19 +82,12 @@ const customRender = (
   options: CustomRenderOptions = {}
 ) => {
   const {
-    initialAuthState,
-    initialTenantState,
-    queryClient,
     ...renderOptions
   } = options;
 
   return render(ui, {
     wrapper: ({ children }) => (
-      <AllTheProviders
-        initialAuthState={initialAuthState}
-        initialTenantState={initialTenantState}
-        queryClient={queryClient}
-      >
+      <AllTheProviders>
         {children}
       </AllTheProviders>
     ),
@@ -278,4 +236,3 @@ beforeEach(() => {
 // Export everything
 export * from '@testing-library/react';
 export { customRender as render };
-export { mockApiResponses, mockFunctions, generateTestData, waitForAsync };

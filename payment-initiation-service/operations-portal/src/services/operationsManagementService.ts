@@ -18,9 +18,9 @@ import {
   PodControlResponse,
   ServiceLogs,
   ServiceAlerts
-} from '@types/service';
-import { ApiResponse, PaginationParams } from '@types/api';
-import { API_ENDPOINTS } from '@constants';
+} from '../types/service';
+import { ApiResponse, PaginationParams } from '../types/api';
+import { API_ENDPOINTS } from '../constants';
 
 export class OperationsManagementService extends BaseApiClient {
   constructor(httpClient: HttpClient) {

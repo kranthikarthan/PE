@@ -31,7 +31,7 @@ import {
 import { useAuth } from '@contexts/AuthContext';
 import { useTenant } from '@contexts/TenantContext';
 import { useNotification } from '@contexts/NotificationContext';
-import { LoginRequest } from '@types/auth';
+import { LoginRequest } from '../types/auth';
 import { config } from '@config/environment';
 
 interface LoginFormData {

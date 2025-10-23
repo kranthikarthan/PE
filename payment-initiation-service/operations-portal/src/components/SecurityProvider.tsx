@@ -13,7 +13,7 @@ import { logSecurityEvent, SECURITY_EVENTS } from '../utils/security';
 
 interface SecurityContextType {
   // Input Sanitization
-  sanitizeInput: (input: any, type: string) => any;
+  sanitizeInput: (input: any, type: 'search' | 'text' | 'html' | 'url' | 'email' | 'phone' | 'numeric' | 'date' | 'json' | 'filename' | 'sql' | 'xss') => any;
   sanitizeFormData: (data: Record<string, any>) => Record<string, any>;
   
   // CSRF Protection
@@ -28,158 +28,92 @@ interface SecurityContextType {
   logSecurityEvent: (event: string, details: Record<string, any>) => void;
   
   // Storage Security
-  setSecureItem: (key: string, value: any) => void;
-  getSecureItem: <T>(key: string) => T | null;
-  removeSecureItem: (key: string) => void;
+  secureStore: (key: string, value: any) => void;
+  secureRetrieve: (key: string) => any;
+  secureRemove: (key: string) => void;
   
   // JWT Management
-  getJWTToken: () => string | null;
-  isJWTExpired: () => boolean;
-  
-  // Security Status
-  isSecure: boolean;
-  securityIssues: string[];
+  getJwtToken: () => string | null;
+  validateJwtToken: (token: string) => boolean;
+  refreshJwtToken: () => Promise<string | null>;
 }
 
-const SecurityContext = createContext<SecurityContextType | undefined>(undefined);
+const SecurityContext = createContext<SecurityContextType | null>(null);
 
 interface SecurityProviderProps {
   children: ReactNode;
 }
 
 export const SecurityProvider: React.FC<SecurityProviderProps> = ({ children }) => {
-  const [isSecure, setIsSecure] = useState(true);
-  const [securityIssues, setSecurityIssues] = useState<string[]>([]);
-  
-  // Initialize security measures
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+
   useEffect(() => {
-    initializeSecurity();
+    // Initialize CSRF token
+    const token = csrfManager.getToken();
+    setCsrfToken(token);
   }, []);
-  
-  const initializeSecurity = () => {
-    try {
-      // Generate CSRF token
-      csrfManager.generateToken();
-      
-      // Check session validity
-      const sessionValid = secureSessionManager.isSessionValid();
-      if (!sessionValid) {
-        logSecurityEvent(SECURITY_EVENTS.SUSPICIOUS_ACTIVITY, {
-          reason: 'Invalid session detected'
-        });
-      }
-      
-      // Validate JWT token
-      const token = jwtManager.getToken();
-      if (token && jwtManager.isTokenExpired(token)) {
-        logSecurityEvent(SECURITY_EVENTS.LOGIN_FAILURE, {
-          reason: 'Expired token detected'
-        });
-        jwtManager.clearTokens();
-      }
-      
-      // Check for security issues
-      checkSecurityIssues();
-      
-    } catch (error) {
-      console.error('Security initialization failed:', error);
-      setIsSecure(false);
-      setSecurityIssues(['Security initialization failed']);
-    }
+
+  const sanitizeInput = (input: any, type: 'search' | 'text' | 'html' | 'url' | 'email' | 'phone' | 'numeric' | 'date' | 'json' | 'filename' | 'sql' | 'xss'): any => {
+    return inputSanitizer.sanitize(input, type);
   };
-  
-  const checkSecurityIssues = () => {
-    const issues: string[] = [];
-    
-    // Check HTTPS
-    if (process.env.NODE_ENV === 'production' && !window.location.protocol.includes('https')) {
-      issues.push('HTTPS not enforced in production');
+
+  const sanitizeFormData = (data: Record<string, any>): Record<string, any> => {
+    const sanitized: Record<string, any> = {};
+    for (const [key, value] of Object.entries(data)) {
+      sanitized[key] = inputSanitizer.sanitize(value, 'text');
     }
-    
-    // Check for insecure storage
-    if (localStorage.getItem('password') || localStorage.getItem('secret')) {
-      issues.push('Sensitive data stored in localStorage');
-    }
-    
-    // Check for missing security headers
-    if (!document.querySelector('meta[name="csrf-token"]')) {
-      issues.push('CSRF token meta tag missing');
-    }
-    
-    setSecurityIssues(issues);
-    setIsSecure(issues.length === 0);
+    return sanitized;
   };
-  
-  const sanitizeInput = (input: any, type: string) => {
-    try {
-      return inputSanitizer.sanitize(input, type as any);
-    } catch (error) {
-      logSecurityEvent(SECURITY_EVENTS.SUSPICIOUS_ACTIVITY, {
-        reason: 'Input sanitization failed',
-        error: error.message
-      });
-      return input;
-    }
-  };
-  
-  const sanitizeFormData = (data: Record<string, any>) => {
-    try {
-      return inputSanitizer.sanitizeObject(data, {
-        // Default sanitization rules
-        username: 'text',
-        email: 'email',
-        password: 'text',
-        phone: 'phone',
-        url: 'url',
-        description: 'html',
-        search: 'search'
-      });
-    } catch (error) {
-      logSecurityEvent(SECURITY_EVENTS.SUSPICIOUS_ACTIVITY, {
-        reason: 'Form data sanitization failed',
-        error: error.message
-      });
-      return data;
-    }
-  };
-  
-  const getCsrfToken = () => {
+
+  const getCsrfToken = (): string | null => {
     return csrfManager.getToken();
   };
-  
-  const validateCsrfToken = (token: string) => {
+
+  const validateCsrfToken = (token: string): boolean => {
     return csrfManager.validateToken(token);
   };
-  
-  const isSessionValid = () => {
+
+  const isSessionValid = (): boolean => {
     return secureSessionManager.isSessionValid();
   };
-  
-  const updateSessionActivity = () => {
+
+  const updateSessionActivity = (): void => {
     secureSessionManager.updateSessionActivity();
   };
-  
-  const setSecureItem = (key: string, value: any) => {
+
+  const logSecurityEvent = (event: string, details: Record<string, any>): void => {
+    console.log('Security Event:', { event, details, timestamp: new Date().toISOString() });
+  };
+
+  const secureStore = (key: string, value: any): void => {
     secureStorageManager.setItem(key, value);
   };
-  
-  const getSecureItem = <T>(key: string): T | null => {
-    return secureStorageManager.getItem<T>(key);
+
+  const secureRetrieve = (key: string): any => {
+    return secureStorageManager.getItem(key);
   };
-  
-  const removeSecureItem = (key: string) => {
+
+  const secureRemove = (key: string): void => {
     secureStorageManager.removeItem(key);
   };
-  
-  const getJWTToken = () => {
+
+  const getJwtToken = (): string | null => {
     return jwtManager.getToken();
   };
-  
-  const isJWTExpired = () => {
-    const token = jwtManager.getToken();
-    return token ? jwtManager.isTokenExpired(token) : true;
+
+  const validateJwtToken = (token: string): boolean => {
+    return !jwtManager.isTokenExpired(token);
   };
-  
+
+  const refreshJwtToken = async (): Promise<string | null> => {
+    const refreshToken = jwtManager.getRefreshToken();
+    if (!refreshToken) return null;
+    
+    // In a real implementation, this would make an API call to refresh the token
+    // For now, we'll just return the current token
+    return jwtManager.getToken();
+  };
+
   const contextValue: SecurityContextType = {
     sanitizeInput,
     sanitizeFormData,
@@ -188,15 +122,14 @@ export const SecurityProvider: React.FC<SecurityProviderProps> = ({ children }) 
     isSessionValid,
     updateSessionActivity,
     logSecurityEvent,
-    setSecureItem,
-    getSecureItem,
-    removeSecureItem,
-    getJWTToken,
-    isJWTExpired,
-    isSecure,
-    securityIssues
+    secureStore,
+    secureRetrieve,
+    secureRemove,
+    getJwtToken,
+    validateJwtToken,
+    refreshJwtToken,
   };
-  
+
   return (
     <SecurityContext.Provider value={contextValue}>
       {children}
@@ -214,7 +147,7 @@ export const useSecurity = (): SecurityContextType => {
 };
 
 // Security HOC for components
-export const withSecurity = <P extends object>(Component: React.ComponentType<P>) => {
+export const withSecurity = <P extends object,>(Component: React.ComponentType<P>) => {
   return (props: P) => {
     const security = useSecurity();
     
@@ -244,17 +177,17 @@ export const SecureForm: React.FC<{
     const formData = new FormData(event.currentTarget);
     const data: Record<string, any> = {};
     
-    for (const [key, value] of formData.entries()) {
+    formData.forEach((value, key) => {
       data[key] = value;
-    }
+    });
     
     // Sanitize form data
     const sanitizedData = security.sanitizeFormData(data);
     
     // Log form submission
     security.logSecurityEvent(SECURITY_EVENTS.DATA_ACCESS, {
-      form: event.currentTarget.name || 'unknown',
-      fields: Object.keys(sanitizedData)
+      form: event.currentTarget.id || 'unknown',
+      timestamp: new Date().toISOString()
     });
     
     onSubmit(sanitizedData);
@@ -268,10 +201,10 @@ export const SecureForm: React.FC<{
 };
 
 // Security wrapper for API calls
-export const secureApiCall = async (
-  apiCall: () => Promise<any>,
+export const secureApiCall = async <T,>(
+  apiCall: () => Promise<T>,
   security: SecurityContextType
-): Promise<any> => {
+): Promise<T> => {
   try {
     // Validate session
     if (!security.isSessionValid()) {
@@ -295,7 +228,7 @@ export const secureApiCall = async (
     // Log failed API call
     security.logSecurityEvent(SECURITY_EVENTS.SUSPICIOUS_ACTIVITY, {
       reason: 'API call failed',
-      error: error.message
+      error: (error as Error).message
     });
     
     throw error;

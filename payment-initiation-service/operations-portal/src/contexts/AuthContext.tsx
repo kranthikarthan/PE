@@ -12,10 +12,10 @@ import {
   AuthContextType, 
   UserRole, 
   Permission 
-} from '@types/auth';
-import { getAuthService } from '@services';
-import { config } from '@config/environment';
-import { STORAGE_KEYS } from '@constants';
+} from '../types/auth';
+import { getAuthService } from '../services';
+import { config } from '../config/environment';
+import { STORAGE_KEYS } from '../constants';
 
 // Auth State Interface
 interface AuthState {
@@ -272,6 +272,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user: state.user,
     isAuthenticated: state.isAuthenticated,
     isLoading: state.isLoading,
+    error: state.error,
     login,
     logout,
     refreshToken,

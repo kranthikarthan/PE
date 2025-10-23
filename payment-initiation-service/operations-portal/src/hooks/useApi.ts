@@ -6,8 +6,8 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNotification } from '@contexts/NotificationContext';
-import { ApiResponse } from '@types/api';
+import { useNotification } from '../contexts/NotificationContext';
+import { ApiResponse } from '../types/api';
 
 interface UseApiState<T> {
   data: T | null;
@@ -257,7 +257,7 @@ export function useSearchApi<T = any>(
   
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debounce search query
   useEffect(() => {

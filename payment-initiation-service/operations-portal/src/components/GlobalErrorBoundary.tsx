@@ -14,7 +14,8 @@ import {
   Stack
 } from '@mui/material';
 import { Refresh, BugReport, Home } from '@mui/icons-material';
-import { errorHandler, AppError, ErrorType, ErrorSeverity } from '../utils/errorTypes';
+import { AppError, ErrorType, ErrorSeverity } from '../utils/errorTypes';
+import { errorHandler } from '../utils/errorHandler';
 
 interface Props {
   children: ReactNode;
@@ -42,18 +43,16 @@ class GlobalErrorBoundary extends Component<Props, State> {
     return {
       hasError: true,
       error: errorHandler.handleError(error, {
-        source: 'GlobalErrorBoundary'
+        url: window.location.href,
+        timestamp: new Date()
       })
     };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const appError = errorHandler.handleError(error, {
-      source: 'GlobalErrorBoundary',
-      details: {
-        componentStack: errorInfo.componentStack,
-        errorBoundary: true
-      }
+      url: window.location.href,
+      timestamp: new Date()
     });
 
     this.setState({

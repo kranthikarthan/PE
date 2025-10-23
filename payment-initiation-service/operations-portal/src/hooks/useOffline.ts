@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useNotification } from './useNotification';
+import { useNotification } from '../contexts';
 
 interface UseOfflineOptions {
   enableNotifications?: boolean;
@@ -22,29 +22,29 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [wasOffline, setWasOffline] = useState(false);
-  const { showNotification } = useNotification();
+  const { showInfo, showWarning } = useNotification();
 
   const handleOnline = useCallback(() => {
     setIsOnline(true);
     
     if (wasOffline && enableNotifications) {
-      showNotification('Connection restored', 'success');
+      showInfo('Connection restored', 'You are back online');
     }
     
     setWasOffline(false);
     onOnline?.();
-  }, [wasOffline, enableNotifications, showNotification, onOnline]);
+  }, [wasOffline, enableNotifications, showInfo, onOnline]);
 
   const handleOffline = useCallback(() => {
     setIsOnline(false);
     setWasOffline(true);
     
     if (enableNotifications) {
-      showNotification('You are offline. Some features may be limited.', 'warning');
+      showWarning('You are offline', 'Some features may be limited.');
     }
     
     onOffline?.();
-  }, [enableNotifications, showNotification, onOffline]);
+  }, [enableNotifications, showWarning, onOffline]);
 
   useEffect(() => {
     // Listen for online/offline events

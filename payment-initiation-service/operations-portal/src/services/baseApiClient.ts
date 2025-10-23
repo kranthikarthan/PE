@@ -6,7 +6,7 @@
  */
 
 import { HttpClient } from './httpClient';
-import { ApiResponse, PagedResponse, PaginationParams, SearchParams } from '@types/api';
+import { ApiResponse, PagedResponse, PaginationParams, SearchParams } from '../types/api';
 
 export abstract class BaseApiClient {
   protected httpClient: HttpClient;

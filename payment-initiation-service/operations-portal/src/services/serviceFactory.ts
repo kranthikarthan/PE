@@ -12,6 +12,7 @@ import { OperationsManagementService } from './operationsManagementService';
 import { TransactionProcessingService } from './transactionProcessingService';
 import { ReconciliationService } from './reconciliationService';
 import { AuthService } from './authService';
+import { TenantManagementService } from './tenantManagementService';
 
 /**
  * Service Factory class for managing API clients
@@ -164,6 +165,18 @@ export class ServiceFactory {
   }
 
   /**
+   * Get Tenant Management Service
+   */
+  getTenantManagementService(): TenantManagementService {
+    const key = 'tenant-management-service';
+    if (!this.services.has(key)) {
+      const httpClient = this.getHttpClient('tenant-management');
+      this.services.set(key, new TenantManagementService(httpClient));
+    }
+    return this.services.get(key);
+  }
+
+  /**
    * Get service by name (generic method)
    */
   getService<T>(serviceName: string): T {
@@ -228,6 +241,7 @@ export const getOperationsManagementService = () => serviceFactory.getOperations
 export const getTransactionProcessingService = () => serviceFactory.getTransactionProcessingService();
 export const getReconciliationService = () => serviceFactory.getReconciliationService();
 export const getAuthService = () => serviceFactory.getAuthService();
+export const getTenantManagementService = () => serviceFactory.getTenantManagementService();
 
 /**
  * Service names constants

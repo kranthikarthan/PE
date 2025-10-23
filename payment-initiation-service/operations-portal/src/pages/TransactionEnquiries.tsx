@@ -31,7 +31,6 @@ import {
   DialogContent,
   DialogActions,
   InputAdornment,
-  Grid2 as Grid,
   Skeleton,
   Alert,
   Tooltip,
@@ -39,6 +38,7 @@ import {
   CircularProgress,
   LinearProgress,
 } from '@mui/material';
+import { Grid } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import {
   Search,
@@ -55,11 +55,11 @@ import {
 } from '@mui/icons-material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { useApi, usePagination, useSearchApi } from '@hooks';
-import { getTransactionProcessingService } from '@services';
-import { Transaction, TransactionStatus, TransactionType, TransactionSearchCriteria } from '@types/transaction';
-import { useNotification } from '@contexts';
-import { usePermissions } from '@hooks/usePermissions';
+import { useApi, usePagination, useSearchApi } from '../hooks';
+import { getTransactionProcessingService } from '../services';
+import { Transaction, TransactionStatus, TransactionType, TransactionSearchCriteria } from '../types/transaction';
+import { useNotification } from '../contexts';
+import { usePermissions } from '../hooks/usePermissions';
 
 const TransactionEnquiries: React.FC = () => {
   const { showSuccess, showError } = useNotification();
@@ -80,16 +80,32 @@ const TransactionEnquiries: React.FC = () => {
   });
 
   // Search API hook
-  const searchApi = useSearchApi(
-    (query: string) => getTransactionProcessingService().searchTransactions(
-      { query, ...searchCriteria },
-      { page: pagination.currentPage, size: pagination.size }
-    ),
+  const searchApi = useApi(
+    async () => {
+      const result = await getTransactionProcessingService().searchTransactions(
+        searchCriteria,
+        { page: pagination.currentPage, size: pagination.pageSize }
+      );
+      return result.content || [];
+    },
     {
-      debounceMs: 500,
-      minQueryLength: 2,
+      immediate: false,
+      showNotifications: false
     }
   );
+
+  // Execute search when criteria change
+  useEffect(() => {
+    searchApi.execute();
+    pagination.setTotalItems(0); // Reset total items
+  }, [searchCriteria]);
+
+  // Update pagination when search results change
+  useEffect(() => {
+    if (searchApi.data) {
+      pagination.setTotalItems(Array.isArray(searchApi.data) ? searchApi.data.length : 0);
+    }
+  }, [searchApi.data]);
 
   // Transaction metrics API
   const metricsApi = useApi(
@@ -115,9 +131,8 @@ const TransactionEnquiries: React.FC = () => {
       dateFrom: dateFrom?.toISOString(),
       dateTo: dateTo?.toISOString(),
     };
-    
+
     setSearchCriteria(criteria);
-    searchApi.search(JSON.stringify(criteria));
   };
 
   // Handle export
@@ -152,7 +167,6 @@ const TransactionEnquiries: React.FC = () => {
     setSearchCriteria({});
     setDateFrom(null);
     setDateTo(null);
-    searchApi.setQuery('');
   };
 
   const getStatusColor = (status: TransactionStatus) => {
@@ -243,6 +257,7 @@ const TransactionEnquiries: React.FC = () => {
               onClick={() => {
                 searchApi.execute();
                 metricsApi.execute();
+                pagination.goToPage(0);
               }}
               disabled={searchApi.loading}
             >

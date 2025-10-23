@@ -116,7 +116,8 @@ export const withErrorBoundaryMemo = <P extends object>(
       return <MemoizedComponent {...props} />;
     } catch (error) {
       if (fallback) {
-        return <fallback error={error as Error} />;
+        const FallbackComponent = fallback;
+        return <FallbackComponent error={error as Error} />;
       }
       throw error;
     }
@@ -139,7 +140,10 @@ export const withLazyMemo = <P extends object>(
   
   const WrappedComponent = (props: P) => {
     return (
-      <React.Suspense fallback={loadingComponent ? <loadingComponent /> : <div>Loading...</div>}>
+      <React.Suspense fallback={loadingComponent ? (() => {
+        const LoadingComponent = loadingComponent;
+        return <LoadingComponent />;
+      })() : <div>Loading...</div>}>
         <MemoizedComponent {...props} />
       </React.Suspense>
     );

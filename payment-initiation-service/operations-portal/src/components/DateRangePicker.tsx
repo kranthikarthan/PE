@@ -301,7 +301,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
             value={tempRange.start}
             onChange={(date) => handleRangeChange({ ...tempRange, start: date })}
             minDate={minDate}
-            maxDate={maxDate || tempRange.end}
+            maxDate={maxDate || tempRange.end || undefined}
             disabled={disabled}
             slotProps={{
               textField: {

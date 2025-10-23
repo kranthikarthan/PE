@@ -6,7 +6,7 @@
  */
 
 import { renderHook, waitFor } from '@testing-library/react';
-import { rest } from 'msw';
+import { http } from 'msw';
 import { server } from '../../mocks/server';
 import { useApi } from '../useApi';
 import { fixtures } from '../../test-utils/fixtures';
