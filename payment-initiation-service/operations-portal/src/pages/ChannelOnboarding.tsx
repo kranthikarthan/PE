@@ -91,7 +91,7 @@ const ChannelOnboarding: React.FC = () => {
   const [testResult, setTestResult] = useState<ChannelTestResult | null>(null);
   const [formData, setFormData] = useState<ChannelFormData>({
     name: '',
-    type: ChannelType.API,
+    type: 'BANK_API',
     description: '',
     endpoint: '',
     authentication: AuthenticationMethod.API_KEY,
@@ -143,7 +143,7 @@ const ChannelOnboarding: React.FC = () => {
     setActiveStep(0);
     setFormData({
       name: '',
-      type: ChannelType.API,
+      type: 'BANK_API',
       description: '',
       endpoint: '',
       authentication: AuthenticationMethod.API_KEY,
