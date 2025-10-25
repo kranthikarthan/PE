@@ -1,0 +1,109 @@
+server:
+  port: 8022
+
+spring:
+  application:
+    name: metrics-aggregation-service
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/payments_metrics
+    username: ${DB_USERNAME:payments}
+    password: ${DB_PASSWORD:payments}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+# Metrics Aggregation Configuration
+app:
+  metrics:
+    collection:
+      enabled: true
+      interval: 30s
+      timeout: 10s
+      services:
+        - payment-initiation-service
+        - validation-service
+        - account-adapter-service
+        - routing-service
+        - transaction-processing-service
+        - saga-orchestrator
+        - samos-adapter-service
+        - bankservafrica-adapter-service
+        - rtc-adapter-service
+        - payshap-adapter-service
+        - swift-adapter-service
+        - reconciliation-service
+        - settlement-service
+        - batch-processing-service
+        - analytics-service
+        - reporting-service
+        - web-bff-service
+        - tenant-management-service
+        - iam-service
+        - audit-service
+        - notification-service
+        - operations-management-service
+  
+  alerts:
+    evaluation:
+      enabled: true
+      interval: 30s
+      timeout: 5s
+  
+  notifications:
+    email:
+      enabled: true
+      smtp-host: ${SMTP_HOST:localhost}
+      smtp-port: ${SMTP_PORT:587}
+      username: ${SMTP_USERNAME:}
+      password: ${SMTP_PASSWORD:}
+    slack:
+      enabled: true
+      webhook-url: ${SLACK_WEBHOOK_URL:}
+    webhook:
+      enabled: true
+      url: ${WEBHOOK_URL:}
+
+# Management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+# Logging
+logging:
+  level:
+    com.payments.metricsaggregation: INFO
+    org.springframework.web.reactive: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
