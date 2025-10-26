@@ -90,7 +90,7 @@ class PaymentInitiationControllerTest {
   @Test
   void initiatePayment_ShouldReturn400_WhenInvalidRequest() throws Exception {
     // Given
-    PaymentInitiationRequest request = createValidPaymentRequest();
+    PaymentInitiationRequest request = createInvalidPaymentRequest();
 
     when(paymentInitiationService.initiatePayment(
             any(PaymentInitiationRequest.class), anyString(), anyString(), anyString()))
@@ -254,6 +254,23 @@ class PaymentInitiationControllerTest {
         .andExpect(status().isBadRequest());
   }
 
+  @Test
+  void initiatePayment_ShouldReturn400_WhenInvalidPaymentData() throws Exception {
+    // Given
+    PaymentInitiationRequest request = createInvalidPaymentRequest();
+
+    // When & Then - This should trigger validation errors in the interceptor or service
+    mockMvc
+        .perform(
+            post("/api/v1/payments/initiate")
+                .header("X-Correlation-ID", UUID.randomUUID().toString())
+                .header("X-Tenant-ID", "TENANT-001")
+                .header("X-Business-Unit-ID", "BU-001")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest());
+  }
+
   private PaymentInitiationRequest createValidPaymentRequest() {
     return PaymentInitiationRequest.builder()
         .paymentId(new PaymentId("PAY-001"))
@@ -274,15 +291,15 @@ class PaymentInitiationControllerTest {
     return PaymentInitiationRequest.builder()
         .paymentId(new PaymentId("PAY-001"))
         .idempotencyKey("") // Invalid: empty idempotency key
-        .sourceAccount("12345678901")
-        .destinationAccount("98765432109")
-        .amount(Money.zar(BigDecimal.valueOf(1000.00)))
-        .reference("Test payment")
+        .sourceAccount("") // Invalid: empty source account
+        .destinationAccount("") // Invalid: empty destination account
+        .amount(Money.zar(BigDecimal.valueOf(-100.00))) // Invalid: negative amount
+        .reference("") // Invalid: empty reference
         .paymentType(com.payments.contracts.payment.PaymentType.EFT)
         .priority(com.payments.contracts.payment.Priority.NORMAL)
         .tenantContext(
             TenantContext.builder().tenantId("TENANT-001").businessUnitId("BU-001").build())
-        .initiatedBy("user@example.com")
+        .initiatedBy("") // Invalid: empty initiated by
         .build();
   }
 
