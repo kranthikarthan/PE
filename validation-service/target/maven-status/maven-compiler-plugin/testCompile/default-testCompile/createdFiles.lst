@@ -1,7 +1,0 @@
-com\payments\validation\service\BusinessRuleEngineTest.class
-com\payments\validation\integration\ValidationServiceIntegrationTest.class
-com\payments\validation\service\RiskAssessmentRuleEngineTest.class
-com\payments\validation\config\TestConfig.class
-com\payments\validation\service\ComplianceRuleEngineTest.class
-com\payments\validation\service\FraudDetectionRuleEngineTest.class
-com\payments\validation\service\ValidationResultServiceTest.class

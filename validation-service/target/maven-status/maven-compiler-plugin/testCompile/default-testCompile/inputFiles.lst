@@ -1,7 +1,0 @@
-C:\git\clone\PE\validation-service\src\test\java\com\payments\validation\config\TestConfig.java
-C:\git\clone\PE\validation-service\src\test\java\com\payments\validation\integration\ValidationServiceIntegrationTest.java
-C:\git\clone\PE\validation-service\src\test\java\com\payments\validation\service\BusinessRuleEngineTest.java
-C:\git\clone\PE\validation-service\src\test\java\com\payments\validation\service\ComplianceRuleEngineTest.java
-C:\git\clone\PE\validation-service\src\test\java\com\payments\validation\service\FraudDetectionRuleEngineTest.java
-C:\git\clone\PE\validation-service\src\test\java\com\payments\validation\service\RiskAssessmentRuleEngineTest.java
-C:\git\clone\PE\validation-service\src\test\java\com\payments\validation\service\ValidationResultServiceTest.java
