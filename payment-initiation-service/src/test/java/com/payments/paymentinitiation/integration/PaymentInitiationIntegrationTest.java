@@ -39,6 +39,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class PaymentInitiationIntegrationTest {
 
   @Container
+  @SuppressWarnings("resource") // Resource is properly closed in @AfterAll tearDown method
   static PostgreSQLContainer<?> postgres =
       new PostgreSQLContainer<>("postgres:15-alpine")
           .withDatabaseName("payments_test")
