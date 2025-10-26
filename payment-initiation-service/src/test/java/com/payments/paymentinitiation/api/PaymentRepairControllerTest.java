@@ -139,13 +139,6 @@ class PaymentRepairControllerTest {
                 .result("SUCCESS")
                 .build());
 
-    PaymentRepairController.RepairHistoryResponse mockResponse =
-        PaymentRepairController.RepairHistoryResponse.builder()
-            .paymentId("payment-123")
-            .repairHistory(mockHistory)
-            .totalCount(1)
-            .build();
-
     when(paymentRepairService.getPaymentRepairHistory(
             anyString(), anyString(), anyString(), anyString()))
         .thenReturn(mockHistory);
