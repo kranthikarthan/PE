@@ -15,6 +15,7 @@ import com.payments.domain.shared.Money;
 import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
 import com.payments.paymentinitiation.port.PaymentRepositoryPort;
+import com.payments.paymentinitiation.service.AuditEventAsyncPublisher;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -40,11 +42,18 @@ class PaymentDomainServiceTest {
 
   @Mock private PaymentEventPublisher eventPublisher;
 
+  @Mock private ApplicationEventPublisher applicationEventPublisher;
+
+  @Mock private AuditEventAsyncPublisher auditEventAsyncPublisher;
+
   private PaymentDomainService paymentDomainService;
 
   @BeforeEach
   void setUp() {
-    paymentDomainService = new PaymentDomainService(paymentRepository, eventPublisher);
+    // Create PaymentEventPublisher with mocked dependencies
+    PaymentEventPublisher realEventPublisher = new PaymentEventPublisher(applicationEventPublisher, auditEventAsyncPublisher);
+    
+    paymentDomainService = new PaymentDomainService(paymentRepository, realEventPublisher);
   }
 
   @Test

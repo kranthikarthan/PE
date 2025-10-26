@@ -17,6 +17,7 @@ import com.payments.domain.shared.PaymentId;
 // use fully qualified enums to avoid contract/domain mismatch
 import com.payments.domain.shared.TenantContext;
 import com.payments.paymentinitiation.port.PaymentRepositoryPort;
+import com.payments.paymentinitiation.service.AuditEventAsyncPublisher;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Optional;
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * Unit tests for PaymentInitiationService
@@ -43,13 +45,20 @@ class PaymentInitiationServiceTest {
 
   @Mock private PaymentEventPublisher eventPublisher;
 
+  @Mock private ApplicationEventPublisher applicationEventPublisher;
+
+  @Mock private AuditEventAsyncPublisher auditEventAsyncPublisher;
+
   private PaymentInitiationService paymentInitiationService;
 
   @BeforeEach
   void setUp() {
+    // Create PaymentEventPublisher with mocked dependencies
+    PaymentEventPublisher realEventPublisher = new PaymentEventPublisher(applicationEventPublisher, auditEventAsyncPublisher);
+    
     paymentInitiationService =
         new PaymentInitiationService(
-            paymentRepository, idempotencyService, paymentDomainService, eventPublisher);
+            paymentRepository, idempotencyService, paymentDomainService, realEventPublisher);
 
     lenient()
         .doAnswer(
