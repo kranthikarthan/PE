@@ -21,7 +21,7 @@ import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -47,17 +47,17 @@ class PaymentInitiationControllerTest {
 
   @Autowired private ObjectMapper objectMapper;
 
-  @MockBean private PaymentInitiationService paymentInitiationService;
-  @MockBean private PaymentBusinessRulesService paymentBusinessRulesService;
-  @MockBean private com.payments.paymentinitiation.service.IdempotencyService idempotencyService;
+  @MockitoBean private PaymentInitiationService paymentInitiationService;
+  @MockitoBean private PaymentBusinessRulesService paymentBusinessRulesService;
+  @MockitoBean private com.payments.paymentinitiation.service.IdempotencyService idempotencyService;
 
-  @MockBean(name = "idempotencyRepositoryAdapter")
+  @MockitoBean(name = "idempotencyRepositoryAdapter")
   private IdempotencyRepositoryPort idempotencyRepositoryAdapter;
 
-  @MockBean(name = "idempotencyRepositoryPort")
+  @MockitoBean(name = "idempotencyRepositoryPort")
   private IdempotencyRepositoryPort idempotencyRepositoryPort;
 
-  @MockBean
+  @MockitoBean
   private com.payments.paymentinitiation.service.EnhancedIdempotencyService
       enhancedIdempotencyService;
 
