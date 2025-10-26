@@ -11,6 +11,7 @@ import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,13 @@ class PaymentInitiationIntegrationTest {
     registry.add("spring.datasource.url", postgres::getJdbcUrl);
     registry.add("spring.datasource.username", postgres::getUsername);
     registry.add("spring.datasource.password", postgres::getPassword);
+  }
+
+  @AfterAll
+  static void tearDown() {
+    if (postgres != null && postgres.isRunning()) {
+      postgres.close();
+    }
   }
 
   @Autowired private MockMvc mockMvc;
