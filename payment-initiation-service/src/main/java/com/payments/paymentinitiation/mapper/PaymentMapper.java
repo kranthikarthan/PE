@@ -4,8 +4,8 @@ import com.payments.contracts.payment.PaymentInitiationResponse;
 import com.payments.contracts.payment.PaymentStatus;
 import com.payments.contracts.payment.PaymentType;
 import com.payments.contracts.payment.Priority;
-import com.payments.domain.payment.Payment;
-import com.payments.domain.payment.PaymentReference;
+import com.payments.domain.entities.Payment;
+import com.payments.domain.valueobjects.PaymentReference;
 import com.payments.paymentinitiation.entity.PaymentEntity;
 import com.payments.paymentinitiation.entity.PaymentStatusHistoryEntity;
 import java.util.List;
@@ -58,7 +58,7 @@ public class PaymentMapper {
    */
   public Payment toDomain(PaymentEntity entity) {
     return Payment.builder()
-        .id(entity.getPaymentId())
+        .paymentId(entity.getPaymentId())
         .idempotencyKey(entity.getIdempotencyKey())
         .sourceAccount(entity.getSourceAccount())
         .destinationAccount(entity.getDestinationAccount())
@@ -110,24 +110,35 @@ public class PaymentMapper {
   }
 
   /** Enum mappers: domain -> contract */
-  public PaymentType mapPaymentType(com.payments.domain.payment.PaymentType type) {
+  public PaymentType mapPaymentType(com.payments.domain.valueobjects.PaymentType type) {
     if (type == null) return null;
-    return switch (type) {
-      case EFT -> PaymentType.EFT;
-      case RTC, PAYSHAP -> PaymentType.IMMEDIATE_PAYMENT;
-      case SWIFT, INTERNAL_TRANSFER -> PaymentType.EFT;
-    };
+    
+    if (type == com.payments.domain.valueobjects.PaymentType.EFT) {
+      return PaymentType.EFT;
+    } else if (type == com.payments.domain.valueobjects.PaymentType.RTGS) {
+      return PaymentType.IMMEDIATE_PAYMENT;
+    } else if (type == com.payments.domain.valueobjects.PaymentType.CREDIT_TRANSFER || 
+               type == com.payments.domain.valueobjects.PaymentType.DEBIT_TRANSFER) {
+      return PaymentType.EFT;
+    } else if (type == com.payments.domain.valueobjects.PaymentType.CARD_PAYMENT || 
+               type == com.payments.domain.valueobjects.PaymentType.WALLET_TRANSFER) {
+      return PaymentType.EFT;
+    }
+    
+    return PaymentType.EFT; // default fallback
   }
 
-  public Priority mapPriority(com.payments.domain.payment.Priority priority) {
+  public Priority mapPriority(com.payments.domain.valueobjects.Priority priority) {
     if (priority == null) return null;
     return switch (priority) {
+      case LOW -> Priority.NORMAL; // Map LOW to NORMAL in contract
       case NORMAL -> Priority.NORMAL;
       case HIGH -> Priority.HIGH;
+      case URGENT -> Priority.HIGH; // Map URGENT to HIGH in contract
     };
   }
 
-  public PaymentStatus mapStatus(com.payments.domain.payment.PaymentStatus status) {
+  public PaymentStatus mapStatus(com.payments.domain.valueobjects.PaymentStatus status) {
     return status == null ? null : PaymentStatus.valueOf(status.name());
   }
 }

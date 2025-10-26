@@ -1,8 +1,8 @@
 package com.payments.paymentinitiation.service;
 
 import com.payments.contracts.payment.PaymentInitiationResponse;
-import com.payments.domain.payment.Payment;
-import com.payments.domain.payment.PaymentStatus;
+import com.payments.domain.entities.Payment;
+import com.payments.domain.valueobjects.PaymentStatus;
 import com.payments.domain.shared.PaymentId;
 import com.payments.paymentinitiation.api.PaymentRepairController.*;
 import com.payments.paymentinitiation.entity.PaymentRepairLogEntity;

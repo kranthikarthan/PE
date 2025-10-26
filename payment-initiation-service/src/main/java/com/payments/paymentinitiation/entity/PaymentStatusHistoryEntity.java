@@ -1,6 +1,6 @@
 package com.payments.paymentinitiation.entity;
 
-import com.payments.domain.payment.PaymentStatus;
+import com.payments.domain.valueobjects.PaymentStatus;
 import jakarta.persistence.*;
 import java.time.Instant;
 import lombok.AllArgsConstructor;

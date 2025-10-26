@@ -1,6 +1,6 @@
 package com.payments.paymentinitiation.service;
 
-import com.payments.domain.payment.Payment;
+import com.payments.domain.entities.Payment;
 import com.payments.domain.shared.TenantContext;
 import com.payments.paymentinitiation.port.PaymentRepositoryPort;
 import java.math.BigDecimal;

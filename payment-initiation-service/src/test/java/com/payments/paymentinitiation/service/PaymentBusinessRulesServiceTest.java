@@ -6,9 +6,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 
-import com.payments.domain.payment.Payment;
-import com.payments.domain.payment.PaymentType;
-import com.payments.domain.payment.Priority;
+import com.payments.domain.entities.Payment;
+import com.payments.domain.valueobjects.PaymentReference;
+import com.payments.domain.valueobjects.PaymentType;
+import com.payments.domain.valueobjects.Priority;
 import com.payments.domain.shared.AccountNumber;
 import com.payments.domain.shared.Money;
 import com.payments.domain.shared.PaymentId;
@@ -280,7 +281,7 @@ class PaymentBusinessRulesServiceTest {
         Money.zar(BigDecimal.valueOf(1000.00)),
         AccountNumber.of("12345678901"),
         AccountNumber.of("98765432109"),
-        com.payments.domain.payment.PaymentReference.of("Test payment"),
+        PaymentReference.of("Test payment"),
         PaymentType.EFT,
         Priority.NORMAL,
         "test@example.com",
@@ -294,7 +295,7 @@ class PaymentBusinessRulesServiceTest {
         Money.zar(amount),
         AccountNumber.of("12345678901"),
         AccountNumber.of("98765432109"),
-        com.payments.domain.payment.PaymentReference.of("Existing payment"),
+        PaymentReference.of("Existing payment"),
         PaymentType.EFT,
         Priority.NORMAL,
         "test@example.com",

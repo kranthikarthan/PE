@@ -6,10 +6,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.payments.domain.payment.Payment;
-import com.payments.domain.payment.PaymentStatus;
-import com.payments.domain.payment.PaymentType;
-import com.payments.domain.payment.Priority;
+import com.payments.domain.entities.Payment;
+import com.payments.domain.valueobjects.PaymentReference;
+import com.payments.domain.valueobjects.PaymentStatus;
+import com.payments.domain.valueobjects.PaymentType;
+import com.payments.domain.valueobjects.Priority;
 import com.payments.domain.shared.AccountNumber;
 import com.payments.domain.shared.Money;
 import com.payments.domain.shared.PaymentId;
@@ -157,11 +158,11 @@ class PaymentDomainServiceTest {
         .sourceAccount(AccountNumber.of("12345678901"))
         .destinationAccount(AccountNumber.of("98765432109"))
         .amount(Money.zar(BigDecimal.valueOf(1000.00)))
-        .reference(com.payments.domain.payment.PaymentReference.of("Test payment"))
+        .reference(PaymentReference.of("Test payment"))
         .paymentType(PaymentType.EFT)
         .priority(Priority.NORMAL)
         .tenantContext(createValidTenantContext())
-        .status(com.payments.domain.payment.PaymentStatus.INITIATED)
+        .status(PaymentStatus.INITIATED)
         .initiatedBy("user@example.com")
         .initiatedAt(Instant.now())
         .build();
@@ -174,11 +175,11 @@ class PaymentDomainServiceTest {
         .sourceAccount(AccountNumber.of("12345678901"))
         .destinationAccount(AccountNumber.of("98765432109"))
         .amount(Money.zar(amount))
-        .reference(com.payments.domain.payment.PaymentReference.of("Existing payment"))
+        .reference(PaymentReference.of("Existing payment"))
         .paymentType(PaymentType.EFT)
         .priority(Priority.NORMAL)
         .tenantContext(createValidTenantContext())
-        .status(com.payments.domain.payment.PaymentStatus.INITIATED)
+        .status(PaymentStatus.INITIATED)
         .initiatedBy("user@example.com")
         .initiatedAt(Instant.now())
         .build();

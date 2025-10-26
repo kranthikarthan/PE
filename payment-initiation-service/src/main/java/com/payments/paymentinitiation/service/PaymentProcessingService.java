@@ -371,7 +371,7 @@ public class PaymentProcessingService {
 
   /** Convert payment entity to canonical payment model */
   private CanonicalPaymentModel convertPaymentToCanonical(
-      com.payments.domain.payment.Payment payment, TenantContext tenantContext) {
+      com.payments.domain.entities.Payment payment, TenantContext tenantContext) {
     return CanonicalPaymentModel.builder()
         .paymentId(payment.getId().getValue())
         .status(mapPaymentStatusToCanonical(payment.getStatus()))
@@ -399,7 +399,7 @@ public class PaymentProcessingService {
 
   /** Map payment domain status to canonical status */
   private CanonicalPaymentModel.PaymentStatus mapPaymentStatusToCanonical(
-      com.payments.domain.payment.PaymentStatus paymentStatus) {
+      com.payments.domain.valueobjects.PaymentStatus paymentStatus) {
     // Map domain payment status to canonical status
     switch (paymentStatus) {
       case INITIATED:
@@ -408,14 +408,14 @@ public class PaymentProcessingService {
         return CanonicalPaymentModel.PaymentStatus.ACCEPTED;
       case SUBMITTED_TO_CLEARING:
         return CanonicalPaymentModel.PaymentStatus.PROCESSING;
-      case CLEARING:
-        return CanonicalPaymentModel.PaymentStatus.PROCESSING;
       case CLEARED:
         return CanonicalPaymentModel.PaymentStatus.COMPLETED;
       case COMPLETED:
         return CanonicalPaymentModel.PaymentStatus.COMPLETED;
       case FAILED:
         return CanonicalPaymentModel.PaymentStatus.FAILED;
+      case PENDING:
+        return CanonicalPaymentModel.PaymentStatus.PENDING;
       default:
         return CanonicalPaymentModel.PaymentStatus.PENDING;
     }

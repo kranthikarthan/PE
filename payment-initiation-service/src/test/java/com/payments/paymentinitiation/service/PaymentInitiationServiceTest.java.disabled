@@ -8,9 +8,9 @@ import static org.mockito.Mockito.*;
 
 import com.payments.contracts.payment.PaymentInitiationRequest;
 import com.payments.contracts.payment.PaymentInitiationResponse;
-import com.payments.contracts.payment.PaymentStatus;
-import com.payments.domain.payment.Payment;
-import com.payments.domain.payment.Priority;
+import com.payments.domain.entities.Payment;
+import com.payments.domain.valueobjects.PaymentStatus;
+import com.payments.domain.valueobjects.Priority;
 import com.payments.domain.shared.AccountNumber;
 import com.payments.domain.shared.Money;
 import com.payments.domain.shared.PaymentId;
@@ -55,11 +55,11 @@ class PaymentInitiationServiceTest {
         .doAnswer(
             invocation -> {
               Payment paymentArg = invocation.getArgument(0);
-              com.payments.domain.payment.PaymentStatus newStatus = invocation.getArgument(1);
+              PaymentStatus newStatus = invocation.getArgument(1);
               String reason = invocation.getArgument(2);
 
               paymentArg.setStatus(newStatus);
-              if (newStatus == com.payments.domain.payment.PaymentStatus.FAILED) {
+              if (newStatus == PaymentStatus.FAILED) {
                 paymentArg.setFailureReason(reason);
                 paymentArg.setFailedAt(Instant.now());
               }
@@ -285,12 +285,12 @@ class PaymentInitiationServiceTest {
         .sourceAccount(AccountNumber.of("12345678901"))
         .destinationAccount(AccountNumber.of("98765432109"))
         .amount(Money.zar(BigDecimal.valueOf(1000.00)))
-        .reference(com.payments.domain.payment.PaymentReference.of("Test payment"))
-        .paymentType(com.payments.domain.payment.PaymentType.EFT)
+        .reference(com.payments.domain.valueobjects.PaymentReference.of("Test payment"))
+        .paymentType(com.payments.domain.valueobjects.PaymentType.EFT)
         .priority(Priority.NORMAL)
         .tenantContext(
             TenantContext.builder().tenantId("TENANT-001").businessUnitId("BU-001").build())
-        .status(com.payments.domain.payment.PaymentStatus.INITIATED)
+        .status(PaymentStatus.INITIATED)
         .initiatedBy("user@example.com")
         .initiatedAt(Instant.now())
         .build();

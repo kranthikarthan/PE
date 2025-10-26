@@ -6,7 +6,8 @@ import com.payments.contracts.payment.PaymentInitiationResponse;
 import com.payments.contracts.payment.PaymentStatus;
 import com.payments.contracts.payment.PaymentType;
 import com.payments.contracts.payment.Priority;
-import com.payments.domain.payment.Payment;
+import com.payments.domain.entities.Payment;
+import com.payments.domain.valueobjects.PaymentReference;
 import com.payments.domain.shared.AccountNumber;
 import com.payments.domain.shared.Money;
 import com.payments.domain.shared.PaymentId;
@@ -124,9 +125,9 @@ class PaymentMapperTest {
     Payment domainPayment = createDomainPayment();
     // Drive status changes via updateStatus to populate history
     domainPayment.updateStatus(
-        com.payments.domain.payment.PaymentStatus.VALIDATED, "Validation successful");
+        com.payments.domain.valueobjects.PaymentStatus.VALIDATED, "Validation successful");
     domainPayment.updateStatus(
-        com.payments.domain.payment.PaymentStatus.COMPLETED, "Payment completed");
+        com.payments.domain.valueobjects.PaymentStatus.COMPLETED, "Payment completed");
 
     // When
     List<PaymentStatusHistoryEntity> entities =
@@ -156,31 +157,31 @@ class PaymentMapperTest {
   @Test
   void mapPaymentType_ShouldMapCorrectly_WhenValidTypes() {
     // Test all payment type mappings
-    assertThat(paymentMapper.mapPaymentType(com.payments.domain.payment.PaymentType.EFT))
+    assertThat(paymentMapper.mapPaymentType(com.payments.domain.valueobjects.PaymentType.EFT))
         .isEqualTo(PaymentType.EFT);
-    assertThat(paymentMapper.mapPaymentType(com.payments.domain.payment.PaymentType.RTC))
+    assertThat(paymentMapper.mapPaymentType(com.payments.domain.valueobjects.PaymentType.RTC))
         .isEqualTo(PaymentType.IMMEDIATE_PAYMENT);
   }
 
   @Test
   void mapPriority_ShouldMapCorrectly_WhenValidPriorities() {
     // Test all priority mappings
-    assertThat(paymentMapper.mapPriority(com.payments.domain.payment.Priority.NORMAL))
+    assertThat(paymentMapper.mapPriority(com.payments.domain.valueobjects.Priority.NORMAL))
         .isEqualTo(Priority.NORMAL);
-    assertThat(paymentMapper.mapPriority(com.payments.domain.payment.Priority.HIGH))
+    assertThat(paymentMapper.mapPriority(com.payments.domain.valueobjects.Priority.HIGH))
         .isEqualTo(Priority.HIGH);
   }
 
   @Test
   void mapStatus_ShouldMapCorrectly_WhenValidStatuses() {
     // Test all status mappings
-    assertThat(paymentMapper.mapStatus(com.payments.domain.payment.PaymentStatus.INITIATED))
+    assertThat(paymentMapper.mapStatus(com.payments.domain.valueobjects.PaymentStatus.INITIATED))
         .isEqualTo(PaymentStatus.INITIATED);
-    assertThat(paymentMapper.mapStatus(com.payments.domain.payment.PaymentStatus.VALIDATED))
+    assertThat(paymentMapper.mapStatus(com.payments.domain.valueobjects.PaymentStatus.VALIDATED))
         .isEqualTo(PaymentStatus.VALIDATED);
-    assertThat(paymentMapper.mapStatus(com.payments.domain.payment.PaymentStatus.COMPLETED))
+    assertThat(paymentMapper.mapStatus(com.payments.domain.valueobjects.PaymentStatus.COMPLETED))
         .isEqualTo(PaymentStatus.COMPLETED);
-    assertThat(paymentMapper.mapStatus(com.payments.domain.payment.PaymentStatus.FAILED))
+    assertThat(paymentMapper.mapStatus(com.payments.domain.valueobjects.PaymentStatus.FAILED))
         .isEqualTo(PaymentStatus.FAILED);
   }
 
@@ -191,15 +192,15 @@ class PaymentMapperTest {
         .sourceAccount(AccountNumber.of("12345678901"))
         .destinationAccount(AccountNumber.of("98765432109"))
         .amount(Money.zar(BigDecimal.valueOf(1000.00)))
-        .reference(com.payments.domain.payment.PaymentReference.of("Test payment"))
-        .paymentType(com.payments.domain.payment.PaymentType.EFT)
-        .priority(com.payments.domain.payment.Priority.NORMAL)
+        .reference(PaymentReference.of("Test payment"))
+        .paymentType(com.payments.domain.valueobjects.PaymentType.EFT)
+        .priority(com.payments.domain.valueobjects.Priority.NORMAL)
         .tenantContext(
             TenantContext.builder()
                 .tenantId("TEST-TENANT-001")
                 .businessUnitId("TEST-BU-001")
                 .build())
-        .status(com.payments.domain.payment.PaymentStatus.INITIATED)
+        .status(com.payments.domain.valueobjects.PaymentStatus.INITIATED)
         .initiatedBy("test@example.com")
         .initiatedAt(Instant.now())
         .build();
@@ -213,14 +214,14 @@ class PaymentMapperTest {
         .destinationAccount(AccountNumber.of("98765432109"))
         .amount(Money.zar(BigDecimal.valueOf(1000.00)))
         .reference("Test payment")
-        .paymentType(com.payments.domain.payment.PaymentType.EFT)
-        .priority(com.payments.domain.payment.Priority.NORMAL)
+        .paymentType(com.payments.domain.valueobjects.PaymentType.EFT)
+        .priority(com.payments.domain.valueobjects.Priority.NORMAL)
         .tenantContext(
             TenantContext.builder()
                 .tenantId("TEST-TENANT-001")
                 .businessUnitId("TEST-BU-001")
                 .build())
-        .status(com.payments.domain.payment.PaymentStatus.INITIATED)
+        .status(com.payments.domain.valueobjects.PaymentStatus.INITIATED)
         .initiatedBy("test@example.com")
         .initiatedAt(Instant.now())
         .build();

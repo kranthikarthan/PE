@@ -11,13 +11,20 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode
 public class StatusChange {
 
-  private final PaymentStatus status;
+  private final PaymentStatus fromStatus;
+  private final PaymentStatus toStatus;
   private final String reason;
   private final Instant timestamp;
+  private final String changedBy;
 
-  public StatusChange(PaymentStatus status, String reason, Instant timestamp) {
-    if (status == null) {
-      throw new IllegalArgumentException("Status cannot be null");
+  public StatusChange(
+      PaymentStatus fromStatus,
+      PaymentStatus toStatus,
+      String reason,
+      Instant timestamp,
+      String changedBy) {
+    if (toStatus == null) {
+      throw new IllegalArgumentException("To status cannot be null");
     }
     if (reason == null || reason.trim().isEmpty()) {
       throw new IllegalArgumentException("Reason cannot be null or empty");
@@ -25,9 +32,32 @@ public class StatusChange {
     if (timestamp == null) {
       throw new IllegalArgumentException("Timestamp cannot be null");
     }
-    this.status = status;
+    this.fromStatus = fromStatus;
+    this.toStatus = toStatus;
     this.reason = reason.trim();
     this.timestamp = timestamp;
+    this.changedBy = changedBy;
+  }
+
+  // Legacy constructor for backward compatibility
+  public StatusChange(PaymentStatus status, String reason, Instant timestamp) {
+    this(null, status, reason, timestamp, "system");
+  }
+
+  public PaymentStatus getFromStatus() {
+    return fromStatus;
+  }
+
+  public PaymentStatus getToStatus() {
+    return toStatus;
+  }
+
+  public String getChangedBy() {
+    return changedBy;
+  }
+
+  public Instant getChangedAt() {
+    return timestamp;
   }
 
   // Builder method for compatibility

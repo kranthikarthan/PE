@@ -1,238 +1,173 @@
-# Database Migrations for Payments Engine
+# Database Architecture for Microservices
+
+This document describes the independent database schemas for each microservice in the payments engine.
 
 ## Overview
 
-This directory contains Flyway database migrations for all 22 microservices in the Payments Engine. Each migration is designed with multi-tenancy, security, performance, and audit requirements in mind.
+Each microservice has its own independent database schema with no cross-service dependencies. This ensures:
 
-## Migration Files
+- **Service Independence**: Each service can evolve its database schema independently
+- **Data Isolation**: Services cannot directly access each other's data
+- **Scalability**: Each service can scale its database independently
+- **Fault Tolerance**: Database issues in one service don't affect others
 
-### V1__Create_tenant_management_tables.sql
-**Service**: Tenant Management Service  
-**Purpose**: Foundational multi-tenancy support  
-**Tables**: 7 tables including tenants, business_units, tenant_configs, tenant_users, tenant_api_keys, tenant_metrics, tenant_audit_log  
+## Database Structure
+
+### 1. Payment Initiation Service (`payment_initiation` database)
+
+**Purpose**: Manages payment initiation, validation, and ISO 20022 message processing.
+
+**Key Tables**:
+- `payments` - Main payment records
+- `payment_status_history` - Audit trail of status changes
+- `payment_validation_results` - Validation results
+- `payment_fees` - Fee calculations
+- `payment_notifications` - Notification tracking
+- `pain001_messages` - ISO 20022 pain.001 messages
+- `pain002_messages` - ISO 20022 pain.002 messages
+- `pain001_audit_log` - Audit log for pain.001
+- `pain002_audit_log` - Audit log for pain.002
+
 **Key Features**:
-- 3-level tenant hierarchy (Tenant → Business Unit → Customer)
-- Row-Level Security (RLS) for data isolation
-- Comprehensive audit trail
-- API key management with rate limiting
-- Usage metrics and billing support
+- Multi-tenancy with Row Level Security (RLS)
+- Comprehensive audit trails
+- ISO 20022 message support
+- Payment validation and fee calculation
 
-### V2__Create_payment_initiation_tables.sql
-**Service**: Payment Initiation Service  
-**Purpose**: Core payment processing with multi-tenancy  
-**Tables**: 6 tables including payments, payment_status_history, debit_order_details, payment_validation_results, payment_fees, payment_notifications  
+### 2. Routing Service (`routing` database)
+
+**Purpose**: Determines which clearing system to use for payments.
+
+**Key Tables**:
+- `routing_rules` - Routing decision rules
+- `clearing_systems` - Clearing system configurations
+- `routing_decisions` - Audit trail of routing decisions
+- `clearing_system_metrics` - Performance metrics
+- `routing_rule_evaluations` - Detailed rule evaluation log
+
 **Key Features**:
-- Multi-tenant payment processing
-- Comprehensive status tracking
-- Debit order support with mandate verification
-- Fee calculation and tracking
-- Notification management
-- Audit trail for all payment operations
+- Rule-based routing engine
+- Clearing system health monitoring
+- Performance metrics and analytics
+- Circuit breaker support
 
-### V3__Create_validation_service_tables.sql
-**Service**: Validation Service  
-**Purpose**: Payment validation, fraud detection, and limit management  
-**Tables**: 12 tables including validation_rules, validation_results, velocity_tracking, fraud_detection_log, customer_limits, limit_reservations  
-**Key Features**:
-- Configurable validation rules
-- Fraud detection with external API integration
-- Customer limit management (daily, monthly, per-transaction)
-- Velocity tracking for fraud prevention
-- Limit reservations for payment processing
-- Comprehensive audit trail
+### 3. Transaction Processing Service (`transaction_processing` database)
 
-### V4__Create_transaction_processing_tables.sql
-**Service**: Transaction Processing Service  
-**Purpose**: Event sourcing, double-entry bookkeeping, and transaction ledger  
-**Tables**: 7 tables including transactions, transaction_events, ledger_entries, account_balances, transaction_fees, transaction_reversals, transaction_audit_log  
+**Purpose**: Manages transaction ledger, double-entry bookkeeping, and account balances.
+
+**Key Tables**:
+- `transactions` - Main transaction ledger
+- `transaction_events` - Event sourcing log
+- `ledger_entries` - Double-entry bookkeeping entries
+- `account_balances` - Current account balances
+- `transaction_fees` - Transaction fees
+- `transaction_reversals` - Reversal tracking
+- `transaction_audit_log` - Audit trail
+
 **Key Features**:
 - Event sourcing for transaction state changes
-- Double-entry bookkeeping with automatic balance updates
-- Real-time account balance tracking
+- Double-entry bookkeeping validation
+- Real-time account balance updates
 - Transaction reversal support
-- Comprehensive audit trail
-- Multi-tenant data isolation
 
-### V5__Create_account_adapter_tables.sql
-**Service**: Account Adapter Service  
-**Purpose**: External system integration and account routing  
-**Tables**: 7 tables including account_routing, backend_systems, account_cache, api_call_log, backend_system_metrics, idempotency_records, circuit_breaker_state  
+### 4. Account Adapter Service (`account_adapter` database)
+
+**Purpose**: Routes account requests to appropriate backend systems.
+
+**Key Tables**:
+- `account_routing` - Account to backend system mapping
+- `backend_systems` - Backend system configurations
+- `account_cache` - Temporary account data cache
+- `api_call_log` - Audit trail of API calls
+- `backend_system_metrics` - Performance metrics
+- `idempotency_records` - Idempotency tracking
+- `circuit_breaker_state` - Circuit breaker state
+
 **Key Features**:
-- Account number routing to backend systems
-- Backend system configuration and health monitoring
-- Account data caching with TTL
-- API call logging and performance metrics
-- Idempotency tracking for external calls
+- Account routing to backend systems
 - Circuit breaker pattern implementation
+- API call auditing and metrics
+- Idempotency support
 
-## Multi-Tenancy Implementation
+### 5. Saga Orchestrator Service (`saga_orchestrator` database)
 
-### Row-Level Security (RLS)
-Every table includes:
-- `tenant_id VARCHAR(20) NOT NULL` - Primary tenant identifier
-- `business_unit_id VARCHAR(30) NOT NULL` - Business unit within tenant
-- RLS policies for automatic data isolation
-- Indexes optimized for tenant-based queries
+**Purpose**: Manages distributed transaction orchestration using the Saga pattern.
 
-### Tenant Context Management
-```sql
--- Application sets tenant context at transaction start
-SET LOCAL app.current_tenant_id = 'TENANT-001';
+**Key Tables**:
+- `saga_instances` - Main saga orchestration instances
+- `saga_steps` - Individual steps within sagas
+- `saga_events` - Event sourcing log
+- `saga_compensation_log` - Compensation actions
+- `saga_timeouts` - Timeout tracking
+- `saga_audit_log` - Audit trail
 
--- All queries automatically filtered by RLS
-SELECT * FROM payments WHERE status = 'INITIATED';
--- Returns only payments for tenant TENANT-001
+**Key Features**:
+- Saga pattern implementation
+- Compensation handling
+- Timeout management
+- Event sourcing for saga state
+
+## Multi-Tenancy
+
+All databases implement multi-tenancy using:
+
+1. **Tenant ID**: Every table includes `tenant_id` and `business_unit_id` columns
+2. **Row Level Security (RLS)**: PostgreSQL RLS policies ensure data isolation
+3. **Application Context**: Services set tenant context using `SET LOCAL app.current_tenant_id = 'TENANT-ID'`
+
+## Data Consistency
+
+Since services have independent databases, data consistency is maintained through:
+
+1. **Event-Driven Communication**: Services communicate via events (Kafka)
+2. **Saga Pattern**: Distributed transactions are managed by the Saga Orchestrator
+3. **Eventual Consistency**: Services eventually reach consistent state through event processing
+
+## Migration Strategy
+
+Each service has its own migration files in the `database-migrations/{service-name}/` directory:
+
+- `database-migrations/payment-initiation/V1__Create_payment_initiation_tables.sql`
+- `database-migrations/routing/V1__Create_routing_service_tables.sql`
+- `database-migrations/transaction-processing/V1__Create_transaction_processing_tables.sql`
+- `database-migrations/account-adapter/V1__Create_account_adapter_tables.sql`
+- `database-migrations/saga-orchestrator/V1__Create_saga_orchestrator_tables.sql`
+
+## Deployment
+
+Each service connects to its own database:
+
+```yaml
+# Payment Initiation Service
+SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/payment_initiation
+
+# Routing Service
+SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/routing
+
+# Transaction Processing Service
+SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/transaction_processing
+
+# Account Adapter Service
+SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/account_adapter
+
+# Saga Orchestrator Service
+SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/saga_orchestrator
 ```
 
-### Performance Optimizations
-- Composite indexes on `(tenant_id, business_unit_id)` for fast filtering
-- Tenant-specific indexes for common query patterns
-- Partitioning considerations for high-volume tenants
+## Benefits
 
-## Security Features
+1. **Service Independence**: Each service can evolve independently
+2. **Data Isolation**: Services cannot accidentally access each other's data
+3. **Scalability**: Each service can scale its database independently
+4. **Fault Tolerance**: Database issues in one service don't affect others
+5. **Technology Diversity**: Each service can use different database technologies if needed
+6. **Team Autonomy**: Different teams can manage different services independently
 
-### Data Protection
-- **Encryption**: Sensitive fields marked with `is_encrypted` flag
-- **Audit Trail**: Comprehensive logging of all data changes
-- **Access Control**: RLS policies prevent cross-tenant data access
-- **API Security**: API key management with rate limiting
+## Considerations
 
-### Compliance
-- **PCI DSS**: Payment data handling compliance
-- **POPIA**: South African data protection compliance
-- **FICA**: Financial Intelligence Centre Act compliance
-- **SARB**: South African Reserve Bank regulations
+1. **Data Duplication**: Some data may be duplicated across services (e.g., payment IDs)
+2. **Eventual Consistency**: Services may have temporary inconsistencies
+3. **Complex Queries**: Cross-service queries require event-driven approaches
+4. **Transaction Management**: Distributed transactions require careful orchestration
 
-## Performance Considerations
-
-### Indexing Strategy
-- **Primary Indexes**: On tenant_id for fast filtering
-- **Composite Indexes**: On (tenant_id, business_unit_id) for multi-level filtering
-- **Query-Specific Indexes**: Optimized for common query patterns
-- **Time-Based Indexes**: For date-range queries and reporting
-
-### Query Optimization
-- All queries include tenant_id in WHERE clauses
-- RLS policies automatically filter by tenant context
-- Views provide pre-computed aggregations
-- Functions encapsulate complex business logic
-
-## Audit and Compliance
-
-### Audit Trail
-- **Change Tracking**: All table modifications logged
-- **User Attribution**: Who made what changes when
-- **Data Lineage**: Complete history of data transformations
-- **Compliance Reporting**: Built-in views for regulatory reporting
-
-### Data Retention
-- **Audit Logs**: 7 years retention (2555 days)
-- **Transaction Data**: Configurable retention per tenant
-- **Archival Strategy**: Automated movement to cold storage
-
-## Monitoring and Observability
-
-### Built-in Metrics
-- **Performance Metrics**: Response times, throughput, error rates
-- **Business Metrics**: Transaction volumes, success rates, fraud detection
-- **System Metrics**: Database performance, connection usage, storage growth
-
-### Health Monitoring
-- **Backend System Health**: Real-time status of external systems
-- **Circuit Breaker Status**: Automatic failure detection and recovery
-- **Cache Performance**: Hit rates and expiration tracking
-
-## Deployment Strategy
-
-### Migration Order
-1. **V1**: Tenant Management (foundational)
-2. **V2**: Payment Initiation (core business)
-3. **V3**: Validation Service (security and compliance)
-4. **V4**: Transaction Processing (financial integrity)
-5. **V5**: Account Adapter (external integration)
-
-### Zero-Downtime Deployment
-- **Blue-Green Deployment**: Switch between database versions
-- **Feature Flags**: Gradual rollout of new functionality
-- **Rollback Strategy**: Quick reversion to previous versions
-
-## Testing Strategy
-
-### Unit Testing
-- **Migration Validation**: Each migration tested in isolation
-- **Data Integrity**: Constraints and triggers verified
-- **Performance Testing**: Index effectiveness validated
-
-### Integration Testing
-- **Multi-Tenant Isolation**: Cross-tenant data access prevention
-- **RLS Policy Testing**: Row-level security verification
-- **Audit Trail Testing**: Complete change tracking validation
-
-### Load Testing
-- **Concurrent Access**: Multiple tenants accessing simultaneously
-- **High Volume**: Transaction processing under load
-- **Performance Regression**: Ensure migrations don't degrade performance
-
-## Maintenance and Operations
-
-### Automated Tasks
-- **Index Maintenance**: Weekly REINDEX for heavy-write tables
-- **Statistics Update**: Daily ANALYZE for query optimizer
-- **Partition Management**: Monthly partitioning for time-series tables
-- **Archival**: Quarterly move old data to cold storage
-
-### Monitoring Alerts
-- **Connection Pool Usage**: Prevent connection exhaustion
-- **Query Performance**: Slow query detection and optimization
-- **Storage Growth**: Proactive capacity planning
-- **Lock Contention**: Deadlock detection and resolution
-
-## Backup and Recovery
-
-### Backup Strategy
-- **Daily Full Backups**: Complete database snapshots
-- **Hourly Incremental**: Change-only backups
-- **Point-in-Time Recovery**: Transaction log backups
-- **Cross-Region Replication**: Disaster recovery preparation
-
-### Recovery Procedures
-- **RTO**: 4 hours maximum downtime
-- **RPO**: 1 hour maximum data loss
-- **Testing**: Monthly recovery procedure validation
-- **Documentation**: Step-by-step recovery procedures
-
-## Cost Optimization
-
-### Storage Optimization
-- **Data Compression**: Automatic compression for historical data
-- **Archival Strategy**: Move old data to cheaper storage tiers
-- **Index Optimization**: Remove unused indexes
-- **Partitioning**: Efficient data organization
-
-### Performance Tuning
-- **Query Optimization**: Regular query performance analysis
-- **Index Tuning**: Add/remove indexes based on usage patterns
-- **Connection Pooling**: Optimize database connections
-- **Caching Strategy**: Reduce database load with application caching
-
-## Next Steps
-
-1. **Review Migrations**: Validate all migrations against requirements
-2. **Test Environment**: Deploy to test environment for validation
-3. **Performance Testing**: Load test with realistic data volumes
-4. **Security Review**: Penetration testing and security audit
-5. **Production Deployment**: Gradual rollout to production environment
-
-## Support and Documentation
-
-- **Migration Documentation**: Detailed comments in each migration file
-- **Schema Documentation**: Auto-generated from database schema
-- **API Documentation**: OpenAPI specifications for all services
-- **Runbook**: Operational procedures for database management
-
----
-
-**Last Updated**: 2025-10-11  
-**Version**: 1.0  
-**Author**: AI Agent Orchestrator  
-**Review Status**: Ready for Implementation
+This architecture follows microservices best practices and ensures each service maintains its own data sovereignty while enabling loose coupling and high scalability.

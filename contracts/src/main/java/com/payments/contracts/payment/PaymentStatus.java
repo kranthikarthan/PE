@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /** Payment status enumeration Aligns with domain PaymentStatus enum */
 @Schema(description = "Payment processing status")
 public enum PaymentStatus {
+  PENDING("PENDING", "Payment pending"),
   INITIATED("INITIATED", "Payment initiated"),
   VALIDATED("VALIDATED", "Payment validated"),
   SUBMITTED_TO_CLEARING("SUBMITTED_TO_CLEARING", "Submitted to clearing"),

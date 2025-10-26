@@ -1,7 +1,7 @@
 package com.payments.paymentinitiation.port;
 
-import com.payments.domain.payment.Payment;
-import com.payments.domain.payment.PaymentStatus;
+import com.payments.domain.entities.Payment;
+import com.payments.domain.valueobjects.PaymentStatus;
 import com.payments.domain.shared.PaymentId;
 import java.time.Instant;
 import java.util.Optional;

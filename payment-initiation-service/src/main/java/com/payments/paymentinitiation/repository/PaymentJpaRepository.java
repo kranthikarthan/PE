@@ -68,7 +68,7 @@ public interface PaymentJpaRepository extends JpaRepository<PaymentEntity, Payme
   @Query(
       "SELECT p FROM PaymentEntity p WHERE p.status = :status AND p.tenantContext.tenantId = :tenantId ORDER BY p.initiatedAt ASC")
   Page<PaymentEntity> findByStatusAndTenantId(
-      @Param("status") com.payments.domain.payment.PaymentStatus status,
+      @Param("status") com.payments.domain.valueobjects.PaymentStatus status,
       @Param("tenantId") String tenantId,
       Pageable pageable);
 
@@ -99,7 +99,7 @@ public interface PaymentJpaRepository extends JpaRepository<PaymentEntity, Payme
   @Query(
       "SELECT COUNT(p) FROM PaymentEntity p WHERE p.status = :status AND p.tenantContext.tenantId = :tenantId")
   long countByStatusAndTenantId(
-      @Param("status") com.payments.domain.payment.PaymentStatus status,
+      @Param("status") com.payments.domain.valueobjects.PaymentStatus status,
       @Param("tenantId") String tenantId);
 
   /**

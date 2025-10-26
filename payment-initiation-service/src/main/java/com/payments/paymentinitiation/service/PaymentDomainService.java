@@ -1,7 +1,7 @@
 package com.payments.paymentinitiation.service;
 
-import com.payments.domain.payment.Payment;
-import com.payments.domain.payment.PaymentStatus;
+import com.payments.domain.entities.Payment;
+import com.payments.domain.valueobjects.PaymentStatus;
 import com.payments.domain.shared.AccountNumber;
 import com.payments.domain.shared.TenantContext;
 import com.payments.paymentinitiation.port.PaymentRepositoryPort;
@@ -187,6 +187,7 @@ public class PaymentDomainService {
     // Define valid status transitions
     boolean isValidTransition =
         switch (currentStatus) {
+          case PENDING -> newStatus == PaymentStatus.INITIATED || newStatus == PaymentStatus.FAILED;
           case INITIATED -> newStatus == PaymentStatus.VALIDATED
               || newStatus == PaymentStatus.FAILED;
           case VALIDATED -> newStatus == PaymentStatus.SUBMITTED_TO_CLEARING

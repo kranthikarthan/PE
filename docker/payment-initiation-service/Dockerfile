@@ -10,6 +10,7 @@ COPY domain-models/pom.xml domain-models/
 COPY contracts/pom.xml contracts/
 COPY shared-telemetry/pom.xml shared-telemetry/
 COPY shared-config/pom.xml shared-config/
+COPY routing-service/pom.xml routing-service/
 COPY payment-initiation-service/pom.xml payment-initiation-service/
 
 # Copy source code
@@ -17,17 +18,18 @@ COPY domain-models/ domain-models/
 COPY contracts/ contracts/
 COPY shared-telemetry/ shared-telemetry/
 COPY shared-config/ shared-config/
+COPY routing-service/ routing-service/
 COPY payment-initiation-service/ payment-initiation-service/
 
 # Pre-build shared modules into local Maven repository to satisfy dependencies
 RUN mvn -N -f pom.xml install -DskipTests -Dspotless.skip=true \
     && mvn -N -f domain-models/pom.xml install -DskipTests -Dspotless.skip=true \
     && mvn -f domain-models/shared/pom.xml clean install -DskipTests -Dspotless.skip=true \
-    && mvn -f domain-models/validation/pom.xml clean install -DskipTests -Dspotless.skip=true \
-    && mvn -f domain-models/payment-initiation/pom.xml clean install -DskipTests -Dspotless.skip=true \
     && mvn -f contracts/pom.xml clean install -DskipTests -Dspotless.skip=true \
+    && mvn -f domain-models/iso20022/pom.xml clean install -DskipTests -Dspotless.skip=true \
     && mvn -f shared-telemetry/pom.xml clean install -DskipTests -Dspotless.skip=true \
     && mvn -f shared-config/pom.xml clean install -DskipTests -Dspotless.skip=true \
+    && mvn -f routing-service/pom.xml clean install -DskipTests -Dspotless.skip=true \
     && mvn -f payment-initiation-service/pom.xml clean package spring-boot:repackage -DskipTests -Dspotless.skip=true
 
 # Runtime stage

@@ -22,6 +22,7 @@ public class Payment extends AggregateRoot<PaymentId> {
 
   private PaymentId paymentId;
   private TenantId tenantId;
+  private TenantContext tenantContext;
   private Money amount;
   private PaymentType paymentType;
   private PaymentStatus status;
@@ -30,6 +31,13 @@ public class Payment extends AggregateRoot<PaymentId> {
   private Priority priority;
   private Instant createdAt;
   private Instant updatedAt;
+  private Instant initiatedAt;
+  private Instant validatedAt;
+  private Instant submittedToClearingAt;
+  private Instant clearedAt;
+  private Instant completedAt;
+  private Instant failedAt;
+  private String failureReason;
   private String description;
   private String beneficiaryName;
   private String beneficiaryAccount;
@@ -37,6 +45,8 @@ public class Payment extends AggregateRoot<PaymentId> {
   private String remitterName;
   private String remitterAccount;
   private String remitterBankCode;
+  private String idempotencyKey;
+  private String initiatedBy;
   private List<StatusChange> statusHistory;
   private List<ClearingConfirmation> clearingConfirmations;
 
@@ -49,6 +59,37 @@ public class Payment extends AggregateRoot<PaymentId> {
     this.updatedAt = Instant.now();
   }
 
+  /** Static factory method for creating Payment instances */
+  public static Payment initiate(
+      PaymentId paymentId,
+      TenantContext tenantContext,
+      Money amount,
+      AccountNumber sourceAccount,
+      AccountNumber destinationAccount,
+      PaymentReference reference,
+      PaymentType paymentType,
+      Priority priority,
+      String initiatedBy,
+      String idempotencyKey) {
+
+    Payment payment = new Payment();
+    payment.paymentId = paymentId;
+    payment.tenantContext = tenantContext;
+    payment.tenantId = TenantId.of(tenantContext.getTenantId());
+    payment.amount = amount;
+    payment.remitterAccount = sourceAccount.getValue();
+    payment.beneficiaryAccount = destinationAccount.getValue();
+    payment.reference = reference;
+    payment.paymentType = paymentType;
+    payment.priority = priority;
+    payment.initiatedBy = initiatedBy;
+    payment.idempotencyKey = idempotencyKey;
+    payment.initiatedAt = Instant.now();
+    payment.status = PaymentStatus.INITIATED;
+
+    return payment;
+  }
+
   /** Business method to initiate a payment */
   public void initiate() {
     if (this.status != PaymentStatus.PENDING) {
@@ -58,6 +99,7 @@ public class Payment extends AggregateRoot<PaymentId> {
 
     validatePayment();
     this.status = PaymentStatus.INITIATED;
+    this.initiatedAt = Instant.now();
     this.updatedAt = Instant.now();
 
     addStatusChange(PaymentStatus.INITIATED, "Payment initiated");
@@ -73,6 +115,7 @@ public class Payment extends AggregateRoot<PaymentId> {
 
     validatePayment();
     this.status = PaymentStatus.VALIDATED;
+    this.validatedAt = Instant.now();
     this.updatedAt = Instant.now();
 
     addStatusChange(PaymentStatus.VALIDATED, "Payment validated");
@@ -122,6 +165,7 @@ public class Payment extends AggregateRoot<PaymentId> {
     }
 
     this.status = PaymentStatus.COMPLETED;
+    this.completedAt = Instant.now();
     this.updatedAt = Instant.now();
 
     addStatusChange(PaymentStatus.COMPLETED, "Payment completed");
@@ -135,6 +179,7 @@ public class Payment extends AggregateRoot<PaymentId> {
     }
 
     this.status = PaymentStatus.FAILED;
+    this.failedAt = Instant.now();
     this.updatedAt = Instant.now();
 
     addStatusChange(PaymentStatus.FAILED, "Payment failed: " + reason);
@@ -163,7 +208,13 @@ public class Payment extends AggregateRoot<PaymentId> {
   /** Add status change to history */
   private void addStatusChange(PaymentStatus status, String reason) {
     this.statusHistory.add(
-        StatusChange.builder().status(status).reason(reason).timestamp(Instant.now()).build());
+        StatusChange.builder()
+            .fromStatus(this.status)
+            .toStatus(status)
+            .reason(reason)
+            .timestamp(Instant.now())
+            .changedBy("system")
+            .build());
   }
 
   /** Get the current status */
@@ -179,5 +230,204 @@ public class Payment extends AggregateRoot<PaymentId> {
   /** Check if payment can be modified */
   public boolean canBeModified() {
     return this.status == PaymentStatus.PENDING || this.status == PaymentStatus.INITIATED;
+  }
+
+  // Convenience methods for service layer compatibility
+  public PaymentId getId() {
+    return this.paymentId;
+  }
+
+  public void setId(PaymentId paymentId) {
+    this.paymentId = paymentId;
+  }
+
+  public AccountNumber getSourceAccount() {
+    return this.remitterAccount != null ? AccountNumber.of(this.remitterAccount) : null;
+  }
+
+  public AccountNumber getDestinationAccount() {
+    return this.beneficiaryAccount != null ? AccountNumber.of(this.beneficiaryAccount) : null;
+  }
+
+  public TenantContext getTenantContext() {
+    return this.tenantContext;
+  }
+
+  public String getIdempotencyKey() {
+    return this.idempotencyKey;
+  }
+
+  public String getInitiatedBy() {
+    return this.initiatedBy;
+  }
+
+  public Instant getInitiatedAt() {
+    return this.initiatedAt;
+  }
+
+  public Instant getCompletedAt() {
+    return this.completedAt;
+  }
+
+  public Instant getValidatedAt() {
+    return this.validatedAt;
+  }
+
+  public Instant getFailedAt() {
+    return this.failedAt;
+  }
+
+  public Instant getSubmittedToClearingAt() {
+    return this.submittedToClearingAt;
+  }
+
+  public Instant getClearedAt() {
+    return this.clearedAt;
+  }
+
+  public String getFailureReason() {
+    return this.failureReason;
+  }
+
+  public PaymentStatus getStatus() {
+    return this.status;
+  }
+
+  public Money getAmount() {
+    return this.amount;
+  }
+
+  public PaymentReference getReference() {
+    return this.reference;
+  }
+
+  public PaymentType getPaymentType() {
+    return this.paymentType;
+  }
+
+  public Priority getPriority() {
+    return this.priority;
+  }
+
+  public List<StatusChange> getStatusHistory() {
+    return this.statusHistory;
+  }
+
+  public static PaymentBuilder builder() {
+    return new PaymentBuilder();
+  }
+
+  public static class PaymentBuilder {
+    private Payment payment = new Payment();
+
+        public PaymentBuilder paymentId(PaymentId paymentId) {
+          payment.paymentId = paymentId;
+          return this;
+        }
+
+        public PaymentBuilder id(PaymentId paymentId) {
+          payment.paymentId = paymentId;
+          return this;
+        }
+
+    public PaymentBuilder tenantContext(TenantContext tenantContext) {
+      payment.tenantContext = tenantContext;
+      payment.tenantId = TenantId.of(tenantContext.getTenantId());
+      return this;
+    }
+
+    public PaymentBuilder amount(Money amount) {
+      payment.amount = amount;
+      return this;
+    }
+
+    public PaymentBuilder sourceAccount(AccountNumber sourceAccount) {
+      payment.remitterAccount = sourceAccount.getValue();
+      return this;
+    }
+
+    public PaymentBuilder destinationAccount(AccountNumber destinationAccount) {
+      payment.beneficiaryAccount = destinationAccount.getValue();
+      return this;
+    }
+
+    public PaymentBuilder reference(PaymentReference reference) {
+      payment.reference = reference;
+      return this;
+    }
+
+    public PaymentBuilder paymentType(PaymentType paymentType) {
+      payment.paymentType = paymentType;
+      return this;
+    }
+
+    public PaymentBuilder priority(Priority priority) {
+      payment.priority = priority;
+      return this;
+    }
+
+    public PaymentBuilder initiatedBy(String initiatedBy) {
+      payment.initiatedBy = initiatedBy;
+      return this;
+    }
+
+    public PaymentBuilder idempotencyKey(String idempotencyKey) {
+      payment.idempotencyKey = idempotencyKey;
+      return this;
+    }
+
+    public PaymentBuilder status(PaymentStatus status) {
+      payment.status = status;
+      return this;
+    }
+
+    public PaymentBuilder failureReason(String failureReason) {
+      payment.failureReason = failureReason;
+      return this;
+    }
+
+    public PaymentBuilder initiatedAt(Instant initiatedAt) {
+      payment.initiatedAt = initiatedAt;
+      return this;
+    }
+
+    public PaymentBuilder validatedAt(Instant validatedAt) {
+      payment.validatedAt = validatedAt;
+      return this;
+    }
+
+    public PaymentBuilder submittedToClearingAt(Instant submittedToClearingAt) {
+      payment.submittedToClearingAt = submittedToClearingAt;
+      return this;
+    }
+
+    public PaymentBuilder clearedAt(Instant clearedAt) {
+      payment.clearedAt = clearedAt;
+      return this;
+    }
+
+    public PaymentBuilder completedAt(Instant completedAt) {
+      payment.completedAt = completedAt;
+      return this;
+    }
+
+    public PaymentBuilder failedAt(Instant failedAt) {
+      payment.failedAt = failedAt;
+      return this;
+    }
+
+    public Payment build() {
+      payment.createdAt = Instant.now();
+      payment.updatedAt = Instant.now();
+      payment.statusHistory = new ArrayList<>();
+      payment.clearingConfirmations = new ArrayList<>();
+      return payment;
+    }
+  }
+
+  public void updateStatus(PaymentStatus newStatus, String reason) {
+    this.status = newStatus;
+    this.updatedAt = Instant.now();
+    addStatusChange(newStatus, reason);
   }
 }

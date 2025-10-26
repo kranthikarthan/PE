@@ -33,8 +33,12 @@ public class PaymentStatusHistoryEntity {
   private String paymentId;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false)
-  private PaymentStatus status;
+  @Column(name = "from_status")
+  private PaymentStatus fromStatus;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "to_status", nullable = false)
+  private PaymentStatus toStatus;
 
   @Column(name = "reason", length = 500, nullable = false)
   private String reason;
@@ -42,6 +46,9 @@ public class PaymentStatusHistoryEntity {
   @CreationTimestamp
   @Column(name = "timestamp", nullable = false)
   private Instant timestamp;
+
+  @Column(name = "changed_by", length = 100)
+  private String changedBy;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "payment_id", insertable = false, updatable = false)
@@ -51,18 +58,22 @@ public class PaymentStatusHistoryEntity {
   public static PaymentStatusHistoryEntity fromDomain(String paymentId, StatusChange statusChange) {
     return PaymentStatusHistoryEntity.builder()
         .paymentId(paymentId)
-        .status(statusChange.getStatus())
+        .fromStatus(statusChange.getFromStatus())
+        .toStatus(statusChange.getToStatus())
         .reason(statusChange.getReason())
-        .timestamp(statusChange.getTimestamp())
+        .timestamp(statusChange.getChangedAt())
+        .changedBy(statusChange.getChangedBy())
         .build();
   }
 
   /** Convert from JPA entity to domain value object */
   public StatusChange toDomain() {
     return StatusChange.builder()
-        .status(this.status)
+        .fromStatus(this.fromStatus)
+        .toStatus(this.toStatus)
         .reason(this.reason)
         .timestamp(this.timestamp)
+        .changedBy(this.changedBy)
         .build();
   }
 }
