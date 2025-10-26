@@ -58,6 +58,7 @@ routing:
       secondary: SECONDARY_CLEARING
       local: LOCAL_CLEARING
       international: INTERNATIONAL_CLEARING
+      payshap: PAYSHAP
 
 # OpenTelemetry Configuration
 management:

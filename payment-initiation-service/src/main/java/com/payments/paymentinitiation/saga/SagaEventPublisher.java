@@ -137,6 +137,27 @@ public class SagaEventPublisher {
     }
   }
 
+  /** Publish payment processing completed event */
+  public void publishPaymentProcessingCompleted(
+      String sagaId, String paymentStatus, String statusReason) {
+    try {
+      PaymentProcessingCompletedEvent event =
+          PaymentProcessingCompletedEvent.builder()
+              .sagaId(sagaId)
+              .paymentStatus(paymentStatus)
+              .statusReason(statusReason)
+              .timestamp(System.currentTimeMillis())
+              .build();
+
+      kafkaTemplate.send(PAYMENT_PROCESSING_COMPLETED_TOPIC, sagaId, event);
+      log.info("Published payment processing completed event: {}", sagaId);
+
+    } catch (Exception e) {
+      log.error("Failed to publish payment processing completed event: {}", sagaId, e);
+      throw new RuntimeException("Failed to publish payment processing completed event", e);
+    }
+  }
+
   /** Publish PayShap processing initiated event */
   public void publishPayShapProcessingInitiated(
       String sagaId, CanonicalPaymentModel canonicalPayment) {

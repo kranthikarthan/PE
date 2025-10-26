@@ -235,7 +235,7 @@ public class PaymentRepairController {
                     mediaType = "application/json",
                     schema = @Schema(implementation = ErrorResponse.class)))
       })
-  public ResponseEntity<RepairHistoryResponse> getPaymentRepairHistory(
+  public ResponseEntity<?> getPaymentRepairHistory(
       @Parameter(description = "Payment ID", required = true) @PathVariable("paymentId")
           String paymentId,
       @Parameter(description = "Correlation ID for tracing", required = true)
@@ -269,7 +269,11 @@ public class PaymentRepairController {
 
     } catch (IllegalArgumentException e) {
       log.warn("Payment not found: {}", e.getMessage());
-      return ResponseEntity.notFound().build();
+      ErrorResponse errorResponse = new ErrorResponse();
+      errorResponse.message = e.getMessage();
+      errorResponse.code = "PAYMENT_NOT_FOUND";
+      errorResponse.timestamp = java.time.Instant.now().toString();
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 
     } catch (Exception e) {
       log.error("Failed to retrieve repair history for payment: {}", paymentId, e);
@@ -414,6 +418,7 @@ public class PaymentRepairController {
     private String reason;
 
     @Schema(description = "Force retry even if payment is not in failed state")
+    @lombok.Builder.Default
     private Boolean forceRetry = false;
 
     @Schema(description = "Additional repair parameters")
@@ -430,6 +435,7 @@ public class PaymentRepairController {
     private String reason;
 
     @Schema(description = "Force cancel even if payment is not in cancellable state")
+    @lombok.Builder.Default
     private Boolean forceCancel = false;
   }
 
@@ -509,6 +515,7 @@ public class PaymentRepairController {
     private String reason;
 
     @Schema(description = "Force retry even if payments are not in failed state")
+    @lombok.Builder.Default
     private Boolean forceRetry = false;
   }
 

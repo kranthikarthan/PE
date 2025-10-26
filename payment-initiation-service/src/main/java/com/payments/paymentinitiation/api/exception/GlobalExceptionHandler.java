@@ -133,7 +133,7 @@ public class GlobalExceptionHandler {
             .timestamp(Instant.now().toString())
             .build();
 
-    return ResponseEntity.notFound().build();
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
   }
 
   /** Handle generic exceptions */

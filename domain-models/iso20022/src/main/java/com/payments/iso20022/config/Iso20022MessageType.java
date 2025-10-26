@@ -10,20 +10,20 @@ import lombok.Getter;
 @Getter
 public enum Iso20022MessageType {
 
-  /** pacs.008.001.08 - FI to FI Customer Credit Transfer */
+  /** pacs.008.001.13 - FI to FI Customer Credit Transfer (Latest) */
   PACS_008(
-      "pacs.008.001.08",
+      "pacs.008.001.13",
       "com.payments.iso20022.pacs008",
-      "urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08",
-      "pacs.008.001.08.xsd",
+      "urn:iso:std:iso:20022:tech:xsd:pacs.008.001.13",
+      "pacs.008.001.13.xsd",
       "FI to FI Customer Credit Transfer"),
 
-  /** pacs.002.001.10 - FI to FI Payment Status Report */
+  /** pacs.002.001.15 - FI to FI Payment Status Report (Latest) */
   PACS_002(
-      "pacs.002.001.10",
+      "pacs.002.001.15",
       "com.payments.iso20022.pacs002",
-      "urn:iso:std:iso:20022:tech:xsd:pacs.002.001.10",
-      "pacs.002.001.10.xsd",
+      "urn:iso:std:iso:20022:tech:xsd:pacs.002.001.15",
+      "pacs.002.001.15.xsd",
       "FI to FI Payment Status Report"),
 
   /** pacs.004.001.09 - Payment Return */
@@ -33,6 +33,30 @@ public enum Iso20022MessageType {
       "urn:iso:std:iso:20022:tech:xsd:pacs.004.001.09",
       "pacs.004.001.09.xsd",
       "Payment Return"),
+
+  /** pain.001.001.12 - Customer Credit Transfer Initiation (Latest) */
+  PAIN_001(
+      "pain.001.001.12",
+      "com.payments.iso20022.pain001",
+      "urn:iso:std:iso:20022:tech:xsd:pain.001.001.12",
+      "pain.001.001.12.xsd",
+      "Customer Credit Transfer Initiation"),
+
+  /** pain.002.001.14 - Payment Status Report (Latest) */
+  PAIN_002(
+      "pain.002.001.14",
+      "com.payments.iso20022.pain002",
+      "urn:iso:std:iso:20022:tech:xsd:pain.002.001.14",
+      "pain.002.001.14.xsd",
+      "Payment Status Report"),
+
+  /** pacs.028.001.06 - FI to FI Payment Status Request */
+  PACS_028(
+      "pacs.028.001.06",
+      "com.payments.iso20022.pacs028",
+      "urn:iso:std:iso:20022:tech:xsd:pacs.028.001.06",
+      "pacs.028.001.06.xsd",
+      "FI to FI Payment Status Request"),
 
   /** camt.054.001.08 - Bank to Customer Debit Credit Notification */
   CAMT_054(
@@ -84,6 +108,33 @@ public enum Iso20022MessageType {
    */
   public boolean isPacsMessage() {
     return messageId.startsWith("pacs.");
+  }
+
+  /**
+   * Check if message type is pain (payment initiation)
+   *
+   * @return true if pain message
+   */
+  public boolean isPainMessage() {
+    return messageId.startsWith("pain.");
+  }
+
+  /**
+   * Check if message type is pain.001 (payment initiation)
+   *
+   * @return true if pain.001 message
+   */
+  public boolean isPain001Message() {
+    return messageId.equals("pain.001.001.12");
+  }
+
+  /**
+   * Check if message type is pain.002 (payment status report)
+   *
+   * @return true if pain.002 message
+   */
+  public boolean isPain002Message() {
+    return messageId.equals("pain.002.001.14");
   }
 
   /**

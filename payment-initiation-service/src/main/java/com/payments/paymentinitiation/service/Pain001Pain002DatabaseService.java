@@ -29,6 +29,8 @@ public class Pain001Pain002DatabaseService {
   private final Pain001MessageRepository pain001MessageRepository;
   private final Pain002StatusReportRepository pain002StatusReportRepository;
   private final Pain001Pain002CorrelationRepository correlationRepository;
+  private final Pain001AuditLogRepository pain001AuditLogRepository;
+  private final Pain002AuditLogRepository pain002AuditLogRepository;
 
   /** Save pain.001 message to database (simplified version for saga) */
   @Transactional
@@ -331,8 +333,9 @@ public class Pain001Pain002DatabaseService {
             .additionalData(String.format("{\"correlationId\": \"%s\"}", correlationId))
             .build();
 
-    // In a real implementation, you would save this to the database
-    log.debug("Created pain.001 audit log: {} - {}", action, description);
+    // Save audit log to database for compliance
+    pain001AuditLogRepository.save(auditLog);
+    log.debug("Created and saved pain.001 audit log: {} - {}", action, description);
   }
 
   /** Create pain.002 audit log entry */
@@ -350,8 +353,9 @@ public class Pain001Pain002DatabaseService {
             .additionalData(String.format("{\"correlationId\": \"%s\"}", correlationId))
             .build();
 
-    // In a real implementation, you would save this to the database
-    log.debug("Created pain.002 audit log: {} - {}", action, description);
+    // Save audit log to database for compliance
+    pain002AuditLogRepository.save(auditLog);
+    log.debug("Created and saved pain.002 audit log: {} - {}", action, description);
   }
 
   // ==================== SAGA STATE MANAGEMENT METHODS ====================

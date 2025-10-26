@@ -2,6 +2,7 @@ C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\api\Compensate
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\api\HealthController.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\api\SagaController.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\api\SagaEventResponse.java
+C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\api\SagaManagementController.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\api\SagaResponse.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\api\SagaStepResponse.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\api\StartSagaRequest.java
@@ -41,6 +42,7 @@ C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\exception\Saga
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\exception\SagaSerializationException.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\exception\TenantContextResolutionException.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\repository\SagaEventRepository.java
+C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\repository\SagaManagementRepository.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\repository\SagaRepository.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\repository\SagaStepRepository.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\SagaOrchestratorApplication.java
@@ -50,6 +52,7 @@ C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\service\SagaCo
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\service\SagaEventService.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\service\SagaExecutionEngine.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\service\SagaLookupService.java
+C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\service\SagaManagementService.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\service\SagaOrchestrator.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\service\SagaService.java
 C:\git\clone\PE\saga-orchestrator\src\main\java\com\payments\saga\service\SagaStepService.java

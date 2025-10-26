@@ -346,17 +346,19 @@ public class PaymentProcessingService {
           paymentId,
           tenantContext.getTenantId());
 
-      // For now, return a simple status response
-      // In production, this would query the actual payment status
+      // Query actual payment status from repository
+      var payment =
+          paymentRepository.findByIdAndTenantId(
+              PaymentId.of(paymentId), tenantContext.getTenantId());
+
+      if (payment.isEmpty()) {
+        log.warn("Payment not found: {}", paymentId);
+        return generateErrorPain002Response("Payment not found", correlationId);
+      }
+
+      // Convert payment to canonical model
       CanonicalPaymentModel canonicalPayment =
-          CanonicalPaymentModel.builder()
-              .paymentId(paymentId)
-              .status(CanonicalPaymentModel.PaymentStatus.ACCEPTED)
-              .statusReason("Payment status retrieved")
-              .tenantContext(tenantContext)
-              .businessUnitId(tenantContext.getBusinessUnitId())
-              .createdAt(LocalDateTime.now())
-              .build();
+          convertPaymentToCanonical(payment.get(), tenantContext);
 
       // Generate pain.002 response
       return generatePain002Response(canonicalPayment);
@@ -367,23 +369,55 @@ public class PaymentProcessingService {
     }
   }
 
-  /** Map internal status to ISO 20022 status code */
-  private String mapStatusToIso20022(CanonicalPaymentModel.PaymentStatus status) {
-    switch (status) {
-      case PENDING:
-        return "PDNG";
-      case PROCESSING:
-        return "ACSP";
-      case ACCEPTED:
-        return "ACCP";
+  /** Convert payment entity to canonical payment model */
+  private CanonicalPaymentModel convertPaymentToCanonical(
+      com.payments.domain.payment.Payment payment, TenantContext tenantContext) {
+    return CanonicalPaymentModel.builder()
+        .paymentId(payment.getId().getValue())
+        .status(mapPaymentStatusToCanonical(payment.getStatus()))
+        .statusReason("Payment status retrieved from database")
+        .amount(payment.getAmount())
+        .sourceAccount(payment.getSourceAccount().getValue())
+        .destinationAccount(payment.getDestinationAccount().getValue())
+        .reference(payment.getReference().getValue())
+        .tenantContext(tenantContext)
+        .businessUnitId(tenantContext.getBusinessUnitId())
+        .createdAt(
+            payment.getInitiatedAt().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime())
+        .updatedAt(
+            payment.getCompletedAt() != null
+                ? payment
+                    .getCompletedAt()
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDateTime()
+                : payment
+                    .getInitiatedAt()
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDateTime())
+        .build();
+  }
+
+  /** Map payment domain status to canonical status */
+  private CanonicalPaymentModel.PaymentStatus mapPaymentStatusToCanonical(
+      com.payments.domain.payment.PaymentStatus paymentStatus) {
+    // Map domain payment status to canonical status
+    switch (paymentStatus) {
+      case INITIATED:
+        return CanonicalPaymentModel.PaymentStatus.PENDING;
+      case VALIDATED:
+        return CanonicalPaymentModel.PaymentStatus.ACCEPTED;
+      case SUBMITTED_TO_CLEARING:
+        return CanonicalPaymentModel.PaymentStatus.PROCESSING;
+      case CLEARING:
+        return CanonicalPaymentModel.PaymentStatus.PROCESSING;
+      case CLEARED:
+        return CanonicalPaymentModel.PaymentStatus.COMPLETED;
       case COMPLETED:
-        return "ACSC";
+        return CanonicalPaymentModel.PaymentStatus.COMPLETED;
       case FAILED:
-        return "RJCT";
-      case REJECTED:
-        return "RJCT";
+        return CanonicalPaymentModel.PaymentStatus.FAILED;
       default:
-        return "PDNG";
+        return CanonicalPaymentModel.PaymentStatus.PENDING;
     }
   }
 

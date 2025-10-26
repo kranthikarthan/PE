@@ -138,7 +138,7 @@ public class PaymentInitiationController {
                     mediaType = "application/json",
                     schema = @Schema(implementation = ErrorResponse.class)))
       })
-  public ResponseEntity<PaymentInitiationResponse> getPaymentStatus(
+  public ResponseEntity<?> getPaymentStatus(
       @Parameter(description = "Payment ID", required = true) @PathVariable("paymentId")
           String paymentId,
       @Parameter(description = "Correlation ID for tracing", required = true)
@@ -164,7 +164,11 @@ public class PaymentInitiationController {
 
     } catch (IllegalArgumentException e) {
       log.warn("Payment not found: {}", e.getMessage());
-      return ResponseEntity.notFound().build();
+      ErrorResponse errorResponse = new ErrorResponse();
+      errorResponse.message = e.getMessage();
+      errorResponse.code = "PAYMENT_NOT_FOUND";
+      errorResponse.timestamp = java.time.Instant.now().toString();
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 
     } catch (Exception e) {
       log.error("Failed to retrieve payment status", e);
@@ -259,7 +263,7 @@ public class PaymentInitiationController {
                     mediaType = "application/json",
                     schema = @Schema(implementation = ErrorResponse.class)))
       })
-  public ResponseEntity<PaymentInitiationResponse> failPayment(
+  public ResponseEntity<?> failPayment(
       @Parameter(description = "Payment ID", required = true) @PathVariable("paymentId")
           String paymentId,
       @Parameter(description = "Failure reason", required = true) @RequestBody
@@ -289,7 +293,11 @@ public class PaymentInitiationController {
 
     } catch (IllegalArgumentException e) {
       log.warn("Payment not found: {}", e.getMessage());
-      return ResponseEntity.notFound().build();
+      ErrorResponse errorResponse = new ErrorResponse();
+      errorResponse.message = e.getMessage();
+      errorResponse.code = "PAYMENT_NOT_FOUND";
+      errorResponse.timestamp = java.time.Instant.now().toString();
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 
     } catch (Exception e) {
       log.error("Failed to fail payment", e);
@@ -320,7 +328,7 @@ public class PaymentInitiationController {
                     mediaType = "application/json",
                     schema = @Schema(implementation = ErrorResponse.class)))
       })
-  public ResponseEntity<PaymentInitiationResponse> completePayment(
+  public ResponseEntity<?> completePayment(
       @Parameter(description = "Payment ID", required = true) @PathVariable("paymentId")
           String paymentId,
       @Parameter(description = "Correlation ID for tracing", required = true)
@@ -344,7 +352,11 @@ public class PaymentInitiationController {
 
     } catch (IllegalArgumentException e) {
       log.warn("Payment not found: {}", e.getMessage());
-      return ResponseEntity.notFound().build();
+      ErrorResponse errorResponse = new ErrorResponse();
+      errorResponse.message = e.getMessage();
+      errorResponse.code = "PAYMENT_NOT_FOUND";
+      errorResponse.timestamp = java.time.Instant.now().toString();
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 
     } catch (Exception e) {
       log.error("Failed to complete payment", e);
