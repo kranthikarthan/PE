@@ -15,7 +15,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockitoBean;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -43,20 +43,20 @@ class PaymentInitiationContractTest {
 
   @Autowired private ObjectMapper objectMapper;
 
-  @MockitoBean
+  @MockBean
   private com.payments.paymentinitiation.service.PaymentDomainService paymentDomainService;
 
-  @MockitoBean private com.payments.paymentinitiation.service.IdempotencyService idempotencyService;
+  @MockBean private com.payments.paymentinitiation.service.IdempotencyService idempotencyService;
 
   // Avoid wiring real idempotency infra in this contract test
-  @MockitoBean(name = "idempotencyRepositoryAdapter")
+  @MockBean(name = "idempotencyRepositoryAdapter")
   private com.payments.paymentinitiation.port.IdempotencyRepositoryPort
       idempotencyRepositoryAdapter;
 
-  @MockitoBean(name = "idempotencyRepositoryPort")
+  @MockBean(name = "idempotencyRepositoryPort")
   private com.payments.paymentinitiation.port.IdempotencyRepositoryPort idempotencyRepositoryPort;
 
-  @MockitoBean
+  @MockBean
   private com.payments.paymentinitiation.service.EnhancedIdempotencyService
       enhancedIdempotencyService;
 
