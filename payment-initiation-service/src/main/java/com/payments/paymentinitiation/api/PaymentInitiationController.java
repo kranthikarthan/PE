@@ -1,5 +1,6 @@
 package com.payments.paymentinitiation.api;
 
+import com.payments.contracts.common.ErrorResponse;
 import com.payments.contracts.payment.PaymentInitiationRequest;
 import com.payments.contracts.payment.PaymentInitiationResponse;
 import com.payments.paymentinitiation.service.PaymentInitiationService;
@@ -164,10 +165,12 @@ public class PaymentInitiationController {
 
     } catch (IllegalArgumentException e) {
       log.warn("Payment not found: {}", e.getMessage());
-      ErrorResponse errorResponse = new ErrorResponse();
-      errorResponse.message = e.getMessage();
-      errorResponse.code = "PAYMENT_NOT_FOUND";
-      errorResponse.timestamp = java.time.Instant.now().toString();
+      ErrorResponse errorResponse =
+          ErrorResponse.builder()
+              .message(e.getMessage())
+              .code("PAYMENT_NOT_FOUND")
+              .timestamp(java.time.Instant.now().toString())
+              .build();
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 
     } catch (Exception e) {
@@ -293,10 +296,12 @@ public class PaymentInitiationController {
 
     } catch (IllegalArgumentException e) {
       log.warn("Payment not found: {}", e.getMessage());
-      ErrorResponse errorResponse = new ErrorResponse();
-      errorResponse.message = e.getMessage();
-      errorResponse.code = "PAYMENT_NOT_FOUND";
-      errorResponse.timestamp = java.time.Instant.now().toString();
+      ErrorResponse errorResponse =
+          ErrorResponse.builder()
+              .message(e.getMessage())
+              .code("PAYMENT_NOT_FOUND")
+              .timestamp(java.time.Instant.now().toString())
+              .build();
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 
     } catch (Exception e) {
@@ -352,10 +357,12 @@ public class PaymentInitiationController {
 
     } catch (IllegalArgumentException e) {
       log.warn("Payment not found: {}", e.getMessage());
-      ErrorResponse errorResponse = new ErrorResponse();
-      errorResponse.message = e.getMessage();
-      errorResponse.code = "PAYMENT_NOT_FOUND";
-      errorResponse.timestamp = java.time.Instant.now().toString();
+      ErrorResponse errorResponse =
+          ErrorResponse.builder()
+              .message(e.getMessage())
+              .code("PAYMENT_NOT_FOUND")
+              .timestamp(java.time.Instant.now().toString())
+              .build();
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 
     } catch (Exception e) {
@@ -449,18 +456,5 @@ public class PaymentInitiationController {
 
     @Schema(description = "Error message if any")
     private String errorMessage;
-  }
-
-  /** Error response DTO */
-  @Schema(description = "Error response")
-  public static class ErrorResponse {
-    @Schema(description = "Error message")
-    public String message;
-
-    @Schema(description = "Error code")
-    public String code;
-
-    @Schema(description = "Timestamp")
-    public String timestamp;
   }
 }

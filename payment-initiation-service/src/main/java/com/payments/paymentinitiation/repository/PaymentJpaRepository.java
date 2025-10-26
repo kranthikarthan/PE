@@ -3,7 +3,6 @@ package com.payments.paymentinitiation.repository;
 import com.payments.domain.shared.PaymentId;
 import com.payments.paymentinitiation.entity.PaymentEntity;
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -63,13 +62,15 @@ public interface PaymentJpaRepository extends JpaRepository<PaymentEntity, Payme
    *
    * @param status Payment status
    * @param tenantId Tenant ID
-   * @return List of payment entities
+   * @param pageable Pagination parameters
+   * @return Page of payment entities
    */
   @Query(
       "SELECT p FROM PaymentEntity p WHERE p.status = :status AND p.tenantContext.tenantId = :tenantId ORDER BY p.initiatedAt ASC")
-  List<PaymentEntity> findByStatusAndTenantId(
+  Page<PaymentEntity> findByStatusAndTenantId(
       @Param("status") com.payments.domain.payment.PaymentStatus status,
-      @Param("tenantId") String tenantId);
+      @Param("tenantId") String tenantId,
+      Pageable pageable);
 
   /**
    * Find payments by date range and tenant

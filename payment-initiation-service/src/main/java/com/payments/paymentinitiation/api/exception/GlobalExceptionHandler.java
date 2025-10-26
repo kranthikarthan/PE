@@ -1,5 +1,6 @@
 package com.payments.paymentinitiation.api.exception;
 
+import com.payments.contracts.common.ErrorResponse;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -149,18 +150,6 @@ public class GlobalExceptionHandler {
             .build();
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-  }
-
-  /** Error response DTO */
-  @lombok.Data
-  @lombok.Builder
-  @lombok.NoArgsConstructor
-  @lombok.AllArgsConstructor
-  public static class ErrorResponse {
-    private String message;
-    private String code;
-    private String timestamp;
-    private Map<String, String> details;
   }
 
   /** Custom exception for idempotency errors */

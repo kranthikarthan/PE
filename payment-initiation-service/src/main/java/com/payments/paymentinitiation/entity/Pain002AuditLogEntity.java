@@ -45,6 +45,12 @@ public class Pain002AuditLogEntity {
   @Column(name = "additional_data", columnDefinition = "JSONB")
   private String additionalData;
 
+  @Column(name = "tenant_id", nullable = false, length = 50)
+  private String tenantId;
+
+  @Column(name = "business_unit_id", nullable = false, length = 50)
+  private String businessUnitId;
+
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;

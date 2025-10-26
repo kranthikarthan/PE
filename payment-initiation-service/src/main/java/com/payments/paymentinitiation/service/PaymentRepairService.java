@@ -14,6 +14,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -176,22 +179,13 @@ public class PaymentRepairService {
         page,
         size);
 
-    // TODO: Implement proper pagination support in PaymentRepository
-    // Currently using manual pagination due to repository limitation
-    // Repository method needs to be updated to support Pageable parameter
-    List<Payment> failedPayments =
-        paymentRepository.findByStatusAndTenantId(PaymentStatus.FAILED, tenantId);
+    // Use proper pagination with PageRequest
+    Pageable pageable = PageRequest.of(page, size);
+    Page<Payment> failedPaymentsPage =
+        paymentRepository.findByStatusAndTenantId(PaymentStatus.FAILED, tenantId, pageable);
 
-    // Apply manual pagination as workaround
-    int startIndex = page * size;
-    int endIndex = Math.min(startIndex + size, failedPayments.size());
-
-    if (startIndex >= failedPayments.size()) {
-      return new java.util.ArrayList<>();
-    }
-
-    List<Payment> paginatedPayments = failedPayments.subList(startIndex, endIndex);
-    return paginatedPayments.stream().map(this::mapToPaymentResponse).collect(Collectors.toList());
+    List<Payment> failedPayments = failedPaymentsPage.getContent();
+    return failedPayments.stream().map(this::mapToPaymentResponse).collect(Collectors.toList());
   }
 
   /** Bulk retry failed payments */

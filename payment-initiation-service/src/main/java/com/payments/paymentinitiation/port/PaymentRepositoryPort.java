@@ -4,7 +4,6 @@ import com.payments.domain.payment.Payment;
 import com.payments.domain.payment.PaymentStatus;
 import com.payments.domain.shared.PaymentId;
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -67,9 +66,10 @@ public interface PaymentRepositoryPort {
    *
    * @param status Payment status
    * @param tenantId Tenant ID
-   * @return List of payment aggregates
+   * @param pageable Pagination parameters
+   * @return Page of payment aggregates
    */
-  List<Payment> findByStatusAndTenantId(PaymentStatus status, String tenantId);
+  Page<Payment> findByStatusAndTenantId(PaymentStatus status, String tenantId, Pageable pageable);
 
   /**
    * Find payments by date range and tenant

@@ -8,7 +8,6 @@ import com.payments.paymentinitiation.mapper.PaymentMapper;
 import com.payments.paymentinitiation.port.PaymentRepositoryPort;
 import com.payments.paymentinitiation.repository.PaymentJpaRepository;
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -83,12 +82,13 @@ public class PaymentRepositoryAdapter implements PaymentRepositoryPort {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Payment> findByStatusAndTenantId(PaymentStatus status, String tenantId) {
+  public Page<Payment> findByStatusAndTenantId(
+      PaymentStatus status, String tenantId, Pageable pageable) {
     log.debug("Finding payments by status and tenant: {}, {}", status, tenantId);
 
-    return jpaRepository.findByStatusAndTenantId(status, tenantId).stream()
-        .map(paymentMapper::toDomain)
-        .toList();
+    return jpaRepository
+        .findByStatusAndTenantId(status, tenantId, pageable)
+        .map(paymentMapper::toDomain);
   }
 
   @Override

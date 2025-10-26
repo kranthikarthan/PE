@@ -94,7 +94,8 @@ public class Pain001Pain002DatabaseService {
         savedEntity,
         Pain001AuditLogEntity.Action.CREATED,
         "pain.001 message created",
-        correlationId);
+        correlationId,
+        tenantContext);
 
     log.info("Successfully saved pain.001 message with ID: {}", savedEntity.getId());
     return savedEntity;
@@ -134,7 +135,8 @@ public class Pain001Pain002DatabaseService {
         savedEntity,
         Pain001AuditLogEntity.Action.CREATED,
         "pain.001 JSON message created",
-        correlationId);
+        correlationId,
+        tenantContext);
 
     log.info("Successfully saved pain.001 JSON message with ID: {}", savedEntity.getId());
     return savedEntity;
@@ -170,7 +172,8 @@ public class Pain001Pain002DatabaseService {
         savedEntity,
         Pain002AuditLogEntity.Action.CREATED,
         "pain.002 status report created",
-        correlationId);
+        correlationId,
+        tenantContext);
 
     log.info("Successfully saved pain.002 status report with ID: {}", savedEntity.getId());
     return savedEntity;
@@ -206,7 +209,8 @@ public class Pain001Pain002DatabaseService {
         savedEntity,
         Pain002AuditLogEntity.Action.CREATED,
         "pain.002 JSON status report created",
-        correlationId);
+        correlationId,
+        tenantContext);
 
     log.info("Successfully saved pain.002 JSON status report with ID: {}", savedEntity.getId());
     return savedEntity;
@@ -323,13 +327,16 @@ public class Pain001Pain002DatabaseService {
       Pain001MessageEntity pain001Message,
       Pain001AuditLogEntity.Action action,
       String description,
-      String correlationId) {
+      String correlationId,
+      TenantContext tenantContext) {
 
     Pain001AuditLogEntity auditLog =
         Pain001AuditLogEntity.builder()
             .pain001Message(pain001Message)
             .action(action)
             .description(description)
+            .tenantId(tenantContext.getTenantId())
+            .businessUnitId(tenantContext.getBusinessUnitId())
             .additionalData(String.format("{\"correlationId\": \"%s\"}", correlationId))
             .build();
 
@@ -343,13 +350,16 @@ public class Pain001Pain002DatabaseService {
       Pain002StatusReportEntity statusReport,
       Pain002AuditLogEntity.Action action,
       String description,
-      String correlationId) {
+      String correlationId,
+      TenantContext tenantContext) {
 
     Pain002AuditLogEntity auditLog =
         Pain002AuditLogEntity.builder()
             .statusReport(statusReport)
             .action(action)
             .description(description)
+            .tenantId(tenantContext.getTenantId())
+            .businessUnitId(tenantContext.getBusinessUnitId())
             .additionalData(String.format("{\"correlationId\": \"%s\"}", correlationId))
             .build();
 
