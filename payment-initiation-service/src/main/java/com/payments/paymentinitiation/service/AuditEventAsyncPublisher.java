@@ -32,8 +32,26 @@ public class AuditEventAsyncPublisher {
     }
   }
 
+  /**
+   * Fallback method for circuit breaker - called by Resilience4j when circuit breaker is open or
+   * when exceptions occur. This method is referenced by the @CircuitBreaker annotation.
+   */
+  @SuppressWarnings("unused") // Called by Resilience4j via reflection
   private CompletableFuture<Void> fallback(Object payload, String tenantKey, Throwable t) {
-    log.warn("Audit publish failed; proceeding without blocking. reason={}", t.getMessage());
+    String reason = (t != null && t.getMessage() != null) ? t.getMessage() : "Unknown error";
+    log.warn(
+        "Audit publish failed; proceeding without blocking. reason={}, tenantKey={}, payloadType={}",
+        reason,
+        tenantKey,
+        payload != null ? payload.getClass().getSimpleName() : "null");
+
+    // Log audit failure for compliance (even though we're proceeding without blocking)
+    log.error(
+        "AUDIT_FAILURE: Failed to publish audit event for tenant: {}, payload: {}",
+        tenantKey,
+        payload != null ? payload.toString() : "null",
+        t);
+
     return CompletableFuture.completedFuture(null);
   }
 }

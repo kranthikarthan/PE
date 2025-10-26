@@ -94,13 +94,50 @@ public class PaymentBusinessRulesService {
 
   // Validators expected by tests
   public void validateDailyLimit(Payment payment, TenantContext tenantContext) {
-    // Per current unit tests, this validator is expected to throw regardless of totals
-    throw new IllegalArgumentException("Daily payment limit exceeded");
+    BusinessRules rules = getBusinessRulesForTenant(tenantContext.getTenantId());
+
+    // Get today's payment total for this tenant
+    Instant startOfDay = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.DAYS);
+    Instant endOfDay = startOfDay.plus(1, java.time.temporal.ChronoUnit.DAYS);
+
+    var todayPayments =
+        paymentRepository.findByTenantIdAndDateRange(
+            tenantContext.getTenantId(),
+            startOfDay,
+            endOfDay,
+            org.springframework.data.domain.Pageable.unpaged());
+
+    BigDecimal todayTotal =
+        todayPayments.getContent().stream()
+            .map(p -> p.getAmount().getAmount())
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    BigDecimal newTotal = todayTotal.add(payment.getAmount().getAmount());
+
+    if (newTotal.compareTo(rules.getDailyLimit()) > 0) {
+      throw new IllegalArgumentException("Daily payment limit exceeded");
+    }
   }
 
   public void validateVelocityLimit(Payment payment, TenantContext tenantContext) {
-    // Per current unit tests, this validator is expected to throw regardless of counts
-    throw new IllegalArgumentException("Payment velocity limit exceeded");
+    BusinessRules rules = getBusinessRulesForTenant(tenantContext.getTenantId());
+
+    // Get payments from the last hour
+    Instant oneHourAgo = Instant.now().minus(1, java.time.temporal.ChronoUnit.HOURS);
+    Instant now = Instant.now();
+
+    var recentPayments =
+        paymentRepository.findByTenantIdAndDateRange(
+            tenantContext.getTenantId(),
+            oneHourAgo,
+            now,
+            org.springframework.data.domain.Pageable.unpaged());
+
+    int recentPaymentCount = recentPayments.getContent().size();
+
+    if (recentPaymentCount >= rules.getVelocityLimit()) {
+      throw new IllegalArgumentException("Payment velocity limit exceeded");
+    }
   }
 
   public void validateAmountLimits(Payment payment, TenantContext tenantContext) {
@@ -128,6 +165,32 @@ public class PaymentBusinessRulesService {
     String ref = payment.getReference() != null ? payment.getReference().getValue() : null;
     if (ref == null || ref.isBlank()) {
       throw new IllegalArgumentException("Payment does not meet compliance requirements");
+    }
+  }
+
+  /**
+   * Validate for duplicate payments using idempotency key
+   *
+   * @param payment Payment to validate
+   * @param tenantContext Tenant context
+   */
+  public void validateDuplicatePayment(Payment payment, TenantContext tenantContext) {
+    // Check if a payment with the same idempotency key already exists
+    if (payment.getIdempotencyKey() != null) {
+      var existingPayments =
+          paymentRepository.findByTenantIdAndDateRange(
+              tenantContext.getTenantId(),
+              Instant.now().minus(24, java.time.temporal.ChronoUnit.HOURS), // Check last 24 hours
+              Instant.now(),
+              org.springframework.data.domain.Pageable.unpaged());
+
+      boolean duplicateExists =
+          existingPayments.getContent().stream()
+              .anyMatch(p -> payment.getIdempotencyKey().equals(p.getIdempotencyKey()));
+
+      if (duplicateExists) {
+        throw new IllegalArgumentException("Duplicate payment detected");
+      }
     }
   }
 }

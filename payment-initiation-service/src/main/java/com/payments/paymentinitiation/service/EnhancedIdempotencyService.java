@@ -4,7 +4,6 @@ import com.payments.domain.shared.PaymentId;
 import com.payments.paymentinitiation.port.IdempotencyRepositoryPort;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,6 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>Provides advanced idempotency handling with: - TTL management - Duplicate detection - Cleanup
  * operations - Performance optimization
+ *
+ * <p>This service uses the Decorator pattern, wrapping the basic IdempotencyService with enhanced
+ * features while maintaining backward compatibility. The basic service provides core functionality,
+ * while this enhanced service adds TTL validation, cleanup operations, statistics, and fallback
+ * mechanisms.
  */
 @Slf4j
 @Service
@@ -35,28 +39,30 @@ public class EnhancedIdempotencyService {
   public boolean isDuplicate(String idempotencyKey, String tenantId) {
     log.debug("Checking idempotency for key: {}, tenant: {}", idempotencyKey, tenantId);
 
-    // Check if key exists
-    boolean exists =
-        idempotencyRepository.existsByIdempotencyKeyAndTenantId(idempotencyKey, tenantId);
+    // First, use basic idempotency check
+    boolean basicDuplicate = basicIdempotencyService.isDuplicate(idempotencyKey, tenantId);
 
-    if (exists) {
-      // Check if the existing record is still valid (not expired)
-      var record = idempotencyRepository.findByIdempotencyKeyAndTenantId(idempotencyKey, tenantId);
-      if (record.isPresent()) {
-        var idempotencyRecord = record.get();
-        Instant createdAt = idempotencyRecord.createdAt();
-        Instant expiryTime = createdAt.plus(24, ChronoUnit.HOURS); // 24 hour TTL
+    if (!basicDuplicate) {
+      log.debug("Idempotency key is unique: {}", idempotencyKey);
+      return false;
+    }
 
-        if (Instant.now().isAfter(expiryTime)) {
-          log.debug("Idempotency key expired, allowing request: {}", idempotencyKey);
-          // Clean up expired record
-          cleanupExpiredRecord(idempotencyKey, tenantId);
-          return false;
-        }
+    // If basic check found a duplicate, enhance with TTL validation
+    var record = idempotencyRepository.findByIdempotencyKeyAndTenantId(idempotencyKey, tenantId);
+    if (record.isPresent()) {
+      var idempotencyRecord = record.get();
+      Instant createdAt = idempotencyRecord.createdAt();
+      Instant expiryTime = createdAt.plus(24, ChronoUnit.HOURS); // 24 hour TTL
 
-        log.debug("Duplicate idempotency key found: {}", idempotencyKey);
-        return true;
+      if (Instant.now().isAfter(expiryTime)) {
+        log.debug("Idempotency key expired, allowing request: {}", idempotencyKey);
+        // Clean up expired record
+        cleanupExpiredRecord(idempotencyKey, tenantId);
+        return false;
       }
+
+      log.debug("Duplicate idempotency key found: {}", idempotencyKey);
+      return true;
     }
 
     log.debug("Idempotency key is unique: {}", idempotencyKey);
@@ -80,22 +86,14 @@ public class EnhancedIdempotencyService {
         tenantId,
         paymentId);
 
-    // Create enhanced idempotency record
-    var record =
-        new IdempotencyRepositoryPort.IdempotencyRecord(
-            UUID.randomUUID().toString(),
-            idempotencyKey,
-            tenantId,
-            paymentId.getValue(),
-            Instant.now());
+    // First, use basic idempotency recording
+    basicIdempotencyService.recordIdempotency(idempotencyKey, tenantId, paymentId);
 
-    // Save record
-    idempotencyRepository.save(record);
-
+    // Then add enhanced features
     // Schedule cleanup for expired records
     scheduleCleanup();
 
-    log.debug("Idempotency recorded successfully for key: {}", idempotencyKey);
+    log.debug("Enhanced idempotency recorded successfully for key: {}", idempotencyKey);
   }
 
   /**
@@ -173,6 +171,46 @@ public class EnhancedIdempotencyService {
     // In a real implementation, this would schedule a background task
     // For now, we'll just log that cleanup should be scheduled
     log.debug("Cleanup scheduled for expired idempotency records");
+  }
+
+  /**
+   * Fallback to basic idempotency when enhanced features fail
+   *
+   * @param idempotencyKey Idempotency key
+   * @param tenantId Tenant ID
+   * @return true if duplicate, false otherwise
+   */
+  @Transactional(readOnly = true)
+  public boolean isDuplicateWithFallback(String idempotencyKey, String tenantId) {
+    try {
+      // Try enhanced idempotency first
+      return isDuplicate(idempotencyKey, tenantId);
+    } catch (Exception e) {
+      log.warn("Enhanced idempotency failed, falling back to basic: {}", e.getMessage());
+      // Fallback to basic idempotency
+      return basicIdempotencyService.isDuplicate(idempotencyKey, tenantId);
+    }
+  }
+
+  /**
+   * Record idempotency with fallback to basic service
+   *
+   * @param idempotencyKey Idempotency key
+   * @param tenantId Tenant ID
+   * @param paymentId Payment ID
+   * @param correlationId Correlation ID
+   */
+  @Transactional
+  public void recordIdempotencyWithFallback(
+      String idempotencyKey, String tenantId, PaymentId paymentId, String correlationId) {
+    try {
+      // Try enhanced recording first
+      recordIdempotency(idempotencyKey, tenantId, paymentId, correlationId);
+    } catch (Exception e) {
+      log.warn("Enhanced idempotency recording failed, falling back to basic: {}", e.getMessage());
+      // Fallback to basic idempotency recording
+      basicIdempotencyService.recordIdempotency(idempotencyKey, tenantId, paymentId);
+    }
   }
 
   /** Idempotency statistics */

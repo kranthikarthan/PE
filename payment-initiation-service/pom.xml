@@ -51,6 +51,27 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Domain Models -->
+        <dependency>
+            <groupId>com.payments</groupId>
+            <artifactId>shared</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- ISO 20022 Domain Models -->
+        <dependency>
+            <groupId>com.payments</groupId>
+            <artifactId>iso20022</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Routing Service -->
+        <dependency>
+            <groupId>com.payments</groupId>
+            <artifactId>routing-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Spring Boot Starters -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

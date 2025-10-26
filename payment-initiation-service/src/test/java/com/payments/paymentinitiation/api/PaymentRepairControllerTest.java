@@ -1,10 +1,19 @@
 package com.payments.paymentinitiation.api;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payments.contracts.payment.PaymentInitiationResponse;
 import com.payments.domain.shared.PaymentId;
 import com.payments.domain.shared.TenantContext;
 import com.payments.paymentinitiation.service.PaymentRepairService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -13,59 +22,52 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.Instant;
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 /**
  * Payment Repair Controller Test
- * 
- * Comprehensive test suite for the Payment Repair REST API.
- * Tests all endpoints with proper authentication and authorization.
+ *
+ * <p>Comprehensive test suite for the Payment Repair REST API. Tests all endpoints with proper
+ * authentication and authorization.
  */
 @WebMvcTest(PaymentRepairController.class)
 class PaymentRepairControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+  @Autowired private ObjectMapper objectMapper;
 
-    @MockBean
-    private PaymentRepairService paymentRepairService;
+  @MockBean private PaymentRepairService paymentRepairService;
 
-    @Test
-    @WithMockUser(roles = "OPS_OPERATOR")
-    void testRetryPayment_ShouldReturnSuccess() throws Exception {
-        // Given
-        PaymentRepairController.RetryRequest request = PaymentRepairController.RetryRequest.builder()
+  @Test
+  @WithMockUser(roles = "OPS_OPERATOR")
+  void testRetryPayment_ShouldReturnSuccess() throws Exception {
+    // Given
+    PaymentRepairController.RetryRequest request =
+        PaymentRepairController.RetryRequest.builder()
             .reason("System error resolved")
             .forceRetry(false)
             .build();
 
-        PaymentInitiationResponse mockResponse = PaymentInitiationResponse.builder()
+    PaymentInitiationResponse mockResponse =
+        PaymentInitiationResponse.builder()
             .paymentId(PaymentId.of("payment-123"))
             .status(com.payments.contracts.payment.PaymentStatus.INITIATED)
-            .tenantContext(TenantContext.builder()
-                .tenantId("tenant-123")
-                .businessUnitId("business-unit-123")
-                .build())
+            .tenantContext(
+                TenantContext.builder()
+                    .tenantId("tenant-123")
+                    .businessUnitId("business-unit-123")
+                    .build())
             .initiatedAt(Instant.now())
             .errorMessage("Payment retry initiated successfully")
             .build();
-        
-        when(paymentRepairService.retryPayment(anyString(), any(), anyString(), anyString(), anyString(), anyString()))
-            .thenReturn(mockResponse);
 
-        // When & Then
-        mockMvc.perform(post("/api/repair/v1/payments/payment-123/retry")
+    when(paymentRepairService.retryPayment(
+            anyString(), any(), anyString(), anyString(), anyString(), anyString()))
+        .thenReturn(mockResponse);
+
+    // When & Then
+    mockMvc
+        .perform(
+            post("/api/repair/v1/payments/payment-123/retry")
                 .header("X-User-ID", "operator")
                 .header("X-Correlation-ID", "corr-123")
                 .header("X-Tenant-ID", "tenant-123")
@@ -73,37 +75,43 @@ class PaymentRepairControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .with(csrf()))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.paymentId").value("payment-123"))
-            .andExpect(jsonPath("$.status").value("RETRY_INITIATED"))
-            .andExpect(jsonPath("$.message").value("Payment retry initiated successfully"));
-    }
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.paymentId").value("payment-123"))
+        .andExpect(jsonPath("$.status").value("RETRY_INITIATED"))
+        .andExpect(jsonPath("$.message").value("Payment retry initiated successfully"));
+  }
 
-    @Test
-    @WithMockUser(roles = "OPS_OPERATOR")
-    void testCancelPayment_ShouldReturnSuccess() throws Exception {
-        // Given
-        PaymentRepairController.CancelRequest request = PaymentRepairController.CancelRequest.builder()
+  @Test
+  @WithMockUser(roles = "OPS_OPERATOR")
+  void testCancelPayment_ShouldReturnSuccess() throws Exception {
+    // Given
+    PaymentRepairController.CancelRequest request =
+        PaymentRepairController.CancelRequest.builder()
             .reason("Customer requested cancellation")
             .forceCancel(false)
             .build();
 
-        PaymentInitiationResponse mockResponse = PaymentInitiationResponse.builder()
+    PaymentInitiationResponse mockResponse =
+        PaymentInitiationResponse.builder()
             .paymentId(PaymentId.of("payment-123"))
             .status(com.payments.contracts.payment.PaymentStatus.FAILED)
-            .tenantContext(TenantContext.builder()
-                .tenantId("tenant-123")
-                .businessUnitId("business-unit-123")
-                .build())
+            .tenantContext(
+                TenantContext.builder()
+                    .tenantId("tenant-123")
+                    .businessUnitId("business-unit-123")
+                    .build())
             .initiatedAt(Instant.now())
             .errorMessage("Payment cancelled successfully")
             .build();
-        
-        when(paymentRepairService.cancelPayment(anyString(), any(), anyString(), anyString(), anyString(), anyString()))
-            .thenReturn(mockResponse);
 
-        // When & Then
-        mockMvc.perform(post("/api/repair/v1/payments/payment-123/cancel")
+    when(paymentRepairService.cancelPayment(
+            anyString(), any(), anyString(), anyString(), anyString(), anyString()))
+        .thenReturn(mockResponse);
+
+    // When & Then
+    mockMvc
+        .perform(
+            post("/api/repair/v1/payments/payment-123/cancel")
                 .header("X-User-ID", "operator")
                 .header("X-Correlation-ID", "corr-123")
                 .header("X-Tenant-ID", "tenant-123")
@@ -111,116 +119,130 @@ class PaymentRepairControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .with(csrf()))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.paymentId").value("payment-123"))
-            .andExpect(jsonPath("$.status").value("CANCELLED"))
-            .andExpect(jsonPath("$.message").value("Payment cancelled successfully"));
-    }
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.paymentId").value("payment-123"))
+        .andExpect(jsonPath("$.status").value("CANCELLED"))
+        .andExpect(jsonPath("$.message").value("Payment cancelled successfully"));
+  }
 
-    @Test
-    @WithMockUser(roles = "OPS_VIEWER")
-    void testGetPaymentRepairHistory_ShouldReturnHistory() throws Exception {
-        // Given
-        List<PaymentRepairController.RepairHistoryItem> mockHistory = List.of(
+  @Test
+  @WithMockUser(roles = "OPS_VIEWER")
+  void testGetPaymentRepairHistory_ShouldReturnHistory() throws Exception {
+    // Given
+    List<PaymentRepairController.RepairHistoryItem> mockHistory =
+        List.of(
             PaymentRepairController.RepairHistoryItem.builder()
                 .action("RETRY")
                 .timestamp(Instant.now().toString())
                 .performedBy("operator")
                 .reason("System error resolved")
                 .result("SUCCESS")
-                .build()
-        );
-        
-        PaymentRepairController.RepairHistoryResponse mockResponse = PaymentRepairController.RepairHistoryResponse.builder()
+                .build());
+
+    PaymentRepairController.RepairHistoryResponse mockResponse =
+        PaymentRepairController.RepairHistoryResponse.builder()
             .paymentId("payment-123")
             .repairHistory(mockHistory)
             .totalCount(1)
             .build();
-        
-        when(paymentRepairService.getPaymentRepairHistory(anyString(), anyString(), anyString(), anyString()))
-            .thenReturn(mockHistory);
 
-        // When & Then
-        mockMvc.perform(get("/api/repair/v1/payments/payment-123/repair-history")
+    when(paymentRepairService.getPaymentRepairHistory(
+            anyString(), anyString(), anyString(), anyString()))
+        .thenReturn(mockHistory);
+
+    // When & Then
+    mockMvc
+        .perform(
+            get("/api/repair/v1/payments/payment-123/repair-history")
                 .header("X-Correlation-ID", "corr-123")
                 .header("X-Tenant-ID", "tenant-123")
                 .header("X-Business-Unit-ID", "bu-123")
                 .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.paymentId").value("payment-123"))
-            .andExpect(jsonPath("$.repairHistory").isArray())
-            .andExpect(jsonPath("$.repairHistory[0].action").value("RETRY"))
-            .andExpect(jsonPath("$.repairHistory[0].performedBy").value("operator"))
-            .andExpect(jsonPath("$.totalCount").value(1));
-    }
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.paymentId").value("payment-123"))
+        .andExpect(jsonPath("$.repairHistory").isArray())
+        .andExpect(jsonPath("$.repairHistory[0].action").value("RETRY"))
+        .andExpect(jsonPath("$.repairHistory[0].performedBy").value("operator"))
+        .andExpect(jsonPath("$.totalCount").value(1));
+  }
 
-    @Test
-    @WithMockUser(roles = "OPS_VIEWER")
-    void testGetFailedPayments_ShouldReturnFailedPayments() throws Exception {
-        // Given
-        List<PaymentInitiationResponse> mockFailedPayments = List.of(
+  @Test
+  @WithMockUser(roles = "OPS_VIEWER")
+  void testGetFailedPayments_ShouldReturnFailedPayments() throws Exception {
+    // Given
+    List<PaymentInitiationResponse> mockFailedPayments =
+        List.of(
             PaymentInitiationResponse.builder()
                 .paymentId(PaymentId.of("payment-123"))
                 .status(com.payments.contracts.payment.PaymentStatus.FAILED)
-                .tenantContext(TenantContext.builder()
-                    .tenantId("tenant-123")
-                    .businessUnitId("business-unit-123")
-                    .build())
+                .tenantContext(
+                    TenantContext.builder()
+                        .tenantId("tenant-123")
+                        .businessUnitId("business-unit-123")
+                        .build())
                 .initiatedAt(Instant.now())
                 .build(),
             PaymentInitiationResponse.builder()
                 .paymentId(PaymentId.of("payment-456"))
                 .status(com.payments.contracts.payment.PaymentStatus.FAILED)
-                .tenantContext(TenantContext.builder()
-                    .tenantId("tenant-123")
-                    .businessUnitId("business-unit-123")
-                    .build())
+                .tenantContext(
+                    TenantContext.builder()
+                        .tenantId("tenant-123")
+                        .businessUnitId("business-unit-123")
+                        .build())
                 .initiatedAt(Instant.now())
-                .build()
-        );
-        
-        when(paymentRepairService.getFailedPayments(any(), any(), anyString(), anyString(), anyString()))
-            .thenReturn(mockFailedPayments);
+                .build());
 
-        // When & Then
-        mockMvc.perform(get("/api/repair/v1/payments/failed")
+    when(paymentRepairService.getFailedPayments(
+            any(), any(), anyString(), anyString(), anyString()))
+        .thenReturn(mockFailedPayments);
+
+    // When & Then
+    mockMvc
+        .perform(
+            get("/api/repair/v1/payments/failed")
                 .param("page", "0")
                 .param("size", "20")
                 .header("X-Correlation-ID", "corr-123")
                 .header("X-Tenant-ID", "tenant-123")
                 .header("X-Business-Unit-ID", "bu-123")
                 .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.failedPayments").isArray())
-            .andExpect(jsonPath("$.failedPayments[0].paymentId").value("payment-123"))
-            .andExpect(jsonPath("$.failedPayments[0].status").value("FAILED"))
-            .andExpect(jsonPath("$.failedPayments[1].paymentId").value("payment-456"))
-            .andExpect(jsonPath("$.failedPayments[1].status").value("TIMEOUT"))
-            .andExpect(jsonPath("$.totalCount").value(2));
-    }
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.failedPayments").isArray())
+        .andExpect(jsonPath("$.failedPayments[0].paymentId").value("payment-123"))
+        .andExpect(jsonPath("$.failedPayments[0].status").value("FAILED"))
+        .andExpect(jsonPath("$.failedPayments[1].paymentId").value("payment-456"))
+        .andExpect(jsonPath("$.failedPayments[1].status").value("TIMEOUT"))
+        .andExpect(jsonPath("$.totalCount").value(2));
+  }
 
-    @Test
-    @WithMockUser(roles = "OPS_ADMIN")
-    void testBulkRetryPayments_ShouldReturnSuccess() throws Exception {
-        // Given
-        PaymentRepairController.BulkRetryRequest request = PaymentRepairController.BulkRetryRequest.builder()
+  @Test
+  @WithMockUser(roles = "OPS_ADMIN")
+  void testBulkRetryPayments_ShouldReturnSuccess() throws Exception {
+    // Given
+    PaymentRepairController.BulkRetryRequest request =
+        PaymentRepairController.BulkRetryRequest.builder()
             .paymentIds(List.of("payment-123", "payment-456"))
             .reason("Bulk retry after system maintenance")
             .forceRetry(false)
             .build();
 
-        PaymentRepairController.BulkRetryResponse mockResponse = PaymentRepairController.BulkRetryResponse.builder()
+    PaymentRepairController.BulkRetryResponse mockResponse =
+        PaymentRepairController.BulkRetryResponse.builder()
             .totalProcessed(2)
             .successCount(2)
             .failureCount(0)
             .failedPaymentIds(List.of())
             .build();
-        
-        when(paymentRepairService.bulkRetryPayments(any(), anyString(), anyString(), anyString(), anyString()))
-            .thenReturn(mockResponse);
 
-        // When & Then
-        mockMvc.perform(post("/api/repair/v1/payments/bulk-retry")
+    when(paymentRepairService.bulkRetryPayments(
+            any(), anyString(), anyString(), anyString(), anyString()))
+        .thenReturn(mockResponse);
+
+    // When & Then
+    mockMvc
+        .perform(
+            post("/api/repair/v1/payments/bulk-retry")
                 .header("X-User-ID", "admin")
                 .header("X-Correlation-ID", "corr-123")
                 .header("X-Tenant-ID", "tenant-123")
@@ -228,24 +250,27 @@ class PaymentRepairControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .with(csrf()))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.totalProcessed").value(2))
-            .andExpect(jsonPath("$.successCount").value(2))
-            .andExpect(jsonPath("$.failureCount").value(0))
-            .andExpect(jsonPath("$.failedPaymentIds").isEmpty());
-    }
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalProcessed").value(2))
+        .andExpect(jsonPath("$.successCount").value(2))
+        .andExpect(jsonPath("$.failureCount").value(0))
+        .andExpect(jsonPath("$.failedPaymentIds").isEmpty());
+  }
 
-    @Test
-    @WithMockUser(roles = "OPS_OPERATOR")
-    void testRetryPayment_WithInvalidRequest_ShouldReturnBadRequest() throws Exception {
-        // Given
-        PaymentRepairController.RetryRequest request = PaymentRepairController.RetryRequest.builder()
+  @Test
+  @WithMockUser(roles = "OPS_OPERATOR")
+  void testRetryPayment_WithInvalidRequest_ShouldReturnBadRequest() throws Exception {
+    // Given
+    PaymentRepairController.RetryRequest request =
+        PaymentRepairController.RetryRequest.builder()
             .reason("") // Empty reason should fail validation
             .forceRetry(false)
             .build();
 
-        // When & Then
-        mockMvc.perform(post("/api/repair/v1/payments/payment-123/retry")
+    // When & Then
+    mockMvc
+        .perform(
+            post("/api/repair/v1/payments/payment-123/retry")
                 .header("X-User-ID", "operator")
                 .header("X-Correlation-ID", "corr-123")
                 .header("X-Tenant-ID", "tenant-123")
@@ -253,23 +278,27 @@ class PaymentRepairControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .with(csrf()))
-            .andExpect(status().isBadRequest());
-    }
+        .andExpect(status().isBadRequest());
+  }
 
-    @Test
-    @WithMockUser(roles = "OPS_OPERATOR")
-    void testRetryPayment_WithPaymentNotFound_ShouldReturnNotFound() throws Exception {
-        // Given
-        PaymentRepairController.RetryRequest request = PaymentRepairController.RetryRequest.builder()
+  @Test
+  @WithMockUser(roles = "OPS_OPERATOR")
+  void testRetryPayment_WithPaymentNotFound_ShouldReturnNotFound() throws Exception {
+    // Given
+    PaymentRepairController.RetryRequest request =
+        PaymentRepairController.RetryRequest.builder()
             .reason("System error resolved")
             .forceRetry(false)
             .build();
 
-        when(paymentRepairService.retryPayment(anyString(), any(), anyString(), anyString(), anyString(), anyString()))
-            .thenThrow(new IllegalArgumentException("Payment not found: payment-123"));
+    when(paymentRepairService.retryPayment(
+            anyString(), any(), anyString(), anyString(), anyString(), anyString()))
+        .thenThrow(new IllegalArgumentException("Payment not found: payment-123"));
 
-        // When & Then
-        mockMvc.perform(post("/api/repair/v1/payments/payment-123/retry")
+    // When & Then
+    mockMvc
+        .perform(
+            post("/api/repair/v1/payments/payment-123/retry")
                 .header("X-User-ID", "operator")
                 .header("X-Correlation-ID", "corr-123")
                 .header("X-Tenant-ID", "tenant-123")
@@ -277,33 +306,39 @@ class PaymentRepairControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .with(csrf()))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorMessage").value("Payment not found: payment-123"));
-    }
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errorMessage").value("Payment not found: payment-123"));
+  }
 
-    @Test
-    void testRetryPayment_WithoutAuthentication_ShouldReturnUnauthorized() throws Exception {
-        PaymentRepairController.RetryRequest request = PaymentRepairController.RetryRequest.builder()
+  @Test
+  void testRetryPayment_WithoutAuthentication_ShouldReturnUnauthorized() throws Exception {
+    PaymentRepairController.RetryRequest request =
+        PaymentRepairController.RetryRequest.builder()
             .reason("System error resolved")
             .forceRetry(false)
             .build();
 
-        mockMvc.perform(post("/api/repair/v1/payments/payment-123/retry")
+    mockMvc
+        .perform(
+            post("/api/repair/v1/payments/payment-123/retry")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .with(csrf()))
-            .andExpect(status().isUnauthorized());
-    }
+        .andExpect(status().isUnauthorized());
+  }
 
-    @Test
-    @WithMockUser(roles = "OPS_VIEWER")
-    void testRetryPayment_WithInsufficientRole_ShouldReturnForbidden() throws Exception {
-        PaymentRepairController.RetryRequest request = PaymentRepairController.RetryRequest.builder()
+  @Test
+  @WithMockUser(roles = "OPS_VIEWER")
+  void testRetryPayment_WithInsufficientRole_ShouldReturnForbidden() throws Exception {
+    PaymentRepairController.RetryRequest request =
+        PaymentRepairController.RetryRequest.builder()
             .reason("System error resolved")
             .forceRetry(false)
             .build();
 
-        mockMvc.perform(post("/api/repair/v1/payments/payment-123/retry")
+    mockMvc
+        .perform(
+            post("/api/repair/v1/payments/payment-123/retry")
                 .header("X-User-ID", "viewer")
                 .header("X-Correlation-ID", "corr-123")
                 .header("X-Tenant-ID", "tenant-123")
@@ -311,6 +346,6 @@ class PaymentRepairControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .with(csrf()))
-            .andExpect(status().isForbidden());
-    }
+        .andExpect(status().isForbidden());
+  }
 }

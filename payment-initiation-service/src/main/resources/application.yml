@@ -63,4 +63,25 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"
 
+# Resilience4j Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      auditPublisher:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        record-exceptions:
+          - java.lang.RuntimeException
+          - java.lang.Exception
+        ignore-exceptions:
+          - java.util.concurrent.TimeoutException
+  timelimiter:
+    instances:
+      auditPublisher:
+        timeout-duration: 5s
+
 # Application specific (reserve for future use via @ConfigurationProperties if needed)
